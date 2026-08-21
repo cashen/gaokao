@@ -6,6 +6,11 @@ on:
       - agent/unified-experience-context-v001
     paths:
       - .github/workflows/tmp-uec-restore-tool-registry-export.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/tmp-uec-restore-tool-registry-export.yml
 
 permissions:
   contents: write
