@@ -1,10 +1,10 @@
-export const STUDENT_VOICE_EVIDENCE_SELECTOR_VERSION = 'student-voice-evidence-selector-v0.02';
+export const STUDENT_VOICE_EVIDENCE_SELECTOR_VERSION = 'student-voice-evidence-selector-v0.02.1';
 
 const CATEGORY_RULES = Object.freeze([
-  ['employment', ['就业', '工作', '实习', '岗位', '招聘', '薪资']],
-  ['course', ['课程', '专业课', '实验', '学习', '考试', '培养']],
-  ['postgraduate', ['考研', '读研', '保研', '升学']],
-  ['campus_life', ['宿舍', '食堂', '校园', '环境', '生活']],
+  ['employment', ['就业', '工作', '实习', '岗位', '招聘', '薪资', '入职']],
+  ['course', ['课程', '专业课', '实验', '学习', '考试', '培养', '项目']],
+  ['postgraduate', ['考研', '读研', '保研', '升学', '研究生']],
+  ['campus_life', ['宿舍', '食堂', '校园', '环境', '生活', '寝室']],
   ['faculty', ['老师', '教师', '导师', '教学', '答疑']]
 ]);
 
@@ -17,8 +17,18 @@ const CATEGORY_LABELS = Object.freeze({
   general: '学生体验'
 });
 
+const LOW_VALUE_PATTERNS = Object.freeze([
+  /^很好[。！!]*$/,
+  /^不错[。！!]*$/,
+  /^挺好的[。！!]*$/,
+  /^还行[。！!]*$/
+]);
+
 export function selectStudentVoiceEvidence(reviews = [], limit = 5) {
-  const candidates = Array.isArray(reviews) ? reviews.map(normalizeReview).filter(Boolean) : [];
+  const candidates = Array.isArray(reviews)
+    ? reviews.map(normalizeReview).filter(Boolean)
+    : [];
+
   const ranked = candidates
     .map((review) => ({ ...review, score: scoreReview(review) }))
     .sort((a, b) => b.score - a.score);
@@ -35,7 +45,9 @@ export function selectStudentVoiceEvidence(reviews = [], limit = 5) {
 
   for (const item of ranked) {
     if (selected.length >= limit) break;
-    if (!selected.some((entry) => entry.content === item.content)) selected.push(toEvidence(item));
+    if (!selected.some((entry) => entry.content === item.content)) {
+      selected.push(toEvidence(item));
+    }
   }
 
   return selected;
@@ -54,7 +66,8 @@ function toEvidence(item) {
 function normalizeReview(review) {
   if (!review || typeof review !== 'object') return null;
   const content = String(review.content || review.text || review.comment || '').trim();
-  if (!content) return null;
+  if (!content || isLowValue(content)) return null;
+
   const category = classify(content);
   return {
     content,
@@ -62,6 +75,10 @@ function normalizeReview(review) {
     category,
     reason: buildReason(category)
   };
+}
+
+function isLowValue(text) {
+  return LOW_VALUE_PATTERNS.some((pattern) => pattern.test(text));
 }
 
 function classify(text) {
@@ -74,7 +91,7 @@ function classify(text) {
 function scoreReview(review) {
   const lengthScore = Math.min(review.content.length / 25, 6);
   const categoryScore = review.category === 'general' ? 0 : 2;
-  const detailScore = /但是|因为|比较|大一|大二|课程|实验|就业|考研/.test(review.content) ? 2 : 0;
+  const detailScore = /但是|因为|比较|大一|大二|课程|实验|就业|考研|项目/.test(review.content) ? 2 : 0;
   const timeScore = review.time ? 0.5 : 0;
   return lengthScore + categoryScore + detailScore + timeScore;
 }
