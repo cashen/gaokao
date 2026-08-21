@@ -70,7 +70,7 @@ jobs:
             functions/_lib/major-bands-static-provider.js \
             functions/_lib/major-bands-rank-bucket-loader.v3990_2.js \
             functions/_lib/major-bands-rank-query-kernel.v3990_2.js \
-            functions/_lib/major-bands-query-execution-cache.v3990_2.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_1.js \
             tools/audit-canonical-release-version-v3990_2.mjs \
             tools/audit-cloudflare-git-production-v3990_2.mjs \
             tools/audit-production-resource-verification-v3990_2.mjs \

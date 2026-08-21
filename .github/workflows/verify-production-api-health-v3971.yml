@@ -41,8 +41,8 @@ jobs:
             functions/_lib/major-bands-static-provider.js \
             functions/_lib/major-bands-rank-index.v3990_2.js \
             functions/_lib/major-bands-rank-bucket-loader.v3990_2.js \
-            functions/_lib/major-bands-query-execution-cache.v3990_2.js \
-            functions/_lib/major-bands-all-bands-page-cache.v3990_2.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_1.js \
+            functions/_lib/major-bands-all-bands-page-cache.v3990_1.js \
             functions/_lib/major-bands-rank-query-kernel.v3990_2.js \
             functions/_lib/major-bands-result-order.v3990_2.js \
             functions/_lib/major-bands-response-transport.v3990_2.js \
@@ -92,9 +92,9 @@ jobs:
           grep -q "const sortKeys = requestedBand ? \[requestedBand\] : BAND_KEYS" functions/_lib/major-bands-rank-query-kernel.v3990_2.js
           grep -q "MAJOR_BANDS_RESULT_ORDER_VERSION = 'major-bands-result-order-ephemeral-v3990_2'" functions/_lib/major-bands-result-order.v3990_2.js
           grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_2.js
-          grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_2.js
-          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_2.js
-          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_2.js
+          grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_1.js
+          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_1.js
+          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|distributed-bucket-workers|maxCandidates|selected\.buckets\.length > 12|loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
             echo 'retired self-fanout, candidate cap or raw scan returned'
             exit 1

@@ -8,8 +8,8 @@ on:
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-rank-*.v3990_2.js'
-      - 'functions/_lib/major-bands-query-execution-cache.v3990_2.js'
-      - 'functions/_lib/major-bands-all-bands-page-cache.v3990_2.js'
+      - 'functions/_lib/major-bands-query-execution-cache.v3990_1.js'
+      - 'functions/_lib/major-bands-all-bands-page-cache.v3990_1.js'
       - 'functions/_lib/major-bands-result-order.v3990_2.js'
       - 'functions/_lib/major-bands-response-transport.v3990_2.js'
       - 'functions/_lib/major-filter.v3990_2.js'
@@ -81,8 +81,8 @@ jobs:
             functions/_lib/major-bands-static-provider.js \
             functions/_lib/major-bands-rank-index.v3990_2.js \
             functions/_lib/major-bands-rank-bucket-loader.v3990_2.js \
-            functions/_lib/major-bands-query-execution-cache.v3990_2.js \
-            functions/_lib/major-bands-all-bands-page-cache.v3990_2.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_1.js \
+            functions/_lib/major-bands-all-bands-page-cache.v3990_1.js \
             functions/_lib/major-bands-rank-query-kernel.v3990_2.js \
             functions/_lib/major-bands-result-order.v3990_2.js \
             functions/_lib/major-bands-response-transport.v3990_2.js \
@@ -103,8 +103,8 @@ jobs:
           grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_2.js
           grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_2.js
           grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_2.js
-          grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_2.js
-          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_2.js
+          grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_1.js
+          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "wrangler@4.121.0" .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml
           for workflow in \
             .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
@@ -113,7 +113,7 @@ jobs:
             grep -Fq 'group: v3990-1-cloudflare-preview-' "$workflow"
             grep -q 'queue: max' "$workflow"
           done
-          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_2.js
+          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "requestedBand && canonicalPosition.bandKey !== requestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_2.js
           grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_2.js
           grep -q "major-bands-pagination-snapshot-guard-v3990_2" ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js

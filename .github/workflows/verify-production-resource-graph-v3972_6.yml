@@ -29,7 +29,7 @@ on:
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-rank-*.v3990_2.js'
-      - 'functions/_lib/major-bands-query-execution-cache.v3990_2.js'
+      - 'functions/_lib/major-bands-query-execution-cache.v3990_1.js'
       - 'functions/_lib/major-bands-result-order.v3990_2.js'
       - 'functions/_lib/major-bands-response-transport.v3990_2.js'
       - '.github/workflows/verify-production-resource-graph-v3972_6.yml'
@@ -66,7 +66,7 @@ jobs:
             if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-production-files.txt; then exit 1; fi
           fi
           node --check shared/governance/production-resource-verification-contract.v3990_2.js
-          node --check functions/_lib/major-bands-query-execution-cache.v3990_2.js
+          node --check functions/_lib/major-bands-query-execution-cache.v3990_1.js
           node --check functions/_lib/major-bands-result-order.v3990_2.js
           node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js
           node --check tools/audit-production-resource-verification-v3990_2.mjs

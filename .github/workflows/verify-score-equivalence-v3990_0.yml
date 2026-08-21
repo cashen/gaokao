@@ -15,7 +15,7 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_2.css'
+      - 'ln-rank/css/score-converter.v3990_1.css'
       - 'ln-rank/js/score-converter/**'
       - 'tools/audit-score-equivalence-v3990_2.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
@@ -32,7 +32,7 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_2.css'
+      - 'ln-rank/css/score-converter.v3990_1.css'
       - 'ln-rank/js/score-converter/**'
       - 'tools/audit-score-equivalence-v3990_2.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
@@ -57,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/api/score-equivalence.js
-          node --check ln-rank/js/score-converter/score-converter-app.v3990_2.js
+          node --check ln-rank/js/score-converter/score-converter-app.v3990_1.js
           node --check tools/audit-score-equivalence-v3990_2.mjs
           node --experimental-default-type=module tools/audit-score-equivalence-v3990_2.mjs
 
