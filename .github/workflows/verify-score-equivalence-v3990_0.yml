@@ -70,6 +70,7 @@ jobs:
       - name: Wait for Pages route and verify golden result and contextual entries
         env:
           PAGE_URL: https://gaokao-4y9.pages.dev/ln-rank/score-converter/
+          STYLE_URL: https://gaokao-4y9.pages.dev/ln-rank/css/score-converter.v3990_2.css?v=3990_2
           API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600
           HOME_URL: https://gaokao-4y9.pages.dev/
           SELECTION_URL: https://gaokao-4y9.pages.dev/ln-rank/
@@ -80,6 +81,7 @@ jobs:
           for attempt in $(seq 1 40); do
             token="${GITHUB_SHA}-${attempt}"
             page="$(curl -fsSL --max-time 20 "${PAGE_URL}?deploy=${token}" || true)"
+            styles="$(curl -fsSL --max-time 20 "${STYLE_URL}&deploy=${token}" || true)"
             body="$(curl -fsSL --max-time 20 "${API_URL}&deploy=${token}" || true)"
             home="$(curl -fsSL --max-time 20 "${HOME_URL}?deploy=${token}" || true)"
             selection="$(curl -fsSL --max-time 20 "${SELECTION_URL}?deploy=${token}" || true)"
@@ -88,6 +90,9 @@ jobs:
               && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \
               && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \
               && grep -q 'data-feature-version="score-equivalence-v3990_2"' <<<"$page" \
+              && grep -q '/ln-rank/css/score-converter.v3990_2.css?v=3990_2' <<<"$page" \
+              && grep -q '.score-converter-shell' <<<"$styles" \
+              && grep -q '.score-converter-year-grid' <<<"$styles" \
               && grep -q '"contractVersion":"score-equivalence-v3990_2"' <<<"$body" \
               && grep -q '"comparisonRank":14235' <<<"$body" \
               && grep -q '"year":2025,"score":598' <<<"$body" \
