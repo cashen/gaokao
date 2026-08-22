@@ -135,10 +135,12 @@ jobs:
             node "$test_file" 2>&1 | tee -a "/tmp/tongxue-live-artifact/${name}.out"
           done
 
-      - name: Verify school portrait service remains callable
+      - name: Verify live student voice service remains callable
         env:
-          PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
-        run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/portrait-and-live-regression.out
+          STUDENT_VOICE_LIVE_SCHOOLS: 沈阳建筑大学,辽宁科技大学
+        run: |
+          set -euo pipefail
+          node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/student-voice-live-regression.out
 
       - name: Rebuild all official school resources and admission overlay once
         run: |
