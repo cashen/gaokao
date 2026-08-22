@@ -10,7 +10,7 @@ const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js', 'ut
 const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159';
 const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-uec001';
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
-const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-uec001';
+const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-uec002';
 
 const importMapMatch = html.match(/<script type="importmap">([^<]+)<\/script>/);
 assert.ok(importMapMatch, 'Tongxue import map missing');
@@ -24,7 +24,7 @@ assert.ok(controller.includes("./tongxue-runtime-result-view-v159.js?v=159"), 'c
 assert.ok(controller.includes("state.voiceScope = 'major'"), 'controller lost major voice scope transition');
 assert.ok(controller.includes('performMajorExperienceQuery'), 'controller lost major direct-query owner');
 assert.ok(resultView.includes("data-student-voice-scope=\"major\""), 'result view lost major voice rendering');
-assert.ok(resultView.includes("PAGE_VERSION = 'v1.5.9-uec01'"), 'result view UEC capability marker missing');
+assert.ok(resultView.includes("PAGE_VERSION = 'v1.5.9-uec01-evidence02'"), 'result view evidence capability marker missing');
 
 for (const pathname of [
   '/tongxue/app/tongxue-runtime-controller-v159.js',
