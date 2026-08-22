@@ -102,7 +102,7 @@ try {
       const controllerRequest = moduleRequests.find(item => item.path.endsWith('tongxue-runtime-controller-v159.js'));
       const resultViewRequest = moduleRequests.find(item => item.path.endsWith('tongxue-runtime-result-view-v159.js'));
       assert.equal(controllerRequest?.version, '159-uec001', `${testCase.name}: stale controller cache identity used`);
-      assert.equal(resultViewRequest?.version, '159-uec001', `${testCase.name}: stale result-view cache identity used`);
+      assert.equal(resultViewRequest?.version, '159-uec002', `${testCase.name}: stale result-view cache identity used`);
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       assert.ok(overflow <= 1, `${testCase.name}: horizontal overflow ${overflow}`);
