@@ -109,7 +109,7 @@ async function fetchSchoolVoice({ url, topic, page, deadline }) {
   const lastMatched = [...attempts].reverse().find((item) => item.schoolMeta);
   const allNotFound = attempts.length > 0 && attempts.every((item) => item.kind === 'not_found');
   if (allNotFound) return { status:404, payload:{ ok:false, mode:'school_not_found', error:'school_not_found', message:'来源站没有找到这个学校，请输入学校正式全名。', school:schoolInput, diagnostics, source:publicSourceMeta() }, timings };
-  return { status:502, payload:{ ok:false, mode:'source_unavailable', error:'source_api_unavailable', message:lastMatched?'学校已找到，但来源公开评论接口本次没有形成可验证内容。':'来源站接口本次没有形成可验证内容。', school:lastMatched?.schoolMeta||schoolInput, schoolMeta:lastMatched?.schoolMeta||null, diagnostics, source:publicSourceMeta() }, timings };
+  return { status:502, payload:{ ok:false, mode:'source_unavailable', error:'source_api_unavailable', message:lastMatched?'学校已找到，但来源公开评论接口本次没有形成可验证内容。':'来源站接口本次没有形成可验证内容。', school:lastMatched?.schoolMeta?.name||schoolInput, schoolMeta:lastMatched?.schoolMeta||null, diagnostics, source:publicSourceMeta() }, timings };
 }
 
 async function fetchSchoolFromHost({ host, schoolInput, topic, page, deadline, timings, diagnostics }) {
