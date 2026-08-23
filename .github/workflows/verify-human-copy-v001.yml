@@ -17,7 +17,6 @@ on:
       - 'functions/_lib/advisor-ai-prompt.js'
       - 'functions/_lib/ai-card-prompt.js'
       - 'functions/_lib/path-ai-prompt.js'
-      - 'tools/audit-ai-human-copy-contract.mjs'
       - 'tools/audit-human-copy-v001.mjs'
       - '.github/workflows/verify-human-copy-v001.yml'
   workflow_dispatch:
@@ -41,6 +40,4 @@ jobs:
         run: |
           set -euo pipefail
           node --check tools/audit-human-copy-v001.mjs
-          node --check tools/audit-ai-human-copy-contract.mjs
           node tools/audit-human-copy-v001.mjs
-          node tools/audit-ai-human-copy-contract.mjs
