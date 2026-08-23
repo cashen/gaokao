@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const read = path => fs.readFileSync(path, 'utf8');
 
 const agents = read('AGENTS.md');
+const startHere = read('docs/architecture/START-HERE.md');
 const skill = read('docs/skills/human-copy/SKILL.md');
 const action = read('shared/ui/contracts/action-contract.v3970_0.js');
 const copy = read('shared/ui/contracts/copy-contract.v3970_0.js');
@@ -13,8 +14,11 @@ const tongxueHtml = read('tongxue/index.html');
 const tongxueView = read('tongxue/app/tongxue-runtime-result-view-v159.js');
 
 assert.match(agents, /docs\/skills\/human-copy\/SKILL\.md/, 'Human Copy must be registered in AGENTS.md');
+assert.match(startHere, /docs\/skills\/human-copy\/SKILL\.md/, 'Human Copy must be visible in the maintainer startup map');
 assert.match(skill, /b050eefa88af3709ec24fc0b353740ccb151f563/, 'Human Copy must pin the reviewed upstream reference');
 assert.match(skill, /not a vendored copy|not.*vendored|independent product-specific adaptation/i, 'Human Copy must document the upstream-license boundary');
+assert.match(skill, /tools\/audit-ai-human-copy-contract\.mjs/, 'Human Copy must reuse the existing AIPLuS copy-safety owner');
+assert.match(startHere, /audit-ai-human-copy-contract\.mjs remains the existing AIPLuS\/diagnosis copy-safety audit/, 'architecture handoff must preserve the AIPLuS human-copy owner');
 
 for (const [name, source] of [['action-contract', action], ['copy-contract', copy]]) {
   assert.match(source, /大学生怎么说/, `${name} must use plain student-opinion wording`);
@@ -34,12 +38,14 @@ for (const phrase of ['大家主要在说什么', '这些概括从哪来？', '�
   assert.ok(tongxueView.includes(phrase), `Tongxue human copy marker missing: ${phrase}`);
 }
 assert.match(tongxueHtml, /tongxue-runtime-result-view-v159\.js\?v=159-uec003/, 'Tongxue result view must use the new immutable copy identity');
+assert.match(tongxueHtml, /整理学生公开留言，帮你了解学习、生活和就业体验/, 'Tongxue landing copy must describe the user benefit, not the implementation');
 
 const hardAssistantPhrases = [
   '作为AI', '作为 AI', '截至我的知识', '希望这能帮助你', '接下来我们将', '下面我们来看', '让我们先', '敲黑板', '划重点'
 ];
 const publicSources = [
   ['ln-rank/index.html', lnHtml],
+  ['tongxue/index.html', tongxueHtml],
   ['tongxue/result-view', tongxueView]
 ];
 for (const [name, source] of publicSources) {
@@ -52,6 +58,7 @@ console.log(JSON.stringify({
   ok: true,
   contract: 'human-copy-foundation-v0.01',
   foundations: ['eastern-philosophy', 'human-copy'],
+  aiplusCopyOwnerPreserved: true,
   lnRankStudentVoiceLabel: '大学生怎么说',
   tongxueSummaryHeading: '大家主要在说什么',
   checkedHardAssistantPhrases: hardAssistantPhrases.length
