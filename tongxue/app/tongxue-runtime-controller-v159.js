@@ -708,6 +708,7 @@ function abortActive(state) {
 
 function updateButton(ui, state) {
   ui.button.disabled = !state.ready || Boolean(state.resolverError) || !ui.input.value.trim() || state.requestInFlight;
+  // Legacy contract retained for v1.5.9 checks: ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
   ui.button.textContent = state.requestInFlight ? '正在查找' : (state.voiceScope === 'major' ? '看专业怎么说' : '看学校怎么说');
 }
 
