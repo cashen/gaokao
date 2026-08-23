@@ -6,6 +6,12 @@ At the **start of every engineering session**, before planning, debugging, code 
 
 The Eastern Philosophy skill is the mandatory first engineering skill for this repository. Apply its `益 → ownership → 损 → proof → re-audit` startup protocol before proposing or applying a change.
 
+Immediately after Eastern Philosophy, read and follow:
+
+- `docs/skills/human-copy/SKILL.md`
+
+Human Copy is the repository-wide second foundation skill. It governs every user-visible string, including page copy, buttons, links, status/error/empty states, generated reports, Tongxue student-voice presentation and AIPLuS deterministic/model-assisted answers. Engineering terminology, AI process narration and template-like assistant language must not leak into normal public copy merely because the implementation uses those concepts. Precise admissions terminology, official-source boundaries and uncertainty remain mandatory.
+
 Before changing production runtime, release, UI ownership, cache behavior, navigation, page entrypoints or deployment checks, continue by reading and following:
 
 - `docs/skills/unified-site-release/SKILL.md`

@@ -1,0 +1,43 @@
+name: Verify Human Copy Foundation v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'AGENTS.md'
+      - 'docs/skills/**'
+      - 'docs/architecture/START-HERE.md'
+      - 'shared/ui/**'
+      - 'ln-rank/**'
+      - 'tongxue/**'
+      - 'aiplus/**'
+      - 'major-path/**'
+      - 'functions/_lib/ai/**'
+      - 'functions/_lib/advisor-ai-prompt.js'
+      - 'functions/_lib/ai-card-prompt.js'
+      - 'functions/_lib/path-ai-prompt.js'
+      - 'tools/audit-human-copy-v001.mjs'
+      - '.github/workflows/verify-human-copy-v001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  human-copy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify human-copy foundation and active public wording
+        run: |
+          set -euo pipefail
+          node --check tools/audit-human-copy-v001.mjs
+          node tools/audit-human-copy-v001.mjs

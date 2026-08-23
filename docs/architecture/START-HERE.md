@@ -6,9 +6,10 @@ This document is a **navigation map, not a second source of truth**. A new maint
 
 1. Read root `AGENTS.md`.
 2. Read `docs/skills/eastern-philosophy/SKILL.md`.
-3. For runtime, release, UI ownership, cache, navigation, page entrypoints or deployment work, read `docs/skills/unified-site-release/SKILL.md`.
-4. Read the machine owners below before changing code.
-5. Run `node tools/audit-architecture-handoff-v3990_2.mjs` before and after architecture-affecting work.
+3. Read `docs/skills/human-copy/SKILL.md` before changing any user-visible text, UI copy, generated report, Tongxue presentation or AIPLuS answer/prompt presentation.
+4. For runtime, release, UI ownership, cache, navigation, page entrypoints or deployment work, read `docs/skills/unified-site-release/SKILL.md`.
+5. Read the machine owners below before changing code.
+6. Run `node tools/audit-architecture-handoff-v3990_2.mjs` before and after architecture-affecting work.
 
 Do not infer ownership from a filename being newer, from a historical PR, or from a root `VERSION.txt` marker.
 
@@ -84,6 +85,8 @@ The derived index must not own admissions scores/ranks, school strength ranking,
 - `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
 - `shared/ai/decision-focus.v006_1.js` — **AIPLuS 决策聚焦纯投影 owner**。它只把现有 workspace、确定性学校×专业记录和 typed claims 组织成 pair evidence matrix 与 decision gaps；不会联网、持久化、创建推荐分/录取概率或第二份 shortlist。详细边界见 `docs/architecture/AIPLUS-DECISION-FOCUS-STATUS.md`。
 - `aiplus/selection-workbench.v005.js` — **AIPLuS 自选/排序/诊断 UI 编排适配层**。它直接复用 `ln-rank` Selection Pool 和既有 `buildPathAnalysis()`，不会建立第二份自选、排序或招生事实；详细边界见 `docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md`。
+
+Human Copy is a repository-wide presentation principle, not a new AIPLuS answer owner. `tools/audit-ai-human-copy-contract.mjs` remains the existing AIPLuS/diagnosis copy-safety audit; product-specific prompt, validator and presentation owners stay canonical. `tools/audit-human-copy-v001.mjs` only verifies foundation registration and active cross-site public wording.
 
 Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts, source scope, or a parallel admissions probability/recommendation-score model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
 

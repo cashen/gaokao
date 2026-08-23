@@ -68,9 +68,11 @@ try {
     await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
 
     const text = await page.locator('#result').textContent();
-    assert.match(text, /AI总结/);
-    assert.match(text, /为什么这么判断/);
-    assert.match(text, /学生真实反馈/);
+    assert.match(text, /大家主要在说什么/);
+    assert.match(text, /这些概括从哪来/);
+    assert.match(text, /几条有代表性的学生留言/);
+    assert.doesNotMatch(text, /AI总结/);
+    assert.doesNotMatch(text, /为什么这么判断/);
     assert.match(text, /课程学习/);
     assert.match(text, /校园生活/);
     assert.match(text, /就业发展/);
@@ -93,4 +95,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok:true, results }, null, 2));
+console.log(JSON.stringify({ ok:true, humanCopy:true, results }, null, 2));
