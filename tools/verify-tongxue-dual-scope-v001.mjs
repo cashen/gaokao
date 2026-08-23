@@ -12,7 +12,7 @@ for (const label of ['MAJOR_CATALOG_2026', 'resolveMajorInput', 'scope:\'major\'
 for (const label of ['找学校，看看大家怎么说', '输入学校、简称或地区', '整理学生公开留言，帮你了解学习、生活和就业体验', '看同学怎么说', 'tongxue-runtime-controller-v159.js?v=159-fuzzy001', 'tongxue-runtime-search-view-v159.js?v=159-fuzzy001']) {
   assert.ok(index.includes(label), label);
 }
-assert.match(controller, /if \(majorResolution\?\.status === 'resolved'\)/);
+assert.match(controller, /if \(!preferSchool && majorResolution\?\.status === 'resolved'\)/);
 assert.match(controller, /MAJOR_RESOLVER\.search/);
 assert.match(controller, /data-major-choice/);
 assert.match(controller, /scope:'major'/);

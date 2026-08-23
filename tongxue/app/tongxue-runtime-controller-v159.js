@@ -380,10 +380,11 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     return null;
   }
   const majorResolution = resolveMajorInput(input);
-  if (shouldPreferSchool(state, input, majorResolution)) {
+  const preferSchool = shouldPreferSchool(state, input, majorResolution);
+  if (preferSchool) {
     applyScopePresentation(ui, 'school');
   }
-  if (majorResolution?.status === 'ambiguous') {
+  if (!preferSchool && majorResolution?.status === 'ambiguous') {
     abortActive(state);
     state.voiceScope = 'major';
     state.currentMajorCode = '';
@@ -398,7 +399,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     updateButton(ui, state);
     return majorResolution;
   }
-  if (majorResolution?.status === 'resolved') {
+  if (!preferSchool && majorResolution?.status === 'resolved') {
     const majorMatch = majorResolution.major;
     abortActive(state);
     state.voiceScope = 'major';
