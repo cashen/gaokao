@@ -83,6 +83,43 @@ export function createTongxueResultView(ui, state, searchView) {
     searchView.focusResult();
   }
 
+  function majorSourceIntroShell(major = {}) {
+    const code = String(major.code || '').trim();
+    return `<section class="major-source-intro" data-major-source-intro="${attr(code)}" aria-label="专业解读">
+      <div class="section-heading">先看懂这个专业</div>
+      <div class="state-card loading"><strong>正在读取专业解读</strong><p>先把“是什么、学什么、做什么、就业方向”看清楚，再看大学生的个人体验。</p></div>
+    </section>`;
+  }
+
+  function mountMajorSourceIntro(major = {}) {
+    const code = String(major.code || '').trim();
+    if (!code) return;
+    const target = document.querySelector(`[data-major-source-intro="${code}"]`);
+    if (!target) return;
+    import('../../ln-rank/kb/major-understanding/major-source-profile.generated.js?v=pr194')
+      .then(({ getMajorSourceProfile }) => {
+        const profile = getMajorSourceProfile(code);
+        const rows = [
+          ['专业是什么', profile?.whatIs],
+          ['主要学什么', profile?.whatLearn],
+          ['毕业后做什么', profile?.whatDo],
+          ['就业方向', profile?.careerPath]
+        ].filter(([, value]) => String(value || '').trim());
+        if (!rows.length) {
+          target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>暂无可核验的原站专业解读</strong><p>这个专业暂时没有可核验的源站四字段资料；下面的大学生留言仍保持为个人体验，不代替专业事实。</p></div>';
+          return;
+        }
+        const fields = rows.map(([label, value]) => `<section class="insight-card"><h3 class="insight-title"><span class="insight-dot"></span>${label}</h3><p>${html(value)}</p></section>`).join('');
+        const sourceLink = profile?.sourceUrl
+          ? `<a class="link" href="${attr(profile.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看原站专业解读 ↗</a>`
+          : '';
+        target.innerHTML = `<div class="section-heading">先看懂这个专业</div><p class="review-intro"><strong>源站专业解读</strong>下面四项回答这个专业“是什么、学什么、做什么、就业方向”；它们是资料说明，不是录取或就业承诺。</p><div class="summary-grid">${fields}</div><p class="source-note">来源：eo.srgaoxiao.cn；抓取日期：${html(profile?.retrievedAt || '—')}。学生留言会在下方单独展示。</p>${sourceLink}`;
+      })
+      .catch(() => {
+        target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>专业解读暂时无法读取</strong><p>可以先看下方学生留言，稍后再试；学生留言不代替官方专业资料。</p></div>';
+      });
+  }
+
   function renderActiveMajorReviews(active) {
     const major = active.major || {};
     const data = { fetchedAt:active.fetchedAt, transport:active.transport, version:active.version };
@@ -90,8 +127,9 @@ export function createTongxueResultView(ui, state, searchView) {
     const more = active.pagination?.hasMore && active.mode === 'major_reviews'
       ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些学生留言</button></div>' : '';
     const topicText = active.topic && active.topic !== 'general' ? topicLabel(active.topic) : '这个专业实际读起来怎么样';
-    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">大学生怎么说</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div><div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
+    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">大学生怎么说</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div>${majorSourceIntroShell(major)}<div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
     searchView.focusResult();
+    mountMajorSourceIntro(major);
   }
 
   function appendReviews(reviews, startIndex) {
