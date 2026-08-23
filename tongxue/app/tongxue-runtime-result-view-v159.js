@@ -12,7 +12,7 @@ import {
 const PAGE_VERSION = 'v1.5.9-uec01-evidence02';
 const DIMENSIONS = Object.freeze({ dormitory:'宿舍', cafeteria:'食堂', faculty:'师资', environment:'环境', culture:'氛围', employment:'就业感受', safety:'安全', stability:'稳定感受', difficulty:'学习难度', work_env:'工作环境感受' });
 const TOPIC_LABELS = Object.freeze({
-  general:'大学生声音', living:'住宿与食宿', dormitory:'宿舍体验', cafeteria:'食堂体验', environment:'校园环境与人文体验',
+  general:'大学生怎么说', living:'住宿与食宿', dormitory:'宿舍体验', cafeteria:'食堂体验', environment:'校园环境与人文体验',
   management:'管理与日常规则', teaching:'教学与学习体验', campus:'校园生活', major_learning:'实际学什么', course_load:'课程与学习节奏',
   difficulty:'学习难度', math_physics:'数学与物理门槛', programming:'编程体验', lab_project:'实验与项目', internship:'实习体验',
   postgraduate:'考研与继续深造', employment_perception:'就业感受', transfer_regret:'转专业与后悔体验', expectation_gap:'入学前后预期差'
@@ -37,9 +37,9 @@ export function createTongxueResultView(ui, state, searchView) {
     const studentEvidence = Array.isArray(data.studentEvidence) ? data.studentEvidence.slice(0, 5) : [];
     const evidenceCards = studentEvidence.map((review, index) => reviewCard(review, `evidence-${index}`, source)).join('');
     const evidenceExplanation = studentEvidence.length
-      ? `<div class="review-intro" data-summary-evidence-explanation><strong>为什么这么判断？</strong>AI总结来自公开评论的归纳。下面展示本次选出的 ${studentEvidence.length} 条代表性学生原声，优先覆盖不同体验主题、具体细节和较新的反馈；它们用于帮助你核对总结，而不是把少量评论当成统计结论。</div><div class="section-heading">学生真实反馈</div><div class="review-grid" data-student-evidence-grid>${evidenceCards}</div>`
-      : '<div class="review-intro" data-summary-evidence-empty><strong>为什么这么判断？</strong>本次取得了可用摘要，但代表性原评论暂时没有形成可验证证据集合。本站不会为了让页面看起来完整而补写学生原声。</div>';
-    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">AI总结</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}<div class="divider"></div><div class="section-heading">AI总结</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整摘要</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容来自公开评论整理，只代表部分评论者在特定时间、专业和校区的个人体验，不代表学校官方结论。学生真实反馈保留来源身份、时间和原始范围，不参与录取概率或推荐分计算。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">查看来源站全部评论 →</a>${technical(meta, data, source, data.evidence)}</article>`);
+      ? `<div class="review-intro" data-summary-evidence-explanation><strong>这些概括从哪来？</strong>下面列出本次参考的 ${studentEvidence.length} 条学生留言，尽量覆盖不同话题、具体细节和较新的内容。每个人经历不同，最好结合原留言一起看。</div><div class="section-heading">几条有代表性的学生留言</div><div class="review-grid" data-student-evidence-grid>${evidenceCards}</div>`
+      : '<div class="review-intro" data-summary-evidence-empty><strong>这些概括从哪来？</strong>这次有可用的概括，但暂时没拿到能对应展示的原留言。这里不补写。</div>';
+    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">大家怎么说</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}<div class="divider"></div><div class="section-heading">大家主要在说什么</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整概括</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容整理自学生公开留言，只代表部分评论者在特定时间、专业和校区的个人经历，不是学校官方结论，也不参与录取或推荐排序。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(meta, data, source, data.evidence)}</article>`);
     searchView.focusResult();
   }
 
@@ -75,11 +75,11 @@ export function createTongxueResultView(ui, state, searchView) {
     const data = { school:active.school, fetchedAt:active.fetchedAt, transport:active.transport, version:active.version };
     const cards = active.reviews.map((review, index) => reviewCard(review, index, active.source)).join('');
     const more = active.pagination?.hasMore && active.mode === 'recent_reviews'
-      ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">加载更多近期评论</button></div>' : '';
+      ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些学生留言</button></div>' : '';
     const intro = active.mode === 'topic_reviews'
-      ? `<div class="review-intro"><strong>暂无足够反馈生成总结</strong>${html(topicLabel(active.topic))}：${html(sampleSentence(active.evidence, active.reviews.length))}</div>`
-      : '<div class="review-intro"><strong>暂无足够反馈生成总结</strong>不强行生成概括，下面直接展示当前取得的学生真实反馈，供你逐条判断。</div>';
-    searchView.commit('success', `<article class="result-shell"${entityData(active.school)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(active.school)}</h2><span class="badge review">大学生声音</span></div><div class="meta">${metaChips(active.schoolMeta, data, active.resolution, active.school)}${entityChips(active.school)}${evidenceChips(active.evidence)}</div>${entityNote(active.school)}<div class="divider"></div>${intro}<div class="section-heading">${html(active.mode === 'topic_reviews' ? '与这个问题直接相关的学生真实反馈' : '学生真实反馈')}</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这是学生个人体验，不是学校官方事实。认证标记仅用于说明来源状态，不参与排序或推荐；不同学生的体验可能相反。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">查看来源站全部评论 →</a>${technical(active.schoolMeta, data, active.source, active.evidence)}</article>`);
+      ? `<div class="review-intro"><strong>先看相关留言</strong>${html(topicLabel(active.topic))}：${html(sampleSentence(active.evidence, active.reviews.length))}</div>`
+      : '<div class="review-intro"><strong>先看学生怎么说</strong>现有留言还不够支持一段稳妥的概括，下面直接列出原留言。</div>';
+    searchView.commit('success', `<article class="result-shell"${entityData(active.school)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(active.school)}</h2><span class="badge review">大学生怎么说</span></div><div class="meta">${metaChips(active.schoolMeta, data, active.resolution, active.school)}${entityChips(active.school)}${evidenceChips(active.evidence)}</div>${entityNote(active.school)}<div class="divider"></div>${intro}<div class="section-heading">${html(active.mode === 'topic_reviews' ? '与这个问题直接相关的学生留言' : '学生留言')}</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些是学生个人经历，不是学校官方事实。来源站的认证标记只说明账号状态，不参与排序或推荐；不同学生的感受可能相反。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(active.schoolMeta, data, active.source, active.evidence)}</article>`);
     searchView.focusResult();
   }
 
@@ -88,9 +88,9 @@ export function createTongxueResultView(ui, state, searchView) {
     const data = { fetchedAt:active.fetchedAt, transport:active.transport, version:active.version };
     const cards = active.reviews.map((review, index) => reviewCard(review, index, active.source)).join('');
     const more = active.pagination?.hasMore && active.mode === 'major_reviews'
-      ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些专业声音</button></div>' : '';
+      ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些学生留言</button></div>' : '';
     const topicText = active.topic && active.topic !== 'general' ? topicLabel(active.topic) : '这个专业实际读起来怎么样';
-    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">大学生声音</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div><div class="divider"></div><div class="review-intro"><strong>暂无足够反馈生成总结</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生真实反馈</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note"><strong>边界：</strong>这些是不同学校学生围绕“${html(major.name || '该专业')}”发表的个人体验，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作为 provenance 展示，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">查看来源站这个专业的讨论 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
+    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">大学生怎么说</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div><div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
     searchView.focusResult();
   }
 
@@ -112,7 +112,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const button = document.getElementById('loadMoreReviews');
     if (button) {
       button.disabled = false;
-      button.textContent = state.activeReviewState?.scope === 'major' ? '再看一些专业声音' : '加载更多近期评论';
+      button.textContent = '再看一些学生留言';
     }
   }
 
@@ -122,11 +122,11 @@ export function createTongxueResultView(ui, state, searchView) {
     const actual = isMajor ? String(data.major?.name || state.currentMajorName || '这个专业') : (data.school || school);
     const source = sourceInfo(data.source, actual);
     const exhausted = data.mode === 'topic_no_content' || data.evidence?.exhaustive === true;
-    const title = exhausted ? `暂时没有找到“${topicLabel(data.topic)}”的直接学生声音` : `固定检索范围内还没找到“${topicLabel(data.topic)}”`;
+    const title = exhausted ? `暂时没有找到“${topicLabel(data.topic)}”的直接学生留言` : `这次还没找到“${topicLabel(data.topic)}”的直接学生留言`;
     const body = exhausted
-      ? '这只表示当前来源已取得的相关评论中没有直接匹配内容，不代表现实中没人讨论，也不能据此推断体验好坏。'
-      : '来源还有更多评论没有扫描。为了避免无界抓取，本次到达固定页数/时间预算后停止，因此不会把“暂未找到”写成“没有”。';
-    searchView.commit('empty', `<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">查看来源页面 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
+      ? '这只表示当前取得的留言里没有直接匹配内容，不代表现实中没人讨论，也不能据此判断体验好坏。'
+      : '来源里还有更多留言。为了控制一次查询的范围，这次没有继续无止境往后翻，所以这里只能说“暂时没找到”。';
+    searchView.commit('empty', `<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
     searchView.focusResult();
   }
 
@@ -135,11 +135,11 @@ export function createTongxueResultView(ui, state, searchView) {
     const isMajor = data.scope === 'major' || Boolean(data.major?.code);
     const actual = isMajor ? String(data.major?.name || state.currentMajorName || '这个专业') : (data.school || school);
     const source = sourceInfo(data.source, actual);
-    const title = isMajor ? '这个专业暂时没有可展示的学生声音' : '暂时没有可展示的公开评论';
+    const title = isMajor ? '这个专业暂时没有可展示的学生留言' : '暂时没有找到可展示的学生留言';
     const body = isMajor
-      ? '专业身份已经确认，但当前来源没有返回可展示的专业评论。这不代表这个专业没人读、没人讨论或体验不好。'
-      : '学校名称已经确认，但当前来源没有可展示的摘要或评论。这不代表学校没有学生评价。';
-    searchView.commit('empty', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">查看来源页面 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后重新获取</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
+      ? '专业名称已经确认，但当前来源没有返回可展示的专业留言。这不代表这个专业没人读、没人讨论或体验不好。'
+      : '学校名称已经确认，但当前来源没有返回可展示的概括或留言。这不代表没人评价这所学校。';
+    searchView.commit('empty', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后再试</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
     searchView.focusResult();
   }
 
@@ -152,9 +152,9 @@ export function createTongxueResultView(ui, state, searchView) {
     const source = sourceInfo(data.source, actual);
     let message = code === 'school_not_found'
       ? '来源站暂时没有这所学校的独立记录。'
-      : (isMajor ? '专业身份已经确认，但大学生声音来源当前连接不稳定或没有对应记录。' : '学校名称已经确认，但公开评论服务当前连接不稳定。');
-    if (code === 'school_major_source_binding_unavailable') message = '当前来源的专业评论没有学校身份字段，所以不能把跨学校评论冒充这所学校的专业体验。';
-    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时无法读取大学生声音</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">查看来源页面 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
+      : (isMajor ? '专业名称已经确认，但学生评价来源现在连接不稳定或没有对应记录。' : '学校名称已经确认，但学生评价来源现在连接不稳定。');
+    if (code === 'school_major_source_binding_unavailable') message = '当前专业留言没有学校身份信息，所以不能把不同学校的留言当成这所学校的专业体验。';
+    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时看不了大学生评价</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
     searchView.focusResult();
   }
 
@@ -171,8 +171,8 @@ export function createTongxueResultView(ui, state, searchView) {
     const social = [];
     if (Number(review?.likes) > 0) social.push(`👍 ${Number(review.likes)} 赞`);
     if (Number(review?.replies) > 0) social.push(`💬 ${Number(review.replies)} 回复`);
-    const reason = review?.reason ? `<div class="rating-details"><strong>为什么选这条：</strong>${html(review.reason)}</div>` : '';
-    return `<article class="review-card"><div class="review-card-head"><div class="review-author"><span class="review-avatar">${html(author.slice(0, 1) || '同')}</span><span class="review-author-name">${html(author)}</span></div><time class="review-date">${html(formatReviewDate(review?.createdAt))}</time></div>${tags.length ? `<div class="review-tags">${tags.join('')}</div>` : ''}<div id="reviewContent${attr(index)}" class="review-content ${long ? 'collapsed' : ''}">${html(content)}</div>${long ? `<button class="review-expand" type="button" data-expand-review="${attr(index)}" aria-controls="reviewContent${attr(index)}" aria-expanded="false">展开全文</button>` : ''}${reason}${rating(review?.rating)}<div class="review-footer">${social.map(item => `<span>${html(item)}</span>`).join('')}<a class="review-source" href="${attr(sourceUrl)}" target="_blank" rel="noopener noreferrer">查看来源 →</a></div></article>`;
+    const reason = review?.reason ? `<div class="rating-details"><strong>这条为什么有代表性：</strong>${html(review.reason)}</div>` : '';
+    return `<article class="review-card"><div class="review-card-head"><div class="review-author"><span class="review-avatar">${html(author.slice(0, 1) || '同')}</span><span class="review-author-name">${html(author)}</span></div><time class="review-date">${html(formatReviewDate(review?.createdAt))}</time></div>${tags.length ? `<div class="review-tags">${tags.join('')}</div>` : ''}<div id="reviewContent${attr(index)}" class="review-content ${long ? 'collapsed' : ''}">${html(content)}</div>${long ? `<button class="review-expand" type="button" data-expand-review="${attr(index)}" aria-controls="reviewContent${attr(index)}" aria-expanded="false">展开全文</button>` : ''}${reason}${rating(review?.rating)}<div class="review-footer">${social.map(item => `<span>${html(item)}</span>`).join('')}<a class="review-source" href="${attr(sourceUrl)}" target="_blank" rel="noopener noreferrer">看原留言 →</a></div></article>`;
   }
 
   function rating(value) {
@@ -186,7 +186,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (!hasOverall && !items) return '';
     const head = hasOverall
       ? `<div class="review-rating"><span>来源体验评分</span><span class="review-score">${Number(value.overall).toFixed(1)}</span><span>/ 5.0</span></div>`
-      : '<div class="review-rating"><span>来源分项评分</span><span class="rating-note">仅作评论原始信息展示</span></div>';
+      : '<div class="review-rating"><span>来源分项评分</span><span class="rating-note">仅作原留言信息展示</span></div>';
     return `${head}${items ? `<details class="rating-details"><summary>查看分项评分</summary><div class="rating-dims">${items}</div></details>` : ''}`;
   }
 
@@ -198,18 +198,18 @@ export function createTongxueResultView(ui, state, searchView) {
     const count = Number.isFinite(Number(evidence?.matchCount)) ? Number(evidence.matchCount) : Number(fallbackCount || 0);
     const scanned = Number.isFinite(Number(evidence?.scannedCount)) ? Number(evidence.scannedCount) : null;
     const level = String(evidence?.sampleLevel || '');
-    if (level === 'single_voice' || count === 1) return '本次只取得 1 条直接相关声音，只能理解为一位学生的经历，不能外推。';
-    if (level === 'two_voices' || count === 2) return '本次取得 2 条直接相关声音，逐条看即可，不把两个人的经历写成共识。';
-    if (level === 'recent_themes_no_consensus' || (count >= 3 && count <= 4)) return `本次取得 ${count} 条相关声音，可以看最近在谈什么，但样本仍不足以声称“多数学生都这样”。`;
-    if (count >= 5) return `本次取得 ${count} 条相关声音${scanned && scanned > count ? `（固定范围内扫描 ${scanned} 条）` : ''}，可以观察主题和分歧，但仍不是统计调查。`;
-    return scanned ? `本次固定范围内扫描 ${scanned} 条公开评论。` : '以下只展示当前取得的公开学生声音。';
+    if (level === 'single_voice' || count === 1) return '本次只取得 1 条直接相关留言，只能看作一位学生的经历，不能外推。';
+    if (level === 'two_voices' || count === 2) return '本次取得 2 条直接相关留言，逐条看即可，不把两个人的经历写成共识。';
+    if (level === 'recent_themes_no_consensus' || (count >= 3 && count <= 4)) return `本次取得 ${count} 条相关留言，可以看看最近在谈什么，但还不能据此说“多数学生都这样”。`;
+    if (count >= 5) return `本次取得 ${count} 条相关留言${scanned && scanned > count ? `（固定范围内查看 ${scanned} 条）` : ''}，可以观察常见话题和分歧，但仍不是统计调查。`;
+    return scanned ? `本次固定范围内查看了 ${scanned} 条学生留言。` : '以下只展示当前取得的学生留言。';
   }
 
   function evidenceChips(evidence) {
     if (!evidence || typeof evidence !== 'object') return '';
     const values = [];
-    if (Number.isFinite(Number(evidence.matchCount))) values.push(`相关样本 ${Number(evidence.matchCount)} 条`);
-    if (Number.isFinite(Number(evidence.scannedCount)) && Number(evidence.scannedCount) > Number(evidence.matchCount || 0)) values.push(`扫描 ${Number(evidence.scannedCount)} 条`);
+    if (Number.isFinite(Number(evidence.matchCount))) values.push(`相关留言 ${Number(evidence.matchCount)} 条`);
+    if (Number.isFinite(Number(evidence.scannedCount)) && Number(evidence.scannedCount) > Number(evidence.matchCount || 0)) values.push(`查看 ${Number(evidence.scannedCount)} 条`);
     if (Number.isFinite(Number(evidence.scannedPages)) && Number(evidence.scannedPages) > 1) values.push(`最多查看 ${Number(evidence.scannedPages)} 页`);
     return values.map(value => `<span class="meta-chip">${html(value)}</span>`).join('');
   }
@@ -219,7 +219,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (resolution?.input && resolution.input !== actual) values.push({ text:`${resolution.input} → ${actual}`, resolve:true });
     if (meta.province || meta.city) values.push({ text:[meta.province, meta.city].filter(Boolean).join(' · ') });
     if (meta.type) values.push({ text:meta.type });
-    if (Number.isFinite(Number(meta.reviewCount))) values.push({ text:`${Number(meta.reviewCount)} 条公开评价` });
+    if (Number.isFinite(Number(meta.reviewCount))) values.push({ text:`${Number(meta.reviewCount)} 条学生评价` });
     if (data.fetchedAt) values.push({ text:`更新：${formatTime(data.fetchedAt)}` });
     return values.map(item => `<span class="meta-chip ${item.resolve ? 'resolve' : ''}">${html(item.text)}</span>`).join('');
   }
@@ -253,11 +253,11 @@ export function createTongxueResultView(ui, state, searchView) {
   function entityNote(name) {
     const entity = searchView.entityMeta(name);
     if (!entity || entity.entityType === 'official_school') return '';
-    return `<div class="source-note"><strong>当前查询的是独立招生实体：</strong>${html(entity.displayName)}${entity.parentName ? `，所属学校为 ${html(entity.parentName)}` : ''}。评论可能混合学校整体与校区体验，请核对评论中的具体校区。</div>`;
+    return `<div class="source-note"><strong>当前查询的是独立招生实体：</strong>${html(entity.displayName)}${entity.parentName ? `，所属学校为 ${html(entity.parentName)}` : ''}。留言可能混合学校整体与校区体验，请核对留言中的具体校区。</div>`;
   }
 
   function technical(meta, data, source, evidence = null, major = null) {
-    const items = [`来源：${source?.name || '公开学生评论来源'}`, `页面：${PAGE_VERSION}`];
+    const items = [`来源：${source?.name || '学生评价来源'}`, `页面：${PAGE_VERSION}`];
     if (data?.transport) items.push(`获取方式：${data.transport}`);
     if (data?.version) items.push(`内容接口：${data.version}`);
     if (meta?.id !== undefined && meta?.id !== null) items.push(`来源学校编号：${meta.id}`);
