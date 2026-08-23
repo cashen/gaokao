@@ -3,6 +3,7 @@ import { getSchoolEntity, findSchoolEntityByName } from '../data/school-entities
 import { createTongxueSearchView } from './tongxue-runtime-search-view-v159.js?v=159';
 import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v=159';
 import { MAJOR_CATALOG_2026 } from '../../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
+import { createMajorCatalogResolver, normalizeMajorText } from '../../shared/resources/majors/major-catalog-contract.js?v=3958';
 import {
   TongxueError,
   normalizeSchool,
@@ -25,25 +26,46 @@ const EXPERIENCE_TTL = Object.freeze({
   no_content:120000
 });
 const VALID_MODES = new Set(Object.keys(EXPERIENCE_TTL));
-const MAJOR_BY_CODE = new Map(MAJOR_CATALOG_2026.map(item => [String(item.code || '').toUpperCase(), item]));
-const MAJOR_BY_NAME = new Map(MAJOR_CATALOG_2026.map(item => [majorKey(item.name), item]));
+const MAJOR_RESOLVER = createMajorCatalogResolver(MAJOR_CATALOG_2026);
 let installed = false;
 
 function majorKey(value = '') {
-  return String(value || '').replace(/\s+/g, '').trim().toLowerCase();
+  return normalizeMajorText(value).toLowerCase();
 }
 
 function resolveMajorInput(value = '') {
   const raw = String(value || '').trim();
   if (!raw) return null;
-  const byCode = MAJOR_BY_CODE.get(raw.toUpperCase());
-  if (byCode) return byCode;
-  const exact = MAJOR_BY_NAME.get(majorKey(raw));
-  if (exact) return exact;
-  const key = majorKey(raw);
-  if (key.length < 2) return null;
-  const matches = MAJOR_CATALOG_2026.filter(item => majorKey(item.name).includes(key));
-  return matches.length === 1 ? matches[0] : null;
+  if (majorKey(raw).length < 2) return { status:'not_found', input:raw, candidates:[], matchType:'none', confidence:0 };
+  const exact = MAJOR_RESOLVER.resolve(raw, { allowContains:false });
+  if (exact?.kind === 'major') return { status:'resolved', major:exact.item, matchType:exact.matchType, confidence:exact.confidence, candidates:[] };
+  if (exact?.kind === 'category') {
+    const candidates = exact.item.codes.map(code => MAJOR_RESOLVER.findByCode(code)).filter(Boolean).map(item => ({ item, score:0.72, matchType:'category_name' }));
+    return { status:'ambiguous', input:raw, matchType:exact.matchType, confidence:exact.confidence, candidates };
+  }
+  const matches = MAJOR_RESOLVER.search(raw, { limit:8 });
+  if (!matches.length) return { status:'not_found', input:raw, candidates:[], matchType:'none', confidence:0 };
+  const first = matches[0], second = matches[1], margin = first.score - (second?.score || 0);
+  const autoThreshold = raw.length >= 4 ? 0.82 : 0.9;
+  const requiredMargin = raw.length >= 4 ? 0.08 : 0.12;
+  if (first.score >= autoThreshold && margin >= requiredMargin) return { status:'resolved', input:raw, major:first.item, matchType:first.matchType, confidence:first.score, candidates:matches.slice(1,4) };
+  const plausible = matches.filter(candidate => candidate.score >= 0.57);
+  if (plausible.length === 1 && plausible[0].score >= 0.86) return { status:'resolved', input:raw, major:plausible[0].item, matchType:plausible[0].matchType, confidence:plausible[0].score, candidates:[] };
+  return { status:'ambiguous', input:raw, candidates:plausible, matchType:'fuzzy', confidence:first.score };
+}
+
+function majorSuggestionRows(value = '', limit = 8) {
+  const resolution = resolveMajorInput(value);
+  if (resolution?.status === 'resolved') {
+    return [{ officialName:resolution.major.name, majorCode:resolution.major.code, majorClass:resolution.major.majorClass || resolution.major.categoryName || '', score:resolution.confidence, matchType:resolution.matchType }];
+  }
+  return (resolution?.candidates || []).slice(0, limit).map(candidate => ({
+    officialName:candidate.item.name,
+    majorCode:candidate.item.code,
+    majorClass:candidate.item.majorClass || candidate.item.categoryName || '',
+    score:candidate.score,
+    matchType:candidate.matchType
+  }));
 }
 
 function applyScopePresentation(ui, scope = 'school') {
@@ -265,8 +287,9 @@ function scheduleSuggestions(ui, state, searchView) {
 
 function updateSuggestions(ui, state, searchView) {
   const query = normalizeSchool(ui.input.value);
-  if (resolveMajorInput(query)) {
-    searchView.closeSuggestions();
+  const majorRows = majorSuggestionRows(query);
+  if (majorRows.length) {
+    searchView.setSuggestions(majorRows, '', { scope:'major' });
     return;
   }
   if (state.composing || !state.resolver || query.length < 2) {
@@ -284,6 +307,23 @@ function updateSuggestions(ui, state, searchView) {
 
 function chooseSuggestion(ui, state, searchView, candidate) {
   if (!candidate) return;
+  if (candidate.majorCode) {
+    const original = normalizeSchool(ui.input.value);
+    state.voiceScope = 'major';
+    state.currentMajorCode = candidate.majorCode;
+    state.currentMajorName = candidate.officialName;
+    state.currentTopic = 'general';
+    state.currentSchool = '';
+    state.currentEntityId = '';
+    state.currentResolution = null;
+    state.selectedOfficialName = '';
+    ui.input.value = candidate.officialName;
+    searchView.closeSuggestions();
+    searchView.showResolved(original, candidate.officialName, { scope:'major' });
+    applyScopePresentation(ui, 'major');
+    updateButton(ui, state);
+    return;
+  }
   const original = normalizeSchool(ui.input.value);
   state.selectedOfficialName = candidate.officialName;
   state.currentResolution = {
@@ -309,8 +349,24 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     ui.input.focus();
     return null;
   }
-  const majorMatch = resolveMajorInput(input);
-  if (majorMatch) {
+  const majorResolution = resolveMajorInput(input);
+  if (majorResolution?.status === 'ambiguous') {
+    abortActive(state);
+    state.voiceScope = 'major';
+    state.currentMajorCode = '';
+    state.currentMajorName = '';
+    state.currentSchool = '';
+    state.currentEntityId = '';
+    state.currentResolution = majorResolution;
+    state.directMode = Boolean(options.directMode ?? state.directMode);
+    applyScopePresentation(ui, 'major');
+    searchView.renderChoices(input, majorResolution.candidates, { scope:'major' });
+    writeLocation('query', input, '', options.historyMode || 'push');
+    updateButton(ui, state);
+    return majorResolution;
+  }
+  if (majorResolution?.status === 'resolved') {
+    const majorMatch = majorResolution.major;
     abortActive(state);
     state.voiceScope = 'major';
     state.currentMajorCode = String(majorMatch.code || '').trim();
@@ -529,6 +585,13 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     if (!candidate) return;
     resetResolution(state, searchView);
     await submitInput(ui, state, searchView, resultView, { input:candidate.officialName, historyMode:'replace', directMode:state.directMode });
+    return;
+  }
+  const majorChoice = event.target.closest('[data-major-choice]');
+  if (majorChoice) {
+    const candidate = state.choiceCandidates[Number(majorChoice.dataset.majorChoice)];
+    if (!candidate?.item) return;
+    await submitInput(ui, state, searchView, resultView, { input:candidate.item.name, historyMode:'replace', directMode:state.directMode });
     return;
   }
   const region = event.target.closest('[data-region-query]');

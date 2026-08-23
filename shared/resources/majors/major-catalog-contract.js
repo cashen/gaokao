@@ -176,6 +176,25 @@ export function createMajorCatalogResolver(rows = [], categories = []) {
       : null;
   }
 
+  function search(value, options = {}) {
+    const input = normalizeMajorText(value);
+    const limit = Number.isFinite(options.limit) ? Math.max(1, options.limit) : 8;
+    if (!input) return [];
+    const codeMatch = byCode.get(normalizeMajorCode(input));
+    if (codeMatch) return [{ item: codeMatch, score: 1, matchType: 'code_exact' }];
+    const rows = [];
+    for (const item of majors) {
+      let best = scoreMajorText(input, normalizeMajorText(item.name), 'name');
+      for (const alias of item.aliases) {
+        const candidate = scoreMajorText(input, normalizeMajorText(alias), 'alias');
+        if (candidate.score > best.score) best = candidate;
+      }
+      if (best.score >= 0.42) rows.push({ item, score: roundMajorScore(best.score), matchType: best.matchType });
+    }
+    rows.sort((a, b) => b.score - a.score || a.item.name.length - b.item.name.length || a.item.name.localeCompare(b.item.name, 'zh-CN'));
+    return rows.slice(0, limit);
+  }
+
   return Object.freeze({
     contract: MAJOR_CATALOG_RESOURCE_CONTRACT,
     count: majors.length,
@@ -185,8 +204,50 @@ export function createMajorCatalogResolver(rows = [], categories = []) {
     findByName,
     findCategory,
     resolve,
+    search,
     codesForCategory(value) {
       return [...(findCategory(value)?.codes || [])];
     }
   });
+}
+
+function scoreMajorText(query, target, kind) {
+  if (!query || !target) return { score: 0, matchType: 'none' };
+  if (query === target) return { score: kind === 'name' ? 1 : 0.99, matchType: `${kind}_exact` };
+  if (target.startsWith(query)) {
+    const coverage = query.length / target.length;
+    return { score: Math.min(0.97, 0.78 + coverage * 0.19 + (kind === 'alias' ? 0.015 : 0)), matchType: `${kind}_prefix` };
+  }
+  if (target.includes(query)) {
+    const coverage = query.length / target.length;
+    return { score: Math.min(0.9, 0.65 + coverage * 0.22 + (kind === 'alias' ? 0.015 : 0)), matchType: `${kind}_contains` };
+  }
+  if (query.startsWith(target) && target.length >= 2) {
+    const coverage = target.length / query.length;
+    return { score: Math.min(0.86, 0.58 + coverage * 0.24), matchType: `${kind}_expanded` };
+  }
+  if (query.length < 2 || target.length < 2) return { score: 0, matchType: 'none' };
+  const distance = levenshtein(query, target);
+  const similarity = 1 - distance / Math.max(query.length, target.length);
+  const prefixBonus = query[0] === target[0] ? 0.035 : 0;
+  const suffixBonus = query.at(-1) === target.at(-1) ? 0.02 : 0;
+  return { score: Math.max(0, similarity + prefixBonus + suffixBonus + (kind === 'alias' ? 0.01 : 0)), matchType: `${kind}_fuzzy` };
+}
+
+function levenshtein(a, b) {
+  const source = [...a], target = [...b];
+  let previous = Array.from({ length: target.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= source.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= target.length; j += 1) {
+      const cost = source[i - 1] === target[j - 1] ? 0 : 1;
+      current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, previous[j - 1] + cost);
+    }
+    previous = current;
+  }
+  return previous[target.length];
+}
+
+function roundMajorScore(value) {
+  return Math.round((Number(value) || 0) * 1000) / 1000;
 }
