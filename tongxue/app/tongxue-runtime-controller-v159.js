@@ -68,6 +68,21 @@ function majorSuggestionRows(value = '', limit = 8) {
   }));
 }
 
+function shouldPreferSchool(state, input, majorResolution) {
+  if (!state.resolver || !majorResolution) return false;
+  const schoolResolution = state.resolver.resolve(input, { limit:24 });
+  if (!schoolResolution) return false;
+  const exactMajor = majorResolution.status === 'resolved'
+    && ['code', 'name_exact', 'alias_exact', 'admission_suffix_clean'].includes(majorResolution.matchType);
+  if (exactMajor) return false;
+  if (schoolResolution.status === 'resolved' || schoolResolution.status === 'region') return true;
+  if (schoolResolution.status === 'ambiguous' && majorResolution.status === 'ambiguous') {
+    const schoolScore = Number(schoolResolution.candidates?.[0]?.score || 0);
+    return schoolScore >= Number(majorResolution.confidence || 0) + 0.05;
+  }
+  return false;
+}
+
 function applyScopePresentation(ui, scope = 'school') {
   const isMajor = scope === 'major';
   document.body.dataset.tongxueScope = isMajor ? 'major' : 'school';
@@ -287,6 +302,21 @@ function scheduleSuggestions(ui, state, searchView) {
 
 function updateSuggestions(ui, state, searchView) {
   const query = normalizeSchool(ui.input.value);
+  const majorResolution = resolveMajorInput(query);
+  if (shouldPreferSchool(state, query, majorResolution)) {
+    if (state.composing || !state.resolver || query.length < 2) {
+      searchView.closeSuggestions();
+      return;
+    }
+    const schoolResolution = state.resolver.resolve(query, { limit:8 });
+    if (schoolResolution.status === 'region') {
+      state.suggestions = [];
+      searchView.closeSuggestions();
+      return;
+    }
+    searchView.setSuggestions(state.resolver.search(query, { limit:8 }));
+    return;
+  }
   const majorRows = majorSuggestionRows(query);
   if (majorRows.length) {
     searchView.setSuggestions(majorRows, '', { scope:'major' });
@@ -350,6 +380,9 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     return null;
   }
   const majorResolution = resolveMajorInput(input);
+  if (shouldPreferSchool(state, input, majorResolution)) {
+    applyScopePresentation(ui, 'school');
+  }
   if (majorResolution?.status === 'ambiguous') {
     abortActive(state);
     state.voiceScope = 'major';
