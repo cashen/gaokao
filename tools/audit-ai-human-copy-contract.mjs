@@ -3,10 +3,14 @@ import path from 'node:path';
 const root=process.cwd();
 const targets=['functions/_lib','functions/api','ln-rank/js/feature/diagnose'];
 const bad=[];
-const patterns=[/方案解读解读/,/主要参考参考/,/规则稳妥补充版/,/命中已收录学科/,/行业特色相关：/,/录取概率/,/稳了/,/必录/,/捡漏/,/王牌/,/优势专业/,/强校/,/能上/,/保底/];
+const patterns=[
+  /方案解读解读/,/主要参考参考/,/规则稳妥补充版/,/命中已收录学科/,/行业特色相关：/,
+  /录取概率/,/稳了/,/必录/,/捡漏/,/王牌/,/优势专业/,/强校/,/能上/,/保底/,
+  /作为\s*AI/,/截至我的知识/,/希望这能帮助你/,/接下来我们将/,/下面我们来看/,/让我们先/,/划重点/,/敲黑板/
+];
 function walk(dir){ for (const e of fs.readdirSync(dir,{withFileTypes:true})) { const p=path.join(dir,e.name); if(e.isDirectory()) walk(p); else if(/\.(js|html|md)$/.test(e.name)){ const s=fs.readFileSync(p,'utf8'); for(const pat of patterns){ if(pat.test(s)) bad.push(`${path.relative(root,p)} :: ${pat}`); pat.lastIndex=0;} } } }
 for (const t of targets) if(fs.existsSync(path.join(root,t))) walk(path.join(root,t));
-// Allow policy code to mention words only inside the gate definition itself.
+// Policy/prompt owners may name forbidden phrases only to prohibit them; they are not public prose surfaces.
 const allowed = [
   'functions/_lib/diagnosis-human-copy-gate.js',
   'functions/_lib/advisor-ai-prompt.js',
@@ -20,4 +24,4 @@ const allowed = [
 ];
 const filtered=bad.filter(x=>!allowed.some(a=>x.startsWith(a)));
 if(filtered.length){ console.error(JSON.stringify({ok:false, findings:filtered.slice(0,80)},null,2)); process.exit(1); }
-console.log(JSON.stringify({ok:true},null,2));
+console.log(JSON.stringify({ok:true,version:'ai-human-copy-contract-v0.02',assistantNarrationForbidden:true},null,2));
