@@ -3,9 +3,8 @@
 /**
  * PR192 major owner boundary verification.
  *
- * This guard does not validate admission data. It only protects the ownership
- * boundary: major knowledge belongs to the shared major layer, while products
- * consume adapters.
+ * Protect the ownership boundary: major knowledge belongs to the shared major
+ * layer, while products consume adapters.
  */
 
 import fs from 'node:fs';
@@ -16,7 +15,8 @@ const root = process.cwd();
 const required = [
   'shared/resources/major/contract.v001.md',
   'shared/resources/major/schema.v001.json',
-  'shared/resources/major/loader.v001.js'
+  'shared/resources/major/loader.v001.js',
+  'shared/resources/major/identity-resolver.v001.js'
 ];
 
 const missing = required.filter((file) => !fs.existsSync(path.join(root, file)));
@@ -24,6 +24,15 @@ const missing = required.filter((file) => !fs.existsSync(path.join(root, file)))
 if (missing.length) {
   console.error('Missing major owner files:', missing.join(', '));
   process.exit(1);
+}
+
+const resolver = fs.readFileSync(
+  path.join(root, 'shared/resources/major/identity-resolver.v001.js'),
+  'utf8'
+);
+
+if (!resolver.includes('resolveMajorIdentity')) {
+  throw new Error('major identity resolver export missing');
 }
 
 const forbidden = [
