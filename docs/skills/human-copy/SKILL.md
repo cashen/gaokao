@@ -26,6 +26,18 @@ This skill was designed after reviewing the public project `OUBIGFA/De-AI-Prompt
 
 The upstream repository does not currently declare a repository license. Therefore this file is an independent product-specific adaptation of general writing principles rather than a vendored copy of the upstream text.
 
+## Ownership
+
+This skill is the **repository-wide writing principle**, not a second AIPLuS copy engine.
+
+Existing product owners remain in place:
+
+- `tools/audit-ai-human-copy-contract.mjs` remains the AIPLuS/diagnosis human-copy safety audit;
+- existing AIPLuS prompt, validator, education-knowledge and presentation owners remain responsible for their own output contracts;
+- `tools/audit-human-copy-v001.mjs` only verifies the cross-site foundation registration and current public-surface wording. It must not fork AIPLuS intent, answer composition or copy state.
+
+If a product already has a canonical copy/prompt owner, improve that owner. Do not add a post-processing rewrite layer merely to make text “sound human”.
+
 ## Core rule
 
 **Say what the person needs to know or do. Do not narrate the system's thinking process.**
@@ -195,7 +207,8 @@ For every touched user-facing surface:
 5. Preserve official terms, factual boundaries and uncertainty.
 6. Check PC, Pad and Android for CTA length, wrapping and hierarchy.
 7. Run `node tools/audit-human-copy-v001.mjs`.
-8. Re-read the final rendered journey once more after all tests pass.
+8. When AIPLuS/diagnosis output is touched, also run `node tools/audit-ai-human-copy-contract.mjs` and the relevant existing product verifier.
+9. Re-read the final rendered journey once more after all tests pass.
 
 ## Non-goals
 
