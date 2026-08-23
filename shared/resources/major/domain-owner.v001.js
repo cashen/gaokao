@@ -1,16 +1,22 @@
 import { resolveMajorIdentity } from './identity-resolver.v001.js';
 
-export const MAJOR_DOMAIN_OWNER_VERSION = 'v001.1';
+export const MAJOR_DOMAIN_OWNER_VERSION = 'v002';
 
-const knowledgeAdapters = new Map([
-  ['080601', {
+// Knowledge ownership stays behind the adapter boundary.
+// Missing knowledge records must not create fallback product explanations.
+const knowledgeRegistry = {
+  '080601': {
     source: './electrical-engineering-automation.v001.json'
-  }]
-]);
+  }
+};
+
+function createKnowledgeAdapter(identity) {
+  return knowledgeRegistry[identity.id] || null;
+}
 
 function createLayerAdapters(identity) {
   return {
-    knowledge: knowledgeAdapters.get(identity.id) || null,
+    knowledge: createKnowledgeAdapter(identity),
     admission: {
       owner: 'admission-data-layer',
       majorId: identity.id
