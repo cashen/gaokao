@@ -1,12 +1,12 @@
 import { resolveCanonicalMajorOwner } from './domain-owner.v001.js';
 
-export const MAJOR_RUNTIME_VERSION = 'v001';
+export const MAJOR_RUNTIME_VERSION = 'v002';
 
 /**
  * Universal entry point for major questions.
  *
- * This layer intentionally does not own admission, school or experience data.
- * It only creates the canonical boundary between products and major domains.
+ * Runtime owns orchestration only. Major facts, admission data,
+ * school relations and experience remain owned by their adapters.
  */
 export function resolveMajorQuery(input) {
   const owner = resolveCanonicalMajorOwner(input);
@@ -15,11 +15,11 @@ export function resolveMajorQuery(input) {
   return {
     version: MAJOR_RUNTIME_VERSION,
     identity: owner.identity,
-    knowledgeOwner: owner.knowledgeSource,
-    adapters: {
-      admission: 'admission-data-adapter',
-      schoolRelation: 'school-major-relation-adapter',
-      experience: 'student-experience-adapter'
+    layers: {
+      knowledge: owner.adapters?.knowledge || null,
+      admission: owner.adapters?.admission || null,
+      schoolRelation: owner.adapters?.schoolRelation || null,
+      experience: owner.adapters?.experience || null
     }
   };
 }
