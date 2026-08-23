@@ -33,7 +33,7 @@ assert.equal(unknown.status, 'partial');
 assert.deepEqual(unknown.majorCodes, []);
 assert.deepEqual(unknown.unresolvedTerms, ['不存在的专业']);
 
-const category = resolveMajorDomainQuery('工学');
+const category = resolveMajorDomainQuery('电气类');
 assert.equal(category.status, 'ambiguous');
 assert.equal(category.failClosed, true);
 assert.ok(category.ambiguousTerms[0].candidates.length > 0);
