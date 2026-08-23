@@ -1,22 +1,43 @@
-export const MAJOR_IDENTITY_VERSION = 'v001';
+export const MAJOR_IDENTITY_VERSION = 'v002';
 
-const aliases = new Map([
-  ['电气', '080601'],
-  ['电气工程', '080601'],
-  ['电气工程及其自动化', '080601']
-]);
+const catalog = [
+  {
+    id: '080601',
+    name: '电气工程及其自动化',
+    category: 'engineering',
+    aliases: ['电气', '电气工程', '电气工程及其自动化']
+  }
+];
+
+function normalize(value) {
+  return String(value || '')
+    .trim()
+    .replace(/[（）()]/g, '')
+    .replace(/专业$/, '');
+}
 
 export function resolveMajorIdentity(input) {
-  if (!input) return null;
+  const normalized = normalize(input);
+  if (!normalized) return null;
 
-  const normalized = String(input).trim();
-  const id = aliases.get(normalized);
+  const major = catalog.find((item) =>
+    item.aliases.some((alias) => normalize(alias) === normalized)
+  );
 
-  if (!id) return null;
+  if (!major) return null;
 
   return {
-    id,
-    name: '电气工程及其自动化',
+    id: major.id,
+    name: major.name,
+    category: major.category,
     version: MAJOR_IDENTITY_VERSION
   };
+}
+
+export function listMajorIdentityCatalog() {
+  return catalog.map((item) => ({
+    id: item.id,
+    name: item.name,
+    category: item.category
+  }));
 }
