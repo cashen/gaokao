@@ -46,6 +46,7 @@ import {
   bottomLineModeSummary
 } from '../_lib/bottomline-policy.js';
 import { keywordQueryWarnings } from '../_lib/keyword-query.js';
+import { resolveMajorDomainQuery } from '../_lib/major-domain-runtime-adapter.v001.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
@@ -1142,6 +1143,7 @@ export async function onRequest(context) {
       specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects'),
       platformTarget: normalizePlatformTarget(url.searchParams.get('platformTarget') || '')
     };
+    const majorDomain = resolveMajorDomainQuery(filters.majorKeyword);
     const requestedBandRaw = clean(url.searchParams.get('band') || '', 20);
     const requestedBand = BAND_KEYS.includes(requestedBandRaw) ? requestedBandRaw : '';
     const configuredPageSize = Math.max(16, Math.min(80, pageNumber(context.env?.MAJOR_BANDS_MAX_PER_BAND, 40)));
@@ -1430,6 +1432,7 @@ export async function onRequest(context) {
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
         platformTarget: filters.platformTarget,
+        majorDomain,
         specialProject: {
           mode: filters.specialProjectMode,
           explicitIntent: specialIntent,

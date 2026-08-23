@@ -2,6 +2,7 @@ import { loadSchoolRuntimeRecords, SCHOOL_RUNTIME_PROJECTION_VERSION } from '../
 import { normalizeRecord, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
+import { resolveMajorDomainQuery } from '../_lib/major-domain-runtime-adapter.v001.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   detectSpecialProject,
@@ -167,6 +168,7 @@ export async function onRequest(context) {
 
     const majorKeyword = clean(url.searchParams.get('majorKeyword') || '', 160);
     const keywordQuery = buildKeywordQuery(majorKeyword);
+    const majorDomain = resolveMajorDomainQuery(majorKeyword);
     const requestedSort = clean(url.searchParams.get('sort') || '', 30);
     const sort = ['position-near', 'score-asc', 'score-desc'].includes(requestedSort)
       ? requestedSort
@@ -322,6 +324,7 @@ export async function onRequest(context) {
         sort,
         keywordMode: 'any',
         keywordTerms: keywordQuery.rawKeywords,
+        majorDomain,
         schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
         schoolQueryIntent: 'school',
         admissionDirectoryVersion: directoryMeta.version,

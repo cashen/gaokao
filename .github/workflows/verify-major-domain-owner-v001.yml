@@ -1,0 +1,44 @@
+name: Verify PR193 major domain owner v0.01
+
+on:
+  pull_request:
+    paths:
+      - 'shared/resources/majors/**'
+      - 'functions/_lib/major-domain-runtime-adapter.v001.js'
+      - 'functions/_lib/kb/standard-major-catalog-2026-full.generated.js'
+      - 'functions/api/school-majors.js'
+      - 'functions/api/major-bands.js'
+      - 'tools/verify-major-domain-owner-v001.mjs'
+      - 'tools/verify-major-domain-integration-v001.mjs'
+      - '.github/workflows/verify-major-domain-owner-v001.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'shared/resources/majors/**'
+      - 'functions/_lib/major-domain-runtime-adapter.v001.js'
+      - 'functions/_lib/kb/standard-major-catalog-2026-full.generated.js'
+      - 'functions/api/school-majors.js'
+      - 'functions/api/major-bands.js'
+      - 'tools/verify-major-domain-owner-v001.mjs'
+      - 'tools/verify-major-domain-integration-v001.mjs'
+      - '.github/workflows/verify-major-domain-owner-v001.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify canonical all-major orchestration
+        run: node tools/verify-major-domain-owner-v001.mjs
+      - name: Verify live query integrations
+        run: node tools/verify-major-domain-integration-v001.mjs
