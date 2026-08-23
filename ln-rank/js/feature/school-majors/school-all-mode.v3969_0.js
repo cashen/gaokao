@@ -2,7 +2,7 @@ import { state } from '../../state/app-state.v3963_1.js?v=3963_1';
 import {
   buildTongxueSchoolHref
 } from '../../../../shared/resources/schools/school-resource-center.js?v=3963_0';
-import { UI_ACTION_COPY } from '../../../../shared/ui/contracts/action-contract.v3959_0.js?v=3963_0';
+import { UI_ACTION_COPY } from '../../../../shared/ui/contracts/action-contract.v3970_0.js?v=3970_0-hc001';
 import {
   createSelectionPoolAdapter,
   refreshSelectionPool
@@ -24,7 +24,7 @@ const ACTION_COPY = Object.freeze({
   remove: UI_ACTION_COPY.removeSelectedMajor?.label || '移出已选',
   detail: UI_ACTION_COPY.inspectDetails?.label || '查看详情',
   collapse: UI_ACTION_COPY.inspectDetails?.expandedLabel || '收起详情',
-  reviews: UI_ACTION_COPY.publicReviews?.compactLabel || '公开评论',
+  reviews: UI_ACTION_COPY.publicReviews?.compactLabel || '大学生怎么说',
   retry: UI_ACTION_COPY.retry?.label || '重新尝试'
 });
 
@@ -190,7 +190,7 @@ function renderCandidates(payload) {
     ? interpretations.map(item => `<section class="school-candidate-group" data-school-query-intent="${escapeHtml(item.intent || '')}"><header><h3>${escapeHtml(item.label || '候选学校')}</h3><p>${escapeHtml(item.note || '')}｜共 ${fmt(item.total)} 所，当前全部列出可选学校。</p></header><div class="school-candidate-list">${renderCandidateButtons(item.candidates || [])}</div></section>`).join('')
     : (candidates.length ? `<section class="school-candidate-group"><header><h3>候选学校</h3><p>共 ${fmt(payload?.candidateTotal ?? candidates.length)} 所；招生记录数量只作说明，不决定名称匹配顺序。</p></header><div class="school-candidate-list">${renderCandidateButtons(candidates)}</div></section>` : '');
   const ambiguity = query.ambiguityType === 'region-or-school-name'
-    ? '<p class="school-candidate-boundary">这个词既可能表示学校所在城市，也可能只是校名片段。系统不会替你暗中选择，请从对应分组中确认准确学校。</p>'
+    ? '<p class="school-candidate-boundary">这个词既可能是城市，也可能只是校名的一部分。这里不会替你默认选择，请从下面确认准确学校。</p>'
     : '<p class="school-candidate-boundary">学校本部、分校和招生校区不能混在一起，请选择准确名称。</p>';
   byId('schoolAllContent').innerHTML = `<section class="ui-state ui-state--pending school-all-message"><b>${escapeHtml(payload?.message || '没有精确确认这所学校')}</b>${ambiguity}${groups || '<p>请检查学校名称，或切回按分数查看。</p>'}</section>`;
 }
