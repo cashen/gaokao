@@ -49,6 +49,7 @@ on:
 permissions:
   contents: read
   checks: read
+  statuses: write
 
 jobs:
   contract:
@@ -216,3 +217,33 @@ jobs:
         env:
           V3965_BASE_URL: https://gaokao-4y9.pages.dev
         run: node tools/browser-tongxue-major-direct-v001.mjs
+
+  publish-production-status:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [contract, browser-production]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish durable Production status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          CONTRACT_RESULT: ${{ needs.contract.result }}
+          BROWSER_RESULT: ${{ needs.browser-production.result }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          state=failure
+          description='Unified Experience Context Production verification failed'
+          if [ "$CONTRACT_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
+            state=success
+            description='Unified Experience Context Production verified'
+          fi
+          payload="$(jq -n --arg state "$state" --arg context 'production/unified-experience-context-v0.01' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl -fsSL --max-time 25 -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GH_REPOSITORY}/statuses/${SHA}" \
+            -d "$payload"
+          test "$state" = success
