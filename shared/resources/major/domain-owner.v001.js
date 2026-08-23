@@ -1,6 +1,6 @@
 import { resolveMajorIdentity } from './identity-resolver.v001.js';
 
-export const MAJOR_DOMAIN_OWNER_VERSION = 'v002';
+export const MAJOR_DOMAIN_OWNER_VERSION = 'v001.1';
 
 const knowledgeAdapters = new Map([
   ['080601', {
@@ -9,10 +9,8 @@ const knowledgeAdapters = new Map([
 ]);
 
 function createLayerAdapters(identity) {
-  const knowledge = knowledgeAdapters.get(identity.id) || null;
-
   return {
-    knowledge,
+    knowledge: knowledgeAdapters.get(identity.id) || null,
     admission: {
       owner: 'admission-data-layer',
       majorId: identity.id
