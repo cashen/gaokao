@@ -9,7 +9,7 @@ export const UI_LANGUAGE = Object.freeze({
   minimumFilingScore: '最低投档分',
   cumulativeRank: '对应累计位次',
   minimumFilingPosition: '最低投档位置',
-  publicReviews: '公开评论',
+  publicReviews: '大学生怎么说',
   currentResultsReport: '当前结果报告',
   familyPlanReport: '家庭方案报告',
   officialUnknown2027: '2027招生计划、选科要求、学费、校区和培养方式仍需以正式资料为准。',
