@@ -142,7 +142,12 @@ try {
     const page = await context.newPage();
     const pageErrors = [];
     const requests = [];
+    const schoolModeModules = [];
     page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
+    page.on('request', request => {
+      const url = new URL(request.url());
+      if (url.pathname.endsWith('/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js')) schoolModeModules.push(url.searchParams.get('v') || '');
+    });
     await page.route('**/api/school-majors**', route => {
       const url = new URL(route.request().url());
       requests.push(url);
@@ -163,7 +168,8 @@ try {
       await page.locator('#queryButton').click();
       const boundary = page.locator('.school-candidate-boundary');
       await boundary.waitFor({ state: 'visible', timeout: 15000 });
-      assert.match(await boundary.textContent(), /学校所在城市/);
+      assert.match(await boundary.textContent(), /既可能是城市/);
+      assert.doesNotMatch(await boundary.textContent(), /系统不会/);
       const groups = page.locator('.school-candidate-group');
       assert.equal(await groups.count(), 2, `${testCase.name}: interpretation group count`);
       const groupText = await groups.allTextContents();
@@ -179,12 +185,18 @@ try {
       assert.ok(firstGroupNames.includes('沈阳化工大学'), `${testCase.name}: region group missing 沈阳化工大学`);
       assert.notEqual(firstGroupNames.indexOf('沈阳化工大学'), -1);
       await chemicalCandidates.first().click();
-      await page.locator('.school-major-row').first().waitFor({ state: 'visible', timeout: 15000 });
+      const firstRow = page.locator('.school-major-row').first();
+      await firstRow.waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(requests.length, 2, `${testCase.name}: query should require one confirmation`);
       assert.equal(requests[0].searchParams.get('school'), '沈阳');
       assert.equal(requests[1].searchParams.get('school'), '沈阳化工大学');
       assert.match(await page.locator('#schoolAllTitle').textContent(), /沈阳化工大学/);
-      assert.match(await page.locator('.school-major-row').first().textContent(), /化学工程与工艺/);
+      assert.match(await firstRow.textContent(), /化学工程与工艺/);
+      const reviewLink = firstRow.locator('.school-major-review-link');
+      assert.equal(await reviewLink.count(), 1, `${testCase.name}: student opinion link missing`);
+      assert.equal((await reviewLink.textContent()).trim(), '大学生怎么说', `${testCase.name}: student opinion CTA must use human wording`);
+      assert.match(await reviewLink.getAttribute('href'), /\/tongxue\/\?school=/, `${testCase.name}: student opinion href must keep Tongxue handoff`);
+      assert.ok(schoolModeModules.includes('3969_0-hc001'), `${testCase.name}: active school mode did not use human-copy cache identity`);
       const geometry = await page.evaluate(() => ({
         pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         candidateOverflow: Math.max(0, ...[...document.querySelectorAll('.school-candidate-list')].map(node => node.scrollWidth - node.clientWidth)),
@@ -199,7 +211,7 @@ try {
       assert.equal(geometry.schoolMode, 'school-all-mode-v3969_0');
       assert.deepEqual(pageErrors, [], `${testCase.name}: page errors ${pageErrors.join(' | ')}`);
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}.png`), fullPage: true });
-      results.push({ name: testCase.name, requests: requests.length, candidates: firstGroupNames.length, geometry });
+      results.push({ name: testCase.name, requests: requests.length, candidates: firstGroupNames.length, reviewCta:'大学生怎么说', schoolModeIdentity:schoolModeModules.at(-1) || '', geometry });
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
       fs.writeFileSync(path.join(artifactDir, `${testCase.name}-error.txt`), String(error?.stack || error));
