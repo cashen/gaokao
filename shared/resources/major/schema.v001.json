@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Major Knowledge Resource v001",
+  "type": "object",
+  "required": ["id", "name", "version", "knowledge"],
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "version": {"type": "string"},
+    "knowledge": {
+      "type": "object",
+      "required": ["what_is_it", "what_students_learn", "main_courses", "career", "employment_direction", "suitable_students", "notes"]
+    }
+  }
+}
