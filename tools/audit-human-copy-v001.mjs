@@ -18,7 +18,9 @@ assert.match(startHere, /docs\/skills\/human-copy\/SKILL\.md/, 'Human Copy must 
 assert.match(skill, /b050eefa88af3709ec24fc0b353740ccb151f563/, 'Human Copy must pin the reviewed upstream reference');
 assert.match(skill, /not a vendored copy|not.*vendored|independent product-specific adaptation/i, 'Human Copy must document the upstream-license boundary');
 assert.match(skill, /tools\/audit-ai-human-copy-contract\.mjs/, 'Human Copy must reuse the existing AIPLuS copy-safety owner');
-assert.match(startHere, /audit-ai-human-copy-contract\.mjs remains the existing AIPLuS\/diagnosis copy-safety audit/, 'architecture handoff must preserve the AIPLuS human-copy owner');
+assert.match(startHere, /tools\/audit-ai-human-copy-contract\.mjs/, 'architecture handoff must name the existing AIPLuS human-copy audit');
+assert.match(startHere, /remains the existing AIPLuS\/diagnosis copy-safety audit/, 'architecture handoff must preserve the existing AIPLuS human-copy owner semantics');
+assert.match(startHere, /not a new AIPLuS answer owner/, 'architecture handoff must reject a second AIPLuS answer owner');
 
 for (const [name, source] of [['action-contract', action], ['copy-contract', copy]]) {
   assert.match(source, /大学生怎么说/, `${name} must use plain student-opinion wording`);
