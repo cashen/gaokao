@@ -7,7 +7,8 @@ const sourceKey = '沈阳建筑大学-电气工程及其自动化-562-27032';
 const viewports = [
   { name:'pc-1366', viewport:{ width:1366, height:768 } },
   { name:'pad-820', viewport:{ width:820, height:1180 }, hasTouch:true },
-  { name:'android-390', viewport:{ width:390, height:844 }, hasTouch:true, isMobile:true }
+  { name:'android-390', viewport:{ width:390, height:844 }, hasTouch:true, isMobile:true },
+  { name:'android-compact-360', viewport:{ width:360, height:740 }, hasTouch:true, isMobile:true }
 ];
 
 function responseForMajor() {
