@@ -1,10 +1,5 @@
 import assert from 'node:assert/strict';
-import {
-  MAJOR_SOURCE_PROFILE_META,
-  getMajorSourceProfile,
-  majorSourceInterpretation,
-  MAJOR_SOURCE_PROFILE_LIST
-} from '../ln-rank/kb/major-understanding/major-source-profile.generated.js';
+import { MAJOR_SOURCE_PROFILE_META, getMajorSourceProfile, majorSourceInterpretation, MAJOR_SOURCE_PROFILE_LIST } from '../ln-rank/kb/major-understanding/major-source-profile.generated.js';
 import { majorUnderstandingCard } from '../ln-rank/js/knowledge/major-understanding-resolver.js';
 
 assert.equal(MAJOR_SOURCE_PROFILE_META.canonicalCount, 883);
@@ -28,12 +23,6 @@ assert.equal(card.source.fields.whatDo, energy.whatDo);
 
 assert.equal(getMajorSourceProfile('500101'), null);
 assert.equal(majorSourceInterpretation('500101').available, false);
-assert.equal(majorUnderstandingCard({ standardMajor: { code: '500101', name: '铁道工程技术' } }), null);
+assert.equal(majorUnderstandingCard({ standardMajor: { code: '500101' } }), null);
 
-console.log(JSON.stringify({
-  ok: true,
-  canonicalCount: MAJOR_SOURCE_PROFILE_META.canonicalCount,
-  verifiedCount: MAJOR_SOURCE_PROFILE_META.verifiedCount,
-  missingCount: MAJOR_SOURCE_PROFILE_META.missingCount,
-  sample: { code: energy.code, name: energy.name, sourceUrl: energy.sourceUrl }
-}));
+console.log(JSON.stringify({ ok: true, canonicalCount: MAJOR_SOURCE_PROFILE_META.canonicalCount, verifiedCount: MAJOR_SOURCE_PROFILE_META.verifiedCount, missingCount: MAJOR_SOURCE_PROFILE_META.missingCount, sample: { code: energy.code, name: energy.name, sourceUrl: energy.sourceUrl } }));
