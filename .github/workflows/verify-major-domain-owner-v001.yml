@@ -4,16 +4,24 @@ on:
   pull_request:
     paths:
       - 'shared/resources/majors/**'
+      - 'functions/_lib/major-domain-runtime-adapter.v001.js'
       - 'functions/_lib/kb/standard-major-catalog-2026-full.generated.js'
+      - 'functions/api/school-majors.js'
+      - 'functions/api/major-bands.js'
       - 'tools/verify-major-domain-owner-v001.mjs'
+      - 'tools/verify-major-domain-integration-v001.mjs'
       - '.github/workflows/verify-major-domain-owner-v001.yml'
   push:
     branches:
       - main
     paths:
       - 'shared/resources/majors/**'
+      - 'functions/_lib/major-domain-runtime-adapter.v001.js'
       - 'functions/_lib/kb/standard-major-catalog-2026-full.generated.js'
+      - 'functions/api/school-majors.js'
+      - 'functions/api/major-bands.js'
       - 'tools/verify-major-domain-owner-v001.mjs'
+      - 'tools/verify-major-domain-integration-v001.mjs'
       - '.github/workflows/verify-major-domain-owner-v001.yml'
 
 permissions:
@@ -32,3 +40,5 @@ jobs:
           node-version: 22
       - name: Verify canonical all-major orchestration
         run: node tools/verify-major-domain-owner-v001.mjs
+      - name: Verify live query integrations
+        run: node tools/verify-major-domain-integration-v001.mjs
