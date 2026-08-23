@@ -15,7 +15,7 @@ export const UI_ACTION_COPY = Object.freeze({
   inspectFit: Object.freeze({ level: 'secondary', intent: 'inspect', label: '看看是否适合' }),
   createCurrentResultsReport: Object.freeze({ level: 'primary', intent: 'save', label: '生成当前结果报告', pendingLabel: '正在生成当前结果报告…' }),
   createFamilyPlanReport: Object.freeze({ level: 'primary', intent: 'save', label: '生成家庭方案报告', pendingLabel: '正在生成家庭方案报告…' }),
-  publicReviews: Object.freeze({ level: 'secondary', intent: 'inspect', label: '看看这所学校的公开评论', compactLabel: '公开评论', pendingLabel: '正在打开这所学校的公开评论…' }),
+  publicReviews: Object.freeze({ level: 'secondary', intent: 'inspect', label: '看看这所学校的大学生怎么说', compactLabel: '大学生怎么说', pendingLabel: '正在打开学生评价…' }),
   changeSchool: Object.freeze({ level: 'tertiary', intent: 'leave', label: '换一所学校' }),
   retry: Object.freeze({ level: 'secondary', intent: 'continue', label: '重新尝试' }),
   openReport: Object.freeze({ level: 'secondary', intent: 'inspect', label: '打开报告' }),
