@@ -11,13 +11,17 @@ on:
       - 'shared/resources/geo/**'
       - 'shared/resources/release/**'
       - 'shared/resources/background/**'
+      - 'shared/resources/experience/student-voice-*.js'
       - 'shared/governance/**'
       - 'shared/ui/**'
       - 'functions/api/tongxue-*.js'
       - 'functions/_lib/tongxue-*.js'
+      - 'functions/_lib/student-voice-source.js'
       - 'tools/tongxue/**'
       - 'tools/browser-tongxue-runtime-v159.mjs'
       - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/browser-tongxue-summary-evidence-v002.mjs'
+      - 'tools/verify-student-voice-evidence-layer-v002.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/audit-school-query-v3970.mjs'
       - 'tools/build-school-admission-directory-v3969.mjs'
@@ -57,6 +61,10 @@ jobs:
             functions/_lib/tongxue-school-portrait-core.js \
             functions/_lib/tongxue-school-portrait-base-v120.js \
             functions/_lib/tongxue-summary-base-v112.js \
+            functions/_lib/student-voice-source.js \
+            shared/resources/experience/student-voice-contract.v001.js \
+            shared/resources/experience/student-voice-source-registry.v001.js \
+            shared/resources/experience/student-voice-evidence-selector.v001.js \
             shared/resources/schools/*.js \
             tongxue/data/*.js \
             tongxue/app/*.js \
@@ -67,6 +75,8 @@ jobs:
             tools/build-school-admission-directory-v3969.mjs \
             tools/browser-tongxue-runtime-v159.mjs \
             tools/browser-tongxue-major-direct-v001.mjs \
+            tools/browser-tongxue-summary-evidence-v002.mjs \
+            tools/verify-student-voice-evidence-layer-v002.mjs \
             tools/verify-tongxue-uec-cache-identity-v001.mjs; do
             node --check "$file"
           done
@@ -87,6 +97,7 @@ jobs:
           if(!SITE_RUNTIME_CONTRACT.stableDependencies.includes('/tongxue/app/tongxue-runtime-v159-r3968.js')) throw new Error('Tongxue runtime must be declared as a stable dependency');
           const html=fs.readFileSync('tongxue/index.html','utf8');
           if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active Tongxue wrapper missing');
+          if(!html.includes('tongxue-runtime-result-view-v159.js?v=159-uec002')) throw new Error('student evidence result-view cache identity missing');
           const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
           for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']) if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
           const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
@@ -99,6 +110,12 @@ jobs:
           console.log('Tongxue stable v159 package under current site generation v3990_2 and release v3.9.90.2 passed');
           NODE
           node tools/verify-tongxue-uec-cache-identity-v001.mjs
+
+      - name: Verify student voice summary evidence pipeline
+        run: |
+          set -euo pipefail
+          node tools/verify-student-voice-evidence-layer-v002.mjs | tee /tmp/tongxue-live-artifact/student-evidence-selector.out
+          node tools/tongxue/verify-student-voice-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/student-evidence-source.out
 
       - name: Verify school resolver and unified query contracts
         run: |
@@ -118,10 +135,12 @@ jobs:
             node "$test_file" 2>&1 | tee -a "/tmp/tongxue-live-artifact/${name}.out"
           done
 
-      - name: Verify school portrait service remains callable
+      - name: Verify live student voice service remains callable
         env:
-          PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
-        run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/portrait-and-live-regression.out
+          STUDENT_VOICE_LIVE_SCHOOLS: 沈阳建筑大学,辽宁科技大学
+        run: |
+          set -euo pipefail
+          node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/student-voice-live-regression.out
 
       - name: Rebuild all official school resources and admission overlay once
         run: |
@@ -150,7 +169,7 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify school, region, history and major direct journeys
+      - name: Verify school, region, history, major and summary evidence journeys
         run: |
           set -euo pipefail
           python3 -m http.server 8765 >/tmp/tongxue-v159-http.log 2>&1 &
@@ -159,6 +178,7 @@ jobs:
           sleep 1
           V3965_ARTIFACT_DIR=/tmp/tongxue-live-artifact/browser node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/tongxue-live-artifact/browser-result.json
           node tools/browser-tongxue-major-direct-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-direct-result.json
+          node tools/browser-tongxue-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/browser-summary-evidence-result.json
 
       - name: Upload verification report
         if: always()

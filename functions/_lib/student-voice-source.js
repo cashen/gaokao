@@ -12,8 +12,9 @@ import {
   studentVoiceSourceHosts,
   studentVoiceSourcePage
 } from '../../shared/resources/experience/student-voice-source-registry.v001.js';
+import { selectStudentVoiceEvidence } from '../../shared/resources/experience/student-voice-evidence-selector.v001.js';
 
-export const STUDENT_VOICE_SOURCE_GATEWAY_VERSION = 'student-voice-source-gateway-v0.01';
+export const STUDENT_VOICE_SOURCE_GATEWAY_VERSION = 'student-voice-source-gateway-v0.02';
 const API_VERSION = 'v1.4.0';
 const TOTAL_REQUEST_BUDGET_MS = 8_000;
 const PER_REQUEST_TIMEOUT_MS = 4_500;
@@ -133,10 +134,25 @@ async function fetchSchoolFromHost({ host, schoolInput, topic, page, deadline, t
     const summaryPayload = unwrapData(summaryResult.data);
     const summary = pickSummary(summaryPayload);
     if (summary && (topic === 'general' || studentVoiceTextMatchesTopic(summary, topic, { scope:'school' }))) {
+      const reviewResult = await fetchSchoolReviewPage({ host, schoolId, page:1, deadline, timings });
+      diagnostics.push(toDiagnostic('summary-evidence-reviews', host, reviewResult, { schoolId, page:1, pageSize:SCHOOL_REVIEW_PAGE_SIZE }));
+      let studentEvidence = [];
+      let scannedCount = null;
+      let exhaustive = false;
+      if (reviewResult.ok && isObject(reviewResult.data)) {
+        const normalized = normalizeSchoolReviewPage(reviewResult.data, schoolMeta, source);
+        const evidenceCandidates = topic === 'general'
+          ? normalized.reviews
+          : normalized.reviews.filter((review) => studentVoiceTextMatchesTopic(review.content, topic, { scope:'school' }));
+        studentEvidence = selectStudentVoiceEvidence(evidenceCandidates, 5);
+        scannedCount = normalized.reviews.length;
+        exhaustive = !normalized.pagination.hasMore;
+      }
       return { kind:'success', schoolMeta, payload:{
-        ok:true, mode:'ai_summary', school:schoolMeta.name, summary, reviews:[], reviewPagination:null, schoolMeta, source,
-        fetchedAt:new Date().toISOString(), transport:transportLabel(host, '来源评论摘要'),
-        evidence:buildEvidenceMeta({ scope:'school', topic, matched:null, scanned:null, pages:0, exhaustive:false, sourceSummary:true })
+        ok:true, mode:'ai_summary', school:schoolMeta.name, summary, reviews:[], studentEvidence, reviewPagination:null, schoolMeta, source,
+        fetchedAt:new Date().toISOString(), transport:transportLabel(host, studentEvidence.length ? '来源评论摘要 + 学生证据' : '来源评论摘要'),
+        evidence:buildEvidenceMeta({ scope:'school', topic, matched:studentEvidence.length, scanned:scannedCount, pages:scannedCount === null ? 0 : 1, exhaustive, sourceSummary:true }),
+        diagnostics
       }};
     }
     summaryKnownEmpty = hasKnownSummaryField(summaryPayload);

@@ -17,7 +17,7 @@ const json=data=>new Response(JSON.stringify(data),{status:200,headers:{'content
 
 assert.equal(STUDENT_VOICE_CONTRACT_VERSION,'student-voice-contract-v0.01');
 assert.equal(STUDENT_VOICE_SOURCE_REGISTRY_VERSION,'student-voice-source-registry-v0.01');
-assert.equal(STUDENT_VOICE_SOURCE_GATEWAY_VERSION,'student-voice-source-gateway-v0.01');
+assert.equal(STUDENT_VOICE_SOURCE_GATEWAY_VERSION,'student-voice-source-gateway-v0.02');
 assert.deepEqual(STUDENT_VOICE_SCOPES,['school','major','school_major']);
 assert.equal(normalizeStudentVoiceScope('school_major'),'school_major');
 assert.equal(STUDENT_VOICE_BOUNDARY.officialFact,false);
