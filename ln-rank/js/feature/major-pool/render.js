@@ -527,29 +527,51 @@ function renderMajorUnderstandingPreview(record) {
   const info = majorUnderstandingCard(record);
   if (!info?.oneLine) return '';
   const questions = Array.isArray(info.questions) ? info.questions.slice(0, 2).filter(Boolean) : [];
-  const qHtml = questions.length ? `<ul class="major-understanding-questions">${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : '';
+  const source = info.source || {};
+  const fields = source.fields || {};
+  const sourceRows = [
+    ['专业是什么', fields.whatIs],
+    ['主要学什么', fields.whatLearn],
+    ['毕业后做什么', fields.whatDo],
+    ['就业方向', fields.careerPath]
+  ].filter(([, value]) => String(value || '').trim());
+  const sourceHtml = sourceRows.length
+    ? `<div class="major-source-fields">${sourceRows.map(([label, value]) => `<div class="major-source-field"><b>${label}</b><p>${escapeHtml(value)}</p></div>`).join('')}</div>`
+    : '<p class="major-source-empty">暂无可核验的原站专业解读；下面只保留目录层面的专业理解，大学生经验另行查看。</p>';
+  const sourceLink = source.source?.url
+    ? `<a class="major-source-link" href="${escapeHtml(source.source.url)}" target="_blank" rel="noreferrer">查看原站专业解读 ↗</a>`
+    : '';
+  const qHtml = questions.length ? `<div class="major-understanding-questions-wrap"><b>家庭再确认：</b><ul class="major-understanding-questions">${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul></div>` : '';
   const classLevel = info.isClassLevel ? ' is-class-level' : '';
   const key = majorUnderstandingKey(record);
   const panelId = `major-understanding-more-${Math.abs(hashText(key))}`;
   const open = expandedMajorUnderstandingCards.has(key);
-  if (!questions.length) {
+  const title = sourceRows.length ? '先看懂这个专业' : '这个专业先了解';
+  const sourceNote = sourceRows.length
+    ? `<p class="major-source-note">内容来自 ${escapeHtml(source.source?.site || '原站')}；它回答“是什么、学什么、做什么、就业方向”，不代表录取或就业承诺。</p>`
+    : '';
+  if (!questions.length && !sourceRows.length) {
     return `<section class="major-understanding-preview is-static${classLevel}" aria-label="这个专业先了解什么">
       <div class="major-understanding-summary">
-        <span class="major-understanding-title">这个专业先了解</span>
+        <span class="major-understanding-title">${title}</span>
         <span class="major-understanding-one-line">${escapeHtml(info.oneLine)}</span>
       </div>
     </section>`;
   }
   return `<section class="major-understanding-preview is-controlled${classLevel}${open ? ' is-expanded' : ''}" aria-label="这个专业先了解什么" data-major-understanding-card="${escapeHtml(key)}">
     <button type="button" class="major-understanding-summary" data-major-understanding-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">
-      <span class="major-understanding-title">这个专业先了解</span>
+      <span class="major-understanding-title">${title}</span>
       <span class="major-understanding-one-line">${escapeHtml(info.oneLine)}</span>
       <span class="major-understanding-toggle" aria-hidden="true">${open ? '收起' : '展开'}</span>
     </button>
-    <div id="${panelId}" class="major-understanding-more" ${open ? '' : 'hidden'}><b>家庭先确认：</b>${qHtml}</div>
+    <div id="${panelId}" class="major-understanding-more" ${open ? '' : 'hidden'}>
+      ${sourceNote}
+      ${sourceHtml}
+      ${sourceLink}
+      ${qHtml}
+    </div>
   </section>`;
 }
-
 function hashText(value = '') {
   let hash = 0;
   const text = String(value || '');

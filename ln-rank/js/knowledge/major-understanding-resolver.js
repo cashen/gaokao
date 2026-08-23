@@ -3,10 +3,12 @@ import { MAJOR_UNDERSTANDING_2026 } from '../../kb/major-understanding/major-und
 import { MAJOR_DISPLAY_CONTRACT_2026 } from '../../kb/major-understanding/major-display-contract.generated.js?v=3949_0';
 import { ADMISSION_MAJOR_ALIAS_2026 } from '../../kb/major-understanding/admission-major-alias.generated.js?v=3949_0';
 import { createMajorCatalogResolver, normalizeMajorText } from '../../../shared/resources/majors/major-catalog-contract.js';
+import { getMajorSourceProfile, majorSourceInterpretation, MAJOR_SOURCE_PROFILE_META } from '../../kb/major-understanding/major-source-profile.generated.js?v=pr194';
 
 const CATALOG_RESOLVER = createMajorCatalogResolver(MAJOR_CATALOG_2026);
 const BY_CODE = MAJOR_UNDERSTANDING_2026;
 const DISPLAY_BY_CODE = MAJOR_DISPLAY_CONTRACT_2026;
+const SOURCE_PROFILES = MAJOR_SOURCE_PROFILE_META;
 const ALIASES = ADMISSION_MAJOR_ALIAS_2026
   .map(item => ({ ...item, key: normalizeMajorText(item.pattern) }))
   .sort((a, b) => b.key.length - a.key.length);
@@ -110,7 +112,9 @@ export function resolveMajorUnderstanding(record = {}) {
       selectionPool: display.selectionPool || {},
       report: display.report || {},
       feishu: display.feishu || {},
-      boundary: understanding.boundary || '仅用于本科专业理解和家庭讨论，不构成就业预测、录取判断或填报建议。'
+      boundary: understanding.boundary || '仅用于本科专业理解和家庭讨论，不构成就业预测、录取判断或填报建议。',
+      sourceProfile: getMajorSourceProfile(fromMajor.code),
+      sourceInterpretation: majorSourceInterpretation(fromMajor.code)
     };
   }
   const classMatch = standard?.majorClass ? standard : resolveClassByName(record.major || record.majorName || '');
@@ -139,7 +143,9 @@ export function resolveMajorUnderstanding(record = {}) {
         reviewItems: ['专业分流规则', '培养学院', '校区和学费', '招生章程备注']
       },
       feishu: { compactSummary: `${className}为专业类/大类招生；建议确认分流规则、培养学院和校区。` },
-      boundary: '大类招生需以学校培养方案和招生章程为准，本提示不构成就业预测或填报建议。'
+      boundary: '大类招生需以学校培养方案和招生章程为准，本提示不构成就业预测或填报建议。',
+      sourceProfile: null,
+      sourceInterpretation: Object.freeze({ available: false, status: 'class-level', source: null, fields: Object.freeze({}) })
     };
   }
   return { matched: false, meta: MAJOR_CATALOG_2026_META };
@@ -154,7 +160,8 @@ export function majorUnderstandingCard(record = {}) {
     questions: Array.isArray(card.questions) ? card.questions.slice(0, 2) : [],
     confidence: info.confidence,
     boundary: info.boundary,
-    isClassLevel: Boolean(info.isClassLevel)
+    isClassLevel: Boolean(info.isClassLevel),
+    source: info.sourceInterpretation || majorSourceInterpretation(info.code)
   };
 }
 
@@ -171,5 +178,8 @@ export function majorUnderstandingReportLines(item = {}, { limit = 3 } = {}) {
 
 export const MAJOR_UNDERSTANDING_META = Object.freeze({
   ...MAJOR_CATALOG_2026_META,
-  resolverVersion: CATALOG_RESOLVER.contract.version
+  resolverVersion: CATALOG_RESOLVER.contract.version,
+  sourceProfileVersion: SOURCE_PROFILES.version,
+  sourceProfileVerifiedCount: SOURCE_PROFILES.verifiedCount,
+  sourceProfileMissingCount: SOURCE_PROFILES.missingCount
 });
