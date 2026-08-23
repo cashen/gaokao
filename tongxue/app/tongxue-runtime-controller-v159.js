@@ -1,6 +1,6 @@
 import { loadSchoolCatalog } from '../data/school-name-resolver-v150.js?v=150';
 import { getSchoolEntity, findSchoolEntityByName } from '../data/school-entities-v150.js?v=150';
-import { createTongxueSearchView } from './tongxue-runtime-search-view-v159.js?v=159';
+import { createTongxueSearchView } from './tongxue-runtime-search-view-v159.js?v=159-fuzzy001';
 import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v=159';
 import { MAJOR_CATALOG_2026 } from '../../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
 import { createMajorCatalogResolver, normalizeMajorText } from '../../shared/resources/majors/major-catalog-contract.js?v=3958';
