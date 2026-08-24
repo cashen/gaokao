@@ -46,6 +46,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
     aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
     majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
+    schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryLoader,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js'
   }),
@@ -83,6 +84,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiplusRenderImplementation: TRANSITIVE,
     aiplusHistoryImplementation: TRANSITIVE,
     majorSourceProfile: DATA,
+    schoolDirectory: DATA,
     majorBandsFilter: CURRENT,
     majorBandsRegionCatalog: CURRENT
   }),
@@ -128,6 +130,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
     aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
     majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
+    schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryLoader,
+    schoolResourceCenter: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.resourceCenter,
+    schoolDirectoryData: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryData,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
