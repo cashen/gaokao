@@ -30,6 +30,7 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-r
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-add-another', 'explicit add-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'lockedConfirmed', 'confirmed-major draft owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'function draftMajorText()', 'draft query text owner');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'state.filters.majorKeyword=draftMajorText()', 'shared workspace major draft sync');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '查询 \\${names.length} 个已确认专业', 'explicit confirmed-major query copy');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-clear', 'clear-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
