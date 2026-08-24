@@ -1,0 +1,13 @@
+{
+  "task": "ln-rank-major-all-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-major-all-v001",
+  "baseSha": "0c1097d3c086658fce7813c7227a157c40ded412",
+  "headSha": "267a772eee73fe0018f005dae11e3ba79a8fea90",
+  "pr": null,
+  "completed": ["branch-created", "plan-written"],
+  "inProgress": "create-draft-pr",
+  "pending": ["MAJ-00","MAJ-01","MAJ-02","MAJ-03","MAJ-04","MAJ-05","MAJ-06","MAJ-07","MAJ-08","MAJ-09","MAJ-10"],
+  "lastFailure": null,
+  "verifiedAt": "2026-08-25T00:00:00Z"
+}
