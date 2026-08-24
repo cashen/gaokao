@@ -9,6 +9,10 @@ function text(value = '') {
   return String(value || '').trim();
 }
 
+function allowedReturnPath(pathname = '') {
+  return ['/ln-rank/', '/tongxue/'].some(prefix => pathname.startsWith(prefix));
+}
+
 export function sanitizeMajorPathReturnTarget(value, { origin = 'https://gaokao.powers.org.cn' } = {}) {
   const raw = text(value);
   if (!raw) return '/ln-rank/';
@@ -19,7 +23,7 @@ export function sanitizeMajorPathReturnTarget(value, { origin = 'https://gaokao.
     return '/ln-rank/';
   }
   const expectedOrigin = new URL(origin).origin;
-  if (url.origin !== expectedOrigin || !url.pathname.startsWith('/ln-rank/')) return '/ln-rank/';
+  if (url.origin !== expectedOrigin || !allowedReturnPath(url.pathname)) return '/ln-rank/';
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
@@ -30,19 +34,22 @@ export function buildMajorPathHref({
   sourceKey = '',
   sourceMajor = '',
   school = '',
+  sourceSurface = '',
   returnTo = '/ln-rank/'
 } = {}) {
   const code = text(majorCode).toUpperCase();
   if (!code) return '';
+  const surface = text(sourceSurface);
   const params = new URLSearchParams({
     majorCode: code,
-    from: 'ln-rank',
+    from: surface === 'tongxue' ? 'tongxue' : 'ln-rank',
     context: context === 'school' ? 'school' : 'score'
   });
   if (canonicalName) params.set('canonicalName', text(canonicalName));
   if (sourceKey) params.set('sourceKey', text(sourceKey));
   if (sourceMajor) params.set('sourceMajor', text(sourceMajor));
   if (school) params.set('school', text(school));
+  if (surface) params.set('sourceSurface', surface);
   params.set('returnTo', sanitizeMajorPathReturnTarget(returnTo));
   return `${MAJOR_PATH_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
@@ -51,9 +58,11 @@ export function readMajorPathSourceContext(locationLike = globalThis.location) {
   const url = new URL(locationLike?.href || String(locationLike || ''), 'https://gaokao.powers.org.cn');
   const majorCode = text(url.searchParams.get('majorCode')).toUpperCase();
   const fromLnRank = url.searchParams.get('from') === 'ln-rank';
+  const fromTongxue = url.searchParams.get('from') === 'tongxue';
   return Object.freeze({
     majorCode,
     fromLnRank,
+    fromTongxue,
     context: url.searchParams.get('context') === 'school' ? 'school' : 'score',
     sourceKey: text(url.searchParams.get('sourceKey')),
     sourceMajor: text(url.searchParams.get('sourceMajor')),
