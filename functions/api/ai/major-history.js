@@ -15,6 +15,7 @@ function clean(value, max = 220) { return String(value == null ? '' : value).tri
 function norm(value) { return clean(value, 220).normalize('NFKC').toLowerCase().replace(/[\s·•,，。；;：:'"“”‘’!！?？_—\-（）()【】\[\]]+/g, ''); }
 function int(value, fallback = 0) { const n = Math.floor(Number(value)); return Number.isFinite(n) ? n : fallback; }
 function scoreBound(value) { if (value === null || value === undefined || String(value).trim() === '') return null; const n = Math.round(Number(value)); return Number.isFinite(n) && n >= 150 && n <= 750 ? n : null; }
+function positive(value) { const n = Number(value); return Number.isFinite(n) && n > 0 ? n : null; }
 function splitMajorInputs(values = []) {
   return [...new Set(values.flatMap(value => String(value || '').split(/[,，、/；;|]+/).map(item => item.trim()).filter(Boolean)))].slice(0, 12);
 }
@@ -82,9 +83,9 @@ function resolveMajorKeys(manifest, query) {
 function rowRecord(row, ix) {
   const record = {
     id: clean(row[ix.id], 220), school: clean(row[ix.school], 120), major: clean(row[ix.major], 180),
-    score2026: Number(row[ix.score2026]), rank2026: Number.isFinite(Number(row[ix.rank2026])) ? Number(row[ix.rank2026]) : null,
-    score2025: Number.isFinite(Number(row[ix.score2025])) ? Number(row[ix.score2025]) : null, rank2025: Number.isFinite(Number(row[ix.rank2025])) ? Number(row[ix.rank2025]) : null,
-    score2024: Number.isFinite(Number(row[ix.score2024])) ? Number(row[ix.score2024]) : null, rank2024: Number.isFinite(Number(row[ix.rank2024])) ? Number(row[ix.rank2024]) : null,
+    score2026: positive(row[ix.score2026]), rank2026: positive(row[ix.rank2026]),
+    score2025: positive(row[ix.score2025]), rank2025: positive(row[ix.rank2025]),
+    score2024: positive(row[ix.score2024]), rank2024: positive(row[ix.rank2024]),
     province: clean(row[ix.province], 80), city: clean(row[ix.city], 80), lnArea: clean(row[ix.lnArea], 80), displayLocation: clean(row[ix.displayLocation], 100),
     standardMajorCode: clean(row[ix.standardMajorCode], 40), standardMajorName: clean(row[ix.standardMajorName], 160),
     schoolCode2026: clean(row[ix.schoolCode2026], 40), majorCode2026: clean(row[ix.majorCode2026], 40)
@@ -99,7 +100,7 @@ function regionMatch(record, region) {
   return matchRegionRule(record, key);
 }
 function summary(records = []) {
-  const scores = records.map(item => Number(item.score2026)).filter(Number.isFinite);
+  const scores = records.map(item => Number(item.score2026)).filter(value => Number.isFinite(value) && value > 0);
   return {
     total: records.length,
     schoolCount: new Set(records.map(item => item.school).filter(Boolean)).size,
