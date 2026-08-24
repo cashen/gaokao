@@ -31,7 +31,8 @@ export function createTongxueSearchView(ui, state) {
     ui.indexStatus.textContent = message;
   }
 
-  function setSuggestions(candidates, message = '') {
+  function setSuggestions(candidates, message = '', options = {}) {
+    const scope = options.scope === 'major' ? 'major' : 'school';
     state.suggestions = Array.isArray(candidates) ? candidates : [];
     state.activeSuggestion = -1;
     if (!state.suggestions.length) {
@@ -41,8 +42,10 @@ export function createTongxueSearchView(ui, state) {
     }
     ui.suggestions.innerHTML = state.suggestions.map((item, index) => {
       const meta = state.metadata.get(item.officialName) || {};
-      const detail = [meta.location, meta.level].filter(Boolean).join(' · ');
-      return `<button id="schoolOption${index}" class="suggestion" type="button" role="option" data-suggestion-index="${index}" aria-selected="false"><span class="suggestion-main"><span class="suggestion-name">${html(item.officialName)}</span>${detail ? `<span class="suggestion-meta">${html(detail)}</span>` : ''}</span><span class="suggestion-type">${html(matchTypeLabel(item.matchType))}</span></button>`;
+      const detail = scope === 'major'
+        ? [item.majorCode, item.majorClass].filter(Boolean).join(' · ')
+        : [meta.location, meta.level].filter(Boolean).join(' · ');
+      return `<button id="schoolOption${index}" class="suggestion" type="button" role="option" data-suggestion-index="${index}" aria-selected="false"><span class="suggestion-main"><span class="suggestion-name">${html(item.officialName)}</span>${detail ? `<span class="suggestion-meta">${html(detail)}</span>` : ''}</span><span class="suggestion-type">${html(matchTypeLabel(item.matchType, scope))}</span></button>`;
     }).join('');
     openSuggestions();
   }
@@ -72,12 +75,13 @@ export function createTongxueSearchView(ui, state) {
     });
   }
 
-  function showResolved(input, officialName) {
+  function showResolved(input, officialName, options = {}) {
     if (!input || input === officialName) {
       hideResolved();
       return;
     }
-    ui.resolveHint.innerHTML = `<span>已找到：${html(input)} → ${html(officialName)}</span><button type="button" class="resolve-change" data-change-resolution>不是这所？</button>`;
+    const noun = options.scope === 'major' ? '专业' : '学校';
+    ui.resolveHint.innerHTML = `<span>已找到：${html(input)} → ${html(officialName)}</span><button type="button" class="resolve-change" data-change-resolution>不是这个${noun}？</button>`;
     ui.resolveHint.hidden = false;
   }
 
@@ -119,16 +123,30 @@ export function createTongxueSearchView(ui, state) {
     commit('loading', `<div class="state-card loading">正在查找“${html(school)}”的公开评论…</div>`);
   }
 
-  function renderChoices(input, candidates) {
+  function renderChoices(input, candidates, options = {}) {
+    const scope = options.scope === 'major' ? 'major' : 'school';
     state.choiceCandidates = (candidates || []).slice(0, 8);
-    commit('confirmation', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">请选择具体学校</h2><p>“${html(input)}”可能对应多所学校，请确认正式校名。</p><div class="choice-grid">${state.choiceCandidates.map((candidate, index) => `<button type="button" class="choice-card" data-school-choice="${index}"><span class="choice-name">${html(candidate.officialName)}</span><span class="choice-note">${html(schoolDetail(candidate.officialName))} · 选择后查看</span></button>`).join('')}</div></div>`);
+    const isMajor = scope === 'major';
+    const title = isMajor ? '请选择具体专业' : '请选择具体学校';
+    const body = isMajor ? `“${html(input)}”可能对应多个专业，请确认专业名称。` : `“${html(input)}”可能对应多所学校，请确认正式校名。`;
+    const cards = state.choiceCandidates.map((candidate, index) => {
+      if (isMajor) {
+        const item = candidate.item || candidate;
+        return `<button type="button" class="choice-card" data-major-choice="${index}"><span class="choice-name">${html(item.name || candidate.officialName)}</span><span class="choice-note">${html([item.code, item.majorClass || item.categoryName].filter(Boolean).join(' · ') || '本科专业')} · 选择后查看</span></button>`;
+      }
+      return `<button type="button" class="choice-card" data-school-choice="${index}"><span class="choice-name">${html(candidate.officialName)}</span><span class="choice-note">${html(schoolDetail(candidate.officialName))} · 选择后查看</span></button>`;
+    }).join('');
+    commit('confirmation', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${title}</h2><p>${body}</p><div class="choice-grid">${cards}</div></div>`);
     focusResult();
   }
 
-  function renderNotFound(input, candidates = []) {
+  function renderNotFound(input, candidates = [], options = {}) {
+    const isMajor = options.scope === 'major';
     const suggestions = candidates.length
-      ? `<div class="state-meta">${candidates.slice(0, 3).map(item => `<span class="meta-chip">${html(item.officialName)}</span>`).join('')}</div>` : '';
-    commit('empty', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">暂时没找到这所学校</h2><p>没有唯一识别“${html(input)}”。可以输入更完整的学校名称或所在地区再试。</p>${suggestions}</div>`);
+      ? `<div class="state-meta">${candidates.slice(0, 3).map(item => `<span class="meta-chip">${html(isMajor ? (item.item?.name || item.officialName) : item.officialName)}</span>`).join('')}</div>` : '';
+    const noun = isMajor ? '专业' : '学校';
+    const hint = isMajor ? '可以输入更完整的专业名称或专业代码再试。' : '可以输入更完整的学校名称或所在地区再试。';
+    commit('empty', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">暂时没找到这个${noun}</h2><p>没有唯一识别“${html(input)}”。${hint}</p>${suggestions}</div>`);
     focusResult();
   }
 
@@ -176,8 +194,17 @@ export function createTongxueSearchView(ui, state) {
   });
 }
 
-function matchTypeLabel(type) {
+function matchTypeLabel(type, scope = 'school') {
   const value = String(type || '');
+  if (scope === 'major') {
+    if (value.includes('code')) return '专业代码';
+    if (value.includes('exact')) return '专业名称';
+    if (value.includes('category')) return '专业类候选';
+    if (value.includes('prefix')) return '名称匹配';
+    if (value.includes('contains')) return '名称相近';
+    if (value.includes('fuzzy')) return '可能是';
+    return '专业候选';
+  }
   if (value.includes('official_exact')) return '正式校名';
   if (value.includes('alias_exact')) return '常用简称';
   if (value.includes('initial')) return '首字母匹配';
