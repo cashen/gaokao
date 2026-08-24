@@ -33,7 +33,7 @@ function normalizeProjectMode(value) {
 }
 function projectMatches(record, mode) {
   const info = projectInfo(record.major);
-  return mode === 'sino-only' ? info.isSino : mode === 'ordinary-only' ? !info.isSino : true;
+  return mode === 'sino-only' ? info.isSino : mode === 'ordinary-only' ? !info.isSino && !info.isSpecial : true;
 }
 function indexes(schema = []) { return Object.fromEntries(schema.map((key, index) => [key, index])); }
 function fresh(entry, ttl) { return entry && Date.now() - entry.time < ttl; }
