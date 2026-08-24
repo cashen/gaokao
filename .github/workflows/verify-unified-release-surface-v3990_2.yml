@@ -1,0 +1,57 @@
+name: Verify unified release surface v3990_2
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'index.html'
+      - 'changelog.html'
+      - 'aiplus/index.html'
+      - 'ln-rank/**'
+      - 'ln2026.html'
+      - 'zy2026.html'
+      - 'zy2026/**'
+      - 'major-path/**'
+      - 'Public_company/**'
+      - 'tongxue/**'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_2.js'
+      - 'shared/resources/release/release-footer.v3990_2.js'
+      - 'shared/resources/release/release-footer.v3990_2.css'
+      - 'tools/audit-unified-release-surface-v001.mjs'
+      - '.github/workflows/verify-unified-release-surface-v3990_2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unified-release-surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and release surface
+        run: |
+          set -euo pipefail
+          node --check tools/audit-unified-release-surface-v001.mjs
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/site-runtime-contract.v3990_2.js
+          node --check shared/resources/release/active-resource-manifest.v3990_2.js
+          node --check shared/resources/release/release-footer.v3990_2.js
+          node tools/audit-unified-release-surface-v001.mjs
+          node tools/audit-canonical-release-version-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_2.mjs
+      - name: Check formatting and protected paths
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/_lib/release-contract\.js$)'; then
+            echo 'Protected path changed'
+            exit 1
+          fi
