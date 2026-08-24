@@ -10,6 +10,8 @@ on:
       - 'functions/_lib/tongxue-summary-base-v112.js'
       - 'functions/api/tongxue-summary.js'
       - 'tongxue/**'
+      - 'shared/resources/majors/**'
+      - 'shared/resources/graduate/**'
       - 'ln-rank/**'
       - 'major-path/**'
       - 'aiplus/**'
@@ -21,6 +23,7 @@ on:
       - 'tools/verify-student-voice-navigation-v001.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/audit-tongxue-major-pathway-v001.mjs'
       - '.github/workflows/verify-unified-experience-context-v001.yml'
       - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
   push:
@@ -31,6 +34,8 @@ on:
       - 'functions/_lib/tongxue-summary-base-v112.js'
       - 'functions/api/tongxue-summary.js'
       - 'tongxue/**'
+      - 'shared/resources/majors/**'
+      - 'shared/resources/graduate/**'
       - 'ln-rank/**'
       - 'major-path/**'
       - 'aiplus/**'
@@ -42,6 +47,7 @@ on:
       - 'tools/verify-student-voice-navigation-v001.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/audit-tongxue-major-pathway-v001.mjs'
       - '.github/workflows/verify-unified-experience-context-v001.yml'
       - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
   workflow_dispatch:
@@ -78,6 +84,12 @@ jobs:
           node --check tools/verify-student-voice-navigation-v001.mjs
           node --check tools/verify-tongxue-uec-cache-identity-v001.mjs
           node --check tools/browser-tongxue-major-direct-v001.mjs
+          node --check tools/audit-tongxue-major-pathway-v001.mjs
+          node --check shared/resources/majors/undergrad-graduate-pathway-view.v001.js
+          node --check shared/resources/majors/major-path-navigation.v003.js
+          node --check tongxue/app/tongxue-runtime-controller-v159.js
+          node --check tongxue/app/tongxue-runtime-result-view-v159.js
+          node --check major-path/app.v004.js
       - name: UEC deterministic contract
         run: node tools/verify-unified-experience-context-v001.mjs
       - name: AIPLuS Student Voice contract
@@ -90,6 +102,8 @@ jobs:
         run: node tools/verify-tongxue-uec-cache-identity-v001.mjs
       - name: Architecture handoff remains valid
         run: node tools/audit-architecture-handoff-v3990_2.mjs
+      - name: Tongxue major pathway and footer source contract
+        run: node tools/audit-tongxue-major-pathway-v001.mjs
       - name: Preserve protected boundaries and release exports
         env:
           PUSH_BEFORE: ${{ github.event.before }}
@@ -160,10 +174,10 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_preview=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-fuzzy001&uec_preview=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow003&uec_preview=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_preview=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-fuzzy001' <<<"$html" \
-              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow003' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
               && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
               && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
@@ -202,10 +216,10 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_prod=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-fuzzy001&uec_prod=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow003&uec_prod=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_prod=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-fuzzy001' <<<"$html" \
-              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow003' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
               && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
               && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi

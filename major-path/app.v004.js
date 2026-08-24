@@ -20,7 +20,7 @@ const els = {
 };
 const renderState = {
   token: 0,
-  directBoot: Boolean(sourceContext.fromLnRank && sourceContext.majorCode)
+  directBoot: Boolean((sourceContext.fromLnRank || sourceContext.fromTongxue) && sourceContext.majorCode)
 };
 const bootState = {
   coreReady: false,
@@ -259,9 +259,11 @@ function installReturnAction(context) {
   action.href = context.returnTo || '/ln-rank/';
   action.textContent = context.sourceSurface === 'academic-background'
     ? '← 返回背景依据'
-    : context.context === 'school' && context.school
-      ? `← 返回${context.school}的专业`
-      : '← 返回刚才的专业列表';
+    : context.sourceSurface === 'tongxue'
+      ? '← 返回同学你好'
+      : context.context === 'school' && context.school
+        ? `← 返回${context.school}的专业`
+        : '← 返回刚才的专业列表';
   action.dataset.majorPathReturn = 'ln-rank';
   if (action.dataset.majorPathReturnBound === '1') return;
   action.dataset.majorPathReturnBound = '1';

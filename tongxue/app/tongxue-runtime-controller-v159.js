@@ -85,6 +85,11 @@ function shouldPreferSchool(state, input, majorResolution) {
 
 function applyScopePresentation(ui, scope = 'school') {
   const isMajor = scope === 'major';
+  const sourceNote = document.querySelector('[data-major-source-footer-note]');
+  if (sourceNote) {
+    sourceNote.hidden = true;
+    sourceNote.textContent = '';
+  }
   document.body.dataset.tongxueScope = isMajor ? 'major' : 'school';
   const brand = document.querySelector('.topbar .brand');
   const title = ui.hero?.querySelector('.hero-title');
