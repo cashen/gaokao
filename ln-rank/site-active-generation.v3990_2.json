@@ -12,7 +12,8 @@
     "dataVersion": "data-resource-graph-v3990_2",
     "decommissionPolicyVersion": "resource-decommission-v3990_2",
     "productionVerificationVersion": "production-resource-graph-verification-v3990_2",
-    "productionVerificationOwner": "/shared/governance/production-resource-verification-contract.v3990_2.js"
+    "productionVerificationOwner": "/shared/governance/production-resource-verification-contract.v3990_2.js",
+    "resourceManifest": "/shared/resources/release/active-resource-manifest.v3990_2.js"
   },
   "currentGenerationEntrypoints": {
     "releasePresenter": "/shared/resources/release/release-presenter.v3990_2.js?v=3990_2",
@@ -38,7 +39,8 @@
     "aiStyles": "/aiplus/workspace.v3990_2.css?v=3990_2",
     "aiWorkspaceContract": "/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2",
     "majorBandsFilter": "/functions/_lib/major-filter.v3990_2.js",
-    "majorBandsRegionCatalog": "/shared/resources/geo/china-region-catalog.v3990_2.js"
+    "majorBandsRegionCatalog": "/shared/resources/geo/china-region-catalog.v3990_2.js",
+    "resourceManifest": "/shared/resources/release/active-resource-manifest.v3990_2.js?v=3990_2"
   },
   "currentGenerationInternalModules": {
     "majorBandsPaginationSnapshotGuard": "/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js?v=3990_2"
@@ -95,6 +97,21 @@
     "majorBandsPublicHttpSelfFanoutForbidden": true,
     "aiModelCannotOwnBusinessFacts": true,
     "aiTemporaryViewCannotBecomeFamilyConstraint": true,
-    "aiLatestRequestOnlyCanCommit": true
+    "aiLatestRequestOnlyCanCommit": true,
+    "transitiveImplementationResourcesDeclared": true,
+    "currentDataResourcesDeclared": true,
+    "schoolDirectoryLoaderDeclared": true
+  },
+  "declaredTransitiveImplementationEntrypoints": {
+    "aiplusWorkspace": "/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4&fdw=003_0",
+    "aiplusRender": "/aiplus/render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0",
+    "aiplusHistory": "/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0",
+    "classification": "declared-transitive-implementation",
+    "manifest": "/shared/resources/release/active-resource-manifest.v3990_2.js"
+  },
+  "currentDataResourceEntrypoints": {
+    "majorSourceProfile": "/ln-rank/kb/major-understanding/major-source-profile.generated.js",
+    "manifestVersion": "pr194-major-source-profile-v001",
+    "classification": "current-data-resource"
   }
 }

@@ -1,7 +1,10 @@
 import { CURRENT_RELEASE } from './current-release.js?v=3990_2';
+import { ACTIVE_RESOURCE_MANIFEST } from './active-resource-manifest.v3990_2.js?v=3990_2';
 
 const CURRENT = 'current-generation';
 const STABLE = 'declared-stable-dependency';
+const TRANSITIVE = 'declared-transitive-implementation';
+const DATA = 'current-data-resource';
 
 export const SITE_RUNTIME_CONTRACT = Object.freeze({
   version: 'site-runtime-coherence-v3990_2',
@@ -73,6 +76,11 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     majorBandsFilter: CURRENT,
     majorBandsRegionCatalog: CURRENT
   }),
+  declaredResourceGraph: Object.freeze({
+    manifest: ACTIVE_RESOURCE_MANIFEST,
+    transitiveImplementationClassification: TRANSITIVE,
+    currentDataClassification: DATA
+  }),
   stablePageEntrypoints: Object.freeze({
     tongxuePage: '/tongxue/',
     tongxueRuntime: '/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0',
@@ -88,6 +96,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
   }),
   owners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
+    resourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
     activeGeneration: '/shared/resources/release/site-runtime-contract.v3990_2.js',
     cache: '/shared/resources/release/runtime-cache-contract.v3990_2.js',
     execution: '/shared/governance/resource-execution-contract.v3990_2.js',
@@ -110,6 +119,13 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     familyPlanRuntime: '/ln-rank/js/selection-pool-runtime.v3990_2.js',
     ai: '/aiplus/app.v3990_2.js',
     aiWorkspace: '/shared/ai/ai-workspace-contract.v3990_2.js',
+    aiplusWorkspaceImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.workspaceContract.owner,
+    aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
+    aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
+    majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
+    schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryLoader,
+    schoolResourceCenter: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.resourceCenter,
+    schoolDirectoryData: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryData,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',

@@ -1,4 +1,11 @@
 # AIPLuS Family Decision Workbench · durable status
+## Current main snapshot (2026-08-24 audit)
+
+- Latest canonical `main`: `ffc080979341f7a4dfb593986bc791aef3bfb076`.
+- Audit baseline had no open PR; the five existing Production status checks on that SHA were green.
+- Whole-site public release identity is `v3.9.90.2 / v3990_2 / 3990_2`; capability-local identities below remain subordinate and are not separate site releases.
+- The historical PR/SHA entries in this file remain evidence only. Any new change starts from the latest `main` and follows the unified Draft → exact Preview → Ready same-SHA → merge → Production protocol.
+
 
 This file is the durable cross-session owner for the AIPLuS **家庭决策工作台** release line. Chat history is not the source of truth. Every future maintainer/conversation must read this file from the exact PR head before continuing release work.
 
@@ -9,7 +16,7 @@ This file is the durable cross-session owner for the AIPLuS **家庭决策工作
 - Program branch: `agent/aiplus-family-decision-workbench`
 - Draft PR: `#166`
 - Program base at start: `c616ae4c86e83d5a6a568114de45f158ec24c9bc`
-- Existing public/site release remains `v3.9.90.1 / v3990_1`.
+- Existing public/site release remains `v3.9.90.2 / v3990_2`.
 - Existing visible AIPLuS product/browser compatibility identity remains `v0.02 / aiplus-assets-v002_4`.
 - Family Decision Workbench is an additive AIPLuS capability/cache subtransaction: `aiplus-family-decision-v0.03 / fdw=003_0`.
 - It does **not** create a second site release owner, workspace, history store, renderer, admissions truth set, agent loop or device-specific business state machine.

@@ -1,4 +1,11 @@
 # Unified school × major background context · durable status
+## Current main snapshot (2026-08-24 audit)
+
+- Latest canonical `main`: `ffc080979341f7a4dfb593986bc791aef3bfb076`.
+- Audit baseline had no open PR; the five existing Production status checks on that SHA were green.
+- Whole-site public release identity is `v3.9.90.2 / v3990_2 / 3990_2`; capability-local identities below remain subordinate and are not separate site releases.
+- The historical PR/SHA entries in this file remain evidence only. Any new change starts from the latest `main` and follows the unified Draft → exact Preview → Ready same-SHA → merge → Production protocol.
+
 
 This file is the durable handoff and merge-gate owner for the current cross-product background-context program.
 
@@ -10,7 +17,7 @@ This file is the durable handoff and merge-gate owner for the current cross-prod
 - program branch: `agent/unified-background-context-v001`
 - PR: #179
 
-A later session must first fetch latest `main`, PR #179 and its exact head SHA, then read `AGENTS.md`, Eastern Philosophy, Unified Site Release, AEK skill/status, `START-HERE.md`, and this file. GitHub state, not private chat memory, owns continuation.
+The PR #179 handoff text below is historical evidence. A later session must fetch latest `main` and the live PR/Checks state, then read the canonical skills, `START-HERE.md`, and this file. GitHub state, not private chat memory, owns continuation.
 
 ## Product problem
 

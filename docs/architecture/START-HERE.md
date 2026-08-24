@@ -31,6 +31,7 @@ This is the canonical current release identity. Public version, runtime generati
 - `shared/resources/release/runtime-cache-contract.v3990_2.js`
 - `shared/governance/resource-execution-contract.v3990_2.js`
 - `ln-rank/site-active-generation.v3990_2.json`
+- `shared/resources/release/active-resource-manifest.v3990_2.js` — current active resource graph, transitive implementation declarations, additive knowledge sources and school-directory loader ownership.
 
 Use these files to answer: which entrypoint is current, which dependency is intentionally stable, who owns interaction/cache/execution, and which policies are release gates.
 
@@ -113,16 +114,22 @@ For pair/reference semantics:
 
 ### AIPLuS workspace transitive generation
 
-**KNOWN-GAP:AIPLUS-WORKSPACE-TRANSITIVE**
+**DECLARED-TRANSITIVE:AIPLUS-WORKSPACE-TRANSITIVE**
 
-The site runtime contract declares the site-level AIPLuS workspace entry under the current site generation, while the browser `aiplus/app.v3990_2.js` currently imports the evolved `shared/ai/ai-workspace-contract.v3992_0.js` implementation (whose model contract is v3992.x). Existing AIPLuS tests intentionally exercise that evolved implementation.
+The site-level AIPLuS workspace entry remains part of the public release `v3.9.90.2 / v3990_2`, while the browser `aiplus/app.v3990_2.js` imports the evolved workspace, render and history implementations listed in `shared/resources/release/active-resource-manifest.v3990_2.js`. These are declared transitive implementations, not a second site release or an unowned browser resource.
 
-This is a **declared transitive ownership debt**, not permission to copy, rename or delete workspace implementations casually. Until a canonical generation release explicitly reconciles it:
+Historical audit compatibility label retained: `KNOWN-GAP:AIPLUS-WORKSPACE-TRANSITIVE` identifies the pre-manifest debt label; it does not grant that label current ownership.
 
-- do not create another workspace state machine;
-- do not change persisted workspace semantics merely to make filenames look uniform;
-- treat the actual browser import graph plus current tests as execution evidence;
-- reconcile the site contract and workspace implementation only in a release that updates all affected contracts/cache/tests together.
+The active manifest is now the release-owned declaration for this graph:
+
+- workspace contract: `shared/ai/ai-workspace-contract.v3992_0.js`;
+- render: `aiplus/render.v3992_0.js`;
+- history: `aiplus/history-store.v3992_4.js`;
+- fact bridge: the existing workspace/fact-bridge implementation;
+- additive major source profile: `ln-rank/kb/major-understanding/major-source-profile.generated.js`;
+- shared school directory loader: `tongxue/data/school-name-resolver-v150.js`, behind the shared school identity/resource center.
+
+The consistency verifier must prove that the browser import graph, release contract, cache contract, execution contract and active-generation manifest agree. Do not create another workspace state machine, rename stable implementations only to flatten filenames, or promote additive knowledge into admissions truth. Any future implementation-generation migration must update all affected contracts, cache entries, tests and production evidence together.
 
 ### Legacy intent interpreter
 

@@ -1,6 +1,7 @@
 import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2';
 
 const activeGenerationModules = Object.freeze([
+  '/shared/resources/release/active-resource-manifest.v3990_2.js',
   '/shared/resources/release/release-presenter.v3990_2.js',
   '/shared/resources/release/runtime-cache-contract.v3990_2.js',
   '/shared/governance/resource-execution-contract.v3990_2.js',
@@ -22,6 +23,16 @@ const activeGenerationModules = Object.freeze([
   '/ln-rank/js/selection-pool-runtime.v3990_2.js'
 ]);
 
+const declaredTransitiveImplementationModules = Object.freeze([
+  '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4&fdw=003_0',
+  '/aiplus/render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0',
+  '/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0'
+]);
+
+const declaredCurrentDataModules = Object.freeze([
+  '/ln-rank/kb/major-understanding/major-source-profile.generated.js'
+]);
+
 const declaredStableActiveModules = Object.freeze([
   '/shared/ui/shell/family-shell.v3972_5.css',
   '/shared/ui/components/family-plan-entry.v3972_5.css'
@@ -36,6 +47,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
   entrypointClassifications: SITE_RUNTIME_CONTRACT.activeEntrypointClassifications,
   owners: Object.freeze({
     registry: '/shared/resources/release/runtime-cache-contract.v3990_2.js',
+    activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
     release: SITE_RUNTIME_CONTRACT.owners.release,
     execution: SITE_RUNTIME_CONTRACT.owners.execution,
     majorBandsRankIndex: SITE_RUNTIME_CONTRACT.owners.majorBandsRankIndex,
@@ -58,8 +70,12 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     familyPlanRuntime: SITE_RUNTIME_CONTRACT.owners.familyPlanRuntime
   }),
   activeGenerationModules,
+  declaredTransitiveImplementationModules,
+  declaredCurrentDataModules,
   declaredStableActiveModules,
   stableDependencies: SITE_RUNTIME_CONTRACT.stableDependencies,
+  transitiveImplementationManifest: SITE_RUNTIME_CONTRACT.owners.resourceManifest,
+  dataResourceManifest: SITE_RUNTIME_CONTRACT.owners.resourceManifest,
   policies: Object.freeze({
     changedInterfacesImmutable: true,
     htmlRevalidate: true,
