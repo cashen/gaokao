@@ -13,7 +13,9 @@ await page.getByRole('button', { name: '按专业找学校' }).click();
 
 const input = page.getByRole('searchbox', { name: '添加想了解的专业（可添加多个）' });
 await input.fill('机械');
-await page.getByRole('button', { name: /机械工程 080201/ }).click();
+const mechanicalCandidate = page.getByRole('button', { name: /机械工程 080201/ });
+if (await mechanicalCandidate.count() > 0) await mechanicalCandidate.click();
+else await page.getByText('已确认 · 080201').waitFor({ state: 'visible', timeout: 10000 });
 
 if (!(await page.getByRole('button', { name: '＋再添加一个专业' }).isVisible())) {
   throw new Error('explicit add-major action is not visible after first confirmation');
