@@ -57,7 +57,7 @@ for (const file of activePages) {
   if (file === 'aiplus/index.html') {
     const aiApp = read('aiplus/app.v3990_2.js');
     assert.ok(aiApp.includes("import('/shared/resources/release/release-footer.v3990_2.js?v=3990_2')"), `${file}: unified release footer consumer`);
-  } else if (file === 'Public_company/source/index.html') {
+  } else if (file === 'Public_company/index.html' || file === 'Public_company/source/index.html') {
     assert.ok(foot.includes('data-current-release>v3.9.90.2'), `${file}: Vite static release fallback`);
   } else {
     assert.ok(html.includes('/shared/resources/release/release-footer.v3990_2.js?v=3990_2'), `${file}: unified release footer consumer`);
