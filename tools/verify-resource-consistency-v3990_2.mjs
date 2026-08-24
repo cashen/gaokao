@@ -76,8 +76,8 @@ for (const needle of [
 ]) requireText(execution, needle, 'resource execution contract');
 
 assert.equal(activeGeneration.releaseVersion, 'v3.9.90.2', 'active generation release');
-assert.equal(activeGeneration.siteRuntimeGeneration, 'v3990_2', 'active generation runtime');
-assert.equal(activeGeneration.assetQuery, '3990_2', 'active generation query');
+assert.equal(activeGeneration.generation, 'v3990_2', 'active generation runtime');
+assert.equal(activeGeneration.queryVersion, '3990_2', 'active generation query');
 assert.equal(
   activeGeneration.resourceGraph.resourceManifest,
   '/shared/resources/release/active-resource-manifest.v3990_2.js',
