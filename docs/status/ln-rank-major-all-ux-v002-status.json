@@ -1,0 +1,18 @@
+{
+  "task": "ln-rank-major-all-ux-v002",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-major-all-ux-v002",
+  "baseSha": "e6bdb38c2c6798aa58ac710426d107a12864a143",
+  "pr": 203,
+  "completed": ["branch-created","plan-written","production-ux-audited","UX-01","UX-02","UX-03","UX-04"],
+  "inProgress": "UX-05",
+  "pending": ["UX-00","UX-05","UX-06"],
+  "lastFailure": null,
+  "parentPerspective": {
+    "explicitFlow": "input -> confirm -> add another -> confirm -> unified query",
+    "shortcutFlow": "mechanical/measurement/material separated input remains supported",
+    "requiredDevices": ["pc","pad","android","compact-android"],
+    "notComparison": true
+  },
+  "checkpointNote": "UX implementation is on the branch; contract, browser and full regression checks remain before Ready and merge."
+}
