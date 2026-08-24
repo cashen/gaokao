@@ -16,7 +16,10 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     version: CURRENT_RELEASE.version,
     generation: CURRENT_RELEASE.siteRuntimeGeneration,
     assetQuery: CURRENT_RELEASE.asset,
-    releaseOwner: CURRENT_RELEASE.resourceOwners.release
+    releaseOwner: CURRENT_RELEASE.resourceOwners.release,
+    releaseFooter: entry(CURRENT_RELEASE.resourceOwners.releaseFooter, 'current-generation'),
+    releaseFooterStyles: entry(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, 'current-generation'),
+    releaseLog: CURRENT_RELEASE.resourceOwners.releaseLog
   }),
   aiplus: Object.freeze({
     classification: 'current-generation-with-declared-transitive-implementation',
