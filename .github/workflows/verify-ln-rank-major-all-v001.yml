@@ -1,0 +1,38 @@
+name: Verify ln-rank major-all v001
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  major-all-contract:
+    name: major-all-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Parse changed JavaScript modules
+        run: |
+          node --check functions/api/ai/major-history.js
+          node --check ln-rank/js/feature/major-all/major-all-mode.v001.js
+          node --check ln-rank/js/knowledge/major-understanding-resolver.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js
+          node --check ln-rank/js/workspace/major-path-handoff.v003.js
+
+      - name: Verify major-all product and ownership contract
+        run: node tools/verify-ln-rank-major-all-v001.mjs

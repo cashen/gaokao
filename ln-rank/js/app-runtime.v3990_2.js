@@ -169,6 +169,8 @@ export function startLnRankRuntime() {
     await workspace.selectionWorkspaceReady;
     const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_0.js?v=3969_0');
     await schoolMode.schoolAllModeReady;
+    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=001_0');
+    await majorMode.majorAllModeReady;
     syncSharedBottomLine();
     return Object.freeze({
       version: RUNTIME_VERSION,

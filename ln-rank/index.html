@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/ln-rank/css/ln-rank-workspace.v3967_0.css?v=3967_0" />
   <link rel="stylesheet" href="/ln-rank/css/school-all-mode.v3967_0.css?v=3967_0" />
   <link rel="stylesheet" href="/ln-rank/css/history-evidence.v3967_0.css?v=3967_0" />
+  <link rel="stylesheet" href="/ln-rank/css/major-all-mode.v001.css?v=001_0" />
   <script type="importmap">{"imports":{"/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js?v=3969_0":"/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js?v=3969_0-hc001"}}</script>
 </head>
 <body class="ln-parent-guided-flow ln-search-guided-flow ui-orchestrated" data-ui-page="selection" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-result-mode="score-bands" data-runtime-state="loading" data-ui-interaction-version="interaction-transaction-v3990_2" data-release-surface="selection">
@@ -55,6 +56,7 @@
         <div class="ui-segmented ui-mode-switch__actions" role="group" aria-label="专业初选查看方式">
           <button type="button" data-school-view-mode="score-bands" data-runtime-control class="ui-button ui-button--compact ui-button--secondary is-active" aria-pressed="true" disabled>按分数找学校和专业</button>
           <button type="button" data-school-view-mode="school-all" data-runtime-control class="ui-button ui-button--compact ui-button--secondary" aria-pressed="false" disabled>看一所学校的在辽专业</button>
+          <button type="button" data-school-view-mode="major-all" data-runtime-control class="ui-button ui-button--compact ui-button--secondary" aria-pressed="false" disabled>按专业找学校</button>
         </div>
         <p id="schoolResolveStatus" class="ui-mode-switch__status" aria-live="polite">当前从参考分数开始；已有目标学校，可切换后直接查看该校在辽投档专业。</p>
       </section>
@@ -98,8 +100,9 @@
           </div>
 
           <div class="major-keyword-panel ln-filter-panel__primary">
-            <div class="filter-field filter-major"><label for="majorKeyword">孩子想了解的专业方向 / 项目关键词</label><input id="majorKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：计算机/电气/医学" data-runtime-control disabled /><div class="keyword-help">多个词表示“任意一个方向”，例如“电气/自动化”；不是要求一条记录同时包含全部词。结果会说明为什么出现。</div></div>
+            <div class="filter-field filter-major"><label for="majorKeyword">孩子想了解的专业方向 / 项目关键词</label><input id="majorKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：计算机/电气/医学" data-runtime-control disabled /><div class="keyword-help">按专业查询时支持单专业或多个专业；模糊输入会先出现规范候选，确认后再读取招生历史。</div></div>
           </div>
+          <div id="majorCandidatePanel" class="major-candidate-panel" aria-live="polite"></div>
 
           <details id="familyConditionsDetails" class="ln-more-conditions">
             <summary>再加地区、学校和特殊项目条件</summary>
@@ -113,6 +116,7 @@
                 <div class="special-project-main"><div class="special-project-title">特殊项目</div><div id="specialProjectStatus" class="special-project-status">特殊项目默认隐藏</div><div id="specialProjectHelp" class="special-project-help">需要时再显示专项、定向、预科等需要资格确认的项目；明确搜索这些项目时会显示并持续提醒资格核验。</div></div>
                 <button id="specialProjectToggle" class="special-project-toggle" type="button" data-runtime-control disabled>显示特殊项目</button>
               </div>
+              <div class="major-all-project-filter" hidden><label for="majorProjectMode">专业项目口径</label><select id="majorProjectMode" data-runtime-control><option value="all">普通与中外/高收费分开显示</option><option value="ordinary-only">仅普通项目</option><option value="sino-only">仅中外/高收费项目</option></select></div>
             </div>
           </details>
 
@@ -147,6 +151,13 @@
         </div>
       </header>
       <div id="schoolAllContent" class="school-all-content" aria-live="polite"></div>
+    </section>
+
+    <section id="majorAllResultsPanel" class="panel major-all-results-shell" aria-label="按专业查询学校和三年历史" hidden>
+      <header class="school-all-results-head">
+        <div><p class="school-all-kicker">专业优先 · 辽宁2026物理类历史投档</p><h2 id="majorAllTitle">先确认专业</h2><p id="majorAllMeta">可不填分数；填写分数、地区、学校和项目条件后，再按同一口径筛选。</p></div>
+      </header>
+      <div id="majorAllContent" class="major-all-content" aria-live="polite"></div>
     </section>
 
     <section class="aux-background-entry panel" aria-label="学校与专业背景">

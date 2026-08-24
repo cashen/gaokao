@@ -157,10 +157,40 @@ function decorateSchoolCards(root = document.getElementById('schoolAllContent'))
   });
 }
 
+function decorateMajorAllCards(root = document.getElementById('majorAllContent')) {
+  if (!(root instanceof HTMLElement)) return;
+  root.querySelectorAll('[data-major-path-record]').forEach(card => {
+    const sourceKey = clean(card.dataset.workspaceRecordKey || card.dataset.majorRecordKey);
+    const sourceMajorLine = clean(card.querySelector('.major-all-record-head p')?.textContent);
+    const sourceMajor = sourceMajorLine.split('·').at(-1)?.trim() || sourceMajorLine;
+    const codeLine = clean(card.querySelector('.major-all-record-meta')?.textContent);
+    const code = codeLine.match(/专业代码\s*([A-Z0-9]+)/i)?.[1] || '';
+    const target = concreteMajorFromRendered({ code, name: sourceMajor });
+    if (!target) {
+      card.dataset.majorPathAvailability = 'unresolved-or-class-level';
+      card.dataset.studentVoiceAvailability = 'unresolved-or-class-level';
+      return;
+    }
+    const school = clean(card.querySelector('.major-all-record-head h3')?.textContent);
+    const actions = card.querySelector('.major-all-record-actions') || card;
+    if (!card.querySelector('[data-major-path-entry]')) {
+      const entry = makeEntry(target, { context:'major', sourceKey, sourceMajor, school, compact:true });
+      if (entry) actions.append(entry);
+    }
+    if (!card.querySelector('[data-student-voice-entry]')) {
+      const voice = makeStudentVoiceEntry(target, { context:'major', sourceKey, compact:true });
+      if (voice) actions.append(voice);
+    }
+    card.dataset.majorPathAvailability = 'canonical-major';
+    card.dataset.studentVoiceAvailability = 'canonical-major-cross-school';
+  });
+}
+
 function scheduleDecorate() {
   requestAnimationFrame(() => {
     decorateScoreCards();
     decorateSchoolCards();
+    decorateMajorAllCards();
   });
 }
 
@@ -170,7 +200,9 @@ function saveResumeSnapshot(event) {
   const resumable = target.pathname === MAJOR_PATH_NAVIGATION_META.targetPath || target.pathname === STUDENT_VOICE_NAVIGATION_META.targetPath;
   if (!resumable) return;
   const sourceKey = clean(target.searchParams.get('sourceKey'));
-  const context = target.searchParams.get('context') === 'school' ? 'school' : 'score';
+  const context = target.searchParams.get('context') === 'school'
+    ? 'school'
+    : (target.searchParams.get('context') === 'major' ? 'major' : 'score');
   if (!sourceKey) return;
   const workspaceState = globalThis.__GAOKAO_SELECTION_WORKSPACE__?.getState?.() || {};
   const committed = workspaceState.committedQuery || null;
@@ -210,7 +242,9 @@ function restoreDom(snapshot) {
   state.activeBand = snapshot.activeBand || 'near';
   state.bandFocus = snapshot.bandFocus || state.activeBand;
   state.resultViewMode = snapshot.resultViewMode || 'all';
-  state.resultMode = snapshot.resultMode === 'school-all' ? 'school-all' : 'score-bands';
+  state.resultMode = snapshot.resultMode === 'school-all'
+    ? 'school-all'
+    : (snapshot.resultMode === 'major-all' ? 'major-all' : 'score-bands');
   Object.assign(state.filters, filters);
   state.schoolSelection = { ...state.schoolSelection, ...(snapshot.schoolSelection || {}) };
   state.schoolAll.sort = snapshot.schoolSort || 'position-near';
@@ -271,6 +305,7 @@ export function mountMajorPathHandoff() {
     maybeFocusAfterRender();
   });
   document.addEventListener('gaokao:school-result-render', scheduleDecorate);
+  document.addEventListener('gaokao:major-result-render', scheduleDecorate);
   document.addEventListener('gaokao:school-search-state', () => {
     scheduleDecorate();
     maybeFocusAfterRender();

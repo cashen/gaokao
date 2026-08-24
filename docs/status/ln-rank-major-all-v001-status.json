@@ -1,0 +1,64 @@
+{
+  "task": "ln-rank-major-all-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-major-all-v001",
+  "baseSha": "0c1097d3c086658fce7813c7227a157c40ded412",
+  "headSha": "3178269e632e4b0a622f9df8abcbee932bbf18c3",
+  "pr": 202,
+  "completed": [
+    "branch-created",
+    "plan-written",
+    "draft-pr-created",
+    "MAJ-00",
+    "MAJ-01",
+    "MAJ-02",
+    "MAJ-03",
+    "MAJ-04",
+    "MAJ-05",
+    "MAJ-06",
+    "MAJ-07",
+    "MAJ-08",
+    "MAJ-09"
+  ],
+  "inProgress": "MAJ-10",
+  "pending": [],
+  "lastFailure": null,
+  "verifiedAt": "2026-08-25T12:05:00+08:00",
+  "parentPerspective": {
+    "majorQueryModes": [
+      "single-confirmed-major",
+      "multi-confirmed-major-union"
+    ],
+    "candidateFlow": "draft candidates -> explicit confirmation -> committed query",
+    "requiredScenarios": [
+      "no-score",
+      "score",
+      "no-region",
+      "region",
+      "fuzzy",
+      "exact",
+      "ordinary",
+      "sino",
+      "empty",
+      "boundary",
+      "single",
+      "multi",
+      "add-remove-clear",
+      "pc-pad-android"
+    ],
+    "latestPreviewChecks": [
+      "empty-score-no-zero",
+      "score-region-ordinary",
+      "multi-major-union",
+      "remove-clear",
+      "unresolved-fail-closed"
+    ]
+  },
+  "testEvidence": {
+    "majorAllContractRun": 32784958651,
+    "regressionRuns": "current-head-3178269-all-success",
+    "browser": "branch-preview-manual-and-AI-browser-preview-success",
+    "previewUrl": "https://agent-ln-rank-major-all-v001.gaokao-4y9.pages.dev/ln-rank/"
+  },
+  "checkpointNote": "Implementation, exact branch preview, major-all contract, and full PR regression checks passed. MAJ-10 remains for Draft-to-Ready, same-SHA final gate, expected-head merge, and post-merge main/Production verification. The code head above is the verified implementation head; this status checkpoint commit follows it."
+}
