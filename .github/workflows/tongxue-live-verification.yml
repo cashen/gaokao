@@ -97,7 +97,7 @@ jobs:
           if(!SITE_RUNTIME_CONTRACT.stableDependencies.includes('/tongxue/app/tongxue-runtime-v159-r3968.js')) throw new Error('Tongxue runtime must be declared as a stable dependency');
           const html=fs.readFileSync('tongxue/index.html','utf8');
           if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active Tongxue wrapper missing');
-          if(!html.includes('tongxue-runtime-result-view-v159.js?v=159-flow003')) throw new Error('student evidence human-copy result-view cache identity missing');
+          if(!html.includes('tongxue-runtime-result-view-v159.js?v=159-flow004')) throw new Error('student evidence human-copy result-view cache identity missing');
           const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
           for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']) if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
           const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
