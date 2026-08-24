@@ -109,11 +109,11 @@ export function createTongxueResultView(ui, state, searchView) {
           target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>暂无可核验的原站专业解读</strong><p>这个专业暂时没有可核验的源站四字段资料；下面的大学生留言仍保持为个人体验，不代替专业事实。</p></div>';
           return;
         }
-        const fields = rows.map(([label, value]) => `<section class="insight-card"><h3 class="insight-title"><span class="insight-dot"></span>${label}</h3><p>${html(value)}</p></section>`).join('');
+        const fields = rows.map(([label, value], index) => `<section class="major-source-row"><div class="major-source-heading"><span class="major-source-index">${String(index + 1).padStart(2, '0')}</span><h3>${label}</h3></div><p>${html(value)}</p></section>`).join('');
         const sourceLink = profile?.sourceUrl
           ? `<a class="link" href="${attr(profile.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看原站专业解读 ↗</a>`
           : '';
-        target.innerHTML = `<div class="section-heading">先看懂这个专业</div><p class="review-intro"><strong>源站专业解读</strong>下面四项回答这个专业“是什么、学什么、做什么、就业方向”；它们是资料说明，不是录取或就业承诺。</p><div class="summary-grid">${fields}</div><p class="source-note">来源：eo.srgaoxiao.cn；抓取日期：${html(profile?.retrievedAt || '—')}。学生留言会在下方单独展示。</p>${sourceLink}`;
+        target.innerHTML = `<div class="section-heading">先看懂这个专业</div><p class="review-intro"><strong>源站专业解读</strong>按“是什么、学什么、做什么、就业方向”顺序阅读；它们是资料说明，不是录取或就业承诺。</p><div class="major-source-flow" data-major-source-flow>${fields}</div><p class="source-note">来源：eo.srgaoxiao.cn；抓取日期：${html(profile?.retrievedAt || '—')}。学生留言会在下方单独展示。</p>${sourceLink}`;
       })
       .catch(() => {
         target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>专业解读暂时无法读取</strong><p>可以先看下方学生留言，稍后再试；学生留言不代替官方专业资料。</p></div>';
