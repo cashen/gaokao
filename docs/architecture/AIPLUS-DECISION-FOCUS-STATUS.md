@@ -1,4 +1,11 @@
 # AIPLuS 决策聚焦 v0.06 · durable status
+## Current main snapshot (2026-08-24 audit)
+
+- Latest canonical `main`: `ffc080979341f7a4dfb593986bc791aef3bfb076`.
+- Audit baseline had no open PR; the five existing Production status checks on that SHA were green.
+- Whole-site public release identity is `v3.9.90.2 / v3990_2 / 3990_2`; capability-local identities below remain subordinate and are not separate site releases.
+- The historical PR/SHA entries in this file remain evidence only. Any new change starts from the latest `main` and follows the unified Draft → exact Preview → Ready same-SHA → merge → Production protocol.
+
 
 This file is the durable cross-session owner for the additive AIPLuS **Decision Focus / 决策聚焦** capability. It is a product projection and release gate, not a second family state machine or admissions truth source.
 
@@ -27,7 +34,7 @@ Existing owners remain singular:
 - Decision Book: existing `shared/ai/decision-book.v003.js` projection;
 - next action: existing `functions/_lib/ai/next-action-engine.js`;
 - browser rendering: existing `aiplus/render.v3992_0.js`;
-- browser orchestration: existing `aiplus/app.v3990_1.js`.
+- browser orchestration: existing `aiplus/app.v3990_2.js`.
 
 New canonical helper:
 
@@ -79,7 +86,7 @@ The decision rail is a **narrow container even on a wide PC**. v0.06 therefore k
 
 ## Cache transaction
 
-The public/site release remains `v3.9.90.1 / v3990_1`. Visible AIPLuS product remains `v0.02`.
+The public/site release remains `v3.9.90.2 / v3990_2`. Visible AIPLuS product remains `v0.02`.
 
 Decision Focus is an additive cache/capability transaction:
 
