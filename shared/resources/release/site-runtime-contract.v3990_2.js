@@ -15,8 +15,6 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
   activeEntrypoints: Object.freeze({
     releaseCenter: '/shared/resources/release/current-release.js?v=3990_2',
     releasePresenter: '/shared/resources/release/release-presenter.v3990_2.js?v=3990_2',
-    releaseFooter: '/shared/resources/release/release-footer.v3990_2.js?v=3990_2',
-    releaseFooterStyles: '/shared/resources/release/release-footer.v3990_2.css?v=3990_2',
     runtimeCache: '/shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2',
     resourceExecution: '/shared/governance/resource-execution-contract.v3990_2.js?v=3990_2',
     majorBandsRankIndex: '/functions/_lib/major-bands-rank-index.v3990_2.js',
@@ -49,8 +47,6 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
   activeEntrypointClassifications: Object.freeze({
     releaseCenter: CURRENT,
     releasePresenter: CURRENT,
-    releaseFooter: CURRENT,
-    releaseFooterStyles: CURRENT,
     runtimeCache: CURRENT,
     resourceExecution: CURRENT,
     majorBandsRankIndex: CURRENT,
