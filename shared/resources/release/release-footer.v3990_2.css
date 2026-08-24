@@ -1,0 +1,17 @@
+footer[data-release-footer], .site-release-footer {
+  margin-top: 30px;
+  padding: 18px 0 8px;
+  border-top: 1px solid var(--border, #dce6e2);
+  color: var(--muted, #60717a);
+  font-size: 12px;
+  line-height: 1.8;
+  text-align: center;
+}
+footer[data-release-footer] a, .site-release-footer a {
+  color: var(--primary, #155e75);
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+@media (max-width: 700px) {
+  footer[data-release-footer], .site-release-footer { text-align: left; }
+}
