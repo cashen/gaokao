@@ -99,17 +99,20 @@ export function createTongxueResultView(ui, state, searchView) {
     import('../../ln-rank/kb/major-understanding/major-source-profile.generated.js?v=pr194-flow002')
       .then(({ getMajorSourceProfile }) => {
         const profile = getMajorSourceProfile(code);
-        const rows = [
+        const fieldSpecs = [
           ['专业是什么', profile?.whatIs],
           ['主要学什么', profile?.whatLearn],
           ['毕业后做什么', profile?.whatDo],
           ['就业方向', profile?.careerPath]
-        ].filter(([, value]) => String(value || '').trim());
-        if (!rows.length) {
+        ];
+        const rows = profile
+          ? fieldSpecs.map(([label, value]) => [label, String(value || '').trim()])
+          : [];
+        if (!rows.some(([, value]) => value)) {
           target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>暂无可核验的原站专业解读</strong><p>这个专业暂时没有可核验的源站四字段资料；下面的大学生留言仍保持为个人体验，不代替专业事实。</p></div>';
           return;
         }
-        const fields = rows.map(([label, value], index) => `<section class="major-source-row"><div class="major-source-heading"><span class="major-source-index">${String(index + 1).padStart(2, '0')}</span><h3>${label}</h3></div><p>${html(value)}</p></section>`).join('');
+        const fields = rows.map(([label, value], index) => `<section class="major-source-row"><div class="major-source-heading"><span class="major-source-index">${String(index + 1).padStart(2, '0')}</span><h3>${label}</h3></div><p>${html(value || '源站暂未提供可核验内容')}</p></section>`).join('');
         const sourceLink = profile?.sourceUrl
           ? `<a class="link" href="${attr(profile.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看原站专业解读 ↗</a>`
           : '';
