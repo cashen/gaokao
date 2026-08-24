@@ -10,7 +10,7 @@ const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js', 'ut
 const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159';
 const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-fuzzy001';
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
-const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow003';
+const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004';
 
 const importMapMatch = html.match(/<script type="importmap">([^<]+)<\/script>/);
 assert.ok(importMapMatch, 'Tongxue import map missing');
