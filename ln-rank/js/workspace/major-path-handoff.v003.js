@@ -164,7 +164,7 @@ function decorateMajorAllCards(root = document.getElementById('majorAllContent')
     const sourceMajorLine = clean(card.querySelector('.major-all-record-head p')?.textContent);
     const sourceMajor = sourceMajorLine.split('·').at(-1)?.trim() || sourceMajorLine;
     const codeLine = clean(card.querySelector('.major-all-record-meta')?.textContent);
-    const code = codeLine.match(/专业代码\\s*([A-Z0-9]+)/i)?.[1] || '';
+    const code = codeLine.match(/专业代码\s*([A-Z0-9]+)/i)?.[1] || '';
     const target = concreteMajorFromRendered({ code, name: sourceMajor });
     if (!target) {
       card.dataset.majorPathAvailability = 'unresolved-or-class-level';
