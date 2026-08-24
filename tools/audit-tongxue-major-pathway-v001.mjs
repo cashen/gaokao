@@ -25,8 +25,7 @@ assert.match(resultView, /data-major-source-footer-note/);
 assert.match(resultView, /footerNote\.hidden = false/);
 assert.match(resultView, /专业解读来源：eo\.srgaoxiao\.cn/);
 const mainTargetStart = resultView.indexOf('target.innerHTML = `<div class="section-heading">先看懂这个专业</div>');
-const mainTargetEnd = resultView.indexOf('
-      })', mainTargetStart);
+const mainTargetEnd = resultView.indexOf('\\n      })', mainTargetStart);
 assert.ok(mainTargetStart >= 0 && mainTargetEnd > mainTargetStart, 'major source render target must remain bounded');
 const mainTarget = resultView.slice(mainTargetStart, mainTargetEnd);
 assert.doesNotMatch(mainTarget, /eo\.srgaoxiao\.cn|抓取日期|sourceLink/, 'source attribution must not render in the main result block');
