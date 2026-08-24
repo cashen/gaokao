@@ -3,14 +3,14 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-major-all-v001",
   "baseSha": "0c1097d3c086658fce7813c7227a157c40ded412",
-  "headSha": "7421265609eb550512d4fef8f3b1147dd9e4555c",
+  "headSha": "4608df6318bc4472ab0cf776c8c53a62be04a550",
   "pr": 202,
   "completed": [
     "branch-created",
     "plan-written",
     "draft-pr-created"
   ],
-  "inProgress": "MAJ-00",
+  "inProgress": "MAJ-09",
   "pending": [
     "MAJ-00",
     "MAJ-01",
@@ -25,7 +25,7 @@
     "MAJ-10"
   ],
   "lastFailure": null,
-  "verifiedAt": "2026-08-25T08:35:00+08:00",
+  "verifiedAt": "2026-08-25T10:10:00+08:00",
   "parentPerspective": {
     "majorQueryModes": [
       "single-confirmed-major",
@@ -48,5 +48,6 @@
       "add-remove-clear",
       "pc-pad-android"
     ]
-  }
+  },
+  "checkpointNote": "Implementation and preview scenarios exercised on exact-head preview; Actions syntax/contract/regression checks are still pending."
 }
