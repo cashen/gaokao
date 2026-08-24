@@ -84,7 +84,7 @@ function splitMajorQueryTerms(value = '') {
   return [...new Set(raw.split(/[,，、/；;|]+/).map(part => part.trim()).filter(Boolean).flatMap(part => {
     const directPart = CATALOG_RESOLVER.resolve(part, { allowContains: false });
     if (directPart?.kind === 'major' || directPart?.kind === 'category') return [part];
-    return part.split(/(?:\s+(?:和|与|及|或)\s+|(?<=.{2})(?:和|与|或)(?=.{2})/).map(item => item.trim()).filter(Boolean);
+    return part.split(/(?:\s+(?:和|与|及|或)\s+|(?<=.{2})(?:和|与|或)(?=.{2}))/).map(item => item.trim()).filter(Boolean);
   }))];
 }
 export function resolveMajorQueryCandidates(input = '') {
