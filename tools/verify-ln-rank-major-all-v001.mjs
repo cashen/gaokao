@@ -29,6 +29,8 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-c
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2025)', '2025 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2026)', '2026 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'rawCandidate===null||rawCandidate===undefined', 'empty score does not render as zero');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'hasCandidateScore=d.candidateScore!==null', 'empty score summary guard');
 requireText('ln-rank/js/knowledge/major-understanding-resolver.js', 'resolveMajorQueryCandidates', 'canonical major resolver owner');
 forbidText('ln-rank/js/knowledge/major-understanding-resolver.js', '\\\\s+(?:和|与|及|或)', 'double-escaped natural conjunction');
 requireText('functions/api/ai/major-history.js', 'const majorInputs = splitMajorInputs', 'multi-major API normalization');
