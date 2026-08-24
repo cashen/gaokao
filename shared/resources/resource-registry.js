@@ -1,4 +1,5 @@
 import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2';
+import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
@@ -12,8 +13,13 @@ export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;
 export const DATA_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.dataResourceGraphVersion;
 export const RESOURCE_DECOMMISSION_POLICY_VERSION = CURRENT_RELEASE.resourceDecommissionPolicyVersion;
+export const ACTIVE_RESOURCE_MANIFEST_VERSION = ACTIVE_RESOURCE_MANIFEST.version;
 
 export const SHARED_RESOURCE_REGISTRY = Object.freeze({
+  activeResourceManifest: ACTIVE_RESOURCE_MANIFEST,
+  aiplusTransitive: ACTIVE_RESOURCE_MANIFEST.aiplus,
+  majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile,
+  schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory,
   release: Object.freeze({
     id: 'current-release',
     module: CURRENT_RELEASE.resourceOwners.release,
