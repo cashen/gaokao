@@ -26,9 +26,9 @@ requireText('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js', 
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.append('major',n)", 'repeated multi-major API inputs');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-remove-term', 'remove-one-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-clear', 'clear-major draft action');
-requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'score2024', '2024 trend rendering');
-requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'score2025', '2025 trend rendering');
-requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'score2026', '2026 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2025)', '2025 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2026)', '2026 trend rendering');
 requireText('ln-rank/js/knowledge/major-understanding-resolver.js', 'resolveMajorQueryCandidates', 'canonical major resolver owner');
 forbidText('ln-rank/js/knowledge/major-understanding-resolver.js', '\\\\s+(?:和|与|及|或)', 'double-escaped natural conjunction');
 requireText('functions/api/ai/major-history.js', 'const majorInputs = splitMajorInputs', 'multi-major API normalization');
