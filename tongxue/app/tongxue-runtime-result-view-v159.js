@@ -110,15 +110,24 @@ export function createTongxueResultView(ui, state, searchView) {
         const rows = profile
           ? fieldSpecs.map(([label, value]) => [label, String(value || '').trim()])
           : [];
+        const footerNote = document.querySelector('[data-major-source-footer-note]');
+        if (footerNote) {
+          footerNote.hidden = true;
+          footerNote.textContent = '';
+        }
         if (!rows.some(([, value]) => value)) {
           target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>暂无可核验的原站专业解读</strong><p>这个专业暂时没有可核验的源站四字段资料；下面的大学生留言仍保持为个人体验，不代替专业事实。</p></div>';
           return;
         }
         const fields = rows.map(([label, value], index) => `<section class="major-source-row"><div class="major-source-heading"><span class="major-source-index">${String(index + 1).padStart(2, '0')}</span><h3>${label}</h3></div><p>${html(value || '源站暂未提供可核验内容')}</p></section>`).join('');
-        const sourceLink = profile?.sourceUrl
-          ? `<a class="link" href="${attr(profile.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看原站专业解读 ↗</a>`
-          : '';
-        target.innerHTML = `<div class="section-heading">先看懂这个专业</div><p class="review-intro"><strong>源站专业解读</strong>按“是什么、学什么、做什么、就业方向”顺序阅读；它们是资料说明，不是录取或就业承诺。</p><div class="major-source-flow" data-major-source-flow>${fields}</div><p class="source-note">来源：eo.srgaoxiao.cn；抓取日期：${html(profile?.retrievedAt || '—')}。学生留言会在下方单独展示。</p>${sourceLink}`;
+        if (footerNote) {
+          const sourceHref = profile?.sourceUrl
+            ? ` <a href="${attr(profile.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看原站专业解读 ↗</a>`
+            : '';
+          footerNote.innerHTML = `专业解读来源：eo.srgaoxiao.cn；抓取日期：${html(profile?.retrievedAt || '—')}。专业资料与学生留言分开阅读。${sourceHref}`;
+          footerNote.hidden = false;
+        }
+        target.innerHTML = `<div class="section-heading">先看懂这个专业</div><p class="review-intro"><strong>源站专业解读</strong>按“是什么、学什么、做什么、就业方向”顺序阅读；它们是资料说明，不是录取或就业承诺。</p><div class="major-source-flow" data-major-source-flow>${fields}</div>`;
       })
       .catch(() => {
         target.innerHTML = '<div class="section-heading">先看懂这个专业</div><div class="state-card"><strong>专业解读暂时无法读取</strong><p>可以先看下方学生留言，稍后再试；学生留言不代替官方专业资料。</p></div>';
@@ -314,6 +323,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (meta?.id !== undefined && meta?.id !== null) items.push(`来源学校编号：${meta.id}`);
     if (major?.sourceId !== undefined && major?.sourceId !== null) items.push(`来源专业编号：${major.sourceId}`);
     if (evidence?.scope) items.push(`证据范围：${evidence.scope}`);
+    if (major?.code) items.push(`升学路径：${PATHWAY_VIEW_VERSION}`);
     return `<details class="technical-details"><summary>数据来源与技术信息</summary><div class="technical-list">${items.map(item => `<span class="technical-item">${html(item)}</span>`).join('')}</div></details>`;
   }
 
