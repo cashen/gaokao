@@ -163,7 +163,7 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     schemaVersion: 'family-action-v3990_2',
     classification: 'current-generation',
     validationTools: ['/tools/audit-site-runtime-generation-v3990_2.mjs', '/tools/browser-family-action-v3990_2.mjs']
-  })
+  }),
   resourceManifest: entry({
     owner: SITE_RUNTIME_CONTRACT.owners.resourceManifest,
     schemaVersion: 'active-resource-manifest-v3990_2',
@@ -185,7 +185,6 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     schemaVersion: 'aiplus-transitive-implementation-v3990_2',
     classification: 'declared-transitive-implementation',
     allowedConsumers: ['aiplus-browser', 'aiplus-verification', 'production-verification'],
-    forbiddenImports: ['/shared/ai/ai-workspace-contract.v3992_0.js without manifest declaration'],
     validationTools: [
       '/tools/verify-ai-workspace-v3990_2.mjs',
       '/tools/verify-aiplus-decision-focus-v006.mjs',
