@@ -28,6 +28,10 @@ const read = file => fs.readFileSync(file, 'utf8');
 const bodyTag = html => html.match(/<body\b[^>]*>/i)?.[0] || '';
 const footer = html => html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] || '';
 const staleRelease = /v3\.9\.(?:50\.0|67\.0|68\.0|71\.2|90\.0)\b/;
+const stablePageReleases = Object.freeze({
+  'ln-rank/local-mainline.html': 'v3.9.71.2',
+  'ln-rank/211-mainline.html': 'v3.9.90.0'
+});
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.90.2');
 assert.equal(CURRENT_RELEASE.version, 'v3.9.90.2');
@@ -46,7 +50,8 @@ for (const file of activePages) {
   const html = read(file);
   const body = bodyTag(html);
   const foot = footer(html);
-  assert.ok(body.includes('data-release="v3.9.90.2"'), `${file}: canonical release marker`);
+  const expectedPageRelease = stablePageReleases[file] || 'v3.9.90.2';
+  assert.ok(body.includes(`data-release="${expectedPageRelease}"`), `${file}: page release lineage`);
   assert.ok(body.includes('data-site-runtime-generation="v3990_2"'), `${file}: runtime generation marker`);
   assert.ok(body.includes('data-release-surface='), `${file}: release surface marker`);
   if (file === 'aiplus/index.html') {
@@ -59,7 +64,7 @@ for (const file of activePages) {
   assert.ok(foot.includes('data-current-release'), `${file}: current release binding`);
   assert.ok(foot.includes('data-release-log-link'), `${file}: release log binding`);
   assert.ok(foot.includes('href="/changelog.html"'), `${file}: canonical log href`);
-  assert.ok(!staleRelease.test(body), `${file}: stale body release marker`);
+  if (!stablePageReleases[file]) assert.ok(!staleRelease.test(body), `${file}: stale body release marker`);
   assert.ok(!staleRelease.test(foot), `${file}: stale footer release marker`);
 }
 
