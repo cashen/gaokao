@@ -2,6 +2,7 @@ import {
   RESOURCE_EXECUTION_REGISTRY as PREVIOUS_RESOURCE_EXECUTION_REGISTRY
 } from './resource-execution-contract.v3972_5.js?v=3972_5';
 import { SITE_RUNTIME_CONTRACT } from '../resources/release/site-runtime-contract.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from '../resources/release/current-release.js?v=3990_2';
 
 export const RESOURCE_EXECUTION_VERSION = 'resource-execution-v3990_2';
 
