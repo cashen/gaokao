@@ -1,1 +1,57 @@
-import assert from 'node:assert/strict';\nimport fs from 'node:fs';\n\nconst read = file => fs.readFileSync(file, 'utf8');\nconst plan = read('docs/plans/tongxue-major-pathway-v001.md');\nconst presenter = read('shared/resources/majors/undergrad-graduate-pathway-view.v001.js');\nconst resultView = read('tongxue/app/tongxue-runtime-result-view-v159.js');\nconst controller = read('tongxue/app/tongxue-runtime-controller-v159.js');\nconst index = read('tongxue/index.html');\nconst navigation = read('shared/resources/majors/major-path-navigation.v003.js');\nconst majorPathApp = read('major-path/app.v004.js');\n\nassert.match(plan, /必要归属、最小呈现/);\nassert.match(plan, /主结果区不再显示/);\nassert.match(presenter, /undergrad-graduate-pathway\.v001\.js/);\nassert.match(presenter, /graduate-catalog-2022\.v001\.js/);\nassert.match(presenter, /major-path-navigation\.v003\.js/);\nassert.doesNotMatch(presenter, /CLASS_RULES|MAJOR_RULES/, 'Tongxue presenter must not copy the pathway mapping owner');\nassert.doesNotMatch(presenter, /\\`|\\\$\{/, 'shared presenter must contain valid JavaScript template syntax');\nassert.match(presenter, /UNDERGRAD_GRADUATE_PATHWAY_VIEW_META/);\nassert.match(presenter, /https:\/\/www\.moe\.gov\.cn/);\n\nassert.match(resultView, /buildUndergradGraduatePathwayView/);\nassert.match(resultView, /data-major-source-footer-note/);\nassert.match(resultView, /footerNote\.hidden = false/);\nassert.match(resultView, /专业解读来源：eo\.srgaoxiao\.cn/);\nconst mainTargetStart = resultView.indexOf('target.innerHTML = `<div class="section-heading">先看懂这个专业</div>');\nconst mainTargetEnd = resultView.indexOf('\n      })', mainTargetStart);\nassert.ok(mainTargetStart >= 0 && mainTargetEnd > mainTargetStart, 'major source render target must remain bounded');\nconst mainTarget = resultView.slice(mainTargetStart, mainTargetEnd);\nassert.doesNotMatch(mainTarget, /eo\.srgaoxiao\.cn|抓取日期|sourceLink/, 'source attribution must not render in the main result block');\n\nassert.match(index, /tongxue-runtime-result-view-v159\.js\?v=159-flow004/);\nassert.match(index, /data-major-source-footer-note/);\nconst footerStart = index.indexOf('<footer');\nconst footerEnd = index.indexOf('</footer>', footerStart);\nassert.ok(footerStart >= 0 && footerEnd > footerStart, 'Tongxue footer must exist');\nconst footer = index.slice(footerStart, footerEnd);\nassert.match(footer, /data-major-source-footer-note/);\nassert.match(footer, /hidden/);\n\nassert.match(controller, /data-major-source-footer-note/);\nassert.match(controller, /sourceNote\.hidden = true/);\nassert.match(navigation, /allowedReturnPath/);\nassert.match(navigation, /['"]\/tongxue\/['"]/);\nassert.match(navigation, /fromTongxue/);\nassert.match(majorPathApp, /sourceContext\.fromTongxue/);\n\nconsole.log(JSON.stringify({\n  ok: true,\n  contract: 'tongxue-major-pathway-v001',\n  dataOwner: 'undergrad-graduate-pathway-v001',\n  sourceAttribution: 'footer-only-on-major-profile-success',\n  mainResultSourceBlock: false,\n  schoolScopeClearsFooter: true\n}, null, 2));
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const read = file => fs.readFileSync(file, 'utf8');
+const plan = read('docs/plans/tongxue-major-pathway-v001.md');
+const presenter = read('shared/resources/majors/undergrad-graduate-pathway-view.v001.js');
+const resultView = read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const controller = read('tongxue/app/tongxue-runtime-controller-v159.js');
+const index = read('tongxue/index.html');
+const navigation = read('shared/resources/majors/major-path-navigation.v003.js');
+const majorPathApp = read('major-path/app.v004.js');
+
+assert.match(plan, /必要归属、最小呈现/);
+assert.match(plan, /主结果区不再显示/);
+assert.match(presenter, /undergrad-graduate-pathway\.v001\.js/);
+assert.match(presenter, /graduate-catalog-2022\.v001\.js/);
+assert.match(presenter, /major-path-navigation\.v003\.js/);
+assert.doesNotMatch(presenter, /CLASS_RULES|MAJOR_RULES/, 'Tongxue presenter must not copy the pathway mapping owner');
+assert.doesNotMatch(presenter, /\\`|\\\$\{/, 'shared presenter must contain valid JavaScript template syntax');
+assert.match(presenter, /UNDERGRAD_GRADUATE_PATHWAY_VIEW_META/);
+assert.match(presenter, /https:\/\/www\.moe\.gov\.cn/);
+
+assert.match(resultView, /buildUndergradGraduatePathwayView/);
+assert.match(resultView, /data-major-source-footer-note/);
+assert.match(resultView, /footerNote\.hidden = false/);
+assert.match(resultView, /专业解读来源：eo\.srgaoxiao\.cn/);
+const mainTargetStart = resultView.indexOf('target.innerHTML = `<div class="section-heading">先看懂这个专业</div>');
+const mainTargetEnd = resultView.indexOf('
+      })', mainTargetStart);
+assert.ok(mainTargetStart >= 0 && mainTargetEnd > mainTargetStart, 'major source render target must remain bounded');
+const mainTarget = resultView.slice(mainTargetStart, mainTargetEnd);
+assert.doesNotMatch(mainTarget, /eo\.srgaoxiao\.cn|抓取日期|sourceLink/, 'source attribution must not render in the main result block');
+
+assert.match(index, /tongxue-runtime-result-view-v159\.js\?v=159-flow004/);
+assert.match(index, /data-major-source-footer-note/);
+const footerStart = index.indexOf('<footer');
+const footerEnd = index.indexOf('</footer>', footerStart);
+assert.ok(footerStart >= 0 && footerEnd > footerStart, 'Tongxue footer must exist');
+const footer = index.slice(footerStart, footerEnd);
+assert.match(footer, /data-major-source-footer-note/);
+assert.match(footer, /hidden/);
+
+assert.match(controller, /data-major-source-footer-note/);
+assert.match(controller, /sourceNote\.hidden = true/);
+assert.match(navigation, /allowedReturnPath/);
+assert.match(navigation, /['"]\/tongxue\/['"]/);
+assert.match(navigation, /fromTongxue/);
+assert.match(majorPathApp, /sourceContext\.fromTongxue/);
+
+console.log(JSON.stringify({
+  ok: true,
+  contract: 'tongxue-major-pathway-v001',
+  dataOwner: 'undergrad-graduate-pathway-v001',
+  sourceAttribution: 'footer-only-on-major-profile-success',
+  mainResultSourceBlock: false,
+  schoolScopeClearsFooter: true
+}, null, 2));
