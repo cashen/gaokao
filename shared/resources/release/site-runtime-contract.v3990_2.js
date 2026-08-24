@@ -1,7 +1,10 @@
 import { CURRENT_RELEASE } from './current-release.js?v=3990_2';
+import { ACTIVE_RESOURCE_MANIFEST } from './active-resource-manifest.v3990_2.js?v=3990_2';
 
 const CURRENT = 'current-generation';
 const STABLE = 'declared-stable-dependency';
+const TRANSITIVE = 'declared-transitive-implementation';
+const DATA = 'current-data-resource';
 
 export const SITE_RUNTIME_CONTRACT = Object.freeze({
   version: 'site-runtime-coherence-v3990_2',
@@ -14,6 +17,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     releasePresenter: '/shared/resources/release/release-presenter.v3990_2.js?v=3990_2',
     runtimeCache: '/shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2',
     resourceExecution: '/shared/governance/resource-execution-contract.v3990_2.js?v=3990_2',
+    resourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js?v=3990_2',
     majorBandsRankIndex: '/functions/_lib/major-bands-rank-index.v3990_2.js',
     majorBandsQueryKernel: '/functions/_lib/major-bands-rank-query-kernel.v3990_2.js',
     majorBandsBucketLoader: '/functions/_lib/major-bands-rank-bucket-loader.v3990_2.js',
@@ -38,6 +42,10 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiRuntime: '/aiplus/app.v3990_2.js?v=3990_2',
     aiStyles: '/aiplus/workspace.v3990_2.css?v=3990_2',
     aiWorkspaceContract: '/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2',
+    aiplusWorkspaceImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.workspaceContract.owner,
+    aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
+    aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
+    majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js'
   }),
@@ -46,6 +54,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     releasePresenter: CURRENT,
     runtimeCache: CURRENT,
     resourceExecution: CURRENT,
+    resourceManifest: CURRENT,
     majorBandsRankIndex: CURRENT,
     majorBandsQueryKernel: CURRENT,
     majorBandsBucketLoader: CURRENT,
@@ -70,6 +79,10 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiRuntime: CURRENT,
     aiStyles: CURRENT,
     aiWorkspaceContract: CURRENT,
+    aiplusWorkspaceImplementation: TRANSITIVE,
+    aiplusRenderImplementation: TRANSITIVE,
+    aiplusHistoryImplementation: TRANSITIVE,
+    majorSourceProfile: DATA,
     majorBandsFilter: CURRENT,
     majorBandsRegionCatalog: CURRENT
   }),
@@ -88,6 +101,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
   }),
   owners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
+    resourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
     activeGeneration: '/shared/resources/release/site-runtime-contract.v3990_2.js',
     cache: '/shared/resources/release/runtime-cache-contract.v3990_2.js',
     execution: '/shared/governance/resource-execution-contract.v3990_2.js',
@@ -110,6 +124,10 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     familyPlanRuntime: '/ln-rank/js/selection-pool-runtime.v3990_2.js',
     ai: '/aiplus/app.v3990_2.js',
     aiWorkspace: '/shared/ai/ai-workspace-contract.v3990_2.js',
+    aiplusWorkspaceImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.workspaceContract.owner,
+    aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
+    aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
+    majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
