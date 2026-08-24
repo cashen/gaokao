@@ -38,7 +38,8 @@ function ensureReleaseLogLink(doc, footer) {
 export function syncReleaseFooter(root = document) {
   if (typeof document === 'undefined') return CURRENT_RELEASE;
   const doc = root?.nodeType === 9 ? root : root?.ownerDocument || document;
-  ensureStyles(doc);
+  const isAiPlusSurface = doc.body?.dataset?.aiPlus === 'family-advisor';
+  if (!isAiPlusSurface) ensureStyles(doc);
   syncCurrentRelease(doc);
   let footer = doc.querySelector('footer[data-release-footer]');
   if (!footer) {
