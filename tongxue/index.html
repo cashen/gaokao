@@ -50,7 +50,7 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
 @media(prefers-reduced-motion:reduce){.input-state{animation:none;border-top-color:#9bb0b7}.btn,.quick-example,.choice-card{transition:none!important}}
 </style>
 </head>
-<body data-ui-page="tongxue" data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-tongxue-capability-version="tongxue-runtime-v159-r3968">
+<body data-ui-page="tongxue" data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-tongxue-capability-version="tongxue-runtime-v159-r3968" data-release-surface="tongxue">
 <div data-ui-global-header-mount></div>
 <div data-ui-family-status-mount></div>
 <div class="wrap">
@@ -80,11 +80,12 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
   </section>
   <div id="result" aria-live="polite"></div>
   <div id="liveStatus" class="sr-only" aria-live="polite"></div>
-  <footer class="footer">
+  <footer class="footer" data-release-footer>
     <div>学生留言只代表部分评论者在特定专业、校区和年份的个人体验，不代表学校官方结论。</div>
-    <a class="version" href="./changelog.html">同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.2 · 更新于 2026-08-24 · 查看更新记录</a>
+    <a class="version" href="./changelog.html">同学你好 · 能力版本 v1.5.9 · 全站发布 <span data-current-release></span> · 查看同学你好更新记录</a> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a>
   </footer>
 </div>
 <script type="module" src="./app/tongxue-runtime-v159-r3968.js?v=3968_0"></script>
+<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2"></script>
 </body>
 </html>
