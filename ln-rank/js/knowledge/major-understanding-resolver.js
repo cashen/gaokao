@@ -81,7 +81,7 @@ function splitMajorQueryTerms(value = '') {
   if (!raw) return [];
   const direct = CATALOG_RESOLVER.resolve(raw, { allowContains: false });
   if (direct?.kind === 'major' || direct?.kind === 'category') return [raw];
-  return [...new Set(raw.split(/[,，、/；;|]+/).flatMap(part => part.split(/(?:\\s+(?:和|与|及|或)\\s+|(?<=.{2})(?:和|与|或)(?=.{2}))/).map(item => item.trim()).filter(Boolean)))];
+  return [...new Set(raw.split(/[,，、/；;|]+/).flatMap(part => part.split(/(?:\s+(?:和|与|及|或)\s+|(?<=.{2})(?:和|与|或)(?=.{2}))/).map(item => item.trim()).filter(Boolean)))];
 }
 
 export function resolveMajorQueryCandidates(input = '') {
