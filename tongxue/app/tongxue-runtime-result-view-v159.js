@@ -8,8 +8,10 @@ import {
   dedupeReviews,
   summaryGroups
 } from './tongxue-runtime-utils-v159.js?v=159';
+import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0';
 
 const PAGE_VERSION = 'v1.5.9-uec01-evidence02';
+const PATHWAY_VIEW_VERSION = UNDERGRAD_GRADUATE_PATHWAY_VIEW_META.version;
 const DIMENSIONS = Object.freeze({ dormitory:'宿舍', cafeteria:'食堂', faculty:'师资', environment:'环境', culture:'氛围', employment:'就业感受', safety:'安全', stability:'稳定感受', difficulty:'学习难度', work_env:'工作环境感受' });
 const TOPIC_LABELS = Object.freeze({
   general:'大学生怎么说', living:'住宿与食宿', dormitory:'宿舍体验', cafeteria:'食堂体验', environment:'校园环境与人文体验',
@@ -88,7 +90,7 @@ export function createTongxueResultView(ui, state, searchView) {
     return `<section class="major-source-intro" data-major-source-intro="${attr(code)}" aria-label="专业解读">
       <div class="section-heading">先看懂这个专业</div>
       <div class="state-card loading"><strong>正在读取专业解读</strong><p>先把“是什么、学什么、做什么、就业方向”看清楚，再看大学生的个人体验。</p></div>
-    </section>`;
+    </section>${buildUndergradGraduatePathwayView({ major, returnTo:'/tongxue/' })}`;
   }
 
   function mountMajorSourceIntro(major = {}) {
