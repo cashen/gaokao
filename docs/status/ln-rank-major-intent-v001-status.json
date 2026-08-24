@@ -1,0 +1,30 @@
+{
+  "task": "ln-rank-major-intent-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-major-intent-v1",
+  "baseSha": "18b40a256924475b13c4175fd006ce4a7e27decf",
+  "pr": null,
+  "completed": [
+    "MI-00-plan-written"
+  ],
+  "inProgress": "MI-01-catalog-audit",
+  "pending": [
+    "MI-01-catalog-audit",
+    "MI-02-major-intent-resolver",
+    "MI-03-query-kernel-unification",
+    "MI-04-parent-ui",
+    "MI-05-trend-boundaries",
+    "MI-06-regression-tests",
+    "MI-07-multiterminal-tests",
+    "MI-08-ci-preview-production-merge"
+  ],
+  "lastFailure": null,
+  "parentPerspective": {
+    "coverage": "all-current-undergraduate-majors-about-800-not-only-examples",
+    "positionLabels": ["稍高目标", "主要参考", "低分侧补充"],
+    "forbiddenUserCopy": ["冲稳保"],
+    "requiredDevices": ["pc", "pad", "android"]
+  },
+  "checkpointNote": "Plan is committed in docs/plans/ln-rank-major-intent-v001.md before implementation. Resume from MI-01 after any interruption.",
+  "verifiedAt": "2026-08-25T16:00:00+08:00"
+}
