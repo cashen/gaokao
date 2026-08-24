@@ -111,7 +111,21 @@ function json(payload, status = 200) { return new Response(JSON.stringify(payloa
 
 export async function onRequestGet(context) {
   try {
-    const url = new URL(context.request.url), major = clean(url.searchParams.get('major'), 180), region = clean(url.searchParams.get('region'), 220) || 'all', bottomLineMode = clean(url.searchParams.get('bottomLineMode'), 40) || 'all';
+    const url = new URL(context.request.url);
+    const majorInputs = splitMajorInputs([
+      ...url.searchParams.getAll('major'),
+      ...url.searchParams.getAll('majors')
+    ]);
+    const region = clean(url.searchParams.get('region'), 220) || 'all';
+    const schoolKeyword = norm(url.searchParams.get('schoolKeyword'));
+    const projectMode = normalizeProjectMode(url.searchParams.get('projectMode'));
+    const bottomLineMode = clean(url.searchParams.get('bottomLineMode'), 40) || 'all';
+    const candidateScore = scoreBound(url.searchParams.get('candidateScore'));
+    const requestedSort = ['position-near', 'score-desc', 'score-asc'].includes(String(url.searchParams.get('sort') || '').trim())
+      ? String(url.searchParams.get('sort')).trim()
+      : (candidateScore !== null ? 'position-near' : 'score-desc');
+    const candidateRow = candidateScore !== null ? lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score: candidateScore }) : null;
+    const candidateRank = Number(candidateRow?.rankForGap ?? candidateRow?.rankEnd);
     const rawMinScore = scoreBound(url.searchParams.get('minScore')), rawMaxScore = scoreBound(url.searchParams.get('maxScore'));
     const minScore = rawMinScore !== null && rawMaxScore !== null ? Math.min(rawMinScore, rawMaxScore) : rawMinScore, maxScore = rawMinScore !== null && rawMaxScore !== null ? Math.max(rawMinScore, rawMaxScore) : rawMaxScore;
     const scoreRange = { kind: minScore !== null && maxScore !== null ? 'range' : minScore !== null ? 'min' : maxScore !== null ? 'max' : 'none', min: minScore, max: maxScore };
@@ -142,7 +156,26 @@ export async function onRequestGet(context) {
         }
       }
     }
-    records.sort((a,b) => Number(b.score2026) - Number(a.score2026) || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER) || a.school.localeCompare(b.school, 'zh-Hans-CN') || a.major.localeCompare(b.major, 'zh-Hans-CN') || a.id.localeCompare(b.id, 'zh-Hans-CN'));
+    const distance = record => Number.isFinite(candidateRank) && Number.isFinite(Number(record.rank2026))
+      ? Math.abs(Number(record.rank2026) - candidateRank)
+      : Number.MAX_SAFE_INTEGER;
+    records.sort((a, b) => {
+      if (requestedSort === 'position-near') return distance(a) - distance(b)
+        || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER)
+        || a.school.localeCompare(b.school, 'zh-Hans-CN')
+        || a.major.localeCompare(b.major, 'zh-Hans-CN')
+        || a.id.localeCompare(b.id, 'zh-Hans-CN');
+      if (requestedSort === 'score-asc') return Number(a.score2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.score2026 ?? Number.MAX_SAFE_INTEGER)
+        || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER)
+        || a.school.localeCompare(b.school, 'zh-Hans-CN')
+        || a.major.localeCompare(b.major, 'zh-Hans-CN')
+        || a.id.localeCompare(b.id, 'zh-Hans-CN');
+      return Number(b.score2026 ?? Number.MIN_SAFE_INTEGER) - Number(a.score2026 ?? Number.MIN_SAFE_INTEGER)
+        || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER)
+        || a.school.localeCompare(b.school, 'zh-Hans-CN')
+        || a.major.localeCompare(b.major, 'zh-Hans-CN')
+        || a.id.localeCompare(b.id, 'zh-Hans-CN');
+    });
     const total = records.length, page = records.slice(offset, offset + limit), stats = summary(records);
     return json({
       ok: true, major: majorInputs.join('、'), majorInputs, region, projectMode, schoolKeyword, bottomLineMode, scoreRange, candidateScore, candidateReferenceRank2026: Number.isFinite(candidateRank) ? candidateRank : null, sort: requestedSort || (candidateRank ? 'position-near' : 'score-desc'), matchedMajors: majorKeys, matchedByInput, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
