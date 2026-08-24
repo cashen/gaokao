@@ -96,7 +96,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (!code) return;
     const target = document.querySelector(`[data-major-source-intro="${code}"]`);
     if (!target) return;
-    import('../../ln-rank/kb/major-understanding/major-source-profile.generated.js?v=pr194')
+    import('../../ln-rank/kb/major-understanding/major-source-profile.generated.js?v=pr194-flow002')
       .then(({ getMajorSourceProfile }) => {
         const profile = getMajorSourceProfile(code);
         const rows = [
@@ -164,8 +164,12 @@ export function createTongxueResultView(ui, state, searchView) {
     const body = exhausted
       ? '这只表示当前取得的留言里没有直接匹配内容，不代表现实中没人讨论，也不能据此判断体验好坏。'
       : '来源里还有更多留言。为了控制一次查询的范围，这次没有继续无止境往后翻，所以这里只能说“暂时没找到”。';
-    searchView.commit('empty', `<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
+    const major = data.major || { code:state.currentMajorCode || '', name:actual };
+    const shell = isMajor ? `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}">${majorSourceIntroShell(major)}<div class="divider"></div>` : '';
+    const close = isMajor ? '</article>' : '';
+    searchView.commit('empty', `${shell}<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
     searchView.focusResult();
+    if (isMajor) mountMajorSourceIntro(major);
   }
 
   function renderNoContent(data, school, resolution) {
@@ -177,8 +181,12 @@ export function createTongxueResultView(ui, state, searchView) {
     const body = isMajor
       ? '专业名称已经确认，但当前来源没有返回可展示的专业留言。这不代表这个专业没人读、没人讨论或体验不好。'
       : '学校名称已经确认，但当前来源没有返回可展示的概括或留言。这不代表没人评价这所学校。';
-    searchView.commit('empty', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后再试</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, data.major)}</div>`);
+    const major = data.major || { code:state.currentMajorCode || '', name:actual };
+    const shell = isMajor ? `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}">${majorSourceIntroShell(major)}<div class="divider"></div>` : '';
+    const close = isMajor ? '</article>' : '';
+    searchView.commit('empty', `${shell}<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后再试</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
     searchView.focusResult();
+    if (isMajor) mountMajorSourceIntro(major);
   }
 
   function renderFailure(error, school, resolution) {
