@@ -18,7 +18,9 @@ assert.match(presenter, /major-path-navigation\.v003\.js/);
 assert.doesNotMatch(presenter, /CLASS_RULES|MAJOR_RULES/, 'Tongxue presenter must not copy the pathway mapping owner');
 assert.doesNotMatch(presenter, /\\`|\\\$\{/, 'shared presenter must contain valid JavaScript template syntax');
 assert.match(presenter, /UNDERGRAD_GRADUATE_PATHWAY_VIEW_META/);
-assert.match(presenter, /https:\/\/www\.moe\.gov\.cn/);
+assert.match(presenter, /GRADUATE_CATALOG_SOURCES/);
+const graduateCatalog = read('shared/resources/graduate/graduate-catalog-2022.v001.js');
+assert.match(graduateCatalog, /https:\/\/www\.moe\.gov\.cn/);
 
 assert.match(resultView, /buildUndergradGraduatePathwayView/);
 assert.match(resultView, /data-major-source-footer-note/);
