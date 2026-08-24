@@ -1,4 +1,11 @@
 # AIPLuS 自选、排序与诊断 v0.05
+## Current main snapshot (2026-08-24 audit)
+
+- Latest canonical `main`: `ffc080979341f7a4dfb593986bc791aef3bfb076`.
+- Audit baseline had no open PR; the five existing Production status checks on that SHA were green.
+- Whole-site public release identity is `v3.9.90.2 / v3990_2 / 3990_2`; capability-local identities below remain subordinate and are not separate site releases.
+- The historical PR/SHA entries in this file remain evidence only. Any new change starts from the latest `main` and follows the unified Draft → exact Preview → Ready same-SHA → merge → Production protocol.
+
 
 ## 当前开发 / 发布状态
 
@@ -96,7 +103,7 @@ Selection Workbench 的 live browser gate 不应承担“碰运气等 edge cutov
 
 1. Pages Production `/aiplus/` 已返回当前 `data-ai-selection-workbench="aiplus-selection-workbench-v0.05"` marker；
 2. 同一 HTML 明确引用当前 `selection-workbench.v005.js?v=005_0&fdw=003_0` 和 `selection-workbench.v005.css?v=005_0&fdw=003_0`；
-3. `/api/ai/health` 的 `commitSha` 等于本次 `main` push SHA，release 仍为 `v3.9.90.1`；
+3. `/api/ai/health` 的 `commitSha` 等于本次 `main` push SHA，release 仍为 `v3.9.90.2`；
 4. HTML 引用的当前 Selection Workbench JS 可以从 Pages Production 读取，并包含 `AIPLUS_SELECTION_WORKBENCH_VERSION = 'aiplus-selection-workbench-v0.05'` 与 `mountSelectionWorkbench`；
 5. HTML 引用的当前 Selection Workbench CSS 可以从 Pages Production 读取，并包含窄栏单列诊断布局合同。
 
