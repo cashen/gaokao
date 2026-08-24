@@ -1,4 +1,11 @@
 # Unified Experience Context (UEC) · durable program status
+## Current main snapshot (2026-08-24 audit)
+
+- Latest canonical `main`: `ffc080979341f7a4dfb593986bc791aef3bfb076`.
+- Audit baseline had no open PR; the five existing Production status checks on that SHA were green.
+- Whole-site public release identity is `v3.9.90.2 / v3990_2 / 3990_2`; capability-local identities below remain subordinate and are not separate site releases.
+- The historical PR/SHA entries in this file remain evidence only. Any new change starts from the latest `main` and follows the unified Draft → exact Preview → Ready same-SHA → merge → Production protocol.
+
 
 This file is the durable handoff owner for the Unified Experience Context program. A network interruption or new maintainer must resume from GitHub state, not from chat memory.
 
@@ -135,7 +142,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. DONE means implementation plus pac
 | UEC-08 | **DONE** | major-path adds Student Voice after canonical professional/graduate content; it does not replace academic-background evidence. |
 | UEC-09 | **DONE** | AIPLuS orchestrator consumes unified `runStudentVoice`; legacy `runSchoolExperience` remains a compatibility wrapper only. Official/outcome facts cannot be sourced from UGC. |
 | UEC-10 | **DONE** | Source health, mirror/schema-drift verifier, bounded failover/cache contracts and maintainability handoff are permanent. |
-| UEC-QA | **IN_PROGRESS** | Permanent source/semantic/scope/navigation regressions exist. Remaining work is final fresh Draft full suite, exact-head Preview, PC/Pad/Android/compact/live journeys, Ready same-SHA fresh second round, merge and Production closure. |
+| UEC-QA | **DONE** | Current main `ffc080979341f7a4dfb593986bc791aef3bfb076` has the merged UEC implementation and green `production/unified-experience-context-v0.01`; future changes start from latest main and rerun the unified release protocol. |
 
 ## Permanent proof surfaces
 
