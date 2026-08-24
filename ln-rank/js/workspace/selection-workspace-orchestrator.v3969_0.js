@@ -487,6 +487,33 @@ function renderFilterSummary() {
       </details>`;
     return;
   }
+  if (state.resultMode === MODE_MAJOR) {
+    const score = state.candidateScore || parseScoreFromInput();
+    const projectValue = String(document.getElementById('majorProjectMode')?.value || 'all');
+    const projectText = projectValue === 'ordinary-only'
+      ? '仅普通项目'
+      : projectValue === 'sino-only'
+        ? '仅中外/高收费项目'
+        : '普通与中外项目分开显示';
+    const majorChips = [
+      filterSummaryItem('专业', majorKeyword || '待确认'),
+      filterSummaryItem('地区', regionValue),
+      filterSummaryItem('参考分数', score ? `${score}分` : '未填写')
+    ];
+    const majorDetails = [
+      filterSummaryItem('专业方向', majorKeyword || '待确认具体本科专业'),
+      filterSummaryItem('学校', schoolKeyword || '不限'),
+      filterSummaryItem('地区', regionValue),
+      filterSummaryItem('参考分数', score ? `${score}分，仅用于位置排序` : '未填写，不影响记录召回'),
+      filterSummaryItem('项目口径', projectText),
+      filterSummaryItem('历史年份', '2026主口径，严格对应展示2025/2024')
+    ];
+    root.innerHTML = '<div class="ln-filter-summary-main" aria-label="当前按专业查看条件摘要">'
+      + '<span class="ln-filter-summary-title">当前按专业查看</span>'
+      + '<div class="ln-filter-summary-chips">' + majorChips.map(item => '<span class="ln-filter-summary-chip"><span class="ln-filter-summary-chip-label">' + escapeHtml(item.label) + '</span><b>' + escapeHtml(compactSummaryValue(item.value)) + '</b></span>').join('') + '</div></div>'
+      + '<details class="ln-filter-summary-details"><summary>查看完整条件</summary><dl>' + majorDetails.map(item => '<div class="ln-filter-summary-row"><dt>' + escapeHtml(item.label) + '</dt><dd>' + escapeHtml(item.value) + '</dd></div>').join('') + '</dl></details>';
+    return;
+  }
   const effectiveBottomLine = getEffectiveBottomLineMode();
   const bottomLineText = effectiveBottomLine !== 'all' ? bottomLineLabel(effectiveBottomLine) : '全部院校';
   const specialText = normalizeSpecialProjectMode(state.filters.specialProjectMode) === SPECIAL_PROJECT_SHOW_MODE ? '已显示' : '默认隐藏';
