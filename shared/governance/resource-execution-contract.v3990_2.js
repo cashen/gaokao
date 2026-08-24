@@ -25,7 +25,7 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     executionContract: SITE_RUNTIME_CONTRACT.owners.execution,
     schemaVersion: SITE_RUNTIME_CONTRACT.version,
     allowedConsumers: ['browser-runtime', 'functions', 'reports', 'audits', 'production-verification'],
-    generatedArtifacts: ['/ln-rank/site-active-generation.v3990_2.json'],
+    generatedArtifacts: ['/ln-rank/site-active-generation.v3990_2.json', '/shared/resources/release/active-resource-manifest.v3990_2.js'],
     validationTools: [
       '/tools/audit-site-runtime-generation-v3990_2.mjs',
       '/tools/browser-native-chooser-activation-v3990_2.mjs',
@@ -164,6 +164,58 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     classification: 'current-generation',
     validationTools: ['/tools/audit-site-runtime-generation-v3990_2.mjs', '/tools/browser-family-action-v3990_2.mjs']
   })
+  resourceManifest: entry({
+    owner: SITE_RUNTIME_CONTRACT.owners.resourceManifest,
+    schemaVersion: 'active-resource-manifest-v3990_2',
+    classification: 'current-release-resource-control-plane',
+    allowedConsumers: ['browser-runtime', 'functions', 'resource-registry', 'release-audits', 'production-verification'],
+    generatedArtifacts: [
+      '/shared/resources/release/active-resource-manifest.v3990_2.js',
+      '/ln-rank/site-active-generation.v3990_2.json'
+    ],
+    validationTools: [
+      '/tools/audit-architecture-handoff-v3990_2.mjs',
+      '/tools/verify-production-resource-graph-v3990_1.mjs'
+    ]
+  }),
+  aiplusTransitive: entry({
+    owner: SITE_RUNTIME_CONTRACT.owners.aiplusWorkspaceImplementation,
+    renderOwner: SITE_RUNTIME_CONTRACT.owners.aiplusRenderImplementation,
+    historyOwner: SITE_RUNTIME_CONTRACT.owners.aiplusHistoryImplementation,
+    schemaVersion: 'aiplus-transitive-implementation-v3990_2',
+    classification: 'declared-transitive-implementation',
+    allowedConsumers: ['aiplus-browser', 'aiplus-verification', 'production-verification'],
+    forbiddenImports: ['/shared/ai/ai-workspace-contract.v3992_0.js without manifest declaration'],
+    validationTools: [
+      '/tools/verify-ai-workspace-v3990_2.mjs',
+      '/tools/verify-aiplus-decision-focus-v006.mjs',
+      '/tools/verify-aiplus-selection-workbench-v005.mjs'
+    ]
+  }),
+  majorSourceProfile: entry({
+    owner: SITE_RUNTIME_CONTRACT.owners.majorSourceProfile,
+    canonicalIdentityOwner: CURRENT_RELEASE.resourceOwners.majors,
+    schemaVersion: 'pr194-major-source-profile-v001',
+    classification: 'current-data-resource-additive-knowledge',
+    allowedConsumers: ['major-understanding', 'tongxue-major', 'aiplus-knowledge', 'source-verification'],
+    forbiddenDirectFields: ['score2026', 'rank2026', 'admissionProbability', 'recommendationScore'],
+    validationTools: [
+      '/tools/verify-major-source-profile-v001.mjs',
+      '/tools/verify-tongxue-major-source-intro-v001.mjs'
+    ]
+  }),
+  schoolDirectory: entry({
+    owner: CURRENT_RELEASE.resourceOwners.schoolResourceCenter,
+    identityOwner: CURRENT_RELEASE.resourceOwners.schoolIdentity,
+    directoryLoader: CURRENT_RELEASE.resourceOwners.schoolDirectoryLoader,
+    schemaVersion: 'school-resource-center-v3990_2',
+    classification: 'current-shared-school-resource-with-legacy-compatible-loader',
+    allowedConsumers: ['tongxue', 'school-query-provider', 'ln-rank', 'aiplus'],
+    validationTools: [
+      '/tools/audit-school-query-v3970.mjs',
+      '/tools/verify-ai-region-school-directory-v002.mjs'
+    ]
+  }),
 });
 
 export function getResourceExecutionOwner(id) {
