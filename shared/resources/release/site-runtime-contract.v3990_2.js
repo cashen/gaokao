@@ -17,7 +17,6 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     releasePresenter: '/shared/resources/release/release-presenter.v3990_2.js?v=3990_2',
     runtimeCache: '/shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2',
     resourceExecution: '/shared/governance/resource-execution-contract.v3990_2.js?v=3990_2',
-    resourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js?v=3990_2',
     majorBandsRankIndex: '/functions/_lib/major-bands-rank-index.v3990_2.js',
     majorBandsQueryKernel: '/functions/_lib/major-bands-rank-query-kernel.v3990_2.js',
     majorBandsBucketLoader: '/functions/_lib/major-bands-rank-bucket-loader.v3990_2.js',
@@ -42,11 +41,6 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiRuntime: '/aiplus/app.v3990_2.js?v=3990_2',
     aiStyles: '/aiplus/workspace.v3990_2.css?v=3990_2',
     aiWorkspaceContract: '/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2',
-    aiplusWorkspaceImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.workspaceContract.owner,
-    aiplusRenderImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.render.owner,
-    aiplusHistoryImplementation: ACTIVE_RESOURCE_MANIFEST.aiplus.transitiveImplementation.history.owner,
-    majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile.owner,
-    schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory.directoryLoader,
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js'
   }),
@@ -55,7 +49,6 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     releasePresenter: CURRENT,
     runtimeCache: CURRENT,
     resourceExecution: CURRENT,
-    resourceManifest: CURRENT,
     majorBandsRankIndex: CURRENT,
     majorBandsQueryKernel: CURRENT,
     majorBandsBucketLoader: CURRENT,
@@ -80,13 +73,13 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiRuntime: CURRENT,
     aiStyles: CURRENT,
     aiWorkspaceContract: CURRENT,
-    aiplusWorkspaceImplementation: TRANSITIVE,
-    aiplusRenderImplementation: TRANSITIVE,
-    aiplusHistoryImplementation: TRANSITIVE,
-    majorSourceProfile: DATA,
-    schoolDirectory: DATA,
     majorBandsFilter: CURRENT,
     majorBandsRegionCatalog: CURRENT
+  }),
+  declaredResourceGraph: Object.freeze({
+    manifest: ACTIVE_RESOURCE_MANIFEST,
+    transitiveImplementationClassification: TRANSITIVE,
+    currentDataClassification: DATA
   }),
   stablePageEntrypoints: Object.freeze({
     tongxuePage: '/tongxue/',
