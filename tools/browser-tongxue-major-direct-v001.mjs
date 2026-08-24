@@ -58,6 +58,21 @@ try {
     });
     page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+    await context.route('**/ln-rank/kb/major-understanding/major-source-profile.generated.js**', route => route.fulfill({
+      status:200,
+      contentType:'application/javascript; charset=utf-8',
+      body:`export function getMajorSourceProfile(code) {
+  return String(code) === '080601' ? {
+    whatIs:'电气工程及其自动化是研究电能、电气设备与控制系统的本科专业。',
+    whatLearn:'电路、电机、电力系统、自动控制和工程实践。',
+    whatDo:'电气设备、控制系统、工程技术与运行维护等方向。',
+    careerPath:'电力、电气设备、自动化控制和工程技术服务等方向。',
+    sourceUrl:'https://eo.srgaoxiao.cn/major/080601',
+    retrievedAt:'2026-08-24'
+  } : null;
+}`
+    }));
+
     await context.route('**/api/tongxue-summary**', route => {
       const url = new URL(route.request().url());
       apiRequests.push(Object.fromEntries(url.searchParams.entries()));
@@ -91,6 +106,13 @@ try {
       assert.match(resultText, /不同学校的学生/);
       assert.match(resultText, /大学生怎么说/);
       assert.doesNotMatch(resultText, /provenance|AI总结/);
+      assert.doesNotMatch(resultText, /eo\.srgaoxiao\.cn|抓取日期：/);
+      assert.equal(await page.locator('[data-major-pathway="080601"]').count(), 1, `${testCase.name}: pathway surface missing`);
+      const footerSource = page.locator('[data-major-source-footer-note]');
+      assert.equal(await footerSource.count(), 1, `${testCase.name}: footer source slot missing`);
+      assert.equal(await footerSource.isVisible(), true, `${testCase.name}: footer source attribution is not visible after profile success`);
+      assert.match(await footerSource.textContent(), /eo\.srgaoxiao\.cn/);
+      assert.match(await footerSource.textContent(), /抓取日期：2026-08-24/);
 
       assert.equal(apiRequests.length, 1, `${testCase.name}: direct handoff submitted ${apiRequests.length} API requests`);
       assert.equal(apiRequests[0].scope, 'major');
@@ -106,7 +128,7 @@ try {
       const controllerRequest = moduleRequests.find(item => item.path.endsWith('tongxue-runtime-controller-v159.js'));
       const resultViewRequest = moduleRequests.find(item => item.path.endsWith('tongxue-runtime-result-view-v159.js'));
       assert.equal(controllerRequest?.version, '159-fuzzy001', `${testCase.name}: stale controller cache identity used`);
-      assert.equal(resultViewRequest?.version, '159-flow003', `${testCase.name}: stale result-view cache identity used`);
+      assert.equal(resultViewRequest?.version, '159-flow004', `${testCase.name}: stale result-view cache identity used`);
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       assert.ok(overflow <= 1, `${testCase.name}: horizontal overflow ${overflow}`);
