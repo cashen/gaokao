@@ -3,11 +3,50 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-major-all-v001",
   "baseSha": "0c1097d3c086658fce7813c7227a157c40ded412",
-  "headSha": "73ae49d1d8be0c47c3ff37d3ae26918f0fdeefc2",
+  "headSha": "7421265609eb550512d4fef8f3b1147dd9e4555c",
   "pr": 202,
-  "completed": ["branch-created", "plan-written", "draft-pr-created"],
+  "completed": [
+    "branch-created",
+    "plan-written",
+    "draft-pr-created"
+  ],
   "inProgress": "MAJ-00",
-  "pending": ["MAJ-00","MAJ-01","MAJ-02","MAJ-03","MAJ-04","MAJ-05","MAJ-06","MAJ-07","MAJ-08","MAJ-09","MAJ-10"],
+  "pending": [
+    "MAJ-00",
+    "MAJ-01",
+    "MAJ-02",
+    "MAJ-03",
+    "MAJ-04",
+    "MAJ-05",
+    "MAJ-06",
+    "MAJ-07",
+    "MAJ-08",
+    "MAJ-09",
+    "MAJ-10"
+  ],
   "lastFailure": null,
-  "verifiedAt": "2026-08-25T08:00:00+08:00"
+  "verifiedAt": "2026-08-25T08:35:00+08:00",
+  "parentPerspective": {
+    "majorQueryModes": [
+      "single-confirmed-major",
+      "multi-confirmed-major-union"
+    ],
+    "candidateFlow": "draft candidates -> explicit confirmation -> committed query",
+    "requiredScenarios": [
+      "no-score",
+      "score",
+      "no-region",
+      "region",
+      "fuzzy",
+      "exact",
+      "ordinary",
+      "sino",
+      "empty",
+      "boundary",
+      "single",
+      "multi",
+      "add-remove-clear",
+      "pc-pad-android"
+    ]
+  }
 }
