@@ -1509,6 +1509,12 @@ function bind() {
     setResultMode(MODE_SCORE);
   });
 
+  document.addEventListener('gaokao:major-filter-restored', () => {
+    syncSearchIntentUi();
+    renderFilterSummary();
+    setActionButton();
+  });
+
   document.addEventListener('gaokao:school-search-state', event => {
     updateSearchUrl();
     scheduleWorkspaceCommit(`school-${event.detail?.reason || 'state'}`, true);
