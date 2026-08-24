@@ -118,6 +118,8 @@ For pair/reference semantics:
 
 The site-level AIPLuS workspace entry remains part of the public release `v3.9.90.2 / v3990_2`, while the browser `aiplus/app.v3990_2.js` imports the evolved workspace, render and history implementations listed in `shared/resources/release/active-resource-manifest.v3990_2.js`. These are declared transitive implementations, not a second site release or an unowned browser resource.
 
+Historical audit compatibility label retained: `KNOWN-GAP:AIPLUS-WORKSPACE-TRANSITIVE` identifies the pre-manifest debt label; it does not grant that label current ownership.
+
 The active manifest is now the release-owned declaration for this graph:
 
 - workspace contract: `shared/ai/ai-workspace-contract.v3992_0.js`;
