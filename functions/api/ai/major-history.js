@@ -153,7 +153,14 @@ export async function onRequestGet(context) {
           && (maxScore === null || Number(record.score2026) <= maxScore)
           && !seenIds.has(record.id)) {
           seenIds.add(record.id);
-          records.push(record);
+          records.push({
+            ...record,
+            candidateScore,
+            candidateReferenceRank2026: Number.isFinite(candidateRank) ? candidateRank : null,
+            positionDistance2026: Number.isFinite(candidateRank) && Number.isFinite(Number(record.rank2026))
+              ? Math.abs(Number(record.rank2026) - candidateRank)
+              : null
+          });
         }
       }
     }
