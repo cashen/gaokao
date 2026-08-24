@@ -37,7 +37,7 @@ const [
 requireText(page, '<title>同学你好 - 找学校，看看大家怎么说</title>', '页面标题');
 requireText(page, './app/tongxue-runtime-v159-r3968.js?v=3968_0', '页面入口');
 forbidText(page, './app/tongxue-runtime-v159.js?v=159', '页面仍加载旧入口');
-requireText(page, '同学你好 v1.5.9 · 更新于 2026-07-26', '页面版本');
+requireText(page, '同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.2 · 更新于 2026-08-24', '页面版本');
 requireText(page, 'tongxue-v159-single-runtime-owner-20260726', '页面构建标识');
 requireText(page, 'tongxue-logo-primary-v1.webp', '品牌 Logo');
 requireText(page, '<h1 class="sr-only">同学你好</h1>', '隐藏主标题');
