@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-major-all-v001",
   "baseSha": "0c1097d3c086658fce7813c7227a157c40ded412",
-  "headSha": "3178269e632e4b0a622f9df8abcbee932bbf18c3",
+  "headSha": "ac67620da0e8887cff0fe97f716d971c3f72a698",
   "pr": 202,
   "completed": [
     "branch-created",
@@ -18,12 +18,13 @@
     "MAJ-06",
     "MAJ-07",
     "MAJ-08",
-    "MAJ-09"
+    "MAJ-09",
+    "MAJ-10"
   ],
-  "inProgress": "MAJ-10",
+  "inProgress": null,
   "pending": [],
   "lastFailure": null,
-  "verifiedAt": "2026-08-25T12:05:00+08:00",
+  "verifiedAt": "2026-08-25T12:22:00+08:00",
   "parentPerspective": {
     "majorQueryModes": [
       "single-confirmed-major",
@@ -58,7 +59,10 @@
     "majorAllContractRun": 32784958651,
     "regressionRuns": "current-head-3178269-all-success",
     "browser": "branch-preview-manual-and-AI-browser-preview-success",
-    "previewUrl": "https://agent-ln-rank-major-all-v001.gaokao-4y9.pages.dev/ln-rank/"
+    "previewUrl": "https://agent-ln-rank-major-all-v001.gaokao-4y9.pages.dev/ln-rank/",
+    "mergedPr": 202,
+    "mergeCommit": "ac67620da0e8887cff0fe97f716d971c3f72a698",
+    "production": "https://gaokao-4y9.pages.dev/ln-rank/ real major-all smoke passed"
   },
-  "checkpointNote": "Implementation, exact branch preview, major-all contract, and full PR regression checks passed. MAJ-10 remains for Draft-to-Ready, same-SHA final gate, expected-head merge, and post-merge main/Production verification. The code head above is the verified implementation head; this status checkpoint commit follows it."
+  "checkpointNote": "MAJ-00 through MAJ-10 complete. PR #202 was merged with expected head cdc497af2ebc55c9a2616f3d646a3ad961fb7e80; main/Production verification passed after Pages deployment."
 }
