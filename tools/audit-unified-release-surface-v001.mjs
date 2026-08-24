@@ -39,10 +39,8 @@ assert.equal(CURRENT_RELEASE.releaseFooterContractVersion, 'release-footer-contr
 assert.equal(CURRENT_RELEASE.resourceOwners.releaseFooter, '/shared/resources/release/release-footer.v3990_2.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, '/shared/resources/release/release-footer.v3990_2.css');
 
-assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypoints.releaseFooter, '/shared/resources/release/release-footer.v3990_2.js?v=3990_2');
-assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypoints.releaseFooterStyles, '/shared/resources/release/release-footer.v3990_2.css?v=3990_2');
-assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.releaseFooter, 'current-generation');
-assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.releaseFooterStyles, 'current-generation');
+assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypoints.releasePresenter, '/shared/resources/release/release-presenter.v3990_2.js?v=3990_2');
+assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.releasePresenter, 'current-generation');
 
 for (const file of activePages) {
   const html = read(file);
@@ -51,7 +49,12 @@ for (const file of activePages) {
   assert.ok(body.includes('data-release="v3.9.90.2"'), `${file}: canonical release marker`);
   assert.ok(body.includes('data-site-runtime-generation="v3990_2"'), `${file}: runtime generation marker`);
   assert.ok(body.includes('data-release-surface='), `${file}: release surface marker`);
-  assert.ok(html.includes('/shared/resources/release/release-footer.v3990_2.js?v=3990_2'), `${file}: unified release footer consumer`);
+  if (file === 'aiplus/index.html') {
+    const aiApp = read('aiplus/app.v3990_2.js');
+    assert.ok(aiApp.includes("import('/shared/resources/release/release-footer.v3990_2.js?v=3990_2')"), `${file}: unified release footer consumer`);
+  } else {
+    assert.ok(html.includes('/shared/resources/release/release-footer.v3990_2.js?v=3990_2'), `${file}: unified release footer consumer`);
+  }
   assert.ok(foot.includes('data-release-footer'), `${file}: footer contract`);
   assert.ok(foot.includes('data-current-release'), `${file}: current release binding`);
   assert.ok(foot.includes('data-release-log-link'), `${file}: release log binding`);
