@@ -76,6 +76,35 @@ function resolveClassByName(rawName = '') {
   return null;
 }
 
+function splitMajorQueryTerms(value = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  const direct = CATALOG_RESOLVER.resolve(raw, { allowContains: false });
+  if (direct?.kind === 'major' || direct?.kind === 'category') return [raw];
+  return [...new Set(raw.split(/[,，、/；;|]+/).flatMap(part => part.split(/(?:\\s+(?:和|与|及|或)\\s+|(?<=.{2})(?:和|与|或)(?=.{2}))/).map(item => item.trim()).filter(Boolean)))];
+}
+
+export function resolveMajorQueryCandidates(input = '') {
+  const terms = splitMajorQueryTerms(input);
+  const items = terms.map(term => {
+    const exact = CATALOG_RESOLVER.resolve(term, { allowContains: false });
+    if (exact?.kind === 'major' && BY_CODE[exact.item.code]) {
+      return Object.freeze({ input: term, status: 'resolved', confidence: 'high', code: exact.item.code, name: BY_CODE[exact.item.code].name, matchType: exact.matchType, candidates: Object.freeze([]) });
+    }
+    const alias = ALIASES.find(item => item.confidence === 'high' && item.key === normalizeMajorText(term) && item.targetCodes?.length);
+    if (alias && BY_CODE[alias.targetCodes[0]]) {
+      return Object.freeze({ input: term, status: 'resolved', confidence: 'high', code: alias.targetCodes[0], name: BY_CODE[alias.targetCodes[0]].name, matchType: alias.matchType || 'alias', candidates: Object.freeze([]) });
+    }
+    const category = exact?.kind === 'category' ? exact.item : null;
+    const suggestions = category
+      ? (category.codes || []).slice(0, 8).map(code => ({ code, name: BY_CODE[code]?.name || code }))
+      : CATALOG_RESOLVER.search(term, { limit: 8 }).map(item => ({ code: item.item.code, name: item.item.name, score: item.score, matchType: item.matchType }));
+    return Object.freeze({ input: term, status: category ? 'class-level' : (suggestions.length ? 'needs-confirmation' : 'unresolved'), confidence: category ? 'class-level' : 'candidate', code: '', name: category?.name || '', matchType: category ? 'category' : 'fuzzy', candidates: Object.freeze(suggestions) });
+  });
+  const resolvedCodes = [...new Set(items.filter(item => item.status === 'resolved').map(item => item.code))];
+  return Object.freeze({ terms: Object.freeze(terms), items: Object.freeze(items), resolvedCodes: Object.freeze(resolvedCodes), ready: items.length > 0 && items.every(item => item.status === 'resolved') });
+}
+
 function byStandardMajor(record = {}) {
   const standard = record.standardMajor || {};
   if (standard.code && BY_CODE[standard.code]) return { code: standard.code, matchType: standard.mappingStatus || 'standardMajor', confidence: 'high' };
