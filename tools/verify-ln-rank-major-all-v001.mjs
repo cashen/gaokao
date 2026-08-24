@@ -18,6 +18,8 @@ function forbidText(file, text, label = text) {
 
 requireText('ln-rank/index.html', 'data-school-view-mode="major-all"', 'third parallel major tab');
 requireText('ln-rank/index.html', 'id="majorCandidatePanel"', 'major candidate confirmation panel');
+requireText('ln-rank/index.html', '添加想了解的专业（可添加多个）', 'explicit multiple-major label');
+requireText('ln-rank/index.html', '＋再添加一个专业', 'visible add-major instruction');
 requireText('ln-rank/index.html', 'id="majorProjectMode"', 'ordinary/sino project filter');
 requireText('ln-rank/index.html', 'id="majorAllResultsPanel"', 'major result panel');
 requireText('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js', "const MODE_MAJOR = 'major-all';", 'shared major mode');
@@ -25,6 +27,11 @@ requireText('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js', 
 requireText('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js', 'major-action-sync', 'major action synchronization');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.append('major',n)", 'repeated multi-major API inputs');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-remove-term', 'remove-one-major draft action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-add-another', 'explicit add-major draft action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'lockedConfirmed', 'confirmed-major draft owner');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'function draftMajorText()', 'draft query text owner');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'state.filters.majorKeyword=draftMajorText()', 'shared workspace major draft sync');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '查询 ${names.length} 个已确认专业', 'explicit confirmed-major query copy');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-clear', 'clear-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2025)', '2025 trend rendering');
@@ -42,6 +49,7 @@ requireText('ln-rank/js/workspace/major-path-handoff.v003.js', "context:'major'"
 requireText('ln-rank/js/workspace/major-path-handoff.v003.js', 'decorateMajorAllCards', 'major card handoff decorator');
 requireText('ln-rank/css/major-all-mode.v001.css', '@media (max-width: 720px)', 'compact Android responsive layout');
 requireText('ln-rank/css/major-all-mode.v001.css', 'min-height: 44px', 'touch target contract');
+requireText('ln-rank/css/major-all-mode.v001.css', 'max-width: 900px', 'pad responsive action layout');
 requireText('functions/api/ai/major-history.js', 'sameTruthSet', 'same truth-set boundary');
 requireText('functions/api/ai/major-history.js', 'candidateScore', 'optional score contract');
 console.log(`major-all contract checks passed: ${checks.length}`);

@@ -1,4 +1,4 @@
-name: Verify ln-rank major-all v001
+name: Verify ln-rank major-all UX v002
 
 on:
   pull_request:
@@ -36,3 +36,23 @@ jobs:
 
       - name: Verify major-all product and ownership contract
         run: node tools/verify-ln-rank-major-all-v001.mjs
+
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
+
+      - name: Start local source preview
+        run: |
+          python3 -m http.server 8766 --directory . >/tmp/major-all-ux-v002-http.log 2>&1 &
+          echo "$!" > /tmp/major-all-ux-v002-http.pid
+
+      - name: Verify explicit multi-major journey on PC Pad Android viewports
+        env:
+          MAJOR_ALL_BASE: http://127.0.0.1:8766/ln-rank/index.html?mode=major-all
+        run: node tools/verify-ln-rank-major-all-ux-v002.mjs
+
+      - name: Stop local source preview
+        if: always()
+        run: |
+          if [ -f /tmp/major-all-ux-v002-http.pid ]; then
+            kill "$(cat /tmp/major-all-ux-v002-http.pid)" || true
+          fi
