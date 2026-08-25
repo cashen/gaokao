@@ -1,6 +1,15 @@
 import { findSchoolEntityByName, getSchoolEntity, publicSchoolEntity } from '../data/school-entities-v150.js?v=150';
 import { escapeHtml as html, escapeAttribute as attr } from './tongxue-runtime-utils-v159.js?v=159';
 
+export function setTongxueIndexStatus(ui, message, tone = 'preparing') {
+  const container = ui?.indexStatus;
+  const messageNode = ui?.indexStatusMessage || container;
+  if (!container || !messageNode) return;
+  messageNode.textContent = message;
+  container.dataset.status = tone;
+  if (ui.retryIndex) ui.retryIndex.hidden = tone !== 'error';
+}
+
 export function createTongxueSearchView(ui, state) {
   function commit(kind, markup) {
     state.renderCount += 1;
@@ -27,8 +36,8 @@ export function createTongxueSearchView(ui, state) {
     requestAnimationFrame(() => { ui.liveStatus.textContent = message; });
   }
 
-  function setIndexStatus(message) {
-    ui.indexStatus.textContent = message;
+  function setIndexStatus(message, tone = 'preparing') {
+    setTongxueIndexStatus(ui, message, tone);
   }
 
   function setSuggestions(candidates, message = '', options = {}) {

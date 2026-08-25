@@ -74,6 +74,11 @@ try {
     });
     const summaryRequests = [];
     const entityRequests = [];
+    await context.route('**/tongxue/data/school-search-index.20260617-v150.json*', async route => {
+      const response = await route.fetch();
+      await new Promise(resolve => setTimeout(resolve, 250));
+      await route.fulfill({ response });
+    });
     await context.route('**/api/tongxue-summary**', route => {
       const url = new URL(route.request().url());
       const school = url.searchParams.get('school') || '';
@@ -95,8 +100,18 @@ try {
     });
 
     try {
-      await page.goto(`${baseUrl}/tongxue/`, { waitUntil: 'networkidle', timeout: 60000 });
+      await page.goto(`${baseUrl}/tongxue/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForSelector('#indexStatus[data-status="preparing"]', { timeout: 10000 });
+      assert.match(await page.locator('#indexStatusMessage').textContent(), /正在准备学校和专业目录/);
+      const earlyInput = page.locator('#school');
+      await earlyInput.fill('深圳大学');
+      assert.equal(await page.locator('#queryButton').isEnabled(), true, `${testCase.name}: query should be available for early-submit queue`);
+      await page.locator('#queryButton').click();
       await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true, null, { timeout: 20000 });
+      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout: 20000 });
+      assert.equal(summaryRequests[0], '深圳大学', `${testCase.name}: early input was not resumed after catalog ready`);
+      assert.equal(await page.locator('#indexStatus').getAttribute('data-status'), 'ready');
+      assert.equal(await page.locator('#retryIndex').isHidden(), true);
       const initial = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(initial.observerCount, 0);
       assert.ok(initial.listenerCount >= 8 && initial.listenerCount <= 20, `${testCase.name}: listener count ${initial.listenerCount}`);

@@ -1,0 +1,38 @@
+{
+  "task": "tongxue-startup-status-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/tongxue-startup-status-v001",
+  "baseSha": "63b76acdfd7b137cd2c635d1ad78acee88d85012",
+  "pr": null,
+  "completed": [
+    "TX-00-live-main-reconciled",
+    "TX-01-branch-created",
+    "TX-02-plan-written"
+  ],
+  "inProgress": "TX-03-startup-status-ui",
+  "pending": [
+    "TX-03-startup-status-ui",
+    "TX-04-background-catalog-ready-queue",
+    "TX-05-tests-pc-pad-android",
+    "TX-06-ci-preview-ready-merge-main",
+    "TX-07-production-verification"
+  ],
+  "lastFailure": null,
+  "parentPerspective": {
+    "surface": "/tongxue/",
+    "familyFirst": true,
+    "answerFirst": true,
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ],
+    "preparingCopy": "正在准备学校和专业目录，马上可以查询",
+    "readyCopy": "目录已准备好，可以查询了",
+    "errorCopy": "目录加载失败，请点击重新加载",
+    "noLayoutShift": true,
+    "noBlockingQuerySemanticsChange": true
+  },
+  "checkpointNote": "This file is the PR recovery source. Reconcile exact main/branch/PR/head/CI before retrying any write. Do not repeat completed work after interruption.",
+  "verifiedAt": "2026-08-25T00:00:00Z"
+}
