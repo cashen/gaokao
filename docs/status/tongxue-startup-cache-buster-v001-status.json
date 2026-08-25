@@ -7,11 +7,11 @@
   "completed": ["CB-01-production-stale-cache-confirmed", "CB-02-bump-tongxue-runtime-cache-identity"],
   "inProgress": "CB-03-ci-preview-production-verification",
   "pending": ["CB-03-ci-preview-production-verification", "CB-04-merge-main-and-final-verify"],
-  "headSha": "79d8550f38922787124e8bec2e3bc7331e707a1e",
+  "headSha": "042a34f2ca3c6f58bf5d518edadbe69537fb69b0",
   "mergeSha": null,
   "lastFailure": {
-    "headSha": "8f88931040802000a9236dbccfa4e22bca2a2b37",
-    "message": "The existing static and browser cache-identity contracts still expected v=159-major001 after the intentional identity bump; updated to v=159-startup001."
+    "headSha": "042a34f2ca3c6f58bf5d518edadbe69537fb69b0",
+    "message": "Unified Experience Context Preview wait still hard-coded v=159-major001, so it rejected the intentionally bumped startup asset identity before browser journeys ran; workflow contract must use v=159-startup001."
   },
   "checkpointNote": "This file is the recovery source for the cache-identity follow-up. Reconcile exact main/branch/PR/head/CI/Preview/production before every retry.",
   "verifiedAt": "2026-08-25T06:27:00Z"
