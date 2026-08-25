@@ -20,6 +20,7 @@ on:
       - 'functions/_lib/ai/**'
       - 'tools/verify-unified-experience-context-v001.mjs'
       - 'tools/verify-decision-context-v001.mjs'
+      - 'tools/browser-cross-module-journey-v001.mjs'
       - 'tools/verify-aiplus-student-voice-v001.mjs'
       - 'tools/verify-student-voice-source-health-v001.mjs'
       - 'tools/verify-student-voice-navigation-v001.mjs'
@@ -46,6 +47,7 @@ on:
       - 'functions/_lib/ai/**'
       - 'tools/verify-unified-experience-context-v001.mjs'
       - 'tools/verify-decision-context-v001.mjs'
+      - 'tools/browser-cross-module-journey-v001.mjs'
       - 'tools/verify-aiplus-student-voice-v001.mjs'
       - 'tools/verify-student-voice-source-health-v001.mjs'
       - 'tools/verify-student-voice-navigation-v001.mjs'
@@ -197,7 +199,9 @@ jobs:
       - name: Verify exact-head Preview PC Pad Android and compact Android
         env:
           V3965_BASE_URL: ${{ steps.preview.outputs.base }}
-        run: node tools/browser-tongxue-major-direct-v001.mjs
+        run: |
+          node tools/browser-tongxue-major-direct-v001.mjs
+          node tools/browser-cross-module-journey-v001.mjs
 
   browser-production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -239,7 +243,9 @@ jobs:
       - name: Verify exact-main Production PC Pad Android and compact Android
         env:
           V3965_BASE_URL: https://gaokao-4y9.pages.dev
-        run: node tools/browser-tongxue-major-direct-v001.mjs
+        run: |
+          node tools/browser-tongxue-major-direct-v001.mjs
+          node tools/browser-cross-module-journey-v001.mjs
 
   publish-production-status:
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
