@@ -8,7 +8,7 @@ const resultView = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-v159
 const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js', 'utf8');
 
 const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159';
-const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-fuzzy001';
+const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-major001';
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
 const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004';
 
@@ -21,7 +21,7 @@ assert.equal(importMap.imports?.[RESULT_VIEW_SPECIFIER], RESULT_VIEW_IDENTITY, '
 assert.ok(html.includes('tongxue-runtime-v159-r3968.js?v=3968_0'), 'stable Tongxue wrapper changed unexpectedly');
 assert.ok(wrapper.includes("./tongxue-runtime-controller-v159.js?v=159"), 'stable wrapper import contract drifted');
 assert.ok(controller.includes("./tongxue-runtime-result-view-v159.js?v=159"), 'controller result-view import contract drifted');
-assert.ok(controller.includes("./tongxue-runtime-search-view-v159.js?v=159-fuzzy001"), 'controller search-view fuzzy identity missing');
+assert.ok(controller.includes("./tongxue-runtime-search-view-v159.js?v=159-fuzzy001"), 'controller search-view immutable identity missing');
 assert.ok(controller.includes("state.voiceScope = 'major'"), 'controller lost major voice scope transition');
 assert.ok(controller.includes('performMajorExperienceQuery'), 'controller lost major direct-query owner');
 assert.ok(resultView.includes("data-student-voice-scope=\"major\""), 'result view lost major voice rendering');

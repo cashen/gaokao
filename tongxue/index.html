@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="tongxue-build" content="tongxue-v159-single-runtime-owner-20260726">
-<title>同学你好 - 找学校，看看大家怎么说</title>
+<title>同学你好 - 学校、专业，都可以问问同学怎么说</title>
 <link rel="canonical" href="https://gaokao.powers.org.cn/tongxue/">
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3972_5.css?v=3972_5" />
-<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150","/tongxue/app/tongxue-runtime-controller-v159.js?v=159":"/tongxue/app/tongxue-runtime-controller-v159.js?v=159-fuzzy001","/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-fuzzy001":"/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-fuzzy001","/tongxue/app/tongxue-runtime-result-view-v159.js?v=159":"/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004"}}</script>
+<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150","/tongxue/app/tongxue-runtime-controller-v159.js?v=159":"/tongxue/app/tongxue-runtime-controller-v159.js?v=159-major001","/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-fuzzy001":"/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-major001","/tongxue/app/tongxue-runtime-result-view-v159.js?v=159":"/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004"}}</script>
 <style>
 :root{--bg:#fff;--card:#fff;--primary:#172d67;--primary-hover:#102352;--brand-teal:#45b99a;--brand-teal-soft:#eaf7f3;--text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#eaf7f3;--warm:#fff6ed;--warm-border:#f0d4bc;--warm-text:#8d4b20;--danger:#9a4336;--danger-bg:#fff0ec;--danger-border:#efc5ba;--shadow:0 14px 38px rgba(20,40,50,.07)}
 *{box-sizing:border-box}
@@ -20,7 +20,7 @@ button,a,input,summary{outline:none}
 button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{box-shadow:0 0 0 3px rgba(69,185,154,.22);border-radius:8px}
 .wrap{max-width:1040px;margin:auto;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}
-.brand{color:var(--primary);font-weight:850;font-size:18px;text-decoration:none}.brand:hover{color:var(--brand-teal)}.back-home{color:var(--muted);font-size:13px;font-weight:750;text-decoration:none}.back-home:hover{color:var(--primary)}.direct-change-school{border:0;background:transparent;padding:0;cursor:pointer}
+.brand{color:var(--primary);font-weight:850;font-size:18px;text-decoration:none}.brand:hover{color:var(--brand-teal)}.back-home{color:var(--muted);font-size:13px;font-weight:750;text-decoration:none}.back-home:hover{color:var(--primary)}.direct-change-school{border:0;background:transparent;padding:0;cursor:pointer}.scope-switch{display:inline-flex;gap:4px;margin-top:12px;padding:4px;border:1px solid var(--border);border-radius:999px;background:#f7faf9}.scope-switch button{min-height:36px;border:0;border-radius:999px;background:transparent;color:var(--muted);padding:0 14px;font-size:13px;font-weight:850;cursor:pointer}.scope-switch button.active{background:var(--primary);color:#fff}.scope-switch button:focus-visible{box-shadow:0 0 0 3px rgba(69,185,154,.22)}
 .hero{text-align:center;padding:46px 0 34px}.hero-logo-link{display:inline-flex;align-items:center;justify-content:center;border-radius:22px}.hero-logo{display:block;width:clamp(330px,34vw,430px);height:auto}.hero-copy{margin-top:18px}.hero-title{margin:0;color:var(--text);font-size:20px;font-weight:850;line-height:1.4}.hero-description{max-width:620px;margin:5px auto 0;color:var(--muted);font-size:14px;line-height:1.7}
 .search-box{max-width:760px;margin:24px auto 0;text-align:left}.search-row{display:flex;gap:12px;align-items:flex-start}.input-wrap{position:relative;flex:1;min-width:0}
 .search-input{width:100%;height:58px;border:1px solid var(--border);border-radius:16px;padding:0 48px 0 20px;font-size:18px;background:#fff;color:var(--text)}.search-input:focus{border-color:var(--brand-teal);box-shadow:0 0 0 4px rgba(69,185,154,.14)}
@@ -62,10 +62,11 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
       <img class="hero-logo" src="./assets/brand/tongxue-logo-primary-v1.webp" width="560" height="260" alt="同学你好" decoding="async" fetchpriority="high">
     </a>
     <div class="hero-copy">
-      <p class="hero-title">找学校，看看大家怎么说</p>
-      <p class="hero-description">整理学生公开留言，帮你了解学习、生活和就业体验</p>
+  <p class="hero-title">学校、专业，都可以问问同学怎么说</p>
+      <p class="hero-description">整理学生公开留言，帮你了解学习、生活和就业体验；学校与专业都支持先选准查询对象</p>
     </div>
     <div class="search-box">
+      <div class="scope-switch" role="tablist" aria-label="选择查询对象"><button type="button" role="tab" data-scope-switch="school" aria-selected="true" class="active">看学校体验</button><button type="button" role="tab" data-scope-switch="major" aria-selected="false">看专业体验</button></div>
       <div class="search-row">
         <div class="input-wrap">
           <input id="school" class="search-input" autocomplete="off" inputmode="search" placeholder="输入学校、简称或地区" aria-label="学校名称或地区" aria-autocomplete="list" aria-controls="schoolSuggestions" aria-expanded="false" aria-describedby="indexStatus">
@@ -74,9 +75,10 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
         </div>
         <button id="queryButton" class="btn" type="button" disabled>看同学怎么说</button>
       </div>
-      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="哈尔滨工业大学">哈尔滨工业大学</button><button class="quick-example" type="button" data-example="深圳">深圳</button></div>
+      <div class="quick-examples" data-scope-examples="school"><span>试试：</span><button class="quick-example" type="button" data-example-scope="school" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example-scope="school" data-example="哈尔滨工业大学">哈尔滨工业大学</button><button class="quick-example" type="button" data-example-scope="school" data-example="深圳">深圳</button></div>
+      <div class="quick-examples" data-scope-examples="major" hidden><span>试试：</span><button class="quick-example" type="button" data-example-scope="major" data-example="电气">电气</button><button class="quick-example" type="button" data-example-scope="major" data-example="机械">机械</button><button class="quick-example" type="button" data-example-scope="major" data-example="计算机">计算机</button></div>
       <div id="resolveHint" class="resolve-hint" hidden></div>
-      <div id="indexStatus" class="index-status">正在准备学校名单…</div>
+      <div id="indexStatus" class="index-status">正在准备学校和专业目录…</div>
     </div>
   </section>
   <div id="result" aria-live="polite"></div>

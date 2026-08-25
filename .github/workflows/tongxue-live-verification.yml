@@ -20,6 +20,7 @@ on:
       - 'tools/tongxue/**'
       - 'tools/browser-tongxue-runtime-v159.mjs'
       - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/browser-tongxue-major-scope-v001.mjs'
       - 'tools/browser-tongxue-summary-evidence-v002.mjs'
       - 'tools/verify-student-voice-evidence-layer-v002.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
@@ -75,6 +76,7 @@ jobs:
             tools/build-school-admission-directory-v3969.mjs \
             tools/browser-tongxue-runtime-v159.mjs \
             tools/browser-tongxue-major-direct-v001.mjs \
+            tools/browser-tongxue-major-scope-v001.mjs \
             tools/browser-tongxue-summary-evidence-v002.mjs \
             tools/verify-student-voice-evidence-layer-v002.mjs \
             tools/verify-tongxue-uec-cache-identity-v001.mjs; do
@@ -178,6 +180,7 @@ jobs:
           sleep 1
           V3965_ARTIFACT_DIR=/tmp/tongxue-live-artifact/browser node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/tongxue-live-artifact/browser-result.json
           node tools/browser-tongxue-major-direct-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-direct-result.json
+          node tools/browser-tongxue-major-scope-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-scope-result.json
           node tools/browser-tongxue-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/browser-summary-evidence-result.json
 
       - name: Upload verification report
