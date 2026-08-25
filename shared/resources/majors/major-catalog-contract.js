@@ -211,7 +211,7 @@ export function createMajorCatalogResolver(rows = [], categories = []) {
   });
 }
 
-function scoreMajorText(query, target, kind) {
+export function scoreMajorText(query, target, kind = 'name') {
   if (!query || !target) return { score: 0, matchType: 'none' };
   if (query === target) return { score: kind === 'name' ? 1 : 0.99, matchType: `${kind}_exact` };
   if (target.startsWith(query)) {
@@ -234,7 +234,7 @@ function scoreMajorText(query, target, kind) {
   return { score: Math.max(0, similarity + prefixBonus + suffixBonus + (kind === 'alias' ? 0.01 : 0)), matchType: `${kind}_fuzzy` };
 }
 
-function levenshtein(a, b) {
+export function levenshtein(a, b) {
   const source = [...a], target = [...b];
   let previous = Array.from({ length: target.length + 1 }, (_, index) => index);
   for (let i = 1; i <= source.length; i += 1) {
