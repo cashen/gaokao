@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
 import { createMajorIntentResolver } from '../shared/resources/majors/major-intent-resolver.v001.js';
 import { resolveMajorQueryCandidates } from '../ln-rank/js/knowledge/major-understanding-resolver.js';
@@ -7,6 +8,10 @@ import { buildSearchIndex } from '../functions/_lib/search-index-builder.js';
 import { matchMajorProject } from '../functions/_lib/major-project-matcher.js';
 
 const resolver = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
+const majorHistorySource = readFileSync('functions/api/ai/major-history.js', 'utf8');
+assert.match(majorHistorySource, /createMajorIntentResolver/);
+assert.match(majorHistorySource, /resolveMajorInputs/);
+assert.match(majorHistorySource, /major_query_requires_choice/);
 
 assert.equal(resolver.count, 883, 'catalog must cover all current undergraduate majors');
 assert.equal(resolver.categoryCount, 92, 'cross-discipline label must not become a fake major class');
