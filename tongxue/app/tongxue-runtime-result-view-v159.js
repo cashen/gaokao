@@ -36,7 +36,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (!context || !ui.result) return;
     const host = ui.result.querySelector('.result-shell, .state-card');
     if (!host || host.querySelector('[data-decision-context-strip]')) return;
-    const summary = summarizeDecisionContext(context);
+    const summary = summarizeDecisionContext(context, { surface:'tongxue' });
     if (!summary.lines.length) return;
     const strip = document.createElement('section');
     strip.className = 'decision-context-strip';

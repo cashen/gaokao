@@ -212,7 +212,7 @@ export function withDecisionContext(path = '/', context = null, { origin = globa
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-export function summarizeDecisionContext(context = null) {
+export function summarizeDecisionContext(context = null, { surface = '' } = {}) {
   const normalized = context ? validateDecisionContext(context) : null;
   if (!normalized) return Object.freeze({ title: '', lines: [], note: '' });
   const location = [normalized.province, normalized.admissionYear, normalized.track, normalized.regionLabel].filter(Boolean).join(' · ');
@@ -230,9 +230,10 @@ export function summarizeDecisionContext(context = null) {
         ? '普通项目/含中外合作项目'
         : '';
   const lines = [location, subject, position, project].filter(Boolean);
-  const note = normalized.sourceSurface === 'tongxue'
+  const presentationSurface = surface || normalized.sourceSurface;
+  const note = presentationSurface === 'tongxue'
     ? '同学你好：一次查看一个具体专业'
-    : normalized.sourceSurface === 'ln-rank'
+    : presentationSurface === 'ln-rank'
       ? '来自专业初选：当前支持多个已确认专业'
       : '本轮只读上下文，不自动修改家庭方案';
   return Object.freeze({ title: '你刚才带着这些条件过来', lines, note });

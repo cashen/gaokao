@@ -251,13 +251,14 @@ function directContextForMajor(major) {
   const originalCode = String(sourceContext.majorCode || '').trim().toUpperCase();
   if (major.code === originalCode) {
     const summary = summarizeDecisionContext(sourceContext.decisionContext);
+    const base = conciseSourceContext(sourceContext, major);
     if (summary.lines.length) {
       return {
-        title: summary.title,
-        body: `${summary.lines.join(' · ')}。只读带入本轮查询，不会自动修改家庭方案；${sourceContext.returnTo ? '返回可恢复原查询。' : '可从返回按钮回到原入口。'}`
+        title: base.title,
+        body: `${base.body} 当前只读条件：${summary.lines.join(' · ')}。不会自动修改家庭方案；${sourceContext.returnTo ? '返回可恢复原查询。' : '可从返回按钮回到原入口。'}`
       };
     }
-    return conciseSourceContext(sourceContext, major);
+    return base;
   }
   return {
     title: '从刚才的专业继续看',
