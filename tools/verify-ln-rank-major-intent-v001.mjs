@@ -12,6 +12,8 @@ const majorHistorySource = readFileSync('functions/api/ai/major-history.js', 'ut
 assert.match(majorHistorySource, /createMajorIntentResolver/);
 assert.match(majorHistorySource, /resolveMajorInputs/);
 assert.match(majorHistorySource, /major_query_requires_choice/);
+assert.match(majorHistorySource, /majorScope/);
+assert.match(majorHistorySource, /isAdmissionGroupKey/);
 
 assert.equal(resolver.count, 883, 'catalog must cover all current undergraduate majors');
 assert.equal(resolver.categoryCount, 92, 'cross-discipline label must not become a fake major class');
