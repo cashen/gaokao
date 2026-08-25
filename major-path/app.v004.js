@@ -1,5 +1,6 @@
 import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
 import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION } from './background-context.v001.js';
+import { summarizeDecisionContext } from '../shared/decision-context/decision-context.v001.js';
 import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -246,7 +247,16 @@ function conciseSourceContext(context, major) {
 
 function directContextForMajor(major) {
   const originalCode = String(sourceContext.majorCode || '').trim().toUpperCase();
-  if (major.code === originalCode) return conciseSourceContext(sourceContext, major);
+  if (major.code === originalCode) {
+    const summary = summarizeDecisionContext(sourceContext.decisionContext);
+    if (summary.lines.length) {
+      return {
+        title: summary.title,
+        body: `${summary.lines.join(' · ')}。只读带入本轮查询，不会自动修改家庭方案；${sourceContext.returnTo ? '返回可恢复原查询。' : '可从返回按钮回到原入口。'}`
+      };
+    }
+    return conciseSourceContext(sourceContext, major);
+  }
   return {
     title: '从刚才的专业继续看',
     body: '这是从相关专业里继续展开的内容；返回仍会回到最初的招生结果。'
