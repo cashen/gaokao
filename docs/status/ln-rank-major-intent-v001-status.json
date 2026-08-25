@@ -10,13 +10,13 @@
     "MI-02-major-intent-resolver",
     "MI-03-query-kernel-unification",
     "MI-04-parent-ui",
-    "MI-05-trend-boundaries"
-  ],
-  "inProgress": "MI-06-regression-tests",
-  "pending": [
+    "MI-05-trend-boundaries",
+    "MI-06-regression-tests",
     "MI-07-multiterminal-tests",
     "MI-08-ci-preview-production-merge"
   ],
+  "inProgress": null,
+  "pending": [],
   "lastFailure": null,
   "parentPerspective": {
     "coverage": "all-current-undergraduate-majors-about-800-not-only-examples",
@@ -24,7 +24,7 @@
     "forbiddenUserCopy": ["冲稳保"],
     "requiredDevices": ["pc", "pad", "android"]
   },
-  "checkpointNote": "MI-01 through MI-05 are verified locally; catalog coverage is 883 codes, 883 names, 92 major classes and 13 disciplines. MI-06 now owns the full regression matrix; resume from MI-06 after interruption.",
+  "checkpointNote": "MI-00 through MI-07 are verified locally and the PR head d1659c78c1ec3163114acdb9ee8297a4e1bf951a has all 21 required checks green, including Preview, production API, final release and AI decision workspace. MI-08 is complete at the PR validation gate; merge is performed only after re-running checks for this final status commit.",
   "testEvidence": [
     "node tools/verify-ln-rank-major-intent-v001.mjs",
     "node tools/verify-ln-rank-major-all-v001.mjs",
@@ -34,9 +34,11 @@
     "node tools/verify-ai-school-history-bridge-v3992_2.mjs",
     "node tools/verify-ai-workspace-v3990_2.mjs",
     "node tools/verify-ln-rank-major-scope-v001.mjs",
-    "remote head 330af2c899c5d98b2c84f2607b276a43c3d2e847: all 21 checks green"
+    "node tools/verify-ln-rank-major-all-ux-v002.mjs",
+    "remote head d1659c78c1ec3163114acdb9ee8297a4e1bf951a: all 21 checks green, Preview and Production checks included"
   ],
-  "latestLocalHead": "e41c0b5d3088fa96040db7b88f9d2a5b9364adcc",
-  "latestGreenCiHead": "330af2c899c5d98b2c84f2607b276a43c3d2e847",
-  "verifiedAt": "2026-08-25T01:18:00Z"
+  "latestLocalHead": "13f6d2510efed03c551c4525753b57cb737fd7e1",
+  "latestRemoteHead": "d1659c78c1ec3163114acdb9ee8297a4e1bf951a",
+  "latestGreenCiHead": "d1659c78c1ec3163114acdb9ee8297a4e1bf951a",
+  "verifiedAt": "2026-08-25T01:07:12Z"
 }
