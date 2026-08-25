@@ -200,6 +200,8 @@ export function createMajorIntentResolver(rows = [], aliases = [], options = {})
       confidence: values.confidence || 'candidate',
       coreMajorCodes: Object.freeze(core),
       relatedMajorCodes: Object.freeze(related),
+      coreMajorNames: Object.freeze(majorsForCodes(core).map(item => item.name)),
+      relatedMajorNames: Object.freeze(majorsForCodes(related).map(item => item.name)),
       categoryCodes: Object.freeze(unique(values.categoryCodes || [])),
       disciplineKeys: Object.freeze(unique(values.disciplineKeys || [])),
       selectedScope: values.selectedScope || 'core',
