@@ -8,12 +8,12 @@
     "MI-00-plan-written",
     "MI-01-catalog-audit",
     "MI-02-major-intent-resolver",
-    "MI-03-query-kernel-unification"
+    "MI-03-query-kernel-unification",
+    "MI-04-parent-ui",
+    "MI-05-trend-boundaries"
   ],
-  "inProgress": "MI-04-parent-ui",
+  "inProgress": "MI-06-regression-tests",
   "pending": [
-    "MI-05-trend-boundaries",
-    "MI-06-regression-tests",
     "MI-07-multiterminal-tests",
     "MI-08-ci-preview-production-merge"
   ],
@@ -24,7 +24,7 @@
     "forbiddenUserCopy": ["冲稳保"],
     "requiredDevices": ["pc", "pad", "android"]
   },
-  "checkpointNote": "MI-01 through MI-03 are verified locally; catalog coverage is 883 codes, 883 names, 92 major classes and 13 disciplines. MI-04 now owns core/related direction scope selection; resume from MI-04 after interruption.",
+  "checkpointNote": "MI-01 through MI-05 are verified locally; catalog coverage is 883 codes, 883 names, 92 major classes and 13 disciplines. MI-06 now owns the full regression matrix; resume from MI-06 after interruption.",
   "testEvidence": [
     "node tools/verify-ln-rank-major-intent-v001.mjs",
     "node tools/verify-ln-rank-major-all-v001.mjs",
@@ -35,7 +35,7 @@
     "node tools/verify-ai-workspace-v3990_2.mjs",
     "remote head 330af2c899c5d98b2c84f2607b276a43c3d2e847: all 21 checks green"
   ],
-  "latestLocalHead": "58715081571c0d46d7936bb9ebe343ee3ee1a45d",
+  "latestLocalHead": "0a10e9f00f97a79b3ba022217325ca5e01c8cf23",
   "latestGreenCiHead": "330af2c899c5d98b2c84f2607b276a43c3d2e847",
-  "verifiedAt": "2026-08-25T00:42:00Z"
+  "verifiedAt": "2026-08-25T00:55:00Z"
 }
