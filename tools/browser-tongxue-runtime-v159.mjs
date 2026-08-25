@@ -112,6 +112,10 @@ try {
       assert.equal(summaryRequests[0], '深圳大学', `${testCase.name}: early input was not resumed after catalog ready`);
       assert.equal(await page.locator('#indexStatus').getAttribute('data-status'), 'ready');
       assert.equal(await page.locator('#retryIndex').isHidden(), true);
+      // The early-submit contract intentionally exercises one school request;
+      // isolate the following region contract from that expected request.
+      summaryRequests.length = 0;
+      entityRequests.length = 0;
       const initial = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(initial.observerCount, 0);
       // The startup retry control adds one intentional listener to the stable
