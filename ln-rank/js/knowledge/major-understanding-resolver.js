@@ -3,9 +3,11 @@ import { MAJOR_UNDERSTANDING_2026 } from '../../kb/major-understanding/major-und
 import { MAJOR_DISPLAY_CONTRACT_2026 } from '../../kb/major-understanding/major-display-contract.generated.js?v=3949_0';
 import { ADMISSION_MAJOR_ALIAS_2026 } from '../../kb/major-understanding/admission-major-alias.generated.js?v=3949_0';
 import { createMajorCatalogResolver, normalizeMajorText } from '../../../shared/resources/majors/major-catalog-contract.js';
+import { createMajorIntentResolver, MAJOR_INTENT_META } from '../../../shared/resources/majors/major-intent-resolver.v001.js';
 import { getMajorSourceProfile, majorSourceInterpretation, MAJOR_SOURCE_PROFILE_META } from '../../kb/major-understanding/major-source-profile.generated.js?v=pr194';
 
 const CATALOG_RESOLVER = createMajorCatalogResolver(MAJOR_CATALOG_2026);
+const INTENT_RESOLVER = createMajorIntentResolver(MAJOR_CATALOG_2026, ADMISSION_MAJOR_ALIAS_2026, { sourceVersion: MAJOR_CATALOG_2026_META.version });
 const BY_CODE = MAJOR_UNDERSTANDING_2026;
 const DISPLAY_BY_CODE = MAJOR_DISPLAY_CONTRACT_2026;
 const SOURCE_PROFILES = MAJOR_SOURCE_PROFILE_META;
@@ -89,23 +91,48 @@ function splitMajorQueryTerms(value = '') {
 }
 export function resolveMajorQueryCandidates(input = '') {
   const terms = splitMajorQueryTerms(input);
-  const items = terms.map(term => {
-    const exact = CATALOG_RESOLVER.resolve(term, { allowContains: false });
-    if (exact?.kind === 'major' && BY_CODE[exact.item.code]) {
-      return Object.freeze({ input: term, status: 'resolved', confidence: 'high', code: exact.item.code, name: BY_CODE[exact.item.code].name, matchType: exact.matchType, candidates: Object.freeze([]) });
-    }
-    const alias = ALIASES.find(item => item.confidence === 'high' && item.key === normalizeMajorText(term) && item.targetCodes?.length);
-    if (alias && BY_CODE[alias.targetCodes[0]]) {
-      return Object.freeze({ input: term, status: 'resolved', confidence: 'high', code: alias.targetCodes[0], name: BY_CODE[alias.targetCodes[0]].name, matchType: alias.matchType || 'alias', candidates: Object.freeze([]) });
-    }
-    const category = exact?.kind === 'category' ? exact.item : null;
-    const suggestions = category
-      ? (category.codes || []).slice(0, 8).map(code => ({ code, name: BY_CODE[code]?.name || code }))
-      : CATALOG_RESOLVER.search(term, { limit: 8 }).map(item => ({ code: item.item.code, name: item.item.name, score: item.score, matchType: item.matchType }));
-    return Object.freeze({ input: term, status: category ? 'class-level' : (suggestions.length ? 'needs-confirmation' : 'unresolved'), confidence: category ? 'class-level' : 'candidate', code: '', name: category?.name || '', matchType: category ? 'category' : 'fuzzy', candidates: Object.freeze(suggestions) });
+  const intent = INTENT_RESOLVER.resolveMany(terms, { limit: 12 });
+  const items = intent.items.map(item => {
+    const exactCode = item.intentLevel === 'exact-major' && item.coreMajorCodes.length === 1 ? item.coreMajorCodes[0] : '';
+    const exactName = exactCode ? BY_CODE[exactCode]?.name || item.intentLabel : '';
+    const isExact = Boolean(exactCode && exactName);
+    const candidates = item.candidates.map(candidate => ({
+      code: candidate.code,
+      name: candidate.name,
+      majorClass: candidate.majorClass,
+      discipline: candidate.discipline,
+      directionLabel: candidate.directionLabel,
+      matchType: item.matchType
+    }));
+    return Object.freeze({
+      input: item.rawInput,
+      status: isExact ? 'resolved' : (item.status === 'unresolved' ? 'unresolved' : (item.intentLevel === 'major-class' ? 'class-level' : 'needs-confirmation')),
+      intentStatus: item.status,
+      intentLevel: item.intentLevel,
+      intentKey: item.intentKey,
+      intentLabel: item.intentLabel,
+      confidence: item.confidence,
+      code: exactCode,
+      name: exactName || item.intentLabel,
+      matchType: item.matchType,
+      coreMajorCodes: Object.freeze([...item.coreMajorCodes]),
+      relatedMajorCodes: Object.freeze([...item.relatedMajorCodes]),
+      coreMajorNames: Object.freeze(item.coreMajorCodes.map(code => BY_CODE[code]?.name || code)),
+      relatedMajorNames: Object.freeze(item.relatedMajorCodes.map(code => BY_CODE[code]?.name || code)),
+      warnings: Object.freeze([...item.warnings]),
+      candidates: Object.freeze(candidates)
+    });
   });
   const resolvedCodes = [...new Set(items.filter(item => item.status === 'resolved').map(item => item.code))];
-  return Object.freeze({ terms: Object.freeze(terms), items: Object.freeze(items), resolvedCodes: Object.freeze(resolvedCodes), ready: items.length > 0 && items.every(item => item.status === 'resolved') });
+  return Object.freeze({
+    terms: Object.freeze(terms),
+    items: Object.freeze(items),
+    resolvedCodes: Object.freeze(resolvedCodes),
+    ready: items.length > 0 && items.every(item => item.status === 'resolved'),
+    intentStatus: intent.status,
+    intentMeta: MAJOR_INTENT_META,
+    catalogCount: INTENT_RESOLVER.count
+  });
 }
 
 function byStandardMajor(record = {}) {
