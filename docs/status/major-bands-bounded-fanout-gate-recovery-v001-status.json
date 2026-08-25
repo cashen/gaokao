@@ -1,0 +1,28 @@
+{
+  "task": "major-bands-bounded-fanout-gate-recovery-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
+  "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
+  "pr": 211,
+  "headSha": "e0101b6462276a90327de25ead717835d14181a3",
+  "completed": [
+    "BF-01-reconcile-baseline",
+    "BF-02-remove-zero-job-push-path",
+    "BF-03-static-and-local-validation",
+    "BF-04-pr-ci-and-preview-validation"
+  ],
+  "inProgress": "BF-05-ready-merge-and-production-recheck",
+  "pending": [],
+  "baseline": {
+    "zeroJobRuns": [
+      32819091211,
+      32819259219
+    ],
+    "zeroJobEvidence": "github_fetch_workflow_run_jobs returned jobs=[] for both runs",
+    "independentRuntime503Run": 32819092504,
+    "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
+  },
+  "lastFailure": null,
+  "checkpointNote": "BF-04 and BF-05 pre-merge validation are complete for exact PR head e0101b6462276a90327de25ead717835d14181a3. The status commit itself advances the branch; merge must use the live PR head and its all-green checks, while this field records the last verified source head. Independent runtime HTTP 503 remains pending.",
+  "verifiedAt": "2026-08-26T00:25:00Z"
+}
