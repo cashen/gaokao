@@ -108,7 +108,7 @@ const BROAD_SPOKEN_ALIASES = Object.freeze({
 const DIRECTION_CORE_PATTERNS = Object.freeze({
   计算机: ['计算机', '软件', '网络', '信息安全', '物联网', '数据', '大数据', '智能科学', '空间信息', '数字媒体技术', '新媒体技术', '虚拟现实', '区块链', '密码', '工业软件', '人工智能', '具身智能', '保密技术', '服务科学', '电子与计算机'],
   网络安全: ['网络安全', '信息安全', '网络空间安全', '网络工程', '密码', '保密'],
-  机械: ['机械', '机电', '车辆', '汽车', '装备', '制造', '工业设计', '过程装备', '微机电', '智能制造', '智能车辆', '仿生', '增材', '交互', '真空', '装甲'],
+  机械: ['机械', '机电', '车辆', '汽车', '装备', '制造', '工业设计', '过程装备', '微机电', '智能制造', '智能车辆', '仿生', '增材', '交互', '真空', '装甲', '机器人'],
   电气: ['电气', '电网', '电机', '电缆', '自动化', '机器人', '轨道交通信号', '装备与系统', '工业智能'],
   电子信息: ['电子', '通信', '微电子', '光电', '信息工程', '广播电视', '水声', '集成电路', '电磁场', '电波', '电信', '人工智能', '海洋信息', '柔性电子', '测控', '智能视觉', '智能视听', '半导体'],
   医学: ['医学', '临床', '口腔', '麻醉', '影像', '检验', '预防', '护理', '康复', '药学', '中医学', '针灸', '法医学'],
@@ -268,6 +268,17 @@ export function createMajorIntentResolver(rows = [], aliases = [], options = {})
       const allDirectionCodes = unique(directionKeys.flatMap(label => byDirection.get(key(label)) || []));
       const patterns = DIRECTION_CORE_PATTERNS[query] || [];
       const codes = unique(codesByPatterns(allDirectionCodes, byCode, patterns));
+      // 机器人工程在当前目录被标到“电气/自动化/能源”，但家长口语里的
+      // “机械”通常会把它视为机械装备方向的核心交叉专业；只补这一项，
+      // 不把航空制造、农业机器人等所有相邻名称一起吸入机械结果。
+      if (query === '机械') {
+        const roboticEngineering = majors.find(item => item.name === '机器人工程');
+        if (roboticEngineering) codes.push(roboticEngineering.code);
+      }
+      if (query === '材料') {
+        const materialForming = majors.find(item => item.name === '材料成型及控制工程');
+        if (materialForming) codes.push(materialForming.code);
+      }
       const relatedCodes = allDirectionCodes.filter(code => !codes.includes(code));
       const tooBroad = isSingleCharacter(query) || (BROAD_SPOKEN_ALIASES[query] || []).length > 1 || codes.length > 40;
       return result(raw, {
