@@ -1,6 +1,8 @@
 import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 import { lookupScoreRank } from '../../_lib/rank-table-provider.js';
+import { createMajorIntentResolver } from '../../../shared/resources/majors/major-intent-resolver.v001.js';
+import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../../_lib/kb/standard-major-catalog-2026-full.generated.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
@@ -8,6 +10,7 @@ const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_1/manifest.json';
 const MANIFEST_TTL_MS = 5 * 60 * 1000;
 const SHARD_TTL_MS = 60 * 1000;
 const SHARD_CACHE_MAX = 2;
+const MAJOR_INTENT_RESOLVER = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
 let manifestCache = null;
 const shardCache = new Map();
 
@@ -80,6 +83,15 @@ function resolveMajorKeys(manifest, query) {
   const keys = Object.keys(manifest.majors || {});
   return keys.filter(key => { const candidate = norm(key); return candidate.includes(normalized) || normalized.includes(candidate); }).slice(0, 8);
 }
+function resolveMajorInputs(inputs = []) {
+  const intentRows = inputs.map(input => ({ input, intent: MAJOR_INTENT_RESOLVER.resolve(input, { limit: 12 }) }));
+  const blocked = intentRows.filter(item => ['broad-field', 'discipline', 'major-class'].includes(item.intent.intentLevel) && item.intent.status !== 'ready');
+  if (blocked.length) return { intentRows, blocked, inputs: [] };
+  const expanded = [...new Set(intentRows.flatMap(item => item.intent.status === 'ready' && item.intent.coreMajorNames?.length
+    ? item.intent.coreMajorNames
+    : [item.input]))];
+  return { intentRows, blocked: [], inputs: expanded };
+}
 function rowRecord(row, ix) {
   const record = {
     id: clean(row[ix.id], 220), school: clean(row[ix.school], 120), major: clean(row[ix.major], 180),
@@ -133,9 +145,20 @@ export async function onRequestGet(context) {
     const offset = Math.max(0, int(url.searchParams.get('offset'), 0)), limit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!majorInputs.length) return json({ ok: false, code: 'major_required', message: '需要先明确一个或多个具体专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context);
-    const matchedByInput = majorInputs.map(input => ({ input, keys: resolveMajorKeys(manifest, input) }));
+    const resolvedInputs = resolveMajorInputs(majorInputs);
+    if (resolvedInputs.blocked.length) {
+      return json({
+        ok: false,
+        code: 'major_query_requires_choice',
+        message: '这个专业说法范围较宽，请先选择具体方向或专业后再读取三年历史。',
+        majorInputs,
+        majorIntent: resolvedInputs.blocked.map(item => item.intent),
+        apiVersion: AI_MAJOR_HISTORY_API_VERSION
+      }, 409);
+    }
+    const matchedByInput = resolvedInputs.inputs.map(input => ({ input, keys: resolveMajorKeys(manifest, input) }));
     const majorKeys = [...new Set(matchedByInput.flatMap(item => item.keys))];
-    if (!majorKeys.length) return json({ ok: true, majorInputs, region, projectMode, bottomLineMode, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
+    if (!majorKeys.length) return json({ ok: true, majorInputs, region, projectMode, bottomLineMode, matchedMajors: [], majorIntent: resolvedInputs.intentRows.map(item => item.intent), total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
     const records = [], loaded = new Map(), seenIds = new Set();
     for (const key of majorKeys) {
       const descriptor = manifest.majors[key];
