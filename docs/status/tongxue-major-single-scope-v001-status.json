@@ -1,10 +1,11 @@
 {
   "task": "tongxue-major-single-scope-v001",
   "repository": "cashen/gaokao",
-  "branch": "agent/tongxue-major-single-scope-v001",
+  "branch": "main",
   "baseSha": "a762e96cd4b46e4d5c827f324cc11c0fd6cce13a",
   "pr": 205,
-  "remoteHead": "773d6aaed106f2b8a19cec6451a44ea8c6850373",
+  "mergeCommitSha": "cda041f659650c255be08aace0cf3ebae0ecc149",
+  "remoteHead": "cda041f659650c255be08aace0cf3ebae0ecc149",
   "completed": [
     "TX-00-plan-written",
     "TX-01-entry-copy-and-scope-ui",
@@ -12,12 +13,11 @@
     "TX-03-single-major-query",
     "TX-04-multi-major-fail-closed",
     "TX-05-scope-copy-and-accessibility",
-    "TX-06-regression-and-multiterminal-tests"
-  ],
-  "inProgress": "TX-07-ci-preview-production-merge",
-  "pending": [
+    "TX-06-regression-and-multiterminal-tests",
     "TX-07-ci-preview-production-merge"
   ],
+  "inProgress": null,
+  "pending": [],
   "lastFailure": null,
   "parentPerspective": {
     "surface": "/tongxue",
@@ -34,7 +34,7 @@
       "android"
     ]
   },
-  "checkpointNote": "PR #205 remains Draft. All current-head CI workflows for code head 773d6aaed106f2b8a19cec6451a44ea8c6850373 are green, including PC/Pad/Android browser journeys and Tongxue live verification. Cloudflare Preview and Branch Preview both report successful deployment for that exact head. Next action is to update the PR checklist, mark Ready, wait for the second required-check round, then merge with expected head SHA.",
-  "latestGreenCiHead": "773d6aaed106f2b8a19cec6451a44ea8c6850373",
-  "verifiedAt": "2026-08-25T02:45:00Z"
+  "checkpointNote": "PR #205 was merged with expected head 9b3181eeed875bacecfeea659596b03c282d67c5 as merge commit cda041f659650c255be08aace0cf3ebae0ecc149. Main content verification confirms the dual-scope /tongxue entry, canonical single-major adapter, and controller integration are on main. Main Cloudflare deployment, production API health, production release, canonical release, unified site runtime, production resource graph, and UEC checks all succeeded. One unrelated major-bands fanout workflow failed before creating a job on the same push; it is outside this PR's changed path and did not block the merge or the verified production chain.",
+  "latestGreenCiHead": "cda041f659650c255be08aace0cf3ebae0ecc149",
+  "verifiedAt": "2026-08-25T03:25:00Z"
 }
