@@ -4,7 +4,7 @@
   "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
   "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
   "pr": 211,
-  "headSha": "b80643e8375a399e32e1d9c243382a10e070d60a",
+  "headSha": "2a5b38c509f9d05537723c58b05b2e0d9ae9bee8",
   "completed": [
     "BF-01-reconcile-baseline",
     "BF-02-remove-zero-job-push-path",
@@ -24,6 +24,6 @@
     "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
   },
   "lastFailure": null,
-  "checkpointNote": "PR #211 remains Draft while existing checks converge. BF-03 source/workflow validation is complete; BF-04 requires exact-head PR CI, non-empty bounded-fanout jobs, and Preview proof. Independent runtime 503 remains pending.",
-  "verifiedAt": "2026-08-25T23:09:00Z"
+  "checkpointNote": "A synchronize commit explicitly touched the workflow trigger contract. Reconcile exact head 2a5b38c509f9d05537723c58b05b2e0d9ae9bee8 and confirm the bounded-fanout PR run has non-empty jobs before advancing.",
+  "verifiedAt": "2026-08-25T23:15:00Z"
 }
