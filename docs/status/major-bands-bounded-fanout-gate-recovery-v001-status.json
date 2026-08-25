@@ -3,23 +3,27 @@
   "repository": "cashen/gaokao",
   "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
   "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
-  "pr": null,
-  "headSha": "80962f0c40eff5eefe246f643cd99bda655f8a49",
-  "completed": [],
-  "inProgress": "BF-01-reconcile-baseline",
+  "pr": 211,
+  "headSha": "ceead63144ee47c1be6536d70279564b521d958e",
+  "completed": [
+    "BF-01-reconcile-baseline",
+    "BF-02-remove-zero-job-push-path"
+  ],
+  "inProgress": "BF-03-static-and-local-validation",
   "pending": [
-    "BF-02-remove-zero-job-push-path",
-    "BF-03-static-and-local-validation",
     "BF-04-pr-ci-and-preview-validation",
     "BF-05-ready-merge-and-production-recheck"
   ],
   "baseline": {
-    "zeroJobRuns": [32819091211, 32819259219],
+    "zeroJobRuns": [
+      32819091211,
+      32819259219
+    ],
     "zeroJobEvidence": "github_fetch_workflow_run_jobs returned jobs=[] for both runs",
     "independentRuntime503Run": 32819092504,
     "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
   },
   "lastFailure": null,
-  "checkpointNote": "Recovery source for this PR. BF-02 must not change runtime semantics or Tongxue. Treat unknown writes and test output as unknown and reconcile by exact SHA before retry.",
-  "verifiedAt": "2026-08-26T00:00:00Z"
+  "checkpointNote": "PR #211 is open as draft. The workflow change is limited to removing the unconditional push-to-main trigger. Reconcile exact PR head and CI before every continuation; do not claim the independent runtime 503 fixed.",
+  "verifiedAt": "2026-08-25T22:47:30Z"
 }
