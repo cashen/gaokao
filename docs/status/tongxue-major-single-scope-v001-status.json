@@ -4,7 +4,7 @@
   "branch": "agent/tongxue-major-single-scope-v001",
   "baseSha": "a762e96cd4b46e4d5c827f324cc11c0fd6cce13a",
   "pr": 205,
-  "remoteHead": "1b65a809ddb015099afaa83e4f97bcdbd4476f23",
+  "remoteHead": "0c3a2dc0ede1f900243116424a13ca2304e9d5b5",
   "completed": [
     "TX-00-plan-written",
     "TX-01-entry-copy-and-scope-ui",
@@ -27,7 +27,7 @@
     "noMultiMajorQuery": true,
     "requiredDevices": ["pc", "pad", "android"]
   },
-  "checkpointNote": "PR #205 is open as Draft. Verified implementation and regression tests are synced through remote head 1b65a809ddb015099afaa83e4f97bcdbd4476f23. Next action is to validate this exact head in CI and the branch preview.",
+  "checkpointNote": "PR #205 is open as Draft. Verified implementation, cache identity updates, and PC/Pad/Android scope browser test are synced through code head 0c3a2dc0ede1f900243116424a13ca2304e9d5b5. Next action is to validate this exact branch head in CI and the branch preview.",
   "latestGreenCiHead": "68513ed4258374a51f63518679ca2251d3247fe0",
   "verifiedAt": "2026-08-25T02:21:00Z"
 }
