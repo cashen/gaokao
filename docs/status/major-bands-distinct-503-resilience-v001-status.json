@@ -4,13 +4,14 @@
   "baseSha": "3eaca66ee9967e2cf511e63e35fa9334a7960794",
   "branch": "agent/major-bands-distinct-503-resilience-v001",
   "pr": 213,
-  "headSha": "2ea53d05b32cc3440636486b0e7a009d5191bf8d",
+  "headSha": "facbd137ed117ac5781017214352d65667734221",
   "mergeSha": null,
   "completed": [
     "MB-01-reconcile-current-baseline",
-    "MB-02-add-bounded-retry-and-evidence"
+    "MB-02-add-bounded-retry-and-evidence",
+    "MB-03-static-and-local-validation"
   ],
-  "inProgress": "MB-03-static-and-local-validation",
+  "inProgress": "MB-04-pr-ci-and-preview-validation",
   "pending": [
     "independent-major-bands-distinct-50-http-503-runtime-gate"
   ],
@@ -24,6 +25,6 @@
   },
   "postMergeVerification": null,
   "lastFailure": null,
-  "checkpointNote": "PR #213 is open as draft from exact main 3eaca66ee9967e2cf511e63e35fa9334a7960794. Retry scope is limited to transient status 0/502/503/504 within a bounded budget; persistent final failures remain blocking. Before continuation, re-read live PR/head/CI/Preview/production and this status.",
-  "verifiedAt": "2026-08-25T23:39:10Z"
+  "checkpointNote": "PR #213 is open draft with Preview successful and all currently scheduled PR checks green at the last verified code head facbd137ed117ac5781017214352d65667734221. The dedicated bounded-fanout workflow has not yet produced a pull_request run; its observed push run has zero jobs. Mark Ready only after exact-head reconciliation, then verify the dedicated stress gate and all other checks.",
+  "verifiedAt": "2026-08-26T00:01:00Z"
 }
