@@ -1,0 +1,18 @@
+{
+  "task": "tongxue-startup-cache-buster-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "0e379eb5029fb5ed6d1765092cd53224b050df97",
+  "branch": "agent/tongxue-startup-cache-buster-v001",
+  "pr": null,
+  "completed": ["CB-01-production-stale-cache-confirmed"],
+  "inProgress": "CB-02-bump-tongxue-runtime-cache-identity",
+  "pending": ["CB-02-bump-tongxue-runtime-cache-identity", "CB-03-ci-preview-production-verification", "CB-04-merge-main-and-final-verify"],
+  "headSha": null,
+  "mergeSha": null,
+  "lastFailure": {
+    "productionSha": "0e379eb5029fb5ed6d1765092cd53224b050df97",
+    "message": "Fixed controller query v=159-major001 served the previous cached controller; random query served new startup logic."
+  },
+  "checkpointNote": "This file is the recovery source for the cache-identity follow-up. Reconcile exact main/branch/PR/head/CI/Preview/production before every retry.",
+  "verifiedAt": "2026-08-25T06:27:00Z"
+}

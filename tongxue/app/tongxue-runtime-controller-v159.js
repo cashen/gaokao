@@ -1,6 +1,6 @@
 import { loadSchoolCatalog, SCHOOL_NAME_DATA_URL } from '../data/school-name-resolver-v150.js?v=150';
 import { getSchoolEntity, findSchoolEntityByName } from '../data/school-entities-v150.js?v=150';
-import { createTongxueSearchView, setTongxueIndexStatus } from './tongxue-runtime-search-view-v159.js?v=159-fuzzy001';
+import { createTongxueSearchView, setTongxueIndexStatus } from './tongxue-runtime-search-view-v159.js?v=159-startup001';
 import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v=159';
 import {
   resolveTongxueMajorInput
