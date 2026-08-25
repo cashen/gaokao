@@ -1,5 +1,6 @@
 import { state } from '../state/app-state.v3963_1.js?v=3963_1';
 import { resolveMajorUnderstanding } from '../knowledge/major-understanding-resolver.js?v=3949_0';
+import { createDecisionContext } from '../../../shared/decision-context/decision-context.v001.js';
 import { scrollToExplicitTarget } from './scroll-policy.v3961_0.js?v=3961_0';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -53,6 +54,36 @@ function currentReturnTarget() {
   return `${location.pathname}${location.search}${location.hash}`;
 }
 
+function makeDecisionContext(target, {
+  sourceAction,
+  sourceKey = '',
+  sourceMajor = '',
+  school = ''
+} = {}) {
+  const filters = state.filters || {};
+  const region = clean(filters.region || filters.regionLabel || '');
+  const projectMode = clean(filters.projectMode || state.projectMode || '');
+  return createDecisionContext({
+    sourceSurface: 'ln-rank',
+    sourceAction,
+    returnTo: currentReturnTarget(),
+    province: '辽宁',
+    admissionYear: 2026,
+    track: '物理类',
+    score: state.candidateScore,
+    rank: null,
+    regionKeys: region ? [region] : [],
+    regionLabel: region,
+    school,
+    major: target?.name || sourceMajor,
+    majorCode: target?.code || '',
+    majorKeywords: [sourceMajor].filter(Boolean),
+    projectMode: ['all', 'ordinary-only', 'sino-only'].includes(projectMode) ? projectMode : 'all',
+    candidateIds: sourceKey ? [sourceKey] : [],
+    evidenceRefs: [{ kind: 'ln-rank-result', label: '当前专业初选结果', ref: sourceKey }]
+  });
+}
+
 function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compact = false } = {}) {
   const href = buildMajorPathHref({
     majorCode: target.code,
@@ -61,7 +92,8 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
     sourceKey,
     sourceMajor,
     school,
-    returnTo: currentReturnTarget()
+    returnTo: currentReturnTarget(),
+    decisionContext: makeDecisionContext(target, { sourceAction:'view_major_path', sourceKey, sourceMajor, school })
   });
   if (!href) return null;
   const button = document.createElement('button');
@@ -78,13 +110,14 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   return button;
 }
 
-function makeStudentVoiceEntry(target, { context, sourceKey, compact = false } = {}) {
+function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', school = '', compact = false } = {}) {
   const href = buildStudentVoiceMajorHref({
     majorCode:target.code,
     canonicalName:target.name,
     sourceKey,
     context,
-    returnTo:currentReturnTarget()
+    returnTo:currentReturnTarget(),
+    decisionContext: makeDecisionContext(target, { sourceAction:'view_student_voice', sourceKey, sourceMajor, school })
   });
   if (!href) return null;
   const button = document.createElement('button');
@@ -125,7 +158,7 @@ function decorateScoreCards(root = document.getElementById('results')) {
     }
     const school = clean(card.querySelector('.school')?.textContent);
     if (!card.querySelector('[data-major-path-entry]')) insertScoreEntry(card, makeEntry(target, { context:'score', sourceKey, sourceMajor, school }));
-    if (!card.querySelector('[data-student-voice-entry]')) insertScoreEntry(card, makeStudentVoiceEntry(target, { context:'score', sourceKey }));
+    if (!card.querySelector('[data-student-voice-entry]')) insertScoreEntry(card, makeStudentVoiceEntry(target, { context:'score', sourceKey, sourceMajor, school }));
     card.dataset.majorPathAvailability = 'canonical-major';
     card.dataset.studentVoiceAvailability = 'canonical-major-cross-school';
   });
@@ -149,7 +182,7 @@ function decorateSchoolCards(root = document.getElementById('schoolAllContent'))
       if (entry) (main || card).append(entry);
     }
     if (!card.querySelector('[data-student-voice-entry]')) {
-      const voice = makeStudentVoiceEntry(target, { context:'school', sourceKey, compact:true });
+      const voice = makeStudentVoiceEntry(target, { context:'school', sourceKey, sourceMajor, school, compact:true });
       if (voice) (main || card).append(voice);
     }
     card.dataset.majorPathAvailability = 'canonical-major';
@@ -178,7 +211,7 @@ function decorateMajorAllCards(root = document.getElementById('majorAllContent')
       if (entry) actions.append(entry);
     }
     if (!card.querySelector('[data-student-voice-entry]')) {
-      const voice = makeStudentVoiceEntry(target, { context:'major', sourceKey, compact:true });
+      const voice = makeStudentVoiceEntry(target, { context:'major', sourceKey, sourceMajor, school, compact:true });
       if (voice) actions.append(voice);
     }
     card.dataset.majorPathAvailability = 'canonical-major';
