@@ -4,30 +4,37 @@
   "branch": "agent/tongxue-major-single-scope-v001",
   "baseSha": "a762e96cd4b46e4d5c827f324cc11c0fd6cce13a",
   "pr": 205,
-  "remoteHead": "0c3a2dc0ede1f900243116424a13ca2304e9d5b5",
+  "remoteHead": "773d6aaed106f2b8a19cec6451a44ea8c6850373",
   "completed": [
     "TX-00-plan-written",
     "TX-01-entry-copy-and-scope-ui",
     "TX-02-major-intent-adapter",
     "TX-03-single-major-query",
     "TX-04-multi-major-fail-closed",
-    "TX-05-scope-copy-and-accessibility"
+    "TX-05-scope-copy-and-accessibility",
+    "TX-06-regression-and-multiterminal-tests"
   ],
-  "inProgress": "TX-06-regression-and-multiterminal-tests",
+  "inProgress": "TX-07-ci-preview-production-merge",
   "pending": [
-    "TX-06-regression-and-multiterminal-tests",
     "TX-07-ci-preview-production-merge"
   ],
   "lastFailure": null,
   "parentPerspective": {
     "surface": "/tongxue",
-    "scopeModes": ["school", "major"],
+    "scopeModes": [
+      "school",
+      "major"
+    ],
     "majorMode": "single-major-only",
     "majorSourceOfTruth": "shared/resources/majors/major-intent-resolver.v001.js",
     "noMultiMajorQuery": true,
-    "requiredDevices": ["pc", "pad", "android"]
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ]
   },
-  "checkpointNote": "PR #205 is open as Draft. Verified implementation, cache identity updates, and PC/Pad/Android scope browser test are synced through code head 0c3a2dc0ede1f900243116424a13ca2304e9d5b5. Next action is to validate this exact branch head in CI and the branch preview.",
-  "latestGreenCiHead": "68513ed4258374a51f63518679ca2251d3247fe0",
-  "verifiedAt": "2026-08-25T02:21:00Z"
+  "checkpointNote": "PR #205 remains Draft. All current-head CI workflows for code head 773d6aaed106f2b8a19cec6451a44ea8c6850373 are green, including PC/Pad/Android browser journeys and Tongxue live verification. Cloudflare Preview and Branch Preview both report successful deployment for that exact head. Next action is to update the PR checklist, mark Ready, wait for the second required-check round, then merge with expected head SHA.",
+  "latestGreenCiHead": "773d6aaed106f2b8a19cec6451a44ea8c6850373",
+  "verifiedAt": "2026-08-25T02:45:00Z"
 }
