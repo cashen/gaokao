@@ -16,7 +16,7 @@ import {
   reviewKey
 } from './tongxue-runtime-utils-v159.js?v=159';
 
-const RUNTIME_VERSION = 'tongxue-runtime-v159-major001';
+const RUNTIME_VERSION = 'tongxue-runtime-v159';
 const EXPERIENCE_TTL = Object.freeze({
   ai_summary:300000,
   recent_reviews:120000,
