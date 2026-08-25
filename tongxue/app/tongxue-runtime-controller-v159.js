@@ -128,6 +128,7 @@ export async function startTongxueRuntime() {
     schoolCount:0,
     majorCount:883,
     returnTo:'',
+    decisionContext:null,
     directMode:false,
     requestInFlight:false,
     activeQueryController:null,
@@ -191,6 +192,8 @@ export async function startTongxueRuntime() {
       lastRenderKind:state.lastRenderKind,
       listenerCount:state.listenerCount,
       submitCount:state.submitCount,
+      decisionContext:state.decisionContext,
+
       observerCount: 0
     })
   });
@@ -392,6 +395,7 @@ function resetResolution(state, searchView) {
 }
 
 async function submitInput(ui, state, searchView, resultView, options = {}) {
+  if (!options.preserveDecisionContext) state.decisionContext = null;
   const input = normalizeSchool(options.input ?? ui.input.value);
   if (!input) {
     ui.input.focus();
@@ -759,6 +763,8 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   const params = new URLSearchParams(location.search);
   const scope = params.get('scope') === 'major' ? 'major' : 'school';
   state.scope = scope;
+  state.decisionContext = decisionContextFromLocation(location);
+  document.body.dataset.decisionContext = state.decisionContext ? 'readonly' : 'none';
   const topic = cleanTopic(params.get('topic') || 'general');
   if (scope === 'major') {
     applyScopePresentation(ui, 'major', state);
@@ -803,7 +809,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   if (school) {
     state.directMode = true;
     ui.input.value = school;
-    return submitInput(ui, state, searchView, resultView, { input:school, entityId, historyMode:'none', directMode:true, topic });
+    return submitInput(ui, state, searchView, resultView, { input:school, entityId, historyMode:'none', directMode:true, topic, preserveDecisionContext:true });
   }
   if (query) {
     state.directMode = false;
@@ -820,7 +826,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
 function writeLocation(kind, value, entityId, mode, extra = {}) {
   if (mode === 'none') return;
   const url = new URL(location.href);
-  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo']) url.searchParams.delete(key);
+  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo','dc']) url.searchParams.delete(key);
   if (kind === 'school') {
     url.searchParams.set('school', value);
     if (entityId) url.searchParams.set('entity', entityId);
