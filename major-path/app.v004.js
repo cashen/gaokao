@@ -1,6 +1,8 @@
 import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
 import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION } from './background-context.v001.js';
-import { summarizeDecisionContext } from '../shared/decision-context/decision-context.v001.js';
+import { buildDecisionActions } from '../shared/decision-context/decision-actions.v001.js';
+import { summarizeDecisionContext, withDecisionContext } from '../shared/decision-context/decision-context.v001.js';
+import { buildStudentVoiceMajorHref } from '../shared/resources/experience/student-voice-navigation.v001.js';
 import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -288,6 +290,38 @@ function installReturnAction(context) {
   });
 }
 
+function installDecisionActions(focus, major) {
+  const context = sourceContext.decisionContext;
+  if (!context || !focus || focus.querySelector('[data-decision-actions]')) return;
+  const studentVoiceHref = buildStudentVoiceMajorHref({
+    majorCode: major.code,
+    canonicalName: major.name,
+    context: sourceContext.context || 'score',
+    sourceKey: sourceContext.sourceKey,
+    returnTo: sourceContext.returnTo || '/major-path/',
+    decisionContext: context
+  });
+  const aiplusHref = withDecisionContext('/aiplus/', context);
+  const actions = buildDecisionActions(context, {
+    studentVoiceHref,
+    aiplusHref,
+    returnHref: sourceContext.returnTo
+  });
+  if (!actions.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'decision-actions';
+  wrap.dataset.decisionActions = 'readonly';
+  for (const action of actions) {
+    const link = document.createElement('a');
+    link.className = 'decision-action';
+    link.href = action.href;
+    link.dataset.decisionAction = action.id;
+    link.textContent = action.label;
+    wrap.append(link);
+  }
+  focus.append(wrap);
+}
+
 function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   if (!undergradSection || !graduateSection) return null;
   const existing = shell.querySelector('[data-major-pathway-focus]');
@@ -313,6 +347,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
       : 'continuation';
     note.innerHTML = `<strong>${source.title}</strong><span>${source.body}</span>`;
     focus.append(note);
+    installDecisionActions(focus, major);
   }
 
   const undergradHeading = undergradSection.querySelector('.section-heading');
