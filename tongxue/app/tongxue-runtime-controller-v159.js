@@ -5,6 +5,7 @@ import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v
 import {
   resolveTongxueMajorInput
 } from '../../shared/resources/majors/tongxue-single-major-adapter.v001.js?v=001';
+import { decisionContextFromLocation } from '../../shared/decision-context/decision-context.v001.js';
 import {
   TongxueError,
   normalizeSchool,
@@ -15,6 +16,13 @@ import {
   dedupeReviews,
   reviewKey
 } from './tongxue-runtime-utils-v159.js?v=159';
+
+function readDecisionContextFromLocation(locationLike = globalThis.location) {
+  try {
+    if (typeof decisionContextFromLocation === 'function') return decisionContextFromLocation(locationLike);
+  } catch {}
+  return null;
+}
 
 const RUNTIME_VERSION = 'tongxue-runtime-v159';
 const EXPERIENCE_TTL = Object.freeze({
@@ -128,6 +136,7 @@ export async function startTongxueRuntime() {
     schoolCount:0,
     majorCount:883,
     returnTo:'',
+    decisionContext:null,
     directMode:false,
     requestInFlight:false,
     activeQueryController:null,
@@ -191,6 +200,8 @@ export async function startTongxueRuntime() {
       lastRenderKind:state.lastRenderKind,
       listenerCount:state.listenerCount,
       submitCount:state.submitCount,
+      decisionContext:state.decisionContext,
+
       observerCount: 0
     })
   });
@@ -392,6 +403,7 @@ function resetResolution(state, searchView) {
 }
 
 async function submitInput(ui, state, searchView, resultView, options = {}) {
+  if (!options.preserveDecisionContext) state.decisionContext = null;
   const input = normalizeSchool(options.input ?? ui.input.value);
   if (!input) {
     ui.input.focus();
@@ -759,6 +771,8 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   const params = new URLSearchParams(location.search);
   const scope = params.get('scope') === 'major' ? 'major' : 'school';
   state.scope = scope;
+  state.decisionContext = readDecisionContextFromLocation(location);
+  document.body.dataset.decisionContext = state.decisionContext ? 'readonly' : 'none';
   const topic = cleanTopic(params.get('topic') || 'general');
   if (scope === 'major') {
     applyScopePresentation(ui, 'major', state);
@@ -803,7 +817,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   if (school) {
     state.directMode = true;
     ui.input.value = school;
-    return submitInput(ui, state, searchView, resultView, { input:school, entityId, historyMode:'none', directMode:true, topic });
+    return submitInput(ui, state, searchView, resultView, { input:school, entityId, historyMode:'none', directMode:true, topic, preserveDecisionContext:true });
   }
   if (query) {
     state.directMode = false;
@@ -820,7 +834,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
 function writeLocation(kind, value, entityId, mode, extra = {}) {
   if (mode === 'none') return;
   const url = new URL(location.href);
-  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo']) url.searchParams.delete(key);
+  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo','dc']) url.searchParams.delete(key);
   if (kind === 'school') {
     url.searchParams.set('school', value);
     if (entityId) url.searchParams.set('entity', entityId);

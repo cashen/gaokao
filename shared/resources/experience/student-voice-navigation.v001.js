@@ -1,3 +1,10 @@
+import {
+  DECISION_CONTEXT_QUERY_KEY,
+  decodeDecisionContext,
+  encodeDecisionContext,
+  validateDecisionContext
+} from '../../decision-context/decision-context.v001.js';
+
 export const STUDENT_VOICE_NAVIGATION_VERSION = 'student-voice-navigation-v0.01';
 export const STUDENT_VOICE_NAVIGATION_META = Object.freeze({
   version:STUDENT_VOICE_NAVIGATION_VERSION,
@@ -31,7 +38,7 @@ function cleanReturnTo(value = '') {
   }
 }
 
-export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', sourceKey='', context='', returnTo='' } = {}) {
+export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', sourceKey='', context='', returnTo='', decisionContext=null } = {}) {
   const code = cleanCode(majorCode);
   const name = clean(canonicalName);
   if (!code || !name) return '';
@@ -44,6 +51,9 @@ export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', top
   if (sourceContext) params.set('context', sourceContext);
   const returnTarget = cleanReturnTo(returnTo);
   if (returnTarget) params.set('returnTo', returnTarget);
+  const normalizedContext = decisionContext ? validateDecisionContext(decisionContext) : null;
+  const encodedContext = normalizedContext ? encodeDecisionContext(normalizedContext) : '';
+  if (encodedContext) params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
   return `${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
 
@@ -52,6 +62,7 @@ export function readStudentVoiceMajorContext(locationLike = globalThis.location)
   let url;
   try { url = new URL(href, 'https://same-origin.invalid'); } catch { return Object.freeze({ scope:'', majorCode:'', major:'', topic:'general', sourceKey:'', context:'', returnTo:'' }); }
   const scope = url.searchParams.get('scope') === 'major' ? 'major' : '';
+  const decisionContext = decodeDecisionContext(url.searchParams.get(DECISION_CONTEXT_QUERY_KEY));
   return Object.freeze({
     scope,
     majorCode:scope ? cleanCode(url.searchParams.get('majorCode')) : '',
@@ -59,6 +70,7 @@ export function readStudentVoiceMajorContext(locationLike = globalThis.location)
     topic:scope && /^[a-z_]{1,40}$/.test(clean(url.searchParams.get('topic'))) ? clean(url.searchParams.get('topic')) : 'general',
     sourceKey:scope ? clean(url.searchParams.get('sourceKey')).slice(0, 160) : '',
     context:scope ? cleanContext(url.searchParams.get('context')) : '',
-    returnTo:scope ? cleanReturnTo(url.searchParams.get('returnTo')) : ''
+    returnTo:scope ? cleanReturnTo(url.searchParams.get('returnTo')) : '',
+    decisionContext:scope ? decisionContext : null
   });
 }

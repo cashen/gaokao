@@ -1,0 +1,42 @@
+{
+  "task": "cross-module-journey-context-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/cross-module-journey-context-v001",
+  "baseSha": "b7e4e5bad3b386a212ea1c8a32af76366a83bf88",
+  "remoteHead": "214f76c345ebd98c886547e1325aff1be31d2eba",
+  "pr": null,
+  "completed": [
+    "TX-00-plan-written"
+  ],
+  "inProgress": "TX-00-status-and-draft-pr",
+  "pending": [
+    "TX-00-status-and-draft-pr",
+    "TX-01-context-contract",
+    "TX-02-next-actions-and-return",
+    "TX-03-query-scope-and-evidence-copy",
+    "TX-04-multiterminal-and-recovery-tests",
+    "TX-05-ci-preview-ready-merge-main"
+  ],
+  "lastFailure": null,
+  "latestGreenCiHead": null,
+  "parentPerspective": {
+    "surfaces": [
+      "/ln-rank",
+      "/aiplus",
+      "/tongxue",
+      "/major-path/"
+    ],
+    "familyFirst": true,
+    "answerFirst": true,
+    "noSilentFilterMutation": true,
+    "tongxueMajorMode": "single-major-only",
+    "lnRankMajorMode": "multi-major-supported",
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ]
+  },
+  "checkpointNote": "Plan is committed. This status file is the next recovery source; after it is committed, create the Draft PR. Any interruption must reconcile the remote PR/branch/head and current CI before continuing.",
+  "verifiedAt": "2026-08-25T13:31:00Z"
+}

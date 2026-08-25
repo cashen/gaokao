@@ -1,5 +1,8 @@
 import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
 import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION } from './background-context.v001.js';
+import { buildDecisionActions } from '../shared/decision-context/decision-actions.v001.js';
+import { summarizeDecisionContext, withDecisionContext } from '../shared/decision-context/decision-context.v001.js';
+import { buildStudentVoiceMajorHref } from '../shared/resources/experience/student-voice-navigation.v001.js';
 import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -246,7 +249,17 @@ function conciseSourceContext(context, major) {
 
 function directContextForMajor(major) {
   const originalCode = String(sourceContext.majorCode || '').trim().toUpperCase();
-  if (major.code === originalCode) return conciseSourceContext(sourceContext, major);
+  if (major.code === originalCode) {
+    const summary = summarizeDecisionContext(sourceContext.decisionContext);
+    const base = conciseSourceContext(sourceContext, major);
+    if (summary.lines.length) {
+      return {
+        title: base.title,
+        body: `${base.body} 当前只读条件：${summary.lines.join(' · ')}。不会自动修改家庭方案；${sourceContext.returnTo ? '返回可恢复原查询。' : '可从返回按钮回到原入口。'}`
+      };
+    }
+    return base;
+  }
   return {
     title: '从刚才的专业继续看',
     body: '这是从相关专业里继续展开的内容；返回仍会回到最初的招生结果。'
@@ -276,6 +289,38 @@ function installReturnAction(context) {
       history.back();
     } catch {}
   });
+}
+
+function installDecisionActions(focus, major) {
+  const context = sourceContext.decisionContext;
+  if (!context || !focus || focus.querySelector('[data-decision-actions]')) return;
+  const studentVoiceHref = buildStudentVoiceMajorHref({
+    majorCode: major.code,
+    canonicalName: major.name,
+    context: sourceContext.context || 'score',
+    sourceKey: sourceContext.sourceKey,
+    returnTo: sourceContext.returnTo || '/major-path/',
+    decisionContext: context
+  });
+  const aiplusHref = withDecisionContext('/aiplus/', context);
+  const actions = buildDecisionActions(context, {
+    studentVoiceHref,
+    aiplusHref,
+    returnHref: sourceContext.returnTo
+  });
+  if (!actions.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'decision-actions';
+  wrap.dataset.decisionActions = 'readonly';
+  for (const action of actions) {
+    const link = document.createElement('a');
+    link.className = 'decision-action';
+    link.href = action.href;
+    link.dataset.decisionAction = action.id;
+    link.textContent = action.label;
+    wrap.append(link);
+  }
+  focus.append(wrap);
 }
 
 function makePathwayFocus(shell, major, undergradSection, graduateSection) {
@@ -315,6 +360,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   humanizeDegreeCards(graduateSection);
 
   focus.append(undergradSection, graduateSection);
+  installDecisionActions(focus, major);
   if (answer) answer.insertAdjacentElement('afterend', focus);
   else shell.prepend(focus);
   return focus;
