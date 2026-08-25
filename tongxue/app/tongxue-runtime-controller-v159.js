@@ -17,6 +17,13 @@ import {
   reviewKey
 } from './tongxue-runtime-utils-v159.js?v=159';
 
+function readDecisionContextFromLocation(locationLike = globalThis.location) {
+  try {
+    if (typeof decisionContextFromLocation === 'function') return decisionContextFromLocation(locationLike);
+  } catch {}
+  return null;
+}
+
 const RUNTIME_VERSION = 'tongxue-runtime-v159';
 const EXPERIENCE_TTL = Object.freeze({
   ai_summary:300000,
@@ -764,7 +771,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   const params = new URLSearchParams(location.search);
   const scope = params.get('scope') === 'major' ? 'major' : 'school';
   state.scope = scope;
-  state.decisionContext = decisionContextFromLocation(location);
+  state.decisionContext = readDecisionContextFromLocation(location);
   document.body.dataset.decisionContext = state.decisionContext ? 'readonly' : 'none';
   const topic = cleanTopic(params.get('topic') || 'general');
   if (scope === 'major') {

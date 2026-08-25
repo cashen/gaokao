@@ -1,3 +1,4 @@
+import { decisionContextFromLocation, summarizeDecisionContext } from '/shared/decision-context/decision-context.v001.js';
 
 import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel,AI_FACT_BRIDGE_CONTRACT_VERSION,compactAiFactRecord,compactSchoolHistoryFactPayload} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4&fdw=003_0';
 import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0';
