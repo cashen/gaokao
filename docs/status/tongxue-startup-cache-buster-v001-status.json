@@ -1,0 +1,21 @@
+{
+  "task": "tongxue-startup-cache-buster-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "0e379eb5029fb5ed6d1765092cd53224b050df97",
+  "branch": "agent/tongxue-startup-cache-buster-v001",
+  "pr": 209,
+  "completed": [
+    "CB-01-production-stale-cache-confirmed",
+    "CB-02-bump-tongxue-runtime-cache-identity",
+    "CB-03-ci-preview-verification"
+  ],
+  "inProgress": "CB-04-merge-main-and-final-verify",
+  "pending": [
+    "CB-04-merge-main-and-final-verify"
+  ],
+  "headSha": "e3c9d872e8aac930e81892b8ff5c9dbc34d5e680",
+  "mergeSha": null,
+  "lastFailure": null,
+  "checkpointNote": "CI and exact-head Preview verification passed for e3c9d872e8aac930e81892b8ff5c9dbc34d5e680. Before merge, reconcile this file, main, branch, PR/head, CI and Preview again. After merge, verify the fixed 159-startup001 production URLs, then persist the final merge SHA through the PR workflow.",
+  "verifiedAt": "2026-08-25T06:44:00Z"
+}
