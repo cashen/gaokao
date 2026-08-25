@@ -15,10 +15,6 @@
   ],
   "inProgress": "TX-06-regression-and-multiterminal-tests",
   "pending": [
-    "TX-02-major-intent-adapter",
-    "TX-03-single-major-query",
-    "TX-04-multi-major-fail-closed",
-    "TX-05-scope-copy-and-accessibility",
     "TX-06-regression-and-multiterminal-tests",
     "TX-07-ci-preview-production-merge"
   ],
