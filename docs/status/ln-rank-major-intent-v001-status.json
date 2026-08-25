@@ -33,9 +33,10 @@
     "node tools/verify-ai-major-region-history-v3992_3.mjs",
     "node tools/verify-ai-school-history-bridge-v3992_2.mjs",
     "node tools/verify-ai-workspace-v3990_2.mjs",
+    "node tools/verify-ln-rank-major-scope-v001.mjs",
     "remote head 330af2c899c5d98b2c84f2607b276a43c3d2e847: all 21 checks green"
   ],
-  "latestLocalHead": "0a10e9f00f97a79b3ba022217325ca5e01c8cf23",
+  "latestLocalHead": "7e583bb8e5584968ecb3182621c06edabbaf7717",
   "latestGreenCiHead": "330af2c899c5d98b2c84f2607b276a43c3d2e847",
   "verifiedAt": "2026-08-25T00:55:00Z"
 }
