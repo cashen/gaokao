@@ -13,7 +13,7 @@ const majorResponse = {
   ok:true,
   scope:'major',
   mode:'major_reviews',
-  major:{ code:'080601', name:'电气工程及其自动化', categoryName:'电气类' },
+  major:{ code:'080601', name:'电气工程及其自动化', categoryName:'电气类', sourceId:80601 },
   topic:'general',
   reviews:[{
     content:'课程里有电路、电机和控制相关内容，实验和计算都不少。',
@@ -93,7 +93,8 @@ try {
 
       await input.fill('080601');
       await page.locator('#queryButton').click();
-      await page.waitForSelector('[data-student-voice-scope="major"][data-major-code="080601"]', { timeout:20000 });
+      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
+      assert.equal(await page.locator('[data-student-voice-scope="major"][data-major-code="080601"]').count(), 1, `${testCase.name}: major result identity missing`);
       assert.equal(apiRequests.length, 1, `${testCase.name}: exact major queried more than once`);
       assert.deepEqual({ scope:apiRequests[0].scope, majorCode:apiRequests[0].majorCode, major:apiRequests[0].major }, {
         scope:'major', majorCode:'080601', major:'电气工程及其自动化'
