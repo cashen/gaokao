@@ -3,9 +3,17 @@
   "repository": "cashen/gaokao",
   "branch": "agent/tongxue-major-single-scope-v001",
   "baseSha": "a762e96cd4b46e4d5c827f324cc11c0fd6cce13a",
-  "pr": null,
-  "completed": ["TX-00-plan-written"],
-  "inProgress": "TX-01-entry-copy-and-scope-ui",
+  "pr": 205,
+  "remoteHead": "1b65a809ddb015099afaa83e4f97bcdbd4476f23",
+  "completed": [
+    "TX-00-plan-written",
+    "TX-01-entry-copy-and-scope-ui",
+    "TX-02-major-intent-adapter",
+    "TX-03-single-major-query",
+    "TX-04-multi-major-fail-closed",
+    "TX-05-scope-copy-and-accessibility"
+  ],
+  "inProgress": "TX-06-regression-and-multiterminal-tests",
   "pending": [
     "TX-02-major-intent-adapter",
     "TX-03-single-major-query",
@@ -23,7 +31,7 @@
     "noMultiMajorQuery": true,
     "requiredDevices": ["pc", "pad", "android"]
   },
-  "checkpointNote": "Created from main a762e96cd4b46e4d5c827f324cc11c0fd6cce13a. Plan is written locally; next action is to sync plan/status to the new branch and create the Draft PR.",
-  "latestGreenCiHead": null,
-  "verifiedAt": "2026-08-25T00:00:00Z"
+  "checkpointNote": "PR #205 is open as Draft. Verified implementation and regression tests are synced through remote head 1b65a809ddb015099afaa83e4f97bcdbd4476f23. Next action is to validate this exact head in CI and the branch preview.",
+  "latestGreenCiHead": "68513ed4258374a51f63518679ca2251d3247fe0",
+  "verifiedAt": "2026-08-25T02:21:00Z"
 }
