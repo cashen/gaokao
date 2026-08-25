@@ -348,7 +348,6 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
       : 'continuation';
     note.innerHTML = `<strong>${source.title}</strong><span>${source.body}</span>`;
     focus.append(note);
-    installDecisionActions(focus, major);
   }
 
   const undergradHeading = undergradSection.querySelector('.section-heading');
@@ -361,6 +360,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   humanizeDegreeCards(graduateSection);
 
   focus.append(undergradSection, graduateSection);
+  installDecisionActions(focus, major);
   if (answer) answer.insertAdjacentElement('afterend', focus);
   else shell.prepend(focus);
   return focus;
