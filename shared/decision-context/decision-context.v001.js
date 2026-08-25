@@ -217,7 +217,19 @@ export function summarizeDecisionContext(context = null) {
   if (!normalized) return Object.freeze({ title: '', lines: [], note: '' });
   const location = [normalized.province, normalized.admissionYear, normalized.track, normalized.regionLabel].filter(Boolean).join(' · ');
   const subject = [normalized.school, normalized.major].filter(Boolean).join(' · ');
-  const lines = [location, subject].filter(Boolean);
+  const position = normalized.score != null
+    ? `${normalized.score}分`
+    : normalized.rank != null
+      ? `${normalized.rank}位`
+      : '未填分数/位次';
+  const project = normalized.projectMode === 'ordinary-only'
+    ? '仅普通项目'
+    : normalized.projectMode === 'sino-only'
+      ? '仅中外合作项目'
+      : normalized.projectMode === 'all'
+        ? '普通项目/含中外合作项目'
+        : '';
+  const lines = [location, subject, position, project].filter(Boolean);
   const note = normalized.sourceSurface === 'tongxue'
     ? '同学你好：一次查看一个具体专业'
     : normalized.sourceSurface === 'ln-rank'

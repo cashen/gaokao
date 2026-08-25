@@ -55,7 +55,7 @@ assert.equal(sanitizeDecisionReturnTarget('/aiplus/?x=1'),'/aiplus/?x=1');
 assert.equal(decisionContextFromLocation({href:`https://gaokao.powers.org.cn/aiplus/?${DECISION_CONTEXT_QUERY_KEY}=${encoded}`})?.contextId,context.contextId);
 const aiplus=withDecisionContext('/aiplus/',context);
 assert.match(aiplus,/^\/aiplus\/\?dc=/);
-assert.equal(summarizeDecisionContext(context).lines.join(' · '),'辽宁 · 2026 · 物理类 · 沈阳 · 测试大学 · 机械工程');
+assert.equal(summarizeDecisionContext(context).lines.join(' · '),'辽宁 · 2026 · 物理类 · 沈阳 · 测试大学 · 机械工程 · 580分 · 普通项目/含中外合作项目');
 
 const pathHref=buildMajorPathHref({
   majorCode:'080201',
