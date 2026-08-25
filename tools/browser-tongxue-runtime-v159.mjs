@@ -114,7 +114,9 @@ try {
       assert.equal(await page.locator('#retryIndex').isHidden(), true);
       const initial = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(initial.observerCount, 0);
-      assert.ok(initial.listenerCount >= 8 && initial.listenerCount <= 20, `${testCase.name}: listener count ${initial.listenerCount}`);
+      // The startup retry control adds one intentional listener to the stable
+      // v1.5.9 contract; keep the guard bounded without rejecting that control.
+      assert.ok(initial.listenerCount >= 8 && initial.listenerCount <= 21, `${testCase.name}: listener count ${initial.listenerCount}`);
       assert.equal(initial.currentEntityId, '');
       await page.evaluate(() => { globalThis.__tongxueLongTasks = []; });
 
