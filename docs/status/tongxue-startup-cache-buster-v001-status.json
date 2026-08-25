@@ -4,15 +4,18 @@
   "baseSha": "0e379eb5029fb5ed6d1765092cd53224b050df97",
   "branch": "agent/tongxue-startup-cache-buster-v001",
   "pr": 209,
-  "completed": ["CB-01-production-stale-cache-confirmed", "CB-02-bump-tongxue-runtime-cache-identity"],
-  "inProgress": "CB-03-ci-preview-production-verification",
-  "pending": ["CB-03-ci-preview-production-verification", "CB-04-merge-main-and-final-verify"],
-  "headSha": "042a34f2ca3c6f58bf5d518edadbe69537fb69b0",
+  "completed": [
+    "CB-01-production-stale-cache-confirmed",
+    "CB-02-bump-tongxue-runtime-cache-identity",
+    "CB-03-ci-preview-verification"
+  ],
+  "inProgress": "CB-04-merge-main-and-final-verify",
+  "pending": [
+    "CB-04-merge-main-and-final-verify"
+  ],
+  "headSha": "e3c9d872e8aac930e81892b8ff5c9dbc34d5e680",
   "mergeSha": null,
-  "lastFailure": {
-    "headSha": "042a34f2ca3c6f58bf5d518edadbe69537fb69b0",
-    "message": "Unified Experience Context Preview wait still hard-coded v=159-major001, so it rejected the intentionally bumped startup asset identity before browser journeys ran; workflow contract must use v=159-startup001."
-  },
-  "checkpointNote": "This file is the recovery source for the cache-identity follow-up. Reconcile exact main/branch/PR/head/CI/Preview/production before every retry.",
-  "verifiedAt": "2026-08-25T06:27:00Z"
+  "lastFailure": null,
+  "checkpointNote": "CI and exact-head Preview verification passed for e3c9d872e8aac930e81892b8ff5c9dbc34d5e680. Before merge, reconcile this file, main, branch, PR/head, CI and Preview again. After merge, verify the fixed 159-startup001 production URLs, then persist the final merge SHA through the PR workflow.",
+  "verifiedAt": "2026-08-25T06:44:00Z"
 }
