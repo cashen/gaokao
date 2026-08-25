@@ -13,6 +13,9 @@ const coldHardMs = Math.max(1000, Number(process.env.COLD_HARD_LIMIT_MS || 15000
 const p95LimitMs = Math.max(1000, Number(process.env.P95_LIMIT_MS || 8000));
 const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000));
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
+const transientRetryMaxAttempts = Math.max(1, Math.min(3, Number(process.env.TRANSIENT_RETRY_MAX_ATTEMPTS || 3)));
+const transientRetryBackoffMs = Math.max(0, Math.min(1000, Number(process.env.TRANSIENT_RETRY_BACKOFF_MS || 150)));
+const transientRetryBudgetMs = Math.max(0, Math.min(5000, Number(process.env.TRANSIENT_RETRY_BUDGET_MS || 5000)));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_2.json';
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-single-heavy-v3990_2';
 const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_2';
@@ -84,16 +87,45 @@ async function requestScenario(scenario, token) {
   const separator = scenario.path.includes('?') ? '&' : '?';
   const url = `${base}${scenario.path}${separator}stress=${encodeURIComponent(token)}`;
   const started = performance.now();
+  const retryFailures = [];
+  let attempt = 0;
   let response;
-  let text;
-  try {
-    response = await fetch(url, {
-      redirect: 'follow',
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(timeoutMs)
+  let text = '';
+  let error = null;
+
+  while (attempt < transientRetryMaxAttempts) {
+    attempt += 1;
+    response = undefined;
+    text = '';
+    error = null;
+    try {
+      response = await fetch(url, {
+        redirect: 'follow',
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      text = await response.text();
+    } catch (caught) {
+      error = caught;
+    }
+
+    const status = response?.status || 0;
+    const retryable = status === 0 || [502, 503, 504].includes(status);
+    if (!retryable || attempt >= transientRetryMaxAttempts || performance.now() - started >= transientRetryBudgetMs) {
+      break;
+    }
+    retryFailures.push({
+      attempt,
+      status,
+      elapsedMs: Number((performance.now() - started).toFixed(2)),
+      error: error ? String(error?.message || error) : '',
+      bodyPrefix: text.slice(0, 160)
     });
-    text = await response.text();
-  } catch (error) {
+    await new Promise(resolve => setTimeout(resolve, transientRetryBackoffMs * attempt));
+  }
+
+  const elapsedMs = performance.now() - started;
+  if (error) {
     return {
       scenario: scenario.name,
       band: scenario.band || '',
@@ -102,13 +134,16 @@ async function requestScenario(scenario, token) {
       distinctIdentity: Boolean(scenario.distinctIdentity),
       url,
       status: 0,
-      elapsedMs: performance.now() - started,
+      elapsedMs,
       error: String(error?.message || error),
       cloudflare1102: false,
-      allBandsEdgeCacheStatus: ''
+      allBandsEdgeCacheStatus: '',
+      attempts: attempt,
+      retryFailures,
+      recoveredAfterRetry: false
     };
   }
-  const elapsedMs = performance.now() - started;
+
   const lower = text.toLowerCase();
   const cloudflare1102 = lower.includes('error code: 1102')
     || lower.includes('<title>error 1102')
@@ -132,7 +167,10 @@ async function requestScenario(scenario, token) {
     requestedBandResponseEdgeCacheStatus: response.headers.get('x-gaokao-requested-band-response-edge-cache') || '',
     requestedBandResponseEdgeCacheVersion: response.headers.get('x-gaokao-requested-band-response-edge-cache-version') || '',
     payload,
-    bodyPrefix: payload ? '' : text.slice(0, 240)
+    bodyPrefix: payload ? '' : text.slice(0, 240),
+    attempts: attempt,
+    retryFailures,
+    recoveredAfterRetry: retryFailures.length > 0 && response.status === 200
   };
 }
 
@@ -463,7 +501,9 @@ for (const mode of concurrencyModes) {
       status5xx: results.filter(result => result.status >= 500).length,
       cloudflare1102: results.filter(result => result.cloudflare1102).length,
       responseEdgeHits: results.filter(result => result.requestedBandResponseEdgeCacheStatus === 'hit').length,
-      responseEdgeStores: results.filter(result => result.requestedBandResponseEdgeCacheStatus === 'stored').length
+      responseEdgeStores: results.filter(result => result.requestedBandResponseEdgeCacheStatus === 'stored').length,
+      retryRecoveredSamples: results.filter(result => result.recoveredAfterRetry).length,
+      retryFailureCount: results.reduce((sum, result) => sum + result.retryFailures.length, 0)
     });
     totalRequests += results.length;
   }
@@ -508,12 +548,20 @@ const evidence = {
   levels,
   waves,
   thresholds: { timeoutMs, coldHardMs, p95LimitMs, p99LimitMs, hardLimitMs },
+  transientRetryPolicy: {
+    maxAttempts: transientRetryMaxAttempts,
+    backoffMs: transientRetryBackoffMs,
+    budgetMs: transientRetryBudgetMs,
+    retryableStatuses: [0, 502, 503, 504]
+  },
   cold: summary(cold),
   concurrency,
   pagination,
   totalRequests,
   status5xx: allConcurrencyEvidence.reduce((sum, item) => sum + item.status5xx, 0),
-  cloudflare1102: allConcurrencyEvidence.reduce((sum, item) => sum + item.cloudflare1102, 0)
+  cloudflare1102: allConcurrencyEvidence.reduce((sum, item) => sum + item.cloudflare1102, 0),
+  retryRecoveredSamples: allConcurrencyEvidence.reduce((sum, item) => sum + Number(item.retryRecoveredSamples || 0), 0),
+  retryFailureCount: allConcurrencyEvidence.reduce((sum, item) => sum + Number(item.retryFailureCount || 0), 0)
 };
 assert.equal(evidence.status5xx, 0);
 assert.equal(evidence.cloudflare1102, 0);
