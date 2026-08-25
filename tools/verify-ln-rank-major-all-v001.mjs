@@ -39,6 +39,8 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-c
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2025)', '2025 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2026)', '2026 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '三年同口径趋势', 'strict three-year trend wording');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '数据不完整，不能判断趋势', 'incomplete trend boundary');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'rawCandidate===null||rawCandidate===undefined', 'empty score does not render as zero');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'hasCandidateScore=d.candidateScore!==null', 'empty score summary guard');
 requireText('ln-rank/js/knowledge/major-understanding-resolver.js', 'resolveMajorQueryCandidates', 'canonical major resolver owner');
