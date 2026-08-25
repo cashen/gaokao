@@ -4,14 +4,15 @@
   "baseSha": "3eaca66ee9967e2cf511e63e35fa9334a7960794",
   "branch": "agent/major-bands-distinct-503-resilience-v001",
   "pr": 213,
-  "headSha": "facbd137ed117ac5781017214352d65667734221",
+  "headSha": "a51ab1376075cc56aa344d8f36a24a542fff3c4e",
   "mergeSha": null,
   "completed": [
     "MB-01-reconcile-current-baseline",
     "MB-02-add-bounded-retry-and-evidence",
-    "MB-03-static-and-local-validation"
+    "MB-03-static-and-local-validation",
+    "MB-04-pr-ci-and-preview-validation"
   ],
-  "inProgress": "MB-04-pr-ci-and-preview-validation",
+  "inProgress": "MB-05-ready-merge-and-post-merge",
   "pending": [
     "independent-major-bands-distinct-50-http-503-runtime-gate"
   ],
@@ -25,6 +26,6 @@
   },
   "postMergeVerification": null,
   "lastFailure": null,
-  "checkpointNote": "PR #213 is open draft with Preview successful and all currently scheduled PR checks green at the last verified code head facbd137ed117ac5781017214352d65667734221. The dedicated bounded-fanout workflow has not yet produced a pull_request run; its observed push run has zero jobs. Mark Ready only after exact-head reconciliation, then verify the dedicated stress gate and all other checks.",
-  "verifiedAt": "2026-08-26T00:01:00Z"
+  "checkpointNote": "PR #213 is Ready. Exact head a51ab1376075cc56aa344d8f36a24a542fff3c4e had 19 successful and 4 skipped terminal checks, with no failures; Preview succeeded. The dedicated bounded-fanout workflow still emitted only a zero-job push record, so post-merge production resource-graph verification remains required. Merge only after reconciling the new exact head.",
+  "verifiedAt": "2026-08-26T00:53:00Z"
 }
