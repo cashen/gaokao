@@ -3,11 +3,14 @@
   "repository": "cashen/gaokao",
   "baseSha": "3eaca66ee9967e2cf511e63e35fa9334a7960794",
   "branch": "agent/major-bands-distinct-503-resilience-v001",
-  "pr": null,
-  "headSha": null,
+  "pr": 213,
+  "headSha": "2ea53d05b32cc3440636486b0e7a009d5191bf8d",
   "mergeSha": null,
-  "completed": [],
-  "inProgress": "MB-01-reconcile-current-baseline",
+  "completed": [
+    "MB-01-reconcile-current-baseline",
+    "MB-02-add-bounded-retry-and-evidence"
+  ],
+  "inProgress": "MB-03-static-and-local-validation",
   "pending": [
     "independent-major-bands-distinct-50-http-503-runtime-gate"
   ],
@@ -21,6 +24,6 @@
   },
   "postMergeVerification": null,
   "lastFailure": null,
-  "checkpointNote": "Branch created from exact main SHA. The verifier change is intentionally limited to bounded retry and evidence; persistent failures remain blocking.",
-  "verifiedAt": "2026-08-25T23:34:00Z"
+  "checkpointNote": "PR #213 is open as draft from exact main 3eaca66ee9967e2cf511e63e35fa9334a7960794. Retry scope is limited to transient status 0/502/503/504 within a bounded budget; persistent final failures remain blocking. Before continuation, re-read live PR/head/CI/Preview/production and this status.",
+  "verifiedAt": "2026-08-25T23:39:10Z"
 }
