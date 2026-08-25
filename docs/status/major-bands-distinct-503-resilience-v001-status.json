@@ -1,0 +1,26 @@
+{
+  "task": "major-bands-distinct-503-resilience-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "3eaca66ee9967e2cf511e63e35fa9334a7960794",
+  "branch": "agent/major-bands-distinct-503-resilience-v001",
+  "pr": null,
+  "headSha": null,
+  "mergeSha": null,
+  "completed": [],
+  "inProgress": "MB-01-reconcile-current-baseline",
+  "pending": [
+    "independent-major-bands-distinct-50-http-503-runtime-gate"
+  ],
+  "baseline": {
+    "failingRun": 32910886708,
+    "failingJob": 98004745539,
+    "failingScenario": "distinct-9-407-standard-upper",
+    "observed": "HTTP 503",
+    "source": "production-resource-graph-v3990.1",
+    "scope": "independent major-bands stress; not Tongxue"
+  },
+  "postMergeVerification": null,
+  "lastFailure": null,
+  "checkpointNote": "Branch created from exact main SHA. The verifier change is intentionally limited to bounded retry and evidence; persistent failures remain blocking.",
+  "verifiedAt": "2026-08-25T23:34:00Z"
+}
