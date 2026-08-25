@@ -4,7 +4,7 @@
   "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
   "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
   "pr": 211,
-  "headSha": "5278136818142380134ad7b5fb4845c2edc3db01",
+  "headSha": "0110b591db45e2512e978ba8640f93d7610af56f",
   "completed": [
     "BF-01-reconcile-baseline",
     "BF-02-remove-zero-job-push-path",
@@ -25,5 +25,5 @@
   },
   "lastFailure": null,
   "checkpointNote": "PR trigger paths now explicitly include the recovery plan/status files as well as the workflow. Reconcile the next exact head and require a non-empty bounded-fanout run before claiming BF-04.",
-  "verifiedAt": "2026-08-25T23:24:00Z"
+  "verifiedAt": "2026-08-25T23:25:00Z"
 }
