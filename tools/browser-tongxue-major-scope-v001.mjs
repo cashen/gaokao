@@ -92,7 +92,8 @@ try {
       assert.match(await page.locator('#result').textContent(), /不会合并查询多个专业/);
 
       await input.fill('080601');
-      await page.locator('#queryButton').click();
+      await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
+      await input.press('Enter');
       try {
         await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
       } catch (error) {
