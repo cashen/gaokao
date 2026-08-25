@@ -29,6 +29,7 @@ on:
       - 'tools/verify-major-bands-preview-concurrency-v3990_2.mjs'
       - 'tools/verify-major-bands-preview-concurrency-paced-v3990_2.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
+  # BF-02: this verification gate is PR/manual only; main is covered by production checks.
   workflow_dispatch:
 
 permissions:
