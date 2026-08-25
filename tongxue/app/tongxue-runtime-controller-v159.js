@@ -988,7 +988,10 @@ function abortActive(state) {
 }
 
 function updateButton(ui, state) {
-  const scopeReady = state.scope === 'major' || state.ready;
+  // Keep the school action available while the catalog is preparing. The submit
+  // path queues the current input and resumes it after the resolver is ready,
+  // so a parent does not have to wait for the button to become clickable.
+  const scopeReady = state.scope === 'major' || state.ready || state.catalogLoading;
   const scopeError = state.scope === 'school' && Boolean(state.resolverError);
   ui.button.disabled = !scopeReady || scopeError || !ui.input.value.trim() || state.requestInFlight;
   // Legacy contract retained for v1.5.9 checks: ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
