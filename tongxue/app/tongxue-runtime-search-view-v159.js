@@ -140,6 +140,25 @@ export function createTongxueSearchView(ui, state) {
     focusResult();
   }
 
+  function renderMajorGuidance(input, resolution) {
+    state.choiceCandidates = [];
+    const isMulti = resolution?.status === 'multi-major';
+    const title = isMulti ? '一次查看一个专业' : '先选一个具体专业';
+    const body = isMulti
+      ? resolution.message
+      : (resolution?.message || '这个说法范围比较大，请先缩小到一个具体本科专业。');
+    const directions = (resolution?.directionChoices || []).map(choice => `<button type="button" class="choice-card" data-major-direction="${attr(choice.value)}"><span class="choice-name">${html(choice.label)}</span><span class="choice-note">先看这个方向下的具体专业</span></button>`).join('');
+    const candidates = !directions && !isMulti
+      ? (resolution?.candidates || []).slice(0, 8).map((candidate, index) => {
+        const item = candidate.item || candidate;
+        return `<button type="button" class="choice-card" data-major-choice="${index}"><span class="choice-name">${html(item.name || '')}</span><span class="choice-note">${html([item.code, item.majorClass || item.categoryName].filter(Boolean).join(' · ') || '本科专业')} · 选择后查看</span></button>`;
+      }).join('')
+      : '';
+    const choices = directions || candidates;
+    commit('confirmation', `<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${title}</h2><p>${html(body)}</p>${choices ? `<div class="choice-grid">${choices}</div>` : ''}<div class="state-meta"><span class="meta-chip">当前输入：${html(input)}</span><span class="meta-chip">不会合并查询多个专业</span></div></div>`);
+    focusResult();
+  }
+
   function renderNotFound(input, candidates = [], options = {}) {
     const isMajor = options.scope === 'major';
     const suggestions = candidates.length
@@ -150,8 +169,9 @@ export function createTongxueSearchView(ui, state) {
     focusResult();
   }
 
-  function renderLocalFailure(message) {
-    commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">学校名单暂时不可用</h2><p>${html(message)}</p></div>`);
+  function renderLocalFailure(message, options = {}) {
+    const isMajor = options.scope === 'major';
+    commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">${isMajor ? '专业目录暂时不可用' : '学校名单暂时不可用'}</h2><p>${html(message)}</p></div>`);
     focusResult();
   }
 
@@ -186,6 +206,7 @@ export function createTongxueSearchView(ui, state) {
     renderRegion,
     renderLoading,
     renderChoices,
+    renderMajorGuidance,
     renderNotFound,
     renderLocalFailure,
     clearResult,
