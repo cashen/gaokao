@@ -4,7 +4,7 @@
   "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
   "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
   "pr": 211,
-  "headSha": "ceead63144ee47c1be6536d70279564b521d958e",
+  "headSha": "ff9734dedef9c438dd54f00fce007b1dc5e83dcf",
   "completed": [
     "BF-01-reconcile-baseline",
     "BF-02-remove-zero-job-push-path"
@@ -24,6 +24,6 @@
     "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
   },
   "lastFailure": null,
-  "checkpointNote": "PR #211 is open as draft. The workflow change is limited to removing the unconditional push-to-main trigger. Reconcile exact PR head and CI before every continuation; do not claim the independent runtime 503 fixed.",
-  "verifiedAt": "2026-08-25T22:47:30Z"
+  "checkpointNote": "PR #211 remains Draft. Exact current head is ff9734dedef9c438dd54f00fce007b1dc5e83dcf after the status checkpoint commit. Reconcile PR, CI jobs, Preview, and production before every continuation; do not claim the independent runtime 503 fixed.",
+  "verifiedAt": "2026-08-25T22:50:00Z"
 }
