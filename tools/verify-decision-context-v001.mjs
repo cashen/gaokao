@@ -98,6 +98,6 @@ const noMajor=buildDecisionActions({...context,major:'',majorCode:''},{
 });
 assert.deepEqual(noMajor.map(item=>item.id),['ask_family_advisor','return_to_source']);
 
-const huge=encodeDecisionContext({...context,pendingQuestions:Array.from({length:8},()=> 'x'.repeat(180))});
+const huge=encodeDecisionContext({...context,evidenceRefs:Array.from({length:8},()=>({kind:'reference',label:'x'.repeat(180),ref:'y'.repeat(180)}))});
 assert.equal(huge,'','oversized context must fail closed');
 console.log('Decision context v0.01 verified: readonly, bounded, same-origin, non-inferred score/rank, navigation carry, and deterministic actions.');
