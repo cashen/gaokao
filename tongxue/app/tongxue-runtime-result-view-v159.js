@@ -9,6 +9,7 @@ import {
   summaryGroups
 } from './tongxue-runtime-utils-v159.js?v=159';
 import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0';
+import { summarizeDecisionContext } from '../../shared/decision-context/decision-context.v001.js';
 
 const PAGE_VERSION = 'v1.5.9-uec01-evidence02';
 const PATHWAY_VIEW_VERSION = UNDERGRAD_GRADUATE_PATHWAY_VIEW_META.version;
@@ -22,11 +23,33 @@ const TOPIC_LABELS = Object.freeze({
 
 export function createTongxueResultView(ui, state, searchView) {
   function renderResult(data, school, resolution) {
-    if (['major_reviews','topic_reviews'].includes(data.mode)) return renderReviews(data, school, resolution);
-    if (['topic_no_content','topic_not_found_within_budget'].includes(data.mode)) return renderTopicState(data, school, resolution);
-    if (data.mode === 'recent_reviews') return renderReviews(data, school, resolution);
-    if (data.mode === 'no_content') return renderNoContent(data, school, resolution);
-    return renderSummary(data, school, resolution);
+    if (['major_reviews','topic_reviews'].includes(data.mode)) renderReviews(data, school, resolution);
+    else if (['topic_no_content','topic_not_found_within_budget'].includes(data.mode)) renderTopicState(data, school, resolution);
+    else if (data.mode === 'recent_reviews') renderReviews(data, school, resolution);
+    else if (data.mode === 'no_content') renderNoContent(data, school, resolution);
+    else renderSummary(data, school, resolution);
+    mountDecisionContext();
+  }
+
+  function mountDecisionContext() {
+    const context = state.decisionContext;
+    if (!context || !ui.result) return;
+    const host = ui.result.querySelector('.result-shell, .state-card');
+    if (!host || host.querySelector('[data-decision-context-strip]')) return;
+    const summary = summarizeDecisionContext(context);
+    if (!summary.lines.length) return;
+    const strip = document.createElement('section');
+    strip.className = 'decision-context-strip';
+    strip.dataset.decisionContextStrip = 'readonly';
+    strip.innerHTML = `<strong>${html(summary.title)}</strong><span>${html(summary.lines.join(' · '))}</span><small>${html(summary.note)}；不会自动修改家庭方案。</small>`;
+    if (context.returnTo) {
+      const link = document.createElement('a');
+      link.href = context.returnTo;
+      link.textContent = '返回原查询';
+      link.className = 'decision-context-return';
+      strip.append(link);
+    }
+    host.prepend(strip);
   }
 
   function renderSummary(data, school, resolution) {
