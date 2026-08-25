@@ -33,6 +33,7 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'confirmedDir
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="related"', 'related-direction scope action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="admission-groups"', 'admission-group scope action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.set('majorScope',majorScope)", 'admission-group API scope propagation');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'queryInputs', 'raw direction retained for admission groups');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "scope==='related'", 'related-direction query expansion');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'function draftMajorText()', 'draft query text owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'state.filters.majorKeyword=draftMajorText()', 'shared workspace major draft sync');
