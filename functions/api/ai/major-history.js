@@ -142,7 +142,8 @@ export async function onRequestGet(context) {
     const rawMinScore = scoreBound(url.searchParams.get('minScore')), rawMaxScore = scoreBound(url.searchParams.get('maxScore'));
     const minScore = rawMinScore !== null && rawMaxScore !== null ? Math.min(rawMinScore, rawMaxScore) : rawMinScore, maxScore = rawMinScore !== null && rawMaxScore !== null ? Math.max(rawMinScore, rawMaxScore) : rawMaxScore;
     const scoreRange = { kind: minScore !== null && maxScore !== null ? 'range' : minScore !== null ? 'min' : maxScore !== null ? 'max' : 'none', min: minScore, max: maxScore };
-    const offset = Math.max(0, int(url.searchParams.get('offset'), 0)), limit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
+    const offset = Math.max(0, int(url.searchParams.get('offset'), 0));
+    const requestedLimit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!majorInputs.length) return json({ ok: false, code: 'major_required', message: '需要先明确一个或多个具体专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context);
     const resolvedInputs = resolveMajorInputs(majorInputs);
@@ -156,6 +157,8 @@ export async function onRequestGet(context) {
         apiVersion: AI_MAJOR_HISTORY_API_VERSION
       }, 409);
     }
+    const directionQuery = resolvedInputs.intentRows.some(item => item.intent.intentLevel === 'direction' && item.intent.status === 'ready');
+    const limit = directionQuery ? Math.max(requestedLimit, 200) : requestedLimit;
     const matchedByInput = resolvedInputs.inputs.map(input => ({ input, keys: resolveMajorKeys(manifest, input) }));
     const majorKeys = [...new Set(matchedByInput.flatMap(item => item.keys))];
     if (!majorKeys.length) return json({ ok: true, majorInputs, region, projectMode, bottomLineMode, matchedMajors: [], majorIntent: resolvedInputs.intentRows.map(item => item.intent), total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
