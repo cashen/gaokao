@@ -93,7 +93,19 @@ try {
 
       await input.fill('080601');
       await page.locator('#queryButton').click();
-      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
+      try {
+        await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
+      } catch (error) {
+        const diagnostic = await page.evaluate(() => ({
+          url:location.href,
+          viewState:document.getElementById('result')?.dataset.viewState || '',
+          resultText:document.getElementById('result')?.textContent || '',
+          input:(document.getElementById('school'))?.value || '',
+          buttonDisabled:Boolean(document.getElementById('queryButton')?.disabled),
+          state:globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null
+        }));
+        throw new Error(`${String(error?.message || error)}\n${JSON.stringify({ apiRequests, diagnostic })}`);
+      }
       assert.equal(await page.locator('[data-student-voice-scope="major"][data-major-code="080601"]').count(), 1, `${testCase.name}: major result identity missing`);
       assert.equal(apiRequests.length, 1, `${testCase.name}: exact major queried more than once`);
       assert.deepEqual({ scope:apiRequests[0].scope, majorCode:apiRequests[0].majorCode, major:apiRequests[0].major }, {
