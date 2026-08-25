@@ -4,7 +4,7 @@
   "baseSha": "c3a0f958f44963f931dc94ec4407cf855c8bbac8",
   "branch": "agent/major-bands-bounded-fanout-gate-recovery-v001",
   "pr": 211,
-  "headSha": "114f19448875e6de0c3a8f72b1cde40ee9b14af5",
+  "headSha": "e0101b6462276a90327de25ead717835d14181a3",
   "completed": [
     "BF-01-reconcile-baseline",
     "BF-02-remove-zero-job-push-path",
@@ -23,6 +23,6 @@
     "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
   },
   "lastFailure": null,
-  "checkpointNote": "PR #211 is Ready. All nine checks for exact head a55226b1b348fe1b574a8751ef37ab83ed5efaf0 passed, including Cloudflare Pages Preview. The checkpoint update below starts BF-05; after its commit, re-align head and rerun final checks before exact-head merge. Independent runtime HTTP 503 remains pending.",
-  "verifiedAt": "2026-08-25T23:59:00Z"
+  "checkpointNote": "BF-04 and BF-05 pre-merge validation are complete for exact PR head e0101b6462276a90327de25ead717835d14181a3. The status commit itself advances the branch; merge must use the live PR head and its all-green checks, while this field records the last verified source head. Independent runtime HTTP 503 remains pending.",
+  "verifiedAt": "2026-08-26T00:25:00Z"
 }
