@@ -37,12 +37,14 @@
     "fixedIdentityNoRandomQueryRequired": true
   },
   "independentGateNote": {
-    "workflow": "Verify production resource graph v3990.1",
-    "run": 32819092504,
-    "result": "Tongxue/resource graph/static/pagination checks passed; unrelated major-bands distinct-50 stress sample returned HTTP 503 and the workflow remained red after retry.",
-    "workflow": "Verify major-bands rank kernel v3990.1",
-    "runs": [32819091211, 32819259219],
-    "result": "Push-triggered workflow failed before creating jobs; it was not modified by PR #209."
+    "productionResourceGraphWorkflow": {
+      "run": 32819092504,
+      "result": "Tongxue/resource graph/static/pagination checks passed; unrelated major-bands distinct-50 stress sample returned HTTP 503 and the workflow remained red after retry."
+    },
+    "majorBandsWorkflow": {
+      "runs": [32819091211, 32819259219],
+      "result": "Push-triggered workflow failed before creating jobs; it was not modified by PR #209."
+    }
   },
   "checkpointNote": "This final status is the recovery source. PR #209 is merged to main. If interrupted later, reconcile main SHA, PR #209 merge state, this file, production fixed identities and current CI before any retry. Do not treat the independent major-bands stress gate as a Tongxue cache-buster failure.",
   "verifiedAt": "2026-08-25T07:03:00Z"
