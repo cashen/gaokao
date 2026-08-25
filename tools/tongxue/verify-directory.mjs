@@ -34,7 +34,7 @@ const [
   readdir('.')
 ]);
 
-requireText(page, '<title>同学你好 - 找学校，看看大家怎么说</title>', '页面标题');
+requireText(page, '<title>同学你好 - 学校、专业，都可以问问同学怎么说</title>', '页面标题');
 requireText(page, './app/tongxue-runtime-v159-r3968.js?v=3968_0', '页面入口');
 forbidText(page, './app/tongxue-runtime-v159.js?v=159', '页面仍加载旧入口');
 requireText(page, '同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.2 · 更新于 2026-08-24', '页面版本');
