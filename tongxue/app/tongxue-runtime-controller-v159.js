@@ -1,6 +1,6 @@
-import { loadSchoolCatalog } from '../data/school-name-resolver-v150.js?v=150';
+import { loadSchoolCatalog, SCHOOL_NAME_DATA_URL } from '../data/school-name-resolver-v150.js?v=150';
 import { getSchoolEntity, findSchoolEntityByName } from '../data/school-entities-v150.js?v=150';
-import { createTongxueSearchView } from './tongxue-runtime-search-view-v159.js?v=159-fuzzy001';
+import { createTongxueSearchView, setTongxueIndexStatus } from './tongxue-runtime-search-view-v159.js?v=159-fuzzy001';
 import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v=159';
 import {
   resolveTongxueMajorInput
@@ -102,10 +102,56 @@ function applyScopePresentation(ui, scope = 'school', state = null) {
     group.hidden = group.dataset.scopeExamples !== (isMajor ? 'major' : 'school');
   });
   if (ui.indexStatus && state?.ready) {
-    ui.indexStatus.textContent = isMajor
+    setTongxueIndexStatus(ui, isMajor
       ? `专业目录已准备好：支持 ${Number(state.majorCount || 883).toLocaleString('zh-CN')} 个本科专业`
-      : `学校名单已准备好：支持 ${Number(state.schoolCount || 0).toLocaleString('zh-CN')} 所普通高校及独立招生实体`;
+      : `学校名单已准备好：支持 ${Number(state.schoolCount || 0).toLocaleString('zh-CN')} 所普通高校及独立招生实体`, 'ready');
   }
+}
+
+function hasLocationQuery(locationLike = globalThis.location) {
+  const params = new URLSearchParams(locationLike?.search || '');
+  return ['school', 'entity', 'q', 'scope', 'major', 'majorCode'].some(key => params.has(key));
+}
+
+function beginCatalogLoad(ui, state, searchView, resultView, { retry = false } = {}) {
+  if (state.catalogLoading && state.catalogPromise) return state.catalogPromise;
+
+  state.catalogLoading = true;
+  state.resolverError = null;
+  setTongxueIndexStatus(ui, '正在准备学校和专业目录，马上可以查询', 'preparing');
+  ui.inputState.hidden = false;
+  updateButton(ui, state);
+
+  const url = retry ? `${SCHOOL_NAME_DATA_URL}?retry=${Date.now()}` : SCHOOL_NAME_DATA_URL;
+  const promise = loadSchoolCatalog(url)
+    .then(catalog => {
+      state.resolver = catalog.resolver;
+      state.metadata = catalog.metadata;
+      state.schoolCount = catalog.count;
+      state.ready = true;
+      applyScopePresentation(ui, state.scope, state);
+      const pending = state.pendingSubmit;
+      state.pendingSubmit = null;
+      if (pending && normalizeSchool(ui.input.value) === pending.input && state.scope === 'school') {
+        Promise.resolve(submitInput(ui, state, searchView, resultView, pending.options)).catch(() => {});
+      }
+      return catalog;
+    })
+    .catch(error => {
+      state.ready = false;
+      state.resolverError = error;
+      setTongxueIndexStatus(ui, '目录加载失败，请点击重新加载', 'error');
+      updateButton(ui, state);
+      return null;
+    })
+    .finally(() => {
+      state.catalogLoading = false;
+      ui.inputState.hidden = true;
+      updateButton(ui, state);
+    });
+
+  state.catalogPromise = promise;
+  return promise;
 }
 
 
@@ -152,33 +198,21 @@ export async function startTongxueRuntime() {
     renderCount:0,
     lastRenderKind:'idle',
     listenerCount:0,
-    submitCount:0
+    submitCount:0,
+    catalogLoading:false,
+    catalogPromise:null,
+    pendingSubmit:null
   };
   applyScopePresentation(ui, 'school', state);
   const searchView = createTongxueSearchView(ui, state);
   const resultView = createTongxueResultView(ui, state, searchView);
 
   bindEvents(ui, state, searchView, resultView);
-  searchView.setIndexStatus('正在准备学校和专业目录…');
-  ui.inputState.hidden = false;
-  updateButton(ui, state);
-
-  try {
-    const catalog = await loadSchoolCatalog();
-    state.resolver = catalog.resolver;
-    state.metadata = catalog.metadata;
-    state.schoolCount = catalog.count;
-    state.ready = true;
-    applyScopePresentation(ui, state.scope, state);
-  } catch (error) {
-    state.resolverError = error;
-    searchView.setIndexStatus('学校名单暂时没有加载完成，请重新加载后再试。');
-  } finally {
-    ui.inputState.hidden = true;
-    updateButton(ui, state);
+  beginCatalogLoad(ui, state, searchView, resultView);
+  if (hasLocationQuery()) {
+    await state.catalogPromise?.catch(() => null);
+    if (state.ready) await restoreFromLocation(ui, state, searchView, resultView);
   }
-
-  if (state.ready) await restoreFromLocation(ui, state, searchView, resultView);
 
   const api = Object.freeze({
     version:RUNTIME_VERSION,
@@ -218,6 +252,8 @@ function collectUi() {
     suggestions:document.getElementById('schoolSuggestions'),
     resolveHint:document.getElementById('resolveHint'),
     indexStatus:document.getElementById('indexStatus'),
+    indexStatusMessage:document.getElementById('indexStatusMessage'),
+    retryIndex:document.getElementById('retryIndex'),
     inputState:document.getElementById('inputState'),
     liveStatus:document.getElementById('liveStatus'),
     hero:document.querySelector('.hero'),
@@ -226,7 +262,7 @@ function collectUi() {
     exampleGroups:[...document.querySelectorAll('[data-scope-examples]')]
   };
   for (const [key, value] of Object.entries(required)) {
-    if (!value && !['changeSchool'].includes(key)) throw new Error(`Tongxue v1.5.9 missing UI node: ${key}`);
+    if (!value && !['changeSchool', 'indexStatusMessage', 'retryIndex'].includes(key)) throw new Error(`Tongxue v1.5.9 missing UI node: ${key}`);
   }
   return required;
 }
@@ -290,6 +326,7 @@ function bindEvents(ui, state, searchView, resultView) {
     }
   });
   on(ui.button, 'click', () => submitInput(ui, state, searchView, resultView));
+  if (ui.retryIndex) on(ui.retryIndex, 'click', () => beginCatalogLoad(ui, state, searchView, resultView, { retry:true }));
   on(ui.suggestions, 'pointerdown', event => {
     if (event.target.closest('[data-suggestion-index]')) event.preventDefault();
   });
@@ -483,8 +520,10 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   state.scope = 'school';
   applyScopePresentation(ui, 'school', state);
   if (!state.resolver) {
-    searchView.renderLocalFailure('高校名单还没有加载完成。', { scope:'school' });
-    return null;
+    state.pendingSubmit = { input, options:{ ...options, input } };
+    searchView.setIndexStatus('正在准备学校和专业目录，准备好后会继续查询', 'preparing');
+    updateButton(ui, state);
+    return state.catalogPromise;
   }
   leaveMajorDirectState(state);
   state.submitCount += 1;
@@ -949,7 +988,10 @@ function abortActive(state) {
 }
 
 function updateButton(ui, state) {
-  const scopeReady = state.scope === 'major' || state.ready;
+  // Keep the school action available while the catalog is preparing. The submit
+  // path queues the current input and resumes it after the resolver is ready,
+  // so a parent does not have to wait for the button to become clickable.
+  const scopeReady = state.scope === 'major' || state.ready || state.catalogLoading;
   const scopeError = state.scope === 'school' && Boolean(state.resolverError);
   ui.button.disabled = !scopeReady || scopeError || !ui.input.value.trim() || state.requestInFlight;
   // Legacy contract retained for v1.5.9 checks: ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
