@@ -7,11 +7,11 @@
   "headSha": "ff9734dedef9c438dd54f00fce007b1dc5e83dcf",
   "completed": [
     "BF-01-reconcile-baseline",
-    "BF-02-remove-zero-job-push-path"
+    "BF-02-remove-zero-job-push-path",
+    "BF-03-static-and-local-validation"
   ],
-  "inProgress": "BF-03-static-and-local-validation",
+  "inProgress": "BF-04-pr-ci-and-preview-validation",
   "pending": [
-    "BF-04-pr-ci-and-preview-validation",
     "BF-05-ready-merge-and-production-recheck"
   ],
   "baseline": {
@@ -24,6 +24,6 @@
     "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
   },
   "lastFailure": null,
-  "checkpointNote": "PR #211 remains Draft. Exact current head is ff9734dedef9c438dd54f00fce007b1dc5e83dcf after the status checkpoint commit. Reconcile PR, CI jobs, Preview, and production before every continuation; do not claim the independent runtime 503 fixed.",
-  "verifiedAt": "2026-08-25T22:50:00Z"
+  "checkpointNote": "PR #211 remains Draft while existing checks converge. BF-03 source/workflow validation is complete; BF-04 requires exact-head PR CI, non-empty bounded-fanout jobs, and Preview proof. Independent runtime 503 remains pending.",
+  "verifiedAt": "2026-08-25T23:08:00Z"
 }
