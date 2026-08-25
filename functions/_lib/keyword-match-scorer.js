@@ -76,6 +76,36 @@ export function evaluateKeywordMatch({ indexed, keywordQuery = {} } = {}) {
     industryText: indexed?.industryText || ''
   };
 
+  if (keywordQuery.majorIntentFailClosed) {
+    return {
+      matched: false,
+      matchScore: 0,
+      matchLevel: '',
+      matchLabel: '',
+      matchBadges: [],
+      matchReason: '这个专业说法范围过宽或尚未确认，先选择具体方向后再查询。'
+    };
+  }
+
+  if (Array.isArray(keywordQuery.majorCodes) && keywordQuery.majorCodes.length) {
+    const code = String(indexed?.majorCode || '').trim().toUpperCase();
+    if (!keywordQuery.majorCodes.includes(code)) {
+      return { matched: false, matchScore: 0, matchLevel: '', matchLabel: '', matchBadges: [], matchReason: '' };
+    }
+    const direction = keywordQuery.majorIntent?.items?.length === 1 && keywordQuery.majorIntent.items[0].intentLevel === 'direction';
+    const label = direction ? '核心方向' : '精准专业';
+    return {
+      matched: true,
+      matchScore: direction ? 92 : 100,
+      matchLevel: 'exact',
+      matchLabel: label,
+      matchBadges: [label],
+      matchedKeyword: keywordQuery.rawInput || '',
+      matchedTerms: Array.isArray(keywordQuery.rawKeywords) ? keywordQuery.rawKeywords : [],
+      matchReason: direction ? `“${keywordQuery.rawInput}”按目录方向识别为核心专业集合。` : `“${keywordQuery.rawInput}”按标准专业代码精确匹配。`
+    };
+  }
+
   let best = null;
   const candidates = rawKeywords.length ? rawKeywords : [keywordQuery.rawInput].filter(Boolean);
   for (const keyword of candidates) {

@@ -13,6 +13,7 @@ export function buildSearchIndex(records = []) {
   return (Array.isArray(records) ? records : []).map((record, index) => ({
     index,
     record,
+    majorCode: String(record.standardMajor?.code || record.codes?.standardMajorCode || record.majorCode2026 || '').trim().toUpperCase(),
     majorText: normalizeSearchText(joinValues([
       record.majorName,
       record.major,

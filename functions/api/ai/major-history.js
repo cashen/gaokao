@@ -1,6 +1,8 @@
 import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 import { lookupScoreRank } from '../../_lib/rank-table-provider.js';
+import { createMajorIntentResolver } from '../../../shared/resources/majors/major-intent-resolver.v001.js';
+import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../../_lib/kb/standard-major-catalog-2026-full.generated.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
@@ -8,6 +10,7 @@ const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_1/manifest.json';
 const MANIFEST_TTL_MS = 5 * 60 * 1000;
 const SHARD_TTL_MS = 60 * 1000;
 const SHARD_CACHE_MAX = 2;
+const MAJOR_INTENT_RESOLVER = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
 let manifestCache = null;
 const shardCache = new Map();
 
@@ -72,13 +75,25 @@ async function loadShard(context, manifest, shard) {
   pruneShardCache();
   return payload;
 }
-function resolveMajorKeys(manifest, query) {
+function normalizeMajorScope(value) { return String(value || '').trim() === 'admission-groups' ? 'admission-groups' : 'core'; }
+function isAdmissionGroupKey(value) { return /类|试验班|实验班|招生大类|[\[\]]/.test(String(value || '')); }
+function resolveMajorKeys(manifest, query, scope = 'core') {
   const normalized = norm(query);
   if (!normalized) return [];
   const exact = manifest.lookup?.[normalized];
-  if (exact) return [exact];
   const keys = Object.keys(manifest.majors || {});
-  return keys.filter(key => { const candidate = norm(key); return candidate.includes(normalized) || normalized.includes(candidate); }).slice(0, 8);
+  const fuzzy = keys.filter(key => { const candidate = norm(key); return (candidate.includes(normalized) || normalized.includes(candidate)) && (scope === 'admission-groups' ? isAdmissionGroupKey(key) : true); });
+  if (scope !== 'admission-groups' && exact) return [exact];
+  return [...new Set([...(exact ? [exact] : []), ...fuzzy])].slice(0, 8);
+}
+function resolveMajorInputs(inputs = []) {
+  const intentRows = inputs.map(input => ({ input, intent: MAJOR_INTENT_RESOLVER.resolve(input, { limit: 12 }) }));
+  const blocked = intentRows.filter(item => ['broad-field', 'discipline', 'major-class'].includes(item.intent.intentLevel) && item.intent.status !== 'ready');
+  if (blocked.length) return { intentRows, blocked, inputs: [] };
+  const expanded = [...new Set(intentRows.flatMap(item => item.intent.status === 'ready' && item.intent.coreMajorNames?.length
+    ? item.intent.coreMajorNames
+    : [item.input]))];
+  return { intentRows, blocked: [], inputs: expanded };
 }
 function rowRecord(row, ix) {
   const record = {
@@ -120,6 +135,7 @@ export async function onRequestGet(context) {
     const region = clean(url.searchParams.get('region'), 220) || 'all';
     const schoolKeyword = norm(url.searchParams.get('schoolKeyword'));
     const projectMode = normalizeProjectMode(url.searchParams.get('projectMode'));
+    const majorScope = normalizeMajorScope(url.searchParams.get('majorScope'));
     const bottomLineMode = clean(url.searchParams.get('bottomLineMode'), 40) || 'all';
     const candidateScore = scoreBound(url.searchParams.get('candidateScore'));
     const requestedSort = ['position-near', 'score-desc', 'score-asc'].includes(String(url.searchParams.get('sort') || '').trim())
@@ -130,12 +146,27 @@ export async function onRequestGet(context) {
     const rawMinScore = scoreBound(url.searchParams.get('minScore')), rawMaxScore = scoreBound(url.searchParams.get('maxScore'));
     const minScore = rawMinScore !== null && rawMaxScore !== null ? Math.min(rawMinScore, rawMaxScore) : rawMinScore, maxScore = rawMinScore !== null && rawMaxScore !== null ? Math.max(rawMinScore, rawMaxScore) : rawMaxScore;
     const scoreRange = { kind: minScore !== null && maxScore !== null ? 'range' : minScore !== null ? 'min' : maxScore !== null ? 'max' : 'none', min: minScore, max: maxScore };
-    const offset = Math.max(0, int(url.searchParams.get('offset'), 0)), limit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
+    const offset = Math.max(0, int(url.searchParams.get('offset'), 0));
+    const requestedLimit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!majorInputs.length) return json({ ok: false, code: 'major_required', message: '需要先明确一个或多个具体专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context);
-    const matchedByInput = majorInputs.map(input => ({ input, keys: resolveMajorKeys(manifest, input) }));
+    const resolvedInputs = resolveMajorInputs(majorInputs);
+    if (resolvedInputs.blocked.length) {
+      return json({
+        ok: false,
+        code: 'major_query_requires_choice',
+        message: '这个专业说法范围较宽，请先选择具体方向或专业后再读取三年历史。',
+        majorInputs,
+        majorIntent: resolvedInputs.blocked.map(item => item.intent),
+        apiVersion: AI_MAJOR_HISTORY_API_VERSION
+      }, 409);
+    }
+    const directionQuery = resolvedInputs.intentRows.some(item => item.intent.intentLevel === 'direction' && item.intent.status === 'ready');
+    const limit = directionQuery ? Math.max(requestedLimit, 200) : requestedLimit;
+    const executionInputs = [...new Set([...resolvedInputs.inputs, ...(majorScope === 'admission-groups' ? majorInputs : [])])];
+    const matchedByInput = executionInputs.map(input => ({ input, keys: resolveMajorKeys(manifest, input, majorScope) }));
     const majorKeys = [...new Set(matchedByInput.flatMap(item => item.keys))];
-    if (!majorKeys.length) return json({ ok: true, majorInputs, region, projectMode, bottomLineMode, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
+    if (!majorKeys.length) return json({ ok: true, majorInputs, region, projectMode, majorScope, bottomLineMode, matchedMajors: [], majorIntent: resolvedInputs.intentRows.map(item => item.intent), total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
     const records = [], loaded = new Map(), seenIds = new Set();
     for (const key of majorKeys) {
       const descriptor = manifest.majors[key];
@@ -186,11 +217,11 @@ export async function onRequestGet(context) {
     });
     const total = records.length, page = records.slice(offset, offset + limit), stats = summary(records);
     return json({
-      ok: true, major: majorInputs.join('、'), majorInputs, region, projectMode, schoolKeyword, bottomLineMode, scoreRange, candidateScore, candidateReferenceRank2026: Number.isFinite(candidateRank) ? candidateRank : null, sort: requestedSort || (candidateRank ? 'position-near' : 'score-desc'), matchedMajors: majorKeys, matchedByInput, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
+      ok: true, major: majorInputs.join('、'), majorInputs, region, projectMode, majorScope, schoolKeyword, bottomLineMode, scoreRange, candidateScore, candidateReferenceRank2026: Number.isFinite(candidateRank) ? candidateRank : null, sort: requestedSort || (candidateRank ? 'position-near' : 'score-desc'), matchedMajors: majorKeys, matchedByInput, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
       records: page, summary: stats, complete: offset === 0 && page.length === total, dataYear: 2026, audienceYear: 2027,
       source: { level: 'B', sourceName: '辽宁2026物理类专业投档静态真值索引', sourceVersion: manifest.source?.version || '', sourceRecordCount: Number(manifest.source?.recordCount || 0), derivedIndex: true, sameTruthSet: manifest.integrity?.sameTruthSet === true },
       apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION,
-      boundary: `这里列的是2026辽宁物理类实际投档记录${scoreRange.kind!=='none'?`，并按${minScore!==null?`${minScore}分以上`:''}${minScore!==null&&maxScore!==null?'且':''}${maxScore!==null?`${maxScore}分以下`:''}过滤`:''}；默认包含普通项目和中外/高收费项目，若明确排除则按项目性质过滤。它不是2027录取承诺，正式填报仍要核对当年招生计划。`
+      boundary: `这里列的是2026辽宁物理类实际投档记录${scoreRange.kind!=='none'?`，并按${minScore!==null?`${minScore}分以上`:''}${minScore!==null&&maxScore!==null?'且':''}${maxScore!==null?`${maxScore}分以下`:''}过滤`:''}；${majorScope==='admission-groups'?'已保留学校原始招生大类/试验班名称，具体包含专业和分流规则需逐校核对；':'默认按核心专业集合查询，招生大类不自动混入；'}默认包含普通项目和中外/高收费项目，若明确排除则按项目性质过滤。它不是2027录取承诺，正式填报仍要核对当年招生计划。`
     });
   } catch (error) {
     return json({ ok: false, code: 'major_history_failed', message: clean(error?.message || error, 320), apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 500);

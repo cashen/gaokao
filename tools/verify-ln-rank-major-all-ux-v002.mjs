@@ -34,8 +34,11 @@ if (!(await page.getByRole('button', { name: '查询 2 个已确认专业' }).is
   throw new Error('unified confirmed-major query action is not visible');
 }
 
-for (const viewport of [{ width: 1366, height: 900 }, { width: 768, height: 1024 }, { width: 390, height: 844 }]) {
+for (const viewport of [{ width: 1366, height: 900 }, { width: 768, height: 1024 }, { width: 390, height: 844 }, { width: 412, height: 915 }]) {
   await page.setViewportSize(viewport);
+  const beforeViewportInput = await input.inputValue();
+  await input.focus();
+  if (await page.evaluate(() => document.activeElement?.id) !== 'majorKeyword') throw new Error('major input lost focus at ' + viewport.width);
   const geometry = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
@@ -43,6 +46,7 @@ for (const viewport of [{ width: 1366, height: 900 }, { width: 768, height: 1024
   }));
   if (geometry.scrollWidth > geometry.clientWidth + 1) throw new Error('horizontal overflow at ' + viewport.width);
   if (geometry.actionHeights.some(height => height < 44)) throw new Error('touch target below 44px at ' + viewport.width);
+  if (await input.inputValue() !== beforeViewportInput) throw new Error('major input changed while switching viewport at ' + viewport.width);
 }
 
 await page.getByRole('button', { name: '清空专业' }).click();

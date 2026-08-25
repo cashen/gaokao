@@ -29,6 +29,12 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.append('ma
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-remove-term', 'remove-one-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-add-another', 'explicit add-major draft action');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'lockedConfirmed', 'confirmed-major draft owner');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'confirmedDirectionScopes', 'direction scope state owner');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="related"', 'related-direction scope action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="admission-groups"', 'admission-group scope action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.set('majorScope',majorScope)", 'admission-group API scope propagation');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'queryInputs', 'raw direction retained for admission groups');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "scope==='related'", 'related-direction query expansion');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'function draftMajorText()', 'draft query text owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'state.filters.majorKeyword=draftMajorText()', 'shared workspace major draft sync');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '查询 ${names.length} 个已确认专业', 'explicit confirmed-major query copy');
@@ -36,6 +42,8 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-c
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2024)', '2024 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2025)', '2025 trend rendering');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'yearText(r,2026)', '2026 trend rendering');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '三年同口径趋势', 'strict three-year trend wording');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', '数据不完整，不能判断趋势', 'incomplete trend boundary');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'rawCandidate===null||rawCandidate===undefined', 'empty score does not render as zero');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'hasCandidateScore=d.candidateScore!==null', 'empty score summary guard');
 requireText('ln-rank/js/knowledge/major-understanding-resolver.js', 'resolveMajorQueryCandidates', 'canonical major resolver owner');
@@ -44,6 +52,8 @@ requireText('functions/api/ai/major-history.js', 'const majorInputs = splitMajor
 requireText('functions/api/ai/major-history.js', 'lookupScoreRank({ year: 2026', 'score-to-rank owner');
 requireText('functions/api/ai/major-history.js', 'candidateReferenceRank2026', 'candidate rank metadata');
 requireText('functions/api/ai/major-history.js', 'projectMode', 'project-mode filtering');
+requireText('functions/api/ai/major-history.js', 'normalizeMajorScope', 'major scope contract');
+requireText('functions/api/ai/major-history.js', 'isAdmissionGroupKey', 'school admission-group boundary');
 requireText('functions/api/ai/major-history.js', 'score2024', 'three-year API fields');
 requireText('ln-rank/js/workspace/major-path-handoff.v003.js', "context:'major'", 'major path navigation context');
 requireText('ln-rank/js/workspace/major-path-handoff.v003.js', 'decorateMajorAllCards', 'major card handoff decorator');
