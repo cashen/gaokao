@@ -2,8 +2,9 @@ import { loadSchoolCatalog } from '../data/school-name-resolver-v150.js?v=150';
 import { getSchoolEntity, findSchoolEntityByName } from '../data/school-entities-v150.js?v=150';
 import { createTongxueSearchView } from './tongxue-runtime-search-view-v159.js?v=159-fuzzy001';
 import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v=159';
-import { MAJOR_CATALOG_2026 } from '../../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
-import { createMajorCatalogResolver, normalizeMajorText } from '../../shared/resources/majors/major-catalog-contract.js?v=3958';
+import {
+  resolveTongxueMajorInput
+} from '../../shared/resources/majors/tongxue-single-major-adapter.v001.js?v=001';
 import {
   TongxueError,
   normalizeSchool,
@@ -15,7 +16,7 @@ import {
   reviewKey
 } from './tongxue-runtime-utils-v159.js?v=159';
 
-const RUNTIME_VERSION = 'tongxue-runtime-v159';
+const RUNTIME_VERSION = 'tongxue-runtime-v159-major001';
 const EXPERIENCE_TTL = Object.freeze({
   ai_summary:300000,
   recent_reviews:120000,
@@ -26,38 +27,17 @@ const EXPERIENCE_TTL = Object.freeze({
   no_content:120000
 });
 const VALID_MODES = new Set(Object.keys(EXPERIENCE_TTL));
-const MAJOR_RESOLVER = createMajorCatalogResolver(MAJOR_CATALOG_2026);
 let installed = false;
 
-function majorKey(value = '') {
-  return normalizeMajorText(value).toLowerCase();
-}
-
 function resolveMajorInput(value = '') {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-  if (majorKey(raw).length < 2) return { status:'not_found', input:raw, candidates:[], matchType:'none', confidence:0 };
-  const exact = MAJOR_RESOLVER.resolve(raw, { allowContains:false });
-  if (exact?.kind === 'major') return { status:'resolved', major:exact.item, matchType:exact.matchType, confidence:exact.confidence, candidates:[] };
-  if (exact?.kind === 'category') {
-    const candidates = exact.item.codes.map(code => MAJOR_RESOLVER.findByCode(code)).filter(Boolean).map(item => ({ item, score:0.72, matchType:'category_name' }));
-    return { status:'ambiguous', input:raw, matchType:exact.matchType, confidence:exact.confidence, candidates };
-  }
-  const matches = MAJOR_RESOLVER.search(raw, { limit:8 });
-  if (!matches.length) return { status:'not_found', input:raw, candidates:[], matchType:'none', confidence:0 };
-  const first = matches[0], second = matches[1], margin = first.score - (second?.score || 0);
-  const autoThreshold = raw.length >= 4 ? 0.82 : 0.9;
-  const requiredMargin = raw.length >= 4 ? 0.08 : 0.12;
-  if (first.score >= autoThreshold && margin >= requiredMargin) return { status:'resolved', input:raw, major:first.item, matchType:first.matchType, confidence:first.score, candidates:matches.slice(1,4) };
-  const plausible = matches.filter(candidate => candidate.score >= 0.57);
-  if (plausible.length === 1 && plausible[0].score >= 0.86) return { status:'resolved', input:raw, major:plausible[0].item, matchType:plausible[0].matchType, confidence:plausible[0].score, candidates:[] };
-  return { status:'ambiguous', input:raw, candidates:plausible, matchType:'fuzzy', confidence:first.score };
+  const resolved = resolveTongxueMajorInput(value, { limit:8 });
+  return resolved?.status === 'missing' ? null : resolved;
 }
 
 function majorSuggestionRows(value = '', limit = 8) {
   const resolution = resolveMajorInput(value);
   if (resolution?.status === 'resolved') {
-    return [{ officialName:resolution.major.name, majorCode:resolution.major.code, majorClass:resolution.major.majorClass || resolution.major.categoryName || '', score:resolution.confidence, matchType:resolution.matchType }];
+    return [{ officialName:resolution.major.name, majorCode:resolution.major.code, majorClass:resolution.major.majorClass || resolution.major.categoryName || '', score:1, matchType:resolution.matchType }];
   }
   return (resolution?.candidates || []).slice(0, limit).map(candidate => ({
     officialName:candidate.item.name,
@@ -69,11 +49,12 @@ function majorSuggestionRows(value = '', limit = 8) {
 }
 
 function shouldPreferSchool(state, input, majorResolution) {
+  if (state.scope === 'major') return false;
   if (!state.resolver || !majorResolution) return false;
   const schoolResolution = state.resolver.resolve(input, { limit:24 });
   if (!schoolResolution) return false;
   const exactMajor = majorResolution.status === 'resolved'
-    && ['code', 'name_exact', 'alias_exact', 'admission_suffix_clean'].includes(majorResolution.matchType);
+    && ['code_exact', 'name_exact', 'alias_exact', 'admission_suffix_clean'].includes(majorResolution.matchType);
   if (exactMajor) return false;
   if (schoolResolution.status === 'resolved' || schoolResolution.status === 'region') return true;
   if (schoolResolution.status === 'ambiguous' && majorResolution.status === 'ambiguous') {
@@ -83,7 +64,7 @@ function shouldPreferSchool(state, input, majorResolution) {
   return false;
 }
 
-function applyScopePresentation(ui, scope = 'school') {
+function applyScopePresentation(ui, scope = 'school', state = null) {
   const isMajor = scope === 'major';
   const sourceNote = document.querySelector('[data-major-source-footer-note]');
   if (sourceNote) {
@@ -97,13 +78,26 @@ function applyScopePresentation(ui, scope = 'school') {
   if (brand) brand.textContent = isMajor ? '专业体验线索' : '学校体验线索';
   if (title) title.textContent = isMajor ? '找专业，看看大家怎么说' : '找学校，看看大家怎么说';
   if (description) description.textContent = isMajor
-    ? '先看专业资料，再看学生公开留言，了解学习与发展体验'
+    ? '先确认一个具体专业，再看专业资料、升学路径和学生公开留言'
     : '整理学生公开留言，帮你了解学校的学习、生活和就业体验';
   if (ui.input) {
-    ui.input.placeholder = isMajor ? '输入专业名称或专业代码' : '输入学校、简称或地区';
+    ui.input.placeholder = isMajor ? '输入专业名称、简称或代码' : '输入学校、简称或地区';
     ui.input.setAttribute('aria-label', isMajor ? '专业名称或专业代码' : '学校名称或地区');
   }
   if (ui.changeSchool) ui.changeSchool.textContent = isMajor ? '换一个专业' : '换一所学校';
+  ui.scopeSwitches?.forEach(button => {
+    const selected = button.dataset.scopeSwitch === (isMajor ? 'major' : 'school');
+    button.setAttribute('aria-selected', String(selected));
+    button.classList.toggle('active', selected);
+  });
+  ui.exampleGroups?.forEach(group => {
+    group.hidden = group.dataset.scopeExamples !== (isMajor ? 'major' : 'school');
+  });
+  if (ui.indexStatus && state?.ready) {
+    ui.indexStatus.textContent = isMajor
+      ? `专业目录已准备好：支持 ${Number(state.majorCount || 883).toLocaleString('zh-CN')} 个本科专业`
+      : `学校名单已准备好：支持 ${Number(state.schoolCount || 0).toLocaleString('zh-CN')} 所普通高校及独立招生实体`;
+  }
 }
 
 
@@ -112,7 +106,6 @@ export async function startTongxueRuntime() {
   installed = true;
 
   const ui = collectUi();
-  applyScopePresentation(ui, 'school');
   const state = {
     resolver:null,
     metadata:new Map(),
@@ -131,6 +124,9 @@ export async function startTongxueRuntime() {
     currentMajorCode:'',
     currentMajorName:'',
     currentTopic:'general',
+    scope:'school',
+    schoolCount:0,
+    majorCount:883,
     returnTo:'',
     directMode:false,
     requestInFlight:false,
@@ -149,11 +145,12 @@ export async function startTongxueRuntime() {
     listenerCount:0,
     submitCount:0
   };
+  applyScopePresentation(ui, 'school', state);
   const searchView = createTongxueSearchView(ui, state);
   const resultView = createTongxueResultView(ui, state, searchView);
 
   bindEvents(ui, state, searchView, resultView);
-  searchView.setIndexStatus('正在准备学校名单…');
+  searchView.setIndexStatus('正在准备学校和专业目录…');
   ui.inputState.hidden = false;
   updateButton(ui, state);
 
@@ -161,11 +158,12 @@ export async function startTongxueRuntime() {
     const catalog = await loadSchoolCatalog();
     state.resolver = catalog.resolver;
     state.metadata = catalog.metadata;
+    state.schoolCount = catalog.count;
     state.ready = true;
-    searchView.setIndexStatus(`学校名单已准备好：支持 ${catalog.count.toLocaleString('zh-CN')} 所普通高校及独立招生实体`);
+    applyScopePresentation(ui, state.scope, state);
   } catch (error) {
     state.resolverError = error;
-    searchView.setIndexStatus('高校名单暂时没有加载完成，请重新加载后再试。');
+    searchView.setIndexStatus('学校名单暂时没有加载完成，请重新加载后再试。');
   } finally {
     ui.inputState.hidden = true;
     updateButton(ui, state);
@@ -185,6 +183,7 @@ export async function startTongxueRuntime() {
       currentMajorCode:state.currentMajorCode,
       currentMajorName:state.currentMajorName,
       currentTopic:state.currentTopic,
+      scope:state.scope,
       directMode:state.directMode,
       requestInFlight:state.requestInFlight,
       loadingMore:state.loadingMore,
@@ -211,7 +210,9 @@ function collectUi() {
     inputState:document.getElementById('inputState'),
     liveStatus:document.getElementById('liveStatus'),
     hero:document.querySelector('.hero'),
-    changeSchool:document.querySelector('[data-change-school]')
+    changeSchool:document.querySelector('[data-change-school]'),
+    scopeSwitches:[...document.querySelectorAll('[data-scope-switch]')],
+    exampleGroups:[...document.querySelectorAll('[data-scope-examples]')]
   };
   for (const [key, value] of Object.entries(required)) {
     if (!value && !['changeSchool'].includes(key)) throw new Error(`Tongxue v1.5.9 missing UI node: ${key}`);
@@ -238,9 +239,9 @@ function bindEvents(ui, state, searchView, resultView) {
   });
   on(ui.input, 'input', event => {
     if (event.isComposing || state.composing) return;
-    if (state.voiceScope !== 'school') {
+    if (state.scope !== 'major' && state.voiceScope !== 'school') {
       leaveMajorDirectState(state);
-      applyScopePresentation(ui, 'school');
+      applyScopePresentation(ui, state.scope, state);
     }
     resetResolution(state, searchView);
     scheduleSuggestions(ui, state, searchView);
@@ -289,15 +290,20 @@ function bindEvents(ui, state, searchView, resultView) {
   on(document, 'pointerdown', event => {
     if (!event.target.closest('.input-wrap')) searchView.closeSuggestions();
   });
+  ui.scopeSwitches?.forEach(button => on(button, 'click', () => {
+    switchScope(ui, state, searchView, button.dataset.scopeSwitch);
+  }));
   document.querySelectorAll('[data-example]').forEach(button => on(button, 'click', () => {
-    leaveMajorDirectState(state);
+    const exampleScope = button.dataset.exampleScope === 'major' ? 'major' : 'school';
+    if (state.scope !== exampleScope) switchScope(ui, state, searchView, exampleScope);
+    if (exampleScope === 'school') leaveMajorDirectState(state);
     ui.input.value = button.dataset.example || '';
     resetResolution(state, searchView);
     submitInput(ui, state, searchView, resultView);
   }));
   on(ui.result, 'click', event => handleResultClick(event, ui, state, searchView, resultView));
   on(window, 'popstate', () => restoreFromLocation(ui, state, searchView, resultView));
-  if (ui.changeSchool) on(ui.changeSchool, 'click', () => resetToSchoolHome(ui, state, searchView));
+  if (ui.changeSchool) on(ui.changeSchool, 'click', () => resetToExperienceHome(ui, state, searchView));
 }
 
 function scheduleSuggestions(ui, state, searchView) {
@@ -308,6 +314,12 @@ function scheduleSuggestions(ui, state, searchView) {
 function updateSuggestions(ui, state, searchView) {
   const query = normalizeSchool(ui.input.value);
   const majorResolution = resolveMajorInput(query);
+  if (state.scope === 'major') {
+    const majorRows = majorSuggestionRows(query);
+    if (majorRows.length) searchView.setSuggestions(majorRows, '', { scope:'major' });
+    else searchView.closeSuggestions();
+    return;
+  }
   if (shouldPreferSchool(state, query, majorResolution)) {
     if (state.composing || !state.resolver || query.length < 2) {
       searchView.closeSuggestions();
@@ -345,6 +357,7 @@ function chooseSuggestion(ui, state, searchView, candidate) {
   if (candidate.majorCode) {
     const original = normalizeSchool(ui.input.value);
     state.voiceScope = 'major';
+    state.scope = 'major';
     state.currentMajorCode = candidate.majorCode;
     state.currentMajorName = candidate.officialName;
     state.currentTopic = 'general';
@@ -355,7 +368,7 @@ function chooseSuggestion(ui, state, searchView, candidate) {
     ui.input.value = candidate.officialName;
     searchView.closeSuggestions();
     searchView.showResolved(original, candidate.officialName, { scope:'major' });
-    applyScopePresentation(ui, 'major');
+    applyScopePresentation(ui, 'major', state);
     updateButton(ui, state);
     return;
   }
@@ -385,12 +398,14 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     return null;
   }
   const majorResolution = resolveMajorInput(input);
-  const preferSchool = shouldPreferSchool(state, input, majorResolution);
+  const preferSchool = state.scope === 'major' ? false : shouldPreferSchool(state, input, majorResolution);
   if (preferSchool) {
-    applyScopePresentation(ui, 'school');
+    state.scope = 'school';
+    applyScopePresentation(ui, 'school', state);
   }
-  if (!preferSchool && majorResolution?.status === 'ambiguous') {
+  if (!preferSchool && majorResolution && ['too-broad', 'multi-major'].includes(majorResolution.status)) {
     abortActive(state);
+    state.scope = 'major';
     state.voiceScope = 'major';
     state.currentMajorCode = '';
     state.currentMajorName = '';
@@ -398,15 +413,32 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     state.currentEntityId = '';
     state.currentResolution = majorResolution;
     state.directMode = Boolean(options.directMode ?? state.directMode);
-    applyScopePresentation(ui, 'major');
+    applyScopePresentation(ui, 'major', state);
+    searchView.renderMajorGuidance(input, majorResolution);
+    writeLocation('query', input, '', options.historyMode || 'push', { scope:'major' });
+    updateButton(ui, state);
+    return majorResolution;
+  }
+  if (!preferSchool && majorResolution?.status === 'ambiguous') {
+    abortActive(state);
+    state.scope = 'major';
+    state.voiceScope = 'major';
+    state.currentMajorCode = '';
+    state.currentMajorName = '';
+    state.currentSchool = '';
+    state.currentEntityId = '';
+    state.currentResolution = majorResolution;
+    state.directMode = Boolean(options.directMode ?? state.directMode);
+    applyScopePresentation(ui, 'major', state);
     searchView.renderChoices(input, majorResolution.candidates, { scope:'major' });
-    writeLocation('query', input, '', options.historyMode || 'push');
+    writeLocation('query', input, '', options.historyMode || 'push', { scope:'major' });
     updateButton(ui, state);
     return majorResolution;
   }
   if (!preferSchool && majorResolution?.status === 'resolved') {
     const majorMatch = majorResolution.major;
     abortActive(state);
+    state.scope = 'major';
     state.voiceScope = 'major';
     state.currentMajorCode = String(majorMatch.code || '').trim();
     state.currentMajorName = String(majorMatch.name || input).trim();
@@ -420,14 +452,26 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     ui.input.value = state.currentMajorName;
     searchView.closeSuggestions();
     searchView.hideResolved();
-    applyScopePresentation(ui, 'major');
+    applyScopePresentation(ui, 'major', state);
     writeLocation('major', state.currentMajorName, '', options.historyMode || 'push', { majorCode:state.currentMajorCode, topic:state.currentTopic, returnTo:state.returnTo });
     updateButton(ui, state);
     return performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode:state.currentMajorCode, major:state.currentMajorName, topic:state.currentTopic });
   }
-  applyScopePresentation(ui, 'school');
+  if (state.scope === 'major' && (!majorResolution || majorResolution.status === 'unresolved')) {
+    abortActive(state);
+    state.voiceScope = 'major';
+    state.currentResolution = majorResolution;
+    state.directMode = false;
+    applyScopePresentation(ui, 'major', state);
+    searchView.renderNotFound(input, majorResolution?.candidates || [], { scope:'major' });
+    writeLocation('query', input, '', options.historyMode || 'push', { scope:'major' });
+    updateButton(ui, state);
+    return majorResolution;
+  }
+  state.scope = 'school';
+  applyScopePresentation(ui, 'school', state);
   if (!state.resolver) {
-    searchView.renderLocalFailure('高校名单还没有加载完成。');
+    searchView.renderLocalFailure('高校名单还没有加载完成。', { scope:'school' });
     return null;
   }
   leaveMajorDirectState(state);
@@ -467,7 +511,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     state.currentEntityId = '';
     state.currentResolution = resolution;
     state.directMode = false;
-    searchView.renderNotFound(input, resolution.candidates || []);
+    searchView.renderNotFound(input, resolution.candidates || [], { scope:'school' });
     writeLocation('query', input, '', options.historyMode || 'push');
     updateButton(ui, state);
     return resolution;
@@ -476,6 +520,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   state.selectedOfficialName = resolution.resolvedName;
   state.currentResolution = resolution;
   state.currentSchool = resolution.resolvedName;
+  state.scope = 'school';
   state.voiceScope = 'school';
   state.currentTopic = cleanTopic(options.topic || 'general');
   const entity = (resolution.entityId && getSchoolEntity(resolution.entityId)) || findSchoolEntityByName(resolution.resolvedName);
@@ -502,6 +547,7 @@ async function performExperienceQuery(ui, state, searchView, resultView, school,
 async function performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode='', major='', topic='general', forceRefresh=false } = {}) {
   const canonicalCode = cleanMajorCode(majorCode);
   const majorName = cleanMajorName(major);
+  state.scope = 'major';
   state.voiceScope = 'major';
   state.currentMajorCode = canonicalCode;
   state.currentMajorName = majorName;
@@ -633,6 +679,16 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     await submitInput(ui, state, searchView, resultView, { input:candidate.item.name, historyMode:'replace', directMode:state.directMode });
     return;
   }
+  const majorDirection = event.target.closest('[data-major-direction]');
+  if (majorDirection) {
+    ui.input.value = majorDirection.dataset.majorDirection || '';
+    resetResolution(state, searchView);
+    state.scope = 'major';
+    state.voiceScope = 'major';
+    applyScopePresentation(ui, 'major', state);
+    await submitInput(ui, state, searchView, resultView, { input:ui.input.value, historyMode:'replace', directMode:false });
+    return;
+  }
   const region = event.target.closest('[data-region-query]');
   if (region) {
     ui.input.value = region.dataset.regionQuery || '';
@@ -702,9 +758,10 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   searchView.hideResolved();
   const params = new URLSearchParams(location.search);
   const scope = params.get('scope') === 'major' ? 'major' : 'school';
+  state.scope = scope;
   const topic = cleanTopic(params.get('topic') || 'general');
   if (scope === 'major') {
-    applyScopePresentation(ui, 'major');
+    applyScopePresentation(ui, 'major', state);
     const majorCode = cleanMajorCode(params.get('majorCode'));
     const major = cleanMajorName(params.get('major'));
     if (majorCode || major) {
@@ -718,8 +775,24 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
       document.body.dataset.studentVoiceScope = 'major';
       return performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode, major, topic });
     }
+    const majorQuery = normalizeSchool(params.get('q'));
+    if (majorQuery) {
+      state.directMode = false;
+      state.voiceScope = 'major';
+      state.currentTopic = topic;
+      ui.input.value = majorQuery;
+      return submitInput(ui, state, searchView, resultView, { input:majorQuery, historyMode:'none', directMode:false, topic });
+    }
+    state.directMode = false;
+    state.voiceScope = 'major';
+    state.currentTopic = topic;
+    delete document.body.dataset.studentVoiceScope;
+    ui.input.value = '';
+    searchView.clearResult();
+    updateButton(ui, state);
+    return null;
   }
-  applyScopePresentation(ui, 'school');
+  applyScopePresentation(ui, 'school', state);
   const entityId = normalizeSchool(params.get('entity'));
   const entity = entityId ? getSchoolEntity(entityId) : null;
   const school = normalizeSchool(entity?.displayName || params.get('school'));
@@ -759,6 +832,7 @@ function writeLocation(kind, value, entityId, mode, extra = {}) {
     if (extra.topic && extra.topic !== 'general') url.searchParams.set('topic', extra.topic);
     if (extra.returnTo) url.searchParams.set('returnTo', extra.returnTo);
   } else if (value) {
+    if (extra.scope === 'major') url.searchParams.set('scope', 'major');
     url.searchParams.set('q', value);
   }
   const next = `${url.pathname}${url.search}${url.hash}`;
@@ -772,6 +846,7 @@ function resetToSchoolHome(ui, state, searchView) {
   abortActive(state);
   leaveMajorDirectState(state);
   state.directMode = false;
+  state.scope = 'school';
   state.currentSchool = '';
   state.currentEntityId = '';
   state.currentResolution = null;
@@ -781,7 +856,58 @@ function resetToSchoolHome(ui, state, searchView) {
   searchView.hideResolved();
   searchView.clearResult();
   history.pushState({ tongxue:'home' }, '', '/tongxue/');
-  applyScopePresentation(ui, 'school');
+  applyScopePresentation(ui, 'school', state);
+  updateButton(ui, state);
+  ui.input.focus();
+}
+
+function resetToExperienceHome(ui, state, searchView) {
+  if (state.scope === 'major') {
+    abortActive(state);
+    state.voiceScope = 'major';
+    state.directMode = false;
+    state.currentMajorCode = '';
+    state.currentMajorName = '';
+    state.currentTopic = 'general';
+    state.currentSchool = '';
+    state.currentEntityId = '';
+    state.currentResolution = null;
+    state.selectedOfficialName = '';
+    ui.input.value = '';
+    searchView.hideResolved();
+    searchView.clearResult();
+    history.pushState({ tongxue:'major-home' }, '', '/tongxue/?scope=major');
+    applyScopePresentation(ui, 'major', state);
+    updateButton(ui, state);
+    ui.input.focus();
+    return;
+  }
+  resetToSchoolHome(ui, state, searchView);
+}
+
+function switchScope(ui, state, searchView, scope = 'school') {
+  const next = scope === 'major' ? 'major' : 'school';
+  if (state.scope === next && !state.directMode) {
+    ui.input.focus();
+    return;
+  }
+  abortActive(state);
+  state.scope = next;
+  state.voiceScope = next;
+  state.directMode = false;
+  state.currentSchool = '';
+  state.currentEntityId = '';
+  state.currentMajorCode = '';
+  state.currentMajorName = '';
+  state.currentTopic = 'general';
+  state.currentResolution = null;
+  state.selectedOfficialName = '';
+  ui.input.value = '';
+  searchView.hideResolved();
+  searchView.clearResult();
+  const url = next === 'major' ? '/tongxue/?scope=major' : '/tongxue/';
+  history.pushState({ tongxue:'scope', scope:next }, '', url);
+  applyScopePresentation(ui, next, state);
   updateButton(ui, state);
   ui.input.focus();
 }
@@ -809,9 +935,11 @@ function abortActive(state) {
 }
 
 function updateButton(ui, state) {
-  ui.button.disabled = !state.ready || Boolean(state.resolverError) || !ui.input.value.trim() || state.requestInFlight;
+  const scopeReady = state.scope === 'major' || state.ready;
+  const scopeError = state.scope === 'school' && Boolean(state.resolverError);
+  ui.button.disabled = !scopeReady || scopeError || !ui.input.value.trim() || state.requestInFlight;
   // Legacy contract retained for v1.5.9 checks: ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
-  ui.button.textContent = state.requestInFlight ? '正在查找' : (state.voiceScope === 'major' ? '看专业怎么说' : '看学校怎么说');
+  ui.button.textContent = state.requestInFlight ? '正在查找' : (state.scope === 'major' ? '看专业怎么说' : '看学校怎么说');
 }
 
 function experienceKey(query, page) {
