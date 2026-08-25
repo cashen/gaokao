@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
 import { createMajorIntentResolver } from '../shared/resources/majors/major-intent-resolver.v001.js';
 import { resolveMajorQueryCandidates } from '../ln-rank/js/knowledge/major-understanding-resolver.js';
+import { buildKeywordQuery } from '../functions/_lib/keyword-query.js';
+import { buildSearchIndex } from '../functions/_lib/search-index-builder.js';
+import { matchMajorProject } from '../functions/_lib/major-project-matcher.js';
 
 const resolver = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
 
@@ -53,6 +56,19 @@ assert.equal(uiResolver.items[0].intentLevel, 'direction');
 assert.equal(uiResolver.items[0].intentStatus, 'ready');
 assert.ok(uiResolver.items[0].coreMajorNames.includes('网络空间安全'));
 assert.ok(uiResolver.items[0].coreMajorNames.includes('信息安全'));
+
+const indexed = buildSearchIndex([
+  { standardMajor: { code: '080904K', name: '信息安全' } },
+  { standardMajor: { code: '080201', name: '机械工程' } }
+]);
+const computerQuery = buildKeywordQuery('计算机');
+assert.ok(computerQuery.majorCodes.includes('080904K'));
+assert.equal(matchMajorProject(indexed[0], computerQuery).matched, true, 'computer direction must include information security');
+assert.equal(matchMajorProject(indexed[1], computerQuery).matched, false, 'computer direction must exclude mechanical engineering');
+assert.equal(buildKeywordQuery('机').majorIntentFailClosed, true, 'single-character broad input must fail closed');
+const combinedQuery = buildKeywordQuery('机械/计算机');
+assert.ok(combinedQuery.majorCodes.includes('080201'));
+assert.ok(combinedQuery.majorCodes.includes('080901'));
 
 console.log(JSON.stringify({
   ok: true,
