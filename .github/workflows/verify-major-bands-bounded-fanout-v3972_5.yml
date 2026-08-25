@@ -29,8 +29,6 @@ on:
       - 'tools/verify-major-bands-preview-concurrency-v3990_2.mjs'
       - 'tools/verify-major-bands-preview-concurrency-paced-v3990_2.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
