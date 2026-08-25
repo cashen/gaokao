@@ -1,3 +1,10 @@
+import {
+  DECISION_CONTEXT_QUERY_KEY,
+  decodeDecisionContext,
+  encodeDecisionContext,
+  validateDecisionContext
+} from '../../decision-context/decision-context.v001.js';
+
 export const MAJOR_PATH_NAVIGATION_META = Object.freeze({
   version: 'major-path-navigation-v0.03',
   targetPath: '/major-path/',
@@ -35,7 +42,8 @@ export function buildMajorPathHref({
   sourceMajor = '',
   school = '',
   sourceSurface = '',
-  returnTo = '/ln-rank/'
+  returnTo = '/ln-rank/',
+  decisionContext = null
 } = {}) {
   const code = text(majorCode).toUpperCase();
   if (!code) return '';
@@ -51,12 +59,16 @@ export function buildMajorPathHref({
   if (school) params.set('school', text(school));
   if (surface) params.set('sourceSurface', surface);
   params.set('returnTo', sanitizeMajorPathReturnTarget(returnTo));
+  const normalizedContext = decisionContext ? validateDecisionContext(decisionContext) : null;
+  const encodedContext = normalizedContext ? encodeDecisionContext(normalizedContext) : '';
+  if (encodedContext) params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
   return `${MAJOR_PATH_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
 
 export function readMajorPathSourceContext(locationLike = globalThis.location) {
   const url = new URL(locationLike?.href || String(locationLike || ''), 'https://gaokao.powers.org.cn');
   const majorCode = text(url.searchParams.get('majorCode')).toUpperCase();
+  const decisionContext = decodeDecisionContext(url.searchParams.get(DECISION_CONTEXT_QUERY_KEY));
   const fromLnRank = url.searchParams.get('from') === 'ln-rank';
   const fromTongxue = url.searchParams.get('from') === 'tongxue';
   return Object.freeze({
@@ -69,6 +81,7 @@ export function readMajorPathSourceContext(locationLike = globalThis.location) {
     sourceSurface: text(url.searchParams.get('sourceSurface')),
     canonicalName: text(url.searchParams.get('canonicalName')),
     school: text(url.searchParams.get('school')),
-    returnTo: sanitizeMajorPathReturnTarget(url.searchParams.get('returnTo') || '/ln-rank/', { origin: url.origin })
+    returnTo: sanitizeMajorPathReturnTarget(url.searchParams.get('returnTo') || '/ln-rank/', { origin: url.origin }),
+    decisionContext
   });
 }
