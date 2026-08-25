@@ -31,6 +31,8 @@ requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-a
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'lockedConfirmed', 'confirmed-major draft owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'confirmedDirectionScopes', 'direction scope state owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="related"', 'related-direction scope action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'data-major-direction-scope="admission-groups"', 'admission-group scope action');
+requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "p.set('majorScope',majorScope)", 'admission-group API scope propagation');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', "scope==='related'", 'related-direction query expansion');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'function draftMajorText()', 'draft query text owner');
 requireText('ln-rank/js/feature/major-all/major-all-mode.v001.js', 'state.filters.majorKeyword=draftMajorText()', 'shared workspace major draft sync');
@@ -49,6 +51,8 @@ requireText('functions/api/ai/major-history.js', 'const majorInputs = splitMajor
 requireText('functions/api/ai/major-history.js', 'lookupScoreRank({ year: 2026', 'score-to-rank owner');
 requireText('functions/api/ai/major-history.js', 'candidateReferenceRank2026', 'candidate rank metadata');
 requireText('functions/api/ai/major-history.js', 'projectMode', 'project-mode filtering');
+requireText('functions/api/ai/major-history.js', 'normalizeMajorScope', 'major scope contract');
+requireText('functions/api/ai/major-history.js', 'isAdmissionGroupKey', 'school admission-group boundary');
 requireText('functions/api/ai/major-history.js', 'score2024', 'three-year API fields');
 requireText('ln-rank/js/workspace/major-path-handoff.v003.js', "context:'major'", 'major path navigation context');
 requireText('ln-rank/js/workspace/major-path-handoff.v003.js', 'decorateMajorAllCards', 'major card handoff decorator');
