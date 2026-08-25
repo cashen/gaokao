@@ -5,6 +5,7 @@ import { createTongxueResultView } from './tongxue-runtime-result-view-v159.js?v
 import {
   resolveTongxueMajorInput
 } from '../../shared/resources/majors/tongxue-single-major-adapter.v001.js?v=001';
+import { decisionContextFromLocation } from '../../shared/decision-context/decision-context.v001.js';
 import {
   TongxueError,
   normalizeSchool,
