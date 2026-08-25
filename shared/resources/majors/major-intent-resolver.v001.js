@@ -1,4 +1,4 @@
-import { normalizeMajorCode, normalizeMajorText, stripAdmissionDecoration } from './major-catalog-contract.js';
+import { normalizeMajorCode, normalizeMajorText, stripAdmissionDecoration, scoreMajorText } from './major-catalog-contract.js';
 
 export const MAJOR_INTENT_META = Object.freeze({
   version: 'major-intent-resolver-v001',
@@ -185,6 +185,22 @@ export function createMajorIntentResolver(rows = [], aliases = [], options = {})
     return majorsForCodes(codes).sort((a, b) => a.name.localeCompare(b.name, 'zh-CN') || a.code.localeCompare(b.code));
   }
 
+  function search(value = '', { limit = 8 } = {}) {
+    const input = key(value);
+    if (!input) return [];
+    const rows = [];
+    for (const item of majors) {
+      let best = scoreMajorText(input, key(item.name), 'name');
+      for (const alias of item.aliases) {
+        const candidate = scoreMajorText(input, key(alias), 'alias');
+        if (candidate.score > best.score) best = candidate;
+      }
+      if (best.score >= 0.42) rows.push({ item, score: best.score, matchType: best.matchType });
+    }
+    rows.sort((a, b) => b.score - a.score || a.item.name.length - b.item.name.length || a.item.name.localeCompare(b.item.name, 'zh-CN'));
+    return rows.slice(0, Math.max(1, Number(limit) || 8));
+  }
+
   function result(raw, values = {}) {
     const core = unique(values.coreMajorCodes || []);
     const related = unique(values.relatedMajorCodes || []).filter(code => !core.includes(code));
@@ -302,11 +318,8 @@ export function createMajorIntentResolver(rows = [], aliases = [], options = {})
       return result(raw, { status: 'needs-choice', intentKey: `alias:${query}`, intentLabel: raw, intentLevel: 'unknown', matchType: 'alias_ambiguous', confidence: 'candidate', relatedMajorCodes: aliasCodes, matchedTerms: [raw], limit });
     }
 
-    const fuzzy = majors.filter(item => {
-      const haystack = [item.name, item.aliases.join(' '), item.majorClass, item.directionLabel, item.discipline].map(key).join(' ');
-      return haystack.includes(query) || query.includes(key(item.name));
-    });
-    if (fuzzy.length) return result(raw, { status: 'needs-choice', intentKey: `keyword:${query}`, intentLabel: raw, intentLevel: 'unknown', matchType: 'keyword_candidates', confidence: 'candidate', relatedMajorCodes: fuzzy.map(item => item.code), matchedTerms: [raw], warnings: ['这不是完整的正式专业名，请从候选中确认。'], limit });
+    const fuzzy = search(query, { limit });
+    if (fuzzy.length) return result(raw, { status: 'needs-choice', intentKey: `keyword:${query}`, intentLabel: raw, intentLevel: 'unknown', matchType: 'keyword_candidates', confidence: 'candidate', relatedMajorCodes: fuzzy.map(entry => entry.item.code), matchedTerms: [raw], warnings: ['这不是完整的正式专业名，请从候选中确认。'], limit });
     return result(raw, { status: 'unresolved', intentLevel: 'unknown', confidence: 'none', matchedTerms: [raw], warnings: ['暂时没有安全匹配到本科专业，请换一个更完整的名称或代码。'], limit });
   }
 
@@ -330,6 +343,7 @@ export function createMajorIntentResolver(rows = [], aliases = [], options = {})
     disciplineCount: byDiscipline.size,
     resolve,
     resolveMany,
+    search,
     findByCode: code => byCode.get(normalizeMajorCode(code)) || null,
     allMajors: Object.freeze(majors)
   });
