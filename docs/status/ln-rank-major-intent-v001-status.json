@@ -3,14 +3,14 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-major-intent-v1",
   "baseSha": "18b40a256924475b13c4175fd006ce4a7e27decf",
-  "pr": null,
+  "pr": 204,
   "completed": [
-    "MI-00-plan-written"
-  ],
-  "inProgress": "MI-01-catalog-audit",
-  "pending": [
+    "MI-00-plan-written",
     "MI-01-catalog-audit",
-    "MI-02-major-intent-resolver",
+    "MI-02-major-intent-resolver"
+  ],
+  "inProgress": "MI-03-query-kernel-unification",
+  "pending": [
     "MI-03-query-kernel-unification",
     "MI-04-parent-ui",
     "MI-05-trend-boundaries",
@@ -21,10 +21,26 @@
   "lastFailure": null,
   "parentPerspective": {
     "coverage": "all-current-undergraduate-majors-about-800-not-only-examples",
-    "positionLabels": ["稍高目标", "主要参考", "低分侧补充"],
-    "forbiddenUserCopy": ["冲稳保"],
-    "requiredDevices": ["pc", "pad", "android"]
+    "positionLabels": [
+      "稍高目标",
+      "主要参考",
+      "低分侧补充"
+    ],
+    "forbiddenUserCopy": [
+      "冲稳保"
+    ],
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ]
   },
-  "checkpointNote": "Plan is committed in docs/plans/ln-rank-major-intent-v001.md before implementation. Resume from MI-01 after any interruption.",
-  "verifiedAt": "2026-08-25T16:00:00+08:00"
+  "checkpointNote": "MI-01 and MI-02 are verified in tools/verify-ln-rank-major-intent-v001.mjs. Catalog coverage is 883 codes, 883 names, 92 major classes and 13 disciplines. Resume from MI-03 after interruption.",
+  "testEvidence": [
+    "node tools/verify-ln-rank-major-intent-v001.mjs",
+    "node tools/verify-ln-rank-major-all-v001.mjs",
+    "node tools/verify-major-domain-integration-v001.mjs",
+    "node tools/verify-major-path-v002.mjs"
+  ],
+  "verifiedAt": "2026-08-25T00:15:00Z"
 }
