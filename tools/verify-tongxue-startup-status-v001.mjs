@@ -51,11 +51,9 @@ for (const marker of [
 ]) assert.ok(plan.includes(marker), 'missing plan section: ' + marker);
 
 assert.equal(status.baseSha, '63b76acdfd7b137cd2c635d1ad78acee88d85012');
-assert.equal(status.pr, null);
-assert.equal(status.inProgress, 'TX-03-startup-status-ui');
+assert.equal(status.pr, 208);
+assert.equal(status.inProgress, 'TX-05-tests-pc-pad-android');
 assert.deepEqual(status.pending, [
-  'TX-03-startup-status-ui',
-  'TX-04-background-catalog-ready-queue',
   'TX-05-tests-pc-pad-android',
   'TX-06-ci-preview-ready-merge-main',
   'TX-07-production-verification'
