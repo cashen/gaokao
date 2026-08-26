@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "baseSha": "2b2bf9e0f84c229873c43d76ed4caf7b32218207",
   "branch": "agent/module-navigation-ui-layout-v002",
-  "pr": null,
-  "headSha": "2d758ec04f9788ba844df14cfffcaeab969e5708",
+  "pr": 217,
+  "headSha": "fd2fdf6bb8af972161ade372f23df295aa4a597e",
   "mergeSha": null,
   "completed": [
     "ML-01-live-layout-regression-confirmed",
@@ -49,8 +49,8 @@
     "return": "same-origin sessionStorage; preserve pathname/search/hash; hide without real prior module"
   },
   "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
-  "checkpointNote": "Cross-surface desktop audit completed at 2d758ec04f9788ba844df14cfffcaeab969e5708: duplicate stray standalone was observed on / and /ln-rank/; /major-path/ needs standalone as its only navigation. CSS was corrected to preserve standalone for truly shell-less pages while JS removes it once the delayed global shell appears.",
-  "verifiedAt": "2026-08-26T01:33:45.906Z",
+  "checkpointNote": "PR #217 is open as draft at exact head fd2fdf6bb8af972161ade372f23df295aa4a597e. Cross-surface 1348px live audit completed: / and /ln-rank/ had stray duplicate standalone bars; /major-path/ legitimately needs standalone as its only navigation. The fix preserves standalone only without a global header and removes it after delayed shell mount.",
+  "verifiedAt": "2026-08-26T01:35:01.519Z",
   "validation": {
     "localSyntax": "node --check navigation JS and verification contract passed",
     "codeContract": "v002 identity present; standalone cleanup and desktop hidden assertions passed",
