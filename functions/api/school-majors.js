@@ -178,6 +178,7 @@ export async function onRequest(context) {
     const candidateOffset = pageNumber(url.searchParams.get('candidateOffset'), 0);
     const candidateLimit = Math.max(8, Math.min(500, pageNumber(url.searchParams.get('candidateLimit'), 200)));
     const schoolIntent = normalizeSchoolQueryIntent(url.searchParams.get('schoolIntent') || 'auto');
+    const resolveOnly = url.searchParams.get('resolveOnly') === '1';
 
     const directoryMeta = await getAdmissionSchoolDirectoryMeta(context.request);
 
@@ -216,6 +217,27 @@ export async function onRequest(context) {
         selection = queryResult.resolvedSchool;
         entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
       }
+    }
+
+    if (resolveOnly) {
+      if (!selection?.entityId || !entity) {
+        const fallback = queryResult || { status: SCHOOL_QUERY_STATUSES.NOT_FOUND, candidates: [] };
+        return json(unresolvedPayload(fallback, directoryMeta), 409);
+      }
+      return json({
+        ok: true,
+        mode: 'school-resolve-only',
+        meta: {
+          mode: 'school-resolve-only',
+          school: selection.officialName || selection.admissionName,
+          schoolQuery: schoolInput || selection.officialName || selection.admissionName,
+          schoolEntity: publicSchoolEntity(entity),
+          schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
+          schoolQueryIntent: 'school',
+          admissionDirectoryVersion: directoryMeta.version,
+          admissionDirectorySourceHash: directoryMeta.sourceHash
+        }
+      });
     }
 
     const acceptedNames = acceptedNamesForSelection(selection, entity);
