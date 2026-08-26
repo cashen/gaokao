@@ -1,6 +1,6 @@
 {
   "task": "ln-rank-unified-followup-v003",
-  "status": "remote-ci-pending",
+  "status": "ci-final-pr-pending",
   "repository": "cashen/gaokao",
   "baseSha": "d83026656c9f0bb89428d44d06c6e28a1beeeed3",
   "branch": "agent/ln-rank-unified-followup-v003",
@@ -36,5 +36,10 @@
   "preserved": [
     "/workspace/scratch/e656e218a4d4/gaokao-followup",
     "sunshine admissions-plan collection"
-  ]
+  ],
+  "supersededPullRequests": [
+    233,
+    234
+  ],
+  "ciTriggerCommit": "pending"
 }
