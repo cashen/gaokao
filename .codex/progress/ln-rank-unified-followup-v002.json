@@ -1,0 +1,29 @@
+{
+  "task": "ln-rank-unified-followup-v002",
+  "status": "local-implementation-tested",
+  "baseSha": "36752c0901953fdcf2ac2642e53e981c3989680a",
+  "branch": "agent/ln-rank-unified-followup-v002",
+  "release": "v3.9.90.2",
+  "assetVersion": "3990_2",
+  "releaseRevision": "r027",
+  "cacheRevision": "r027-card4",
+  "completed": [
+    "isolated dirty user worktree from latest main",
+    "unified school canonical major identity for card handoff",
+    "visible human school experience entry and compact score-card entries",
+    "activated module navigation v0.04 roots and cache references",
+    "updated release log, resource revision, and executable contracts",
+    "local static, parser, resource, navigation, copy, and syntax tests pass"
+  ],
+  "next": [
+    "commit and push branch",
+    "create PR and wait for all checks",
+    "verify exact-head Preview at PC/Pad/Android journeys",
+    "verify Production and merge only after required checks pass",
+    "post-merge recheck main SHA, Pages SHA, assets, interactions, and cache"
+  ],
+  "preserved": [
+    "original dirty worktree /workspace/scratch/e656e218a4d4/gaokao-followup",
+    "sunshine admissions-plan branch and files"
+  ]
+}

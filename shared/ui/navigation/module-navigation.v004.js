@@ -3,7 +3,10 @@ const STORAGE_KEY = 'gaokao.module-navigation.v001';
 export const ROOT_MODULES = Object.freeze([
   Object.freeze({ key: 'home', label: '家庭首页', route: '/' }),
   Object.freeze({ key: 'selection', label: '专业初选', route: '/ln-rank/' }),
-  Object.freeze({ key: 'tongxue', label: '同学你好', route: '/tongxue/' })
+  Object.freeze({ key: 'tongxue', label: '同学你好', route: '/tongxue/' }),
+  Object.freeze({ key: 'major-path', label: '专业升学地图', route: '/major-path/' }),
+  Object.freeze({ key: 'aiplus', label: 'AI 家庭决策', route: '/aiplus/' }),
+  Object.freeze({ key: 'public-company', label: '产业落地观察', route: '/Public_company/' })
 ]);
 
 function text(value = '') {

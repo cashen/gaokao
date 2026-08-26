@@ -138,12 +138,13 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
 function normalizeSchoolExperienceEntry(card) {
   const entry = card.querySelector('.tongxue-card-entry');
   if (!entry) return;
+  entry.classList.add('tongxue-card-entry--compact');
   const brand = entry.querySelector('.tongxue-card-entry__brand');
   const text = entry.querySelector('.tongxue-card-entry__text');
   if (brand) brand.textContent = '大学生说学校';
-  if (text) text.textContent = '看看这所学校的公开体验';
-  entry.setAttribute('aria-label', '查看这所学校的大学生公开体验');
-  entry.title = '这里是学校公开体验整理，不代表学校官方结论。';
+  if (text) text.textContent = '看看这所学校的大学生怎么说';
+  entry.setAttribute('aria-label', '查看这所学校的大学生怎么说');
+  entry.title = '这里是学生分享，不代表学校官方结论。';
 }
 
 function insertScoreEntry(card, entry) {
@@ -169,8 +170,8 @@ function decorateScoreCards(root = document.getElementById('results')) {
       return;
     }
     const school = clean(card.querySelector('.school')?.textContent);
-    if (!card.querySelector('[data-major-path-entry]')) insertScoreEntry(card, makeEntry(target, { context:'score', sourceKey, sourceMajor, school }));
-    if (!card.querySelector('[data-student-voice-entry]')) insertScoreEntry(card, makeStudentVoiceEntry(target, { context:'score', sourceKey, sourceMajor, school }));
+    if (!card.querySelector('[data-major-path-entry]')) insertScoreEntry(card, makeEntry(target, { context:'score', sourceKey, sourceMajor, school, compact:true }));
+    if (!card.querySelector('[data-student-voice-entry]')) insertScoreEntry(card, makeStudentVoiceEntry(target, { context:'score', sourceKey, sourceMajor, school, compact:true }));
     card.dataset.majorPathAvailability = 'canonical-major';
     card.dataset.studentVoiceAvailability = 'canonical-major-cross-school';
   });
@@ -180,8 +181,9 @@ function decorateSchoolCards(root = document.getElementById('schoolAllContent'))
   if (!(root instanceof HTMLElement)) return;
   root.querySelectorAll('[data-school-record]').forEach(card => {
     const sourceKey = clean(card.dataset.schoolRecord);
-    const sourceMajor = clean(card.querySelector('.school-major-title-line h3')?.textContent);
-    const target = concreteMajorFromRendered({ name:sourceMajor });
+    const sourceMajor = clean(card.dataset.majorName || card.querySelector('.school-major-title-line h3')?.textContent);
+    const code = clean(card.dataset.majorCode);
+    const target = concreteMajorFromRendered({ code, name:sourceMajor });
     if (!target) {
       card.dataset.majorPathAvailability = 'unresolved-or-class-level';
       card.dataset.studentVoiceAvailability = 'unresolved-or-class-level';

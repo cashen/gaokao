@@ -145,9 +145,9 @@ function ensureTongxueEntry(card) {
   const link = document.createElement('a');
   link.className = 'tongxue-card-entry';
   link.href = href;
-  link.setAttribute('aria-label', `查看${target.school}的公开评论和来源摘要`);
-  link.title = '公开评论只反映部分评论者的个人体验，不代表学校官方结论。';
-  link.innerHTML = `<span class="tongxue-card-entry__brand">大学生说学校</span><span class="tongxue-card-entry__text">看看这所学校的公开体验</span><span class="tongxue-card-entry__arrow" aria-hidden="true">→</span>`;
+  link.setAttribute('aria-label', `查看${target.school}的大学生怎么说`);
+  link.title = '这里是学生分享，不代表学校官方结论。';
+  link.innerHTML = `<span class="tongxue-card-entry__brand">大学生说学校</span><span class="tongxue-card-entry__text">看看这所学校的大学生怎么说</span><span class="tongxue-card-entry__arrow" aria-hidden="true">→</span>`;
   const hint = card.querySelector('.pool-add-hint');
   if (hint) hint.before(link);
   else card.append(link);

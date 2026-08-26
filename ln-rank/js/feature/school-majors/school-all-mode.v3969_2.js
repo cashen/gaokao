@@ -153,7 +153,9 @@ function renderRecord(record) {
   const why = record.matchReason
     ? `<p class="school-major-detail-wide"><b>为什么出现</b><span>${escapeHtml(record.matchReason)}</span></p>`
     : '';
-  return `<article data-ui-component="school-results" class="ui-card school-major-row ${positionTone(record)} ${expanded ? 'is-expanded' : ''}" data-school-record="${escapeHtml(key)}">
+  const standardMajorCode = record.standardMajor?.code || record.codes?.standardMajorCode || '';
+  const standardMajorName = record.standardMajor?.name || '';
+  return `<article data-ui-component="school-results" class="ui-card school-major-row ${positionTone(record)} ${expanded ? 'is-expanded' : ''}" data-school-record="${escapeHtml(key)}" data-major-code="${escapeHtml(standardMajorCode)}" data-major-name="${escapeHtml(standardMajorName)}">
     <div class="school-major-main">
       <div class="school-major-title-line"><h3>${escapeHtml(record.major || '专业名称待核验')}</h3>${record.specialProject?.hasSpecialProject ? '<span class="ui-chip ui-chip--compact ui-chip--warning">特殊项目</span>' : ''}</div>
       <div class="school-major-tags">${tags.map(tag => `<span class="ui-chip ui-chip--compact">${escapeHtml(tag)}</span>`).join('')}</div>
@@ -163,6 +165,7 @@ function renderRecord(record) {
     <div class="school-major-actions">
       <button type="button" data-school-selection-action="${selected ? 'remove' : 'add'}" data-school-record-key="${escapeHtml(key)}" class="ui-button ui-button--compact ui-button--secondary ${selected ? 'is-selected' : ''}" aria-pressed="${selected}">${selected ? ACTION_COPY.remove : ACTION_COPY.add}</button>
       <button type="button" data-school-detail-toggle="${escapeHtml(key)}" class="ui-button ui-button--compact ui-button--tertiary" aria-expanded="${expanded}" aria-controls="${detailId}">${expanded ? ACTION_COPY.collapse : ACTION_COPY.detail}</button>
+      ${tongxueHref ? `<a class="ui-button ui-button--compact ui-button--tertiary school-major-review-link" href="${escapeHtml(tongxueHref)}">${ACTION_COPY.reviews}</a>` : ''}
     </div>
     <section id="${detailId}" class="school-major-detail" data-school-detail-panel="${escapeHtml(key)}" ${expanded ? '' : 'hidden'}>
       <div class="school-major-detail-grid">
@@ -171,7 +174,6 @@ function renderRecord(record) {
         ${why}
         ${verify.length ? `<p class="school-major-detail-wide"><b>继续确认</b><span>${verify.map(escapeHtml).join(' / ')}</span></p>` : ''}
       </div>
-      ${tongxueHref ? `<a class="ui-button ui-button--compact ui-button--tertiary school-major-review-link" href="${escapeHtml(tongxueHref)}">${ACTION_COPY.reviews}</a>` : ''}
     </section>
   </article>`;
 }

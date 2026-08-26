@@ -8,18 +8,24 @@ const {
   moduleKeyForPath,
   rememberModuleVisit,
   sanitizeModulePath
-} = await import('../shared/ui/navigation/module-navigation.v001.js');
+} = await import('../shared/ui/navigation/module-navigation.v004.js');
 
-assert.equal(VERSION, 'module-navigation-v0.02');
+assert.equal(VERSION, 'module-navigation-v0.04');
 assert.deepEqual(ROOT_MODULES.map(item => [item.key, item.route]), [
   ['home', '/'],
   ['selection', '/ln-rank/'],
-  ['tongxue', '/tongxue/']
+  ['tongxue', '/tongxue/'],
+  ['major-path', '/major-path/'],
+  ['aiplus', '/aiplus/'],
+  ['public-company', '/Public_company/']
 ]);
 assert.equal(moduleKeyForPath('/'), 'home');
 assert.equal(moduleKeyForPath('/ln-rank/selection-pool.html'), 'selection');
 assert.equal(moduleKeyForPath('/tongxue/?scope=major'), 'tongxue');
-assert.deepEqual(buildModuleRoots('tongxue').map(item => item.current), [false, false, true]);
+assert.equal(moduleKeyForPath('/major-path/?majorCode=080601'), 'major-path');
+assert.equal(moduleKeyForPath('/aiplus/?scope=school'), 'aiplus');
+assert.equal(moduleKeyForPath('/Public_company/'), 'public-company');
+assert.deepEqual(buildModuleRoots('tongxue').map(item => item.current), [false, false, true, false, false, false]);
 assert.equal(sanitizeModulePath('/ln-rank/?candidateScore=580#results'), '/ln-rank/?candidateScore=580#results');
 assert.equal(sanitizeModulePath('https://evil.example/path'), '');
 assert.equal(sanitizeModulePath('//evil.example/path'), '');
@@ -68,9 +74,16 @@ for (const path of [
   'major-path/index.html'
 ]) {
   const html = fs.readFileSync(path, 'utf8');
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.css?v=002'), true, `${path}: navigation CSS`);
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=003'), true, `${path}: navigation JS`);
+  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v004.css?v=004'), true, `${path}: navigation CSS`);
 }
+const navigationOwners = [
+  fs.readFileSync('shared/ui/shell/family-shell.v3990_2.js', 'utf8'),
+  fs.readFileSync('major-path/index.html', 'utf8'),
+  fs.readFileSync('zy2026/index.html', 'utf8'),
+  fs.readFileSync('ln-rank/211-mainline.html', 'utf8'),
+  fs.readFileSync('ln-rank/local-mainline.html', 'utf8')
+].join('\n');
+assert.match(navigationOwners, /module-navigation\.v004\.js\?v=004/);
 for (const [path, needle] of [
   ['index.html', 'family-home.v3990_2.js?v=3990_2-nav003'],
   ['ln-rank/index.html', 'app.v3990_2.js?v=3990_2-nav003'],
@@ -82,9 +95,9 @@ for (const [path, needle] of [
   const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
   assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
 }
-const navigationCss = fs.readFileSync('shared/ui/navigation/module-navigation.v001.css', 'utf8');
-assert.match(navigationCss, /ui-module-navigation--standalone\\s*\\{\\s*display: flex;/);
+const navigationCss = fs.readFileSync('shared/ui/navigation/module-navigation.v004.css', 'utf8');
+assert.match(navigationCss, /ui-module-navigation--standalone\s*\{\s*display: flex;/);
 const tongxueHtml = fs.readFileSync('tongxue/index.html', 'utf8');
 assert.match(tongxueHtml, /data-ui-module-back/);
 assert.match(tongxueHtml, /159-startup001/);
-console.log('Module navigation v0.01 verified: root links, same-origin full-path return, same-module preservation, and page integration.');
+console.log('Module navigation v0.04 verified: root links, same-origin full-path return, same-module preservation, and page integration.');
