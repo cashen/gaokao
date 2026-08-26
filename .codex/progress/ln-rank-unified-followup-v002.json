@@ -1,19 +1,21 @@
 {
   "task": "ln-rank-unified-followup-v002",
-  "status": "local-implementation-tested",
+  "status": "branch-created",
   "baseSha": "36752c0901953fdcf2ac2642e53e981c3989680a",
   "branch": "agent/ln-rank-unified-followup-v002",
   "release": "v3.9.90.2",
   "assetVersion": "3990_2",
   "releaseRevision": "r027",
   "cacheRevision": "r027-card4",
+  "remoteHeadSha": "3515e5b8d99e2b3a248cb940d63c36a4a0f629b9",
   "completed": [
     "isolated dirty user worktree from latest main",
     "unified school canonical major identity for card handoff",
     "visible human school experience entry and compact score-card entries",
     "activated module navigation v0.04 roots and cache references",
     "updated release log, resource revision, and executable contracts",
-    "local static, parser, resource, navigation, copy, and syntax tests pass"
+    "local static, parser, resource, navigation, copy, and syntax tests pass",
+    "remote branch created through authorized GitHub connector"
   ],
   "next": [
     "commit and push branch",
