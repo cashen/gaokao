@@ -82,6 +82,8 @@ for (const [path, needle] of [
   const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
   assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
 }
+const navigationCss = fs.readFileSync('shared/ui/navigation/module-navigation.v001.css', 'utf8');
+assert.match(navigationCss, /ui-module-navigation--standalone\\s*\\{\\s*display: flex;/);
 const tongxueHtml = fs.readFileSync('tongxue/index.html', 'utf8');
 assert.match(tongxueHtml, /data-ui-module-back/);
 assert.match(tongxueHtml, /159-startup001/);
