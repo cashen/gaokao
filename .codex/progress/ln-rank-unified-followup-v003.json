@@ -1,9 +1,9 @@
 {
   "task": "ln-rank-unified-followup-v003",
-  "status": "ci-final-pr-pending",
+  "status": "post-merge-production-verification",
   "repository": "cashen/gaokao",
   "baseSha": "d83026656c9f0bb89428d44d06c6e28a1beeeed3",
-  "branch": "agent/ln-rank-unified-followup-v003",
+  "branch": "main",
   "completed": [
     "live-main-reconciled",
     "production-school-filter-URL-contamination-reproduced",
@@ -11,19 +11,27 @@
     "production-multi-major-confirmation-loss-reproduced",
     "isolated-score-return-context",
     "URL-persisted-resolver-verified-major-confirmation",
+    "history-navigation-resync",
     "unified-school-card-three-entry-copy",
+    "compact-major-path-human-copy",
+    "major-path-cache-key-aligned",
     "local-contract-tests",
     "syntax-and-diff-checks",
-    "multi-major-draft-preservation-fix"
+    "multi-major-draft-preservation-fix",
+    "exact-head-pr235-ci-25-of-25",
+    "exact-head-pr235-preview-browser",
+    "pr235-merged",
+    "post-merge-production-r030-observed",
+    "exact-head-pr236-ci-45-of-45",
+    "exact-head-pr236-preview-browser",
+    "pr236-merged"
   ],
-  "inProgress": "exact-head-ci",
-  "pullRequest": 233,
-  "remoteHeadSha": "93fa93f1a722ba4c61f47a93a5acc1ee97b18c4b",
+  "inProgress": "post-merge-main-pages-and-production-verification",
+  "pullRequest": 236,
+  "remoteHeadSha": "cbae4783e92ad420a2559ad3b02879cc8a26ecce",
+  "mergeSha": "867f7b4baedf592ca2e65c86898012d55a7404ec",
   "pending": [
-    "exact-head-ci",
-    "exact-head-preview-browser",
-    "ready-and-merge",
-    "post-merge-production-verification"
+    "post-merge-main-pages-and-production-verification"
   ],
   "release": {
     "site": "v3.9.90.2",
@@ -41,5 +49,9 @@
     233,
     234
   ],
-  "ciTriggerCommit": "pending"
+  "ciTriggerCommits": [
+    "1dea0e6b5d486ec85a010fc19808255c544e5cfb",
+    "cbae4783e92ad420a2559ad3b02879cc8a26ecce"
+  ],
+  "note": "A prior merge-main bounded-fanout run had a no-job failure and could not be retried (GitHub returned 403); PR #236 exact-head CI passed 45/45, including the production health chain. Re-verify the final main checkpoint commit before closing."
 }
