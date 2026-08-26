@@ -1,0 +1,30 @@
+{
+  "task": "module-navigation-cache-chain-v004",
+  "repository": "cashen/gaokao",
+  "baseSha": "c38f3f5a3c8050489459ead87c499e3156186d24",
+  "branch": "agent/module-navigation-cache-chain-v004",
+  "pr": null,
+  "headSha": "23a619bc916032f80f30cadc618cf0e2cdaa020a",
+  "mergeSha": null,
+  "completed": [
+    "MC-01-production-internal-chain-residual-confirmed"
+  ],
+  "inProgress": "MC-02-unify-internal-shell-imports",
+  "pending": [
+    "MC-02-unify-internal-shell-imports",
+    "MC-03-contract-preview-multidevice",
+    "MC-04-merge-production-closeout"
+  ],
+  "evidence": {
+    "production": "After PR #218, / and /ln-rank/ still body module-navigation-v0.01 with visible standalone at desktop 1348px",
+    "rootCause": "family-home/app-runtime/selection-pool internal shell imports still nav001",
+    "latestMain": "c38f3f5a3c8050489459ead87c499e3156186d24"
+  },
+  "boundary": "navigation cache chain only; major-bands independent",
+  "fixedTongxueResources": [
+    "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
+    "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
+  ],
+  "checkpointNote": "MC-01 confirmed one more stale navigation import layer after PR #218. Next is a three-file internal import identity update, then fresh PR and production DOM verification.",
+  "verifiedAt": "2026-08-26T02:12:51.610Z"
+}
