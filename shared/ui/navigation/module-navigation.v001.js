@@ -1,4 +1,4 @@
-const VERSION = 'module-navigation-v0.01';
+export const VERSION = 'module-navigation-v0.01';
 const STORAGE_KEY = 'gaokao.module-navigation.v001';
 export const ROOT_MODULES = Object.freeze([
   Object.freeze({ key: 'home', label: '家庭首页', route: '/' }),
