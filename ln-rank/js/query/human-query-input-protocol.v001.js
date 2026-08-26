@@ -132,9 +132,9 @@ export function parseScoreInput(value) {
     return bounded('range', lower, upper, normalized);
   }
 
-  const lower = normalized.match(/(?:不低于|不少于|至少|大于等于|高于|超过|以上)\s*(\d{1,3})\s*(?:分)?/);
+  const lower = normalized.match(/(?:(?:不低于|不少于|至少|大于等于|高于|超过)\s*(\d{1,3})\s*(?:分)?|(\d{1,3})\s*(?:分)?(?:及以上|以上))/);
   if (lower) {
-    const valueNumber = number(lower[1]);
+    const valueNumber = number(lower[1] || lower[2]);
     if (!validScore(valueNumber)) return Object.freeze({
       kind: 'out_of_range',
       value: null,
@@ -148,9 +148,9 @@ export function parseScoreInput(value) {
     return bounded('min', valueNumber, null, normalized);
   }
 
-  const upper = normalized.match(/(?:不高于|不超过|至多|最多|低于|少于|以下)\s*(\d{1,3})\s*(?:分)?/);
+  const upper = normalized.match(/(?:(?:不高于|不超过|至多|最多|低于|少于)\s*(\d{1,3})\s*(?:分)?|(\d{1,3})\s*(?:分)?(?:及以下|以下))/);
   if (upper) {
-    const valueNumber = number(upper[1]);
+    const valueNumber = number(upper[1] || upper[2]);
     if (!validScore(valueNumber)) return Object.freeze({
       kind: 'out_of_range',
       value: null,
