@@ -1,0 +1,41 @@
+{
+  "task": "module-navigation-ui-layout-v002",
+  "repository": "cashen/gaokao",
+  "baseSha": "2b2bf9e0f84c229873c43d76ed4caf7b32218207",
+  "branch": "agent/module-navigation-ui-layout-v002",
+  "pr": null,
+  "headSha": "581bcc5dda20a01e92ab2aff61b67829eb0385d2",
+  "mergeSha": null,
+  "completed": [
+    "ML-01-live-layout-regression-confirmed"
+  ],
+  "inProgress": "ML-02-layout-and-async-mount-fix",
+  "pending": [
+    "ML-02-layout-and-async-mount-fix",
+    "ML-03-cache-identity-and-static-contract",
+    "ML-04-pr-preview-and-multi-device-validation",
+    "ML-05-merge-and-production-closeout"
+  ],
+  "evidence": {
+    "productionUrl": "https://gaokao.powers.org.cn/ln-rank/?navcheck=20260826",
+    "productionViewport": "1348px live browser",
+    "bodyNavigation": "module-navigation-v0.01",
+    "duplicateObserved": true,
+    "mobileBarDisplay": "flex on desktop",
+    "duplicateReason": "standalone nav created before delayed global header was not removed; CSS forced standalone display:flex"
+  },
+  "decisions": {
+    "desktop": "one global top navigation only",
+    "pad": "one visible core module navigation without horizontal overflow",
+    "android": "one compact module switch bar only",
+    "coreRoots": [
+      "/",
+      "/ln-rank/",
+      "/tongxue/"
+    ],
+    "return": "same-origin sessionStorage; preserve pathname/search/hash; hide without real prior module"
+  },
+  "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
+  "checkpointNote": "ML-01 confirmed screenshot/live DOM regression after PR #216 merge. Next fix must change only navigation layout lifecycle and nav002 cache identity; preserve Tongxue controller/search-view v=159-startup001.",
+  "verifiedAt": "2026-08-26T01:27:45.759Z"
+}
