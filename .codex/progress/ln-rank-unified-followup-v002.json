@@ -1,13 +1,14 @@
 {
   "task": "ln-rank-unified-followup-v002",
-  "status": "branch-created",
+  "status": "draft-pr-open",
   "baseSha": "36752c0901953fdcf2ac2642e53e981c3989680a",
   "branch": "agent/ln-rank-unified-followup-v002",
   "release": "v3.9.90.2",
   "assetVersion": "3990_2",
   "releaseRevision": "r027",
   "cacheRevision": "r027-card4",
-  "remoteHeadSha": "3515e5b8d99e2b3a248cb940d63c36a4a0f629b9",
+  "remoteHeadSha": "9dba0b782bf0cb92c3d3e1ec5579551ab3cf2b7b",
+  "pullRequest": 228,
   "completed": [
     "isolated dirty user worktree from latest main",
     "unified school canonical major identity for card handoff",
@@ -15,10 +16,10 @@
     "activated module navigation v0.04 roots and cache references",
     "updated release log, resource revision, and executable contracts",
     "local static, parser, resource, navigation, copy, and syntax tests pass",
-    "remote branch created through authorized GitHub connector"
+    "remote branch created through authorized GitHub connector",
+    "draft PR #228 opened against main"
   ],
   "next": [
-    "commit and push branch",
     "create PR and wait for all checks",
     "verify exact-head Preview at PC/Pad/Android journeys",
     "verify Production and merge only after required checks pass",
