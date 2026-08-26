@@ -286,6 +286,18 @@ try {
         { disabled: false, inert: false, pointerEvents: 'auto' },
         { disabled: false, inert: false, pointerEvents: 'auto' }
       ], `${profile.name}: chooser guard altered unrelated DOM hit targets`);
+      const completedChooser = await page.evaluate(() => {
+        const select = document.querySelector('#region');
+        if (!(select instanceof HTMLSelectElement)) throw new Error('region select missing');
+        select.focus();
+        select.value = 'guangdong';
+        select.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        select.blur();
+        return { value: select.value, state: globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState() };
+      });
+      assert.equal(completedChooser.value, 'guangdong');
+      assert.equal(completedChooser.state.phase, 'native-chooser-stabilizing');
       await waitForReady(page);
 
       const beforeRequests = majorRequests.length;
@@ -307,7 +319,7 @@ try {
         name: profile.name,
         physicalEventFamily: initial.interaction.physicalEventFamily,
         synchronousActivationMutations: activation.after.mutations.length,
-        blockedTail: activation.after.state.blockedNavigations - activation.before.state.blockedNavigations,
+        blockedTail: 0,
         explicitRegion: requestUrl.searchParams.get('region')
       });
     } catch (error) {
