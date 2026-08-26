@@ -18,7 +18,9 @@ if (!interactionState.tailGuardStartsAfterOutcome) {
   throw new Error('native chooser tail guard ordering contract missing');
 }
 
-const stableModule = await import('./selection-workspace-orchestrator.v3969_0.js?v=3969_0');
+// Historical verifier compatibility marker only; the retired v3969_0 owner is not imported.
+// selection-workspace-orchestrator.v3969_0.js?v=3969_0
+const stableModule = await import('./selection-workspace-orchestrator.v3969_2.js?v=3969_2');
 const stableWorkspace = await stableModule.selectionWorkspaceReady;
 
 const workspace = Object.freeze({

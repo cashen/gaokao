@@ -30,7 +30,10 @@ import {
   SCHOOL_QUERY_STATUSES,
   normalizeSchoolQueryIntent
 } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
-import { normalizeUnifiedSchoolName } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
+import {
+  normalizeUnifiedSchoolName,
+  admissionEntityIdForName
+} from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -150,6 +153,25 @@ function acceptedNamesForSelection(selection, entity) {
   ].map(normalizeUnifiedSchoolName).filter(Boolean));
 }
 
+function canonicalEntityForSelection(selection) {
+  const known = selection?.entityId ? getSchoolEntity(selection.entityId) : null;
+  if (known) return known;
+  const displayName = clean(selection?.officialName || selection?.admissionName || '', 120);
+  const entityId = clean(selection?.entityId || '', 80);
+  if (!displayName || !entityId.startsWith('admission:') || entityId !== admissionEntityIdForName(displayName)) return null;
+  return {
+    entityId,
+    displayName,
+    entityType: clean(selection?.entityType || 'official_school', 40),
+    parentEntityId: '',
+    sourceQuery: clean(selection?.admissionName || displayName, 120),
+    aliases: Array.isArray(selection?.admissionNames) ? selection.admissionNames.filter(Boolean) : [],
+    province: clean(selection?.province || '', 40),
+    city: clean(selection?.city || '', 40),
+    sourceStatus: 'admission-directory'
+  };
+}
+
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);
   const started = Date.now();
@@ -178,11 +200,12 @@ export async function onRequest(context) {
     const candidateOffset = pageNumber(url.searchParams.get('candidateOffset'), 0);
     const candidateLimit = Math.max(8, Math.min(500, pageNumber(url.searchParams.get('candidateLimit'), 200)));
     const schoolIntent = normalizeSchoolQueryIntent(url.searchParams.get('schoolIntent') || 'auto');
+    const resolveOnly = url.searchParams.get('resolveOnly') === '1';
 
     const directoryMeta = await getAdmissionSchoolDirectoryMeta(context.request);
 
     let entity = entityId ? getSchoolEntity(entityId) : null;
-    if (entityId && !entity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
+    if (entityId && !entity && !entityId.startsWith('admission:')) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
 
     let selection = null;
     let queryResult = null;
@@ -195,13 +218,18 @@ export async function onRequest(context) {
         entityId: entity.entityId,
         entityType: entity.entityType
       };
+    } else if (entityId) {
+      selection = await resolveExactAdmissionSchool(context.request, schoolInput);
+      if (!selection || selection.entityId !== entityId) return json({ ok: false, message: '学校实体与招生目录不匹配，请重新选择学校。' }, 400);
+      entity = canonicalEntityForSelection(selection);
+      if (!entity) return json({ ok: false, message: '学校实体无法从统一招生目录确认，请重新选择学校。' }, 409);
     } else {
       const exactSelection = schoolIntent === 'school'
         ? await resolveExactAdmissionSchool(context.request, schoolInput)
         : null;
       if (exactSelection) {
         selection = exactSelection;
-        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
+        entity = canonicalEntityForSelection(selection);
       } else {
         queryResult = await resolveAdmissionSchoolQuery(context.request, {
           query: schoolInput,
@@ -214,8 +242,29 @@ export async function onRequest(context) {
           return json(unresolvedPayload(queryResult, directoryMeta), status);
         }
         selection = queryResult.resolvedSchool;
-        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
+        entity = canonicalEntityForSelection(selection);
       }
+    }
+
+    if (resolveOnly) {
+      if (!selection?.entityId || !entity) {
+        const fallback = queryResult || { status: SCHOOL_QUERY_STATUSES.NOT_FOUND, candidates: [] };
+        return json(unresolvedPayload(fallback, directoryMeta), 409);
+      }
+      return json({
+        ok: true,
+        mode: 'school-resolve-only',
+        meta: {
+          mode: 'school-resolve-only',
+          school: selection.officialName || selection.admissionName,
+          schoolQuery: schoolInput || selection.officialName || selection.admissionName,
+          schoolEntity: publicSchoolEntity(entity),
+          schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
+          schoolQueryIntent: 'school',
+          admissionDirectoryVersion: directoryMeta.version,
+          admissionDirectorySourceHash: directoryMeta.sourceHash
+        }
+      });
     }
 
     const acceptedNames = acceptedNamesForSelection(selection, entity);

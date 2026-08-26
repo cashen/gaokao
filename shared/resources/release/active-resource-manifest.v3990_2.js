@@ -21,6 +21,27 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     releaseFooterStyles: entry(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, 'current-generation'),
     releaseLog: CURRENT_RELEASE.resourceOwners.releaseLog
   }),
+  lnRankHumanQueryInput: entry(CURRENT_RELEASE.resourceOwners.lnRankHumanQueryInput, 'current-generation', {
+    featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
+    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    contract: 'typed-draft-confirm-commit-v001'
+  }),
+  moduleNavigation: entry(CURRENT_RELEASE.resourceOwners.moduleNavigation, 'current-generation', {
+    implementationVersion: CURRENT_RELEASE.moduleNavigationVersion,
+    stylesOwner: CURRENT_RELEASE.resourceOwners.moduleNavigationStyles,
+    stylesVersion: CURRENT_RELEASE.moduleNavigationStylesVersion,
+    featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
+    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision
+  }),
+  selectionWorkspace: Object.freeze({
+    classification: 'current-generation-with-declared-stable-implementation',
+    owner: CURRENT_RELEASE.resourceOwners.searchIntentState,
+    stableImplementation: entry(CURRENT_RELEASE.resourceOwners.selectionWorkspaceStableImplementation, 'declared-stable-dependency', {
+      implementationVersion: CURRENT_RELEASE.selectionWorkspaceStableImplementationVersion,
+      featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
+      revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision
+    })
+  }),
   aiplus: Object.freeze({
     classification: 'current-generation-with-declared-transitive-implementation',
     browserOwner: CURRENT_RELEASE.resourceOwners.aiRuntime,

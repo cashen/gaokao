@@ -42,7 +42,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiStyles: '/aiplus/workspace.v3990_2.css?v=3990_2',
     aiWorkspaceContract: '/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2',
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
-    majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js'
+    majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
   }),
   activeEntrypointClassifications: Object.freeze({
     releaseCenter: CURRENT,
@@ -74,7 +74,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiStyles: CURRENT,
     aiWorkspaceContract: CURRENT,
     majorBandsFilter: CURRENT,
-    majorBandsRegionCatalog: CURRENT
+    majorBandsRegionCatalog: CURRENT,
   }),
   declaredResourceGraph: Object.freeze({
     manifest: ACTIVE_RESOURCE_MANIFEST,
@@ -111,6 +111,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     selectionBootstrap: '/ln-rank/js/app.v3990_2.js',
     selectionRuntime: '/ln-rank/js/app-runtime.v3990_2.js',
     selectionWorkspace: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js',
+    selectionWorkspaceStableImplementation: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js',
     interaction: '/shared/ui/interaction/interaction-transaction.v3990_2.js',
     disclosure: '/shared/ui/interaction/interaction-transaction.v3990_2.js',
     auxiliaryNavigation: '/shared/ui/interaction/interaction-transaction.v3990_2.js',
@@ -130,7 +131,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
     localStrength: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js',
-    all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js'
+    all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js',
   }),
   stableDependencies: Object.freeze([
     '/shared/resources/exam/liaoning-physics.js',
@@ -151,9 +152,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     '/shared/ui/components/family-plan-entry.v3972_5.css',
     '/ln-rank/js/domain/family-decision-contract.v3970_0.js',
     '/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
-    '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js',
+    '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js',
     '/ln-rank/js/selection-pool-runtime.v3967_0.js',
-    '/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js',
+    '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js',
     '/ln-rank/js/feature/feishu/index.v3967_0.js',
     '/ln-rank/js/feature/report/payload-builder.v3967_0.js',
     '/ln-rank/js/feature/selection-pool/index.v3967_0.js',

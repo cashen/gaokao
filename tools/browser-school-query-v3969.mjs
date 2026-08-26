@@ -109,7 +109,7 @@ const successPayload = {
     rankYear: 2026,
     school: '沈阳化工大学',
     schoolQuery: '沈阳化工大学',
-    schoolEntity: null,
+    schoolEntity: { entityId: '0001', entityType: 'official_school', displayName: '沈阳化工大学', parentEntityId: '' },
     filteredTotal: 1,
     schoolRecordTotal: 18,
     schoolQueryContractVersion: 'school-query-contract-v3969_0',
@@ -146,7 +146,7 @@ try {
     page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
     page.on('request', request => {
       const url = new URL(request.url());
-      if (url.pathname.endsWith('/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js')) schoolModeModules.push(url.searchParams.get('v') || '');
+      if (url.pathname.endsWith('/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js')) schoolModeModules.push(url.searchParams.get('v') || '');
     });
     await page.route('**/api/school-majors**', route => {
       const url = new URL(route.request().url());
@@ -187,16 +187,21 @@ try {
       await chemicalCandidates.first().click();
       const firstRow = page.locator('.school-major-row').first();
       await firstRow.waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(requests.length, 2, `${testCase.name}: query should require one confirmation`);
+      assert.equal(requests.length, 3, `${testCase.name}: ambiguity, entity preflight, and records query are separate requests`);
       assert.equal(requests[0].searchParams.get('school'), '沈阳');
+      assert.equal(requests[0].searchParams.get('resolveOnly'), '1');
       assert.equal(requests[1].searchParams.get('school'), '沈阳化工大学');
+      assert.equal(requests[1].searchParams.get('resolveOnly'), '1');
+      assert.equal(requests[2].searchParams.get('school'), '沈阳化工大学');
+      assert.equal(requests[2].searchParams.get('resolveOnly'), null);
+      assert.equal(requests[2].searchParams.get('schoolEntityId'), '0001');
       assert.match(await page.locator('#schoolAllTitle').textContent(), /沈阳化工大学/);
       assert.match(await firstRow.textContent(), /化学工程与工艺/);
       const reviewLink = firstRow.locator('.school-major-review-link');
       assert.equal(await reviewLink.count(), 1, `${testCase.name}: student opinion link missing`);
       assert.equal((await reviewLink.textContent()).trim(), '大学生怎么说', `${testCase.name}: student opinion CTA must use human wording`);
       assert.match(await reviewLink.getAttribute('href'), /\/tongxue\/\?school=/, `${testCase.name}: student opinion href must keep Tongxue handoff`);
-      assert.ok(schoolModeModules.includes('3969_0-hc001'), `${testCase.name}: active school mode did not use human-copy cache identity`);
+      assert.ok(schoolModeModules.includes('3969_2'), `${testCase.name}: active school mode did not use human-copy cache identity`);
       const geometry = await page.evaluate(() => ({
         pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         candidateOverflow: Math.max(0, ...[...document.querySelectorAll('.school-candidate-list')].map(node => node.scrollWidth - node.clientWidth)),
@@ -208,7 +213,7 @@ try {
       assert.ok(geometry.candidateOverflow <= 1, `${testCase.name}: candidate overflow ${geometry.candidateOverflow}`);
       assert.ok(geometry.resultOverflow <= 1, `${testCase.name}: result overflow ${geometry.resultOverflow}`);
       assert.equal(geometry.workspace, 'selection-workspace-orchestration-v3969_0');
-      assert.equal(geometry.schoolMode, 'school-all-mode-v3969_0');
+      assert.equal(geometry.schoolMode, 'school-all-mode-v3969_2');
       assert.deepEqual(pageErrors, [], `${testCase.name}: page errors ${pageErrors.join(' | ')}`);
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}.png`), fullPage: true });
       results.push({ name: testCase.name, requests: requests.length, candidates: firstGroupNames.length, reviewCta:'大学生怎么说', schoolModeIdentity:schoolModeModules.at(-1) || '', geometry });
