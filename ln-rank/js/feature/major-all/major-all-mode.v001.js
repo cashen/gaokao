@@ -13,7 +13,6 @@ let mounted = false;
 let lockedConfirmed = [];
 const confirmedDirectionTerms = new Set();
 const confirmedDirectionScopes = new Map();
-let restoredUrlConfirmation = false;
 const DEFAULT_MAJOR_PLACEHOLDER = '先输入一个，如：电气、机械或计算机';
 const ADD_MAJOR_PLACEHOLDER = '继续添加一个，如：测控、材料或软件';
 
@@ -29,8 +28,9 @@ function schoolValue() { return text(byId('schoolKeyword')?.value || state.filte
 function uniqueTerms(values=[]) { return [...new Set(values.flatMap(value => String(value || '').split(/[,，、/；;|]+/).map(item => item.trim()).filter(Boolean)))]; }
 function draftMajorText() { return uniqueTerms([...lockedConfirmed, inputValue()]).join('/'); }
 function restoreConfirmedFromUrl() {
-  if (restoredUrlConfirmation) return;
-  restoredUrlConfirmation = true;
+  lockedConfirmed = [];
+  confirmedDirectionTerms.clear();
+  confirmedDirectionScopes.clear();
   const params = new URLSearchParams(location.search);
   const rawTerms = uniqueTerms([params.get('majorKeyword')]);
   if (!rawTerms.length) return;
