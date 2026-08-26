@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-human-query-input-v001",
   "baseSha": "1745d7a144b64d8bdbb455ac3c072230f8a1fe29",
-  "headSha": "7a2580fd97e420bbfe5834d3a859dcfbccdc28a0",
-  "pr": null,
+  "headSha": "a718e19a79045eb8c08ad1d8d48021feeeb53bfa",
+  "pr": 222,
   "mergeSha": null,
   "completed": [
     "HQI-01-remote-state-and-ownership-audit"
@@ -25,12 +25,14 @@
     "latestMain": "1745d7a144b64d8bdbb455ac3c072230f8a1fe29",
     "openPRs": [],
     "branchBase": "1745d7a144b64d8bdbb455ac3c072230f8a1fe29",
+    "prState": "PR #222 open, draft=true, merged=false, base=1745d7a144b64d8bdbb455ac3c072230f8a1fe29, head=a718e19a79045eb8c08ad1d8d48021feeeb53bfa",
     "currentRelease": "v3.9.90.2 / v3990_2 / 3990_2",
     "currentReleaseFile": "shared/resources/release/current-release.js",
     "planFile": "docs/plans/ln-rank-human-query-input-v001.md",
     "planCommit": "7a2580fd97e420bbfe5834d3a859dcfbccdc28a0",
+    "statusCommit": "a718e19a79045eb8c08ad1d8d48021feeeb53bfa",
     "mainChecks": "25 check-runs success, 0 failure, 0 pending on exact main SHA",
-    "cloudflareBaseline": "Cloudflare Pages check successful for main SHA; branch preview URL reported by the check is https://agent-ln-rank-human-query-in.gaokao-4y9.pages.dev",
+    "cloudflareBaseline": "Cloudflare Pages check successful for main SHA; check reported https://5546780d.gaokao-4y9.pages.dev and branch preview https://agent-ln-rank-human-query-in.gaokao-4y9.pages.dev",
     "production": "Not revalidated for this new branch yet; must be rechecked after merge",
     "majorHandling": "existing major-all resolver requires candidate confirmation before query",
     "scoreHandling": "current form parses digits only; backend human-query frame supports score constraints but form is not unified",
@@ -47,5 +49,5 @@
   "versionRule": "Every revision must update a canonical feature/release version and all affected contract, entrypoint, manifest, verifier, and status references; never add a disconnected version string.",
   "plannedFeatureVersion": "ln-rank-human-query-input-v001",
   "boundary": "ln-rank human input interpretation and confirmation only; no major-bands algorithm/concurrency change",
-  "verifiedAt": "2026-08-26T03:31:00Z"
+  "verifiedAt": "2026-08-26T03:32:30Z"
 }
