@@ -4,14 +4,14 @@
   "baseSha": "b15ffa794dfedaf8c32f91c76505122c378f91d8",
   "branch": "agent/module-navigation-cache-identity-v003",
   "pr": null,
-  "headSha": "438b5d2653436677573ef3fd3330541bcad9cf12",
+  "headSha": "2b3f6672b7a66c1282e3895bbd919e4b35278e42",
   "mergeSha": null,
   "completed": [
-    "MC-01-production-residual-confirmed"
+    "MC-01-production-residual-confirmed",
+    "MC-02-unify-entry-cache-identities"
   ],
-  "inProgress": "MC-02-unify-entry-cache-identities",
+  "inProgress": "MC-03-contract-and-multi-device-validation",
   "pending": [
-    "MC-02-unify-entry-cache-identities",
     "MC-03-contract-and-multi-device-validation",
     "MC-04-merge-and-production-closeout"
   ],
@@ -37,6 +37,6 @@
     ]
   },
   "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
-  "checkpointNote": "MC-01 confirmed that v002 navigation code is not reached by several production shell consumers still cached as nav001. Next update is entry identity only, then fresh CI and production DOM verification.",
-  "verifiedAt": "2026-08-26T01:56:12.078Z"
+  "checkpointNote": "MC-02 completed at pre-status head 2b3f6672b7a66c1282e3895bbd919e4b35278e42: all identified nav001 shell consumer and wrapper entry URLs were upgraded to nav002, including home, ln-rank, Tongxue and changelog entry points. Business and fixed Tongxue startup resource identities unchanged.",
+  "verifiedAt": "2026-08-26T01:56:49.407Z"
 }
