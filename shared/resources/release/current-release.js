@@ -85,7 +85,7 @@ export const CURRENT_RELEASE = Object.freeze({
   historyEvidenceVersion: 'ln-physics-history-evidence-v3967_0',
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v001',
-  lnRankHumanQueryInputRevision: 'r021',
+  lnRankHumanQueryInputRevision: 'r022',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
     release: '/shared/resources/release/current-release.js',
