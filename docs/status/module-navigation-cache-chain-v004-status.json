@@ -3,16 +3,16 @@
   "repository": "cashen/gaokao",
   "baseSha": "c38f3f5a3c8050489459ead87c499e3156186d24",
   "branch": "agent/module-navigation-cache-chain-v004",
-  "pr": null,
-  "headSha": "25fef54af815532d3bdfa37672faf631e09cc94a",
+  "pr": 219,
+  "headSha": "0c89e31edbc33fbcaa9dd43e74d50c32e7a3ab80",
   "mergeSha": null,
   "completed": [
     "MC-01-production-internal-chain-residual-confirmed",
-    "MC-02-unify-internal-shell-imports"
+    "MC-02-unify-internal-shell-imports",
+    "MC-03-contract-preview-multidevice"
   ],
-  "inProgress": "MC-03-contract-preview-multidevice",
+  "inProgress": "MC-04-merge-production-closeout",
   "pending": [
-    "MC-03-contract-preview-multidevice",
     "MC-04-merge-production-closeout"
   ],
   "evidence": {
@@ -25,6 +25,12 @@
     "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
     "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
   ],
-  "checkpointNote": "MC-02 completed at pre-status head 25fef54af815532d3bdfa37672faf631e09cc94a: family-home, app-runtime and selection-pool v3990_2 internal family-shell imports now use nav002. No Tongxue business resource changed.",
-  "verifiedAt": "2026-08-26T02:13:18.899Z"
+  "checkpointNote": "MC-03 completed at pre-status head 0c89e31edbc33fbcaa9dd43e74d50c32e7a3ab80: PR #219 exact checks passed 9/0, including browser/production/runtime validation. Status commit changes the PR head; fresh exact-head checks are required before merge.",
+  "verifiedAt": "2026-08-26T02:18:06.298Z",
+  "validation": {
+    "exactHeadBeforeCheckpoint": "0c89e31edbc33fbcaa9dd43e74d50c32e7a3ab80",
+    "prChecks": "9 success, 0 failure",
+    "internalImports": "family-home/app-runtime/selection-pool nav002",
+    "postMerge": "pending"
+  }
 }
