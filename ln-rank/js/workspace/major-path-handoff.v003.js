@@ -106,7 +106,7 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   button.setAttribute('aria-label', `了解${target.name}的专业关系和读研方向`);
   button.innerHTML = compact
     ? `<span>了解这个专业</span><small>专业关系和读研方向</small><b aria-hidden="true">→</b>`
-    : `<span class="major-path-entry__brand">专业升学地图</span><span class="major-path-entry__text"><strong>了解这个专业</strong><small>专业关系 · 相邻专业 · 读研方向</small></span><b class="major-path-entry__arrow" aria-hidden="true">→</b>`;
+    : `<span class="major-path-entry__brand">专业升学路径</span><span class="major-path-entry__text"><strong>了解这个专业</strong><small>专业关系 · 相邻专业 · 读研方向</small></span><b class="major-path-entry__arrow" aria-hidden="true">→</b>`;
   return button;
 }
 
@@ -130,8 +130,8 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
   button.setAttribute('aria-label', `查看不同学校学生对${target.name}的公开体验`);
   button.title = '这里是跨学校专业体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
   button.innerHTML = compact
-    ? `<span>大学生怎么说</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
-    : `<span class="student-voice-entry__brand">同学你好</span><span class="student-voice-entry__text"><strong>大学生怎么说</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
+    ? `<span>大学生说专业</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
+    : `<span class="student-voice-entry__brand">大学生说专业</span><span class="student-voice-entry__text"><strong>了解专业体验</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
   return button;
 }
 

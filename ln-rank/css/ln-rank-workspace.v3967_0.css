@@ -12306,7 +12306,7 @@ body::before{
   .family-secondary-actions__body{grid-template-columns:1fr}
 }
 
-/* v0.01 human card density: the PC result card keeps one decision summary,
+/* v0.02 human card density: the PC result card keeps one decision summary,
    two primary actions, and one relevant major path; cross-school experience
    and school-review links remain reachable from their dedicated surfaces. */
 @media (min-width: 761px) {
@@ -12316,12 +12316,27 @@ body::before{
     padding: 10px 11px;
   }
   .results-grid .major-card .family-decision-summary p { line-height: 1.48; }
+  .results-grid .major-card .major-path-entry,
   .results-grid .major-card .student-voice-entry,
-  .results-grid .major-card .tongxue-card-entry { display: none !important; }
-  .results-grid .major-card .major-path-entry {
-    margin-top: 8px;
-    padding: 8px 11px;
+  .results-grid .major-card .tongxue-card-entry {
+    display: grid !important;
+    min-height: 44px;
+    margin-top: 7px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    gap: 8px;
   }
+  .results-grid .major-card .major-path-entry__brand,
+  .results-grid .major-card .student-voice-entry__brand,
+  .results-grid .major-card .tongxue-card-entry__brand { font-size: 11px; }
+  .results-grid .major-card .major-path-entry__text strong,
+  .results-grid .major-card .student-voice-entry__text strong { font-size: 13px; }
+  .results-grid .major-card .major-path-entry__text small,
+  .results-grid .major-card .student-voice-entry__text small,
+  .results-grid .major-card .tongxue-card-entry__text { font-size: 11px; line-height: 1.35; }
+  .results-grid .major-card .major-path-entry__arrow,
+  .results-grid .major-card .student-voice-entry__arrow,
+  .results-grid .major-card .tongxue-card-entry__arrow { font-size: 15px; }
 }
 
 @media(max-width:360px){
