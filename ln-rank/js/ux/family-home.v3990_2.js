@@ -1,5 +1,5 @@
 import { mountCurrentRelease } from '../../../shared/resources/release/release-presenter.v3990_2.js?v=3990_2';
-import '../../../shared/ui/shell/family-shell.v3990_2.js?v=3990_2-nav001';
+import '../../../shared/ui/shell/family-shell.v3990_2.js?v=3990_2-nav003';
 import {
   buildFamilyStatus,
   readFamilyCandidateScore,

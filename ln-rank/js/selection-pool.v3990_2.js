@@ -1,6 +1,6 @@
 import '../../shared/resources/release/release-presenter.v3990_2.js?v=3990_2';
 import './domain/family-plan-copy-adapter.v3970_0.js?v=3970_0';
-import '../../shared/ui/shell/family-shell.v3990_2.js?v=3990_2-nav001';
+import '../../shared/ui/shell/family-shell.v3990_2.js?v=3990_2-nav003';
 import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_2';
 import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_2.js?v=3990_2';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3969_0';

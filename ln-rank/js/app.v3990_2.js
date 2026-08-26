@@ -58,7 +58,7 @@ globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__ = Object.freeze({
 
 setRuntimeState('loading');
 try {
-  const runtime = await import('./app-runtime.v3990_2.js?v=3990_2-nav001');
+  const runtime = await import('./app-runtime.v3990_2.js?v=3990_2-nav003');
   await runtime.startLnRankRuntime();
   mountMajorPathHandoff();
   currentState = 'ready';
