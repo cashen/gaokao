@@ -13,6 +13,7 @@ for (const token of ['major-path-entry','student-voice-entry','tongxue-card-entr
 assert.ok(!css.includes('.results-grid .major-card .student-voice-entry,\n  .results-grid .major-card .tongxue-card-entry { display: none'), 'PC must not hide two card entries');
 assert.match(css, /\.results-grid \.major-card \.major-path-entry,[\s\S]*display: grid !important/);
 assert.match(handoff, /专业升学路径/);
+assert.match(handoff, /专业升学路径<\/span><small>了解这个专业的关系与读研方向/);
 assert.match(handoff, /大学生说专业/);
 assert.match(presenter, /大学生说学校/);
 assert.match(presenter, /看看这所学校的大学生怎么说/);
