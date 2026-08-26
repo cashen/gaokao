@@ -67,7 +67,7 @@
   display: none !important;
 }
 .ui-module-navigation--standalone {
-  display: none;
+  display: flex;
 }
 .ui-module-navigation--standalone .ui-mobile-module-nav__roots {
   flex: 1;
