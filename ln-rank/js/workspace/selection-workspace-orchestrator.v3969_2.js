@@ -272,8 +272,16 @@ function syncSearchIntentUi() {
       ? '可以输入完整学校名、简称或城市。城市与校名片段冲突时会分组列出，必须再选择准确学校。'
       : '学校条件只接受统一目录解析后的学校；查看城市学校请使用地区条件，避免把城市词误当校名片段。';
 
-  const moreConditions = document.getElementById('familyConditionsDetails');
-  if (moreConditions) moreConditions.open = schoolMode || majorMode;
+  const moreConditions = document.getElementById('familyConditionsDisclosure')
+    || document.getElementById('familyConditionsDetails');
+  // In score mode this is a user-owned disclosure. Reassigning `open = false`
+  // on every draft commit made Android close/reflow the panel while a region
+  // select or major input was being edited. School/major modes still expose
+  // their required secondary conditions once, but score mode preserves the
+  // user's local open state and browser scroll anchor.
+  if (moreConditions && (schoolMode || majorMode) && !moreConditions.open) {
+    moreConditions.open = true;
+  }
 
   const status = document.getElementById('schoolResolveStatus');
   if (status) {
@@ -662,6 +670,14 @@ function guard() {
   return getScoreGuard(state.candidateScore);
 }
 
+function majorInputState() {
+  return globalThis.__GAOKAO_MAJOR_ALL_MODE__?.getInputState?.() || { blocking: false, ready: true, draftText: '' };
+}
+
+function majorInputBlocking() {
+  return state.resultMode !== MODE_MAJOR && Boolean(majorInputState().blocking);
+}
+
 function setReadyStatus(mode, text) {
   const badge = document.getElementById('appReadyBadge');
   if (!badge) return;
@@ -728,6 +744,7 @@ function setActionButton() {
   }
   const g = guard();
   const scoreBlocking = scoreInputHasBlockingError();
+  const majorBlocking = majorInputBlocking();
   renderScoreInterpretation();
   const schoolMode = state.resultMode === MODE_SCHOOL;
   const schoolLoading = Boolean(state.schoolAll.loading || state.schoolAll.loadingMore);
@@ -745,7 +762,7 @@ function setActionButton() {
   if (schoolMode) {
     const selection = state.schoolSelection || {};
     const label = selection.displayName || selection.input || '这所学校';
-    button.disabled = Boolean(schoolLoading || !selection.input || scoreBlocking);
+    button.disabled = Boolean(schoolLoading || !selection.input || scoreBlocking || majorBlocking);
     if (schoolLoading) {
       button.textContent = state.schoolAll.loadingMore ? '正在继续加载…' : '正在读取该校招生专业…';
       button.className = getQueryButtonClass({ loading: true });
@@ -756,6 +773,12 @@ function setActionButton() {
       button.textContent = '先确认分数';
       button.className = 'query-button is-waiting';
       updateGuideNote(guide, g, state.scoreInterpretation?.message || '请先确认分数。');
+      return;
+    }
+    if (majorBlocking) {
+      button.textContent = '先确认专业';
+      button.className = 'query-button is-waiting';
+      updateGuideNote(guide, g, '专业条件还没有确认；请先从候选中选择规范专业，或移除这次专业输入。');
       return;
     }
     if (!selection.input) {
@@ -781,12 +804,18 @@ function setActionButton() {
     updateGuideNote(guide, g, '参考分数可以不填；填写后只增加位次对照，不会减少该校专业数量。');
     return;
   }
-  button.disabled = Boolean(requestState.loading || scoreBlocking);
+  button.disabled = Boolean(requestState.loading || scoreBlocking || majorBlocking);
 
   if (scoreBlocking) {
     button.textContent = '先确认分数';
     button.className = 'query-button is-waiting';
     updateGuideNote(guide, g, state.scoreInterpretation?.message || '请先确认分数。');
+    return;
+  }
+  if (majorBlocking) {
+    button.textContent = '先确认专业';
+    button.className = 'query-button is-waiting';
+    updateGuideNote(guide, g, '专业条件还没有确认；请先从候选中选择规范专业，或移除这次专业输入。');
     return;
   }
   if (requestState.loading) {
@@ -1181,6 +1210,11 @@ function markSharedInputDirty(reason = 'shared_filter_changed') {
 }
 
 function submitActiveSearch() {
+  if (majorInputBlocking()) {
+    setActionButton();
+    document.getElementById('majorKeyword')?.focus();
+    return;
+  }
   if (state.resultMode === MODE_MAJOR) {
     updateSearchUrl();
     document.dispatchEvent(new CustomEvent('gaokao:major-search-submit'));
@@ -1540,6 +1574,11 @@ function bind() {
   document.getElementById('queryButton')?.addEventListener('click', event => {
     event.preventDefault();
     submitActiveSearch();
+  });
+
+  document.addEventListener('gaokao:major-input-state', () => {
+    renderFilterSummary();
+    setActionButton();
   });
 
   document.getElementById('mobileDirtyButton')?.addEventListener('click', event => {

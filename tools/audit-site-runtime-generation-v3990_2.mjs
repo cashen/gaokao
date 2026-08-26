@@ -45,6 +45,7 @@ const expectedCurrentKeys = [
   'familyShell', 'homePage', 'homeRuntime', 'interactionRuntime', 'interactionStyles',
   'majorBandsBucketLoader', 'majorBandsFilter', 'majorBandsQueryKernel', 'majorBandsRankIndex',
   'majorBandsRegionCatalog', 'majorBandsResponseTransport', 'majorBandsResultOrder',
+  'majorFilterContext',
   'releaseCenter', 'releasePresenter', 'resourceExecution', 'runtimeCache',
   'selectionBootstrap', 'selectionPage', 'selectionRuntime', 'selectionWorkspace'
 ].sort();
