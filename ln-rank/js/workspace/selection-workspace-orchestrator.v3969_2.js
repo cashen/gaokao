@@ -82,7 +82,7 @@ import {
   bindResultCommitBridge,
   commitMajorResults,
   updateResultWorkspaceStatus
-} from './result-commit.v3967_0.js?v=3967_0&r=r030-filter-state';
+} from './result-commit.v3967_0.js?v=3967_0&r=r030-filter-state-path1';
 import {
   beginQueryScrollIntent,
   finishQueryScrollIntent,

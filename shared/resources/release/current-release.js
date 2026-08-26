@@ -90,7 +90,7 @@ export const CURRENT_RELEASE = Object.freeze({
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v001',
   lnRankHumanQueryInputRevision: 'r030',
   lnRankCardEntryVersion: 'ln-rank-three-card-entries-v004',
-  lnRankCacheRevision: 'r030-filter-state',
+  lnRankCacheRevision: 'r030-filter-state-path1',
   lnRankMajorFilterContextVersion: 'major-filter-context-v002',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
