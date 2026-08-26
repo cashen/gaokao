@@ -3,11 +3,11 @@
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-android-background-navigation-v001",
   "baseSha": "53616bd611635ab1c184b3cceb0858a0862a1cb1",
-  "headSha": "f0dc1d130d22c1e39e7d1f2437c5443ade8e26aa",
-  "pr": null,
-  "completed": ["live-main-reconciled", "android-route-diagnosis", "native-anchor-fallback", "canonical-background-navigation-fix", "local-static-tests", "branch-commit"],
-  "inProgress": "pr-ci-preview",
-  "pending": ["browser-acceptance", "pr-ci-preview", "merge-main", "production-verify"],
+  "headSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "pr": 231,
+  "completed": ["live-main-reconciled", "android-route-diagnosis", "native-anchor-fallback", "canonical-background-navigation-fix", "local-static-tests", "branch-commit", "browser-acceptance", "pr-ci-preview", "merge-main"],
+  "inProgress": null,
+  "pending": [],
   "lastFailure": "Playwright browser binary is unavailable in the local runtime; browser acceptance will run in CI/Preview.",
   "diagnosis": {
     "localHref": "/ln-rank/local-mainline.html",
@@ -27,5 +27,15 @@
       "node --check active changed modules"
     ]
   },
-  "verifiedAt": "2026-08-26T15:18:00Z"
+  "mergeCommitSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "productionVerification": {
+    "domains": ["https://gaokao.powers.org.cn", "https://gaokao-4y9.pages.dev"],
+    "canonicalEntrypoints": ["/ln-rank/local-mainline", "/ln-rank/211-mainline"],
+    "canonicalStatus": 200,
+    "legacyHtmlRedirect": 308,
+    "parameterizedScopeLinksStatus": 200,
+    "backgroundNavigationModuleStatus": 200
+  },
+  "status": "merged-production-verified",
+  "verifiedAt": "2026-08-26T16:32:00Z"
 }
