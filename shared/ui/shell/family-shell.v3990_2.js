@@ -1,3 +1,4 @@
+import '../navigation/module-navigation.v001.js?v=001';
 import { CURRENT_RELEASE } from '../../resources/release/current-release.js?v=3990_2';
 import {
   buildFamilyStatus,
