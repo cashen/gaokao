@@ -24,6 +24,7 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
   lnRankHumanQueryInput: entry(CURRENT_RELEASE.resourceOwners.lnRankHumanQueryInput, 'current-generation', {
     featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
     revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    cacheRevision: CURRENT_RELEASE.lnRankCacheRevision,
     contract: 'typed-draft-confirm-commit-v001'
   }),
   lnRankMajorFilterContext: entry(CURRENT_RELEASE.resourceOwners.lnRankMajorFilterContext, 'current-generation', {
@@ -37,7 +38,8 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     stylesOwner: CURRENT_RELEASE.resourceOwners.moduleNavigationStyles,
     stylesVersion: CURRENT_RELEASE.moduleNavigationStylesVersion,
     featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
-    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision
+    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    cacheRevision: CURRENT_RELEASE.lnRankCacheRevision
   }),
   selectionWorkspace: Object.freeze({
     classification: 'current-generation-with-declared-stable-implementation',
