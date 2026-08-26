@@ -19,7 +19,7 @@ const checks = [
   ['workspace blocks unknown school submit', workspace.includes("school-search-needs-confirmation")],
   ['API exposes resolve-only mode', api.includes("const resolveOnly = url.searchParams.get('resolveOnly') === '1'") && api.includes("mode: 'school-resolve-only'")],
   ['API fail-closes without canonical entity', api.includes('if (!selection?.entityId || !entity)')],
-  ['feature revision is registered', release.includes("lnRankHumanQueryInputRevision: 'r013'")],
+  ['feature version and revision are registered', /lnRankHumanQueryInputVersion:\s*'ln-rank-human-query-input-v001'/.test(release) && /lnRankHumanQueryInputRevision:\s*'r\d+'/.test(release)],
   ['active school owner is v3969_2', release.includes("schoolResults: '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'")],
   ['active contract has school owner', contract.includes('school-all-mode.v3969_2.js')],
   ['navigation waits for header mount', nav.includes("[data-ui-global-header],[data-ui-global-header-mount]")],
