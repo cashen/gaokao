@@ -4,7 +4,7 @@
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
   "branch": "agent/module-navigation-return-v001",
   "pr": null,
-  "headSha": "6dbc9eb797be585cfc0cea68f1768a9d71980590",
+  "headSha": "8dd1c6c2208e73b67ce35987f9275b8c296734ff",
   "mergeSha": null,
   "completed": [
     "MN-01-remote-baseline-and-live-ui-confirmed",
@@ -51,13 +51,10 @@
     "responsive": "desktop global nav; Pad core roots remain visible; Android horizontal module strip"
   },
   "lastFailure": {
-    "ciRun": 32915125385,
-    "job": 98017130590,
-    "reason": "home audit counted a second HTML bootstrap owner; fixed by centralizing navigation import in family shell",
-    "ciRunArchitecture": 32915125387,
-    "architectureJob": 98017130502,
-    "architectureReason": "AIPLuS core version contract saw the extra navigation entry; removed AIPLuS page injection"
+    "ciRun": 32915264852,
+    "job": 98017551979,
+    "reason": "public-company generated index is rewritten by its release sync; removed this page from module navigation scope and contract test"
   },
-  "checkpointNote": "CI correction is committed and version export is now available for the navigation contract test. Exact branch head 6dbc9eb797be585cfc0cea68f1768a9d71980590; rerun PR checks and Preview.",
-  "verifiedAt": "2026-08-26T00:28:56.387Z"
+  "checkpointNote": "Public-company-map failure was an exact generated-output diff, not a runtime navigation failure. Removed the generated page injection and its test expectation. Exact branch head 8dd1c6c2208e73b67ce35987f9275b8c296734ff; PR checks must rerun. Main and Tongxue identities remain untouched.",
+  "verifiedAt": "2026-08-26T00:38:00.602Z"
 }
