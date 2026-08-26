@@ -3,16 +3,16 @@
   "repository": "cashen/gaokao",
   "baseSha": "b15ffa794dfedaf8c32f91c76505122c378f91d8",
   "branch": "agent/module-navigation-cache-identity-v003",
-  "pr": null,
-  "headSha": "2b3f6672b7a66c1282e3895bbd919e4b35278e42",
+  "pr": 218,
+  "headSha": "8c00151141fec9bd6142f5295006947dd9b74875",
   "mergeSha": null,
   "completed": [
     "MC-01-production-residual-confirmed",
-    "MC-02-unify-entry-cache-identities"
+    "MC-02-unify-entry-cache-identities",
+    "MC-03-contract-and-multi-device-validation"
   ],
-  "inProgress": "MC-03-contract-and-multi-device-validation",
+  "inProgress": "MC-04-merge-and-production-closeout",
   "pending": [
-    "MC-03-contract-and-multi-device-validation",
     "MC-04-merge-and-production-closeout"
   ],
   "evidence": {
@@ -37,6 +37,13 @@
     ]
   },
   "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
-  "checkpointNote": "MC-02 completed at pre-status head 2b3f6672b7a66c1282e3895bbd919e4b35278e42: all identified nav001 shell consumer and wrapper entry URLs were upgraded to nav002, including home, ln-rank, Tongxue and changelog entry points. Business and fixed Tongxue startup resource identities unchanged.",
-  "verifiedAt": "2026-08-26T01:56:49.407Z"
+  "checkpointNote": "MC-03 completed at pre-status head 8c00151141fec9bd6142f5295006947dd9b74875: PR #218 checks were 20 success, 6 skipped, 0 failure, including browser-preview, production API and site runtime. Checkpoint commit changes the PR head; fresh exact-head checks are required before merge.",
+  "verifiedAt": "2026-08-26T02:01:24.678Z",
+  "validation": {
+    "exactHeadBeforeCheckpoint": "8c00151141fec9bd6142f5295006947dd9b74875",
+    "prChecks": "20 success, 6 skipped, 0 failure",
+    "preview": "browser-preview check success",
+    "entryChain": "all identified nav001 shell consumer/wrapper entry URLs upgraded to nav002",
+    "postMerge": "pending"
+  }
 }
