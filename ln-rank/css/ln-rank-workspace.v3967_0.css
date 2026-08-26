@@ -12789,6 +12789,7 @@ body.is-workspace-updating #results .major-card {
 .major-card-actions--primary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .major-card-actions--primary button{min-height:44px}
 /* history evidence layout is exclusively owned by history-evidence.v3967_0.css */
+body[data-result-mode="school-all"] #familyConditionsDisclosure>summary,
 body[data-result-mode="school-all"] #familyConditionsDetails>summary{color:var(--ui-ink,#21343b)}
 @media(max-width:767px){
   .hero{padding:14px!important}
