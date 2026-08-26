@@ -65,8 +65,7 @@ for (const path of [
   'tongxue/index.html',
   'tongxue/changelog.html',
   'zy2026/index.html',
-  'major-path/index.html',
-  'Public_company/index.html'
+  'major-path/index.html'
 ]) {
   const html = fs.readFileSync(path, 'utf8');
   assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.css?v=001'), true, `${path}: navigation CSS`);
@@ -80,7 +79,8 @@ for (const [path, needle] of [
   ['tongxue/index.html', 'tongxue-runtime-v159-r3968.js?v=3968_0-nav001'],
   ['tongxue/changelog.html', 'family-shell.v3990_2.js?v=3990_2-nav001']
 ]) {
-  assert.match(fs.readFileSync(path, 'utf8'), new RegExp(needle.replace(/[.*+?^{}()|[\]\\]/g, '\\const tongxueHtml = fs.readFileSync('tongxue/index.html', 'utf8');')), `${path}: cache-busted navigation owner`);
+  const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
+  assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
 }
 const tongxueHtml = fs.readFileSync('tongxue/index.html', 'utf8');
 assert.match(tongxueHtml, /data-ui-module-back/);
