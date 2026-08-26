@@ -20,7 +20,7 @@ if (!interactionState.tailGuardStartsAfterOutcome) {
 
 // Historical verifier compatibility marker only; the retired v3969_0 owner is not imported.
 // selection-workspace-orchestrator.v3969_0.js?v=3969_0
-const stableModule = await import('./selection-workspace-orchestrator.v3969_2.js?v=3969_2');
+const stableModule = await import('./selection-workspace-orchestrator.v3969_2.js?v=3969_2&r=r025-card3');
 const stableWorkspace = await stableModule.selectionWorkspaceReady;
 
 const workspace = Object.freeze({
