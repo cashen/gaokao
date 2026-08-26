@@ -69,15 +69,15 @@ for (const path of [
 ]) {
   const html = fs.readFileSync(path, 'utf8');
   assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.css?v=002'), true, `${path}: navigation CSS`);
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=002'), true, `${path}: navigation JS`);
+  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=003'), true, `${path}: navigation JS`);
 }
 for (const [path, needle] of [
-  ['index.html', 'family-home.v3990_2.js?v=3990_2-nav002'],
-  ['ln-rank/index.html', 'app.v3990_2.js?v=3990_2-nav002'],
-  ['ln-rank/selection-pool.html', 'selection-pool.v3990_2.js?v=3990_2-nav002'],
-  ['ln-rank/self-check.html', 'family-shell.v3990_2.js?v=3990_2-nav002'],
-  ['tongxue/index.html', 'tongxue-runtime-v159-r3968.js?v=3968_0-nav002'],
-  ['tongxue/changelog.html', 'family-shell.v3990_2.js?v=3990_2-nav002']
+  ['index.html', 'family-home.v3990_2.js?v=3990_2-nav003'],
+  ['ln-rank/index.html', 'app.v3990_2.js?v=3990_2-nav003'],
+  ['ln-rank/selection-pool.html', 'selection-pool.v3990_2.js?v=3990_2-nav003'],
+  ['ln-rank/self-check.html', 'family-shell.v3990_2.js?v=3990_2-nav003'],
+  ['tongxue/index.html', 'tongxue-runtime-v159-r3968.js?v=3968_0-nav003'],
+  ['tongxue/changelog.html', 'family-shell.v3990_2.js?v=3990_2-nav003']
 ]) {
   const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
   assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
