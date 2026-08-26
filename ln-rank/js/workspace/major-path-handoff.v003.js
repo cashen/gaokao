@@ -105,7 +105,7 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   button.dataset.majorPathSourceKey = sourceKey || '';
   button.setAttribute('aria-label', `了解${target.name}的专业关系和读研方向`);
   button.innerHTML = compact
-    ? `<span>了解这个专业</span><small>专业关系和读研方向</small><b aria-hidden="true">→</b>`
+    ? `<span>专业升学路径</span><small>了解这个专业的关系与读研方向</small><b aria-hidden="true">→</b>`
     : `<span class="major-path-entry__brand">专业升学路径</span><span class="major-path-entry__text"><strong>了解这个专业</strong><small>专业关系 · 相邻专业 · 读研方向</small></span><b class="major-path-entry__arrow" aria-hidden="true">→</b>`;
   return button;
 }

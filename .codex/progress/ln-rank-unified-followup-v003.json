@@ -1,0 +1,45 @@
+{
+  "task": "ln-rank-unified-followup-v003",
+  "status": "ci-final-pr-pending",
+  "repository": "cashen/gaokao",
+  "baseSha": "d83026656c9f0bb89428d44d06c6e28a1beeeed3",
+  "branch": "agent/ln-rank-unified-followup-v003",
+  "completed": [
+    "live-main-reconciled",
+    "production-school-filter-URL-contamination-reproduced",
+    "production-confirmed-major-refresh-loss-reproduced",
+    "production-multi-major-confirmation-loss-reproduced",
+    "isolated-score-return-context",
+    "URL-persisted-resolver-verified-major-confirmation",
+    "unified-school-card-three-entry-copy",
+    "local-contract-tests",
+    "syntax-and-diff-checks",
+    "multi-major-draft-preservation-fix"
+  ],
+  "inProgress": "exact-head-ci",
+  "pullRequest": 233,
+  "remoteHeadSha": "93fa93f1a722ba4c61f47a93a5acc1ee97b18c4b",
+  "pending": [
+    "exact-head-ci",
+    "exact-head-preview-browser",
+    "ready-and-merge",
+    "post-merge-production-verification"
+  ],
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "majorFilterContext": "major-filter-context-v002",
+    "majorMode": "major-all-mode-v003",
+    "revision": "r030",
+    "cacheRevision": "r030-filter-state"
+  },
+  "preserved": [
+    "/workspace/scratch/e656e218a4d4/gaokao-followup",
+    "sunshine admissions-plan collection"
+  ],
+  "supersededPullRequests": [
+    233,
+    234
+  ],
+  "ciTriggerCommit": "pending"
+}

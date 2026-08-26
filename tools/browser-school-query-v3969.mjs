@@ -199,7 +199,8 @@ try {
       assert.match(await firstRow.textContent(), /化学工程与工艺/);
       const reviewLink = firstRow.locator('.school-major-review-link');
       assert.equal(await reviewLink.count(), 1, `${testCase.name}: student opinion link missing`);
-      assert.equal((await reviewLink.textContent()).trim(), '大学生怎么说', `${testCase.name}: student opinion CTA must use human wording`);
+      assert.equal((await reviewLink.locator('.school-major-review-link__brand').textContent()).trim(), '大学生说学校', `${testCase.name}: school experience CTA must use the unified human brand`);
+      assert.match((await reviewLink.locator('small').textContent()).trim(), /看看这所学校的大学生怎么说/, `${testCase.name}: school experience CTA must explain the destination`);
       assert.match(await reviewLink.getAttribute('href'), /\/tongxue\/\?school=/, `${testCase.name}: student opinion href must keep Tongxue handoff`);
       assert.ok(schoolModeModules.includes('3969_2'), `${testCase.name}: active school mode did not use human-copy cache identity`);
       const geometry = await page.evaluate(() => ({
@@ -216,7 +217,7 @@ try {
       assert.equal(geometry.schoolMode, 'school-all-mode-v3969_2');
       assert.deepEqual(pageErrors, [], `${testCase.name}: page errors ${pageErrors.join(' | ')}`);
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}.png`), fullPage: true });
-      results.push({ name: testCase.name, requests: requests.length, candidates: firstGroupNames.length, reviewCta:'大学生怎么说', schoolModeIdentity:schoolModeModules.at(-1) || '', geometry });
+      results.push({ name: testCase.name, requests: requests.length, candidates: firstGroupNames.length, reviewCta:'大学生说学校', schoolModeIdentity:schoolModeModules.at(-1) || '', geometry });
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
       fs.writeFileSync(path.join(artifactDir, `${testCase.name}-error.txt`), String(error?.stack || error));

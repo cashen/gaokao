@@ -30,11 +30,11 @@ assert.match(handoff, /concreteMajorFromRendered\(\{ code, name:sourceMajor \}\)
 assert.match(handoff, /compact:true/);
 assert.match(handoff, /看看这所学校的大学生怎么说/);
 assert.match(presenter, /看看这所学校的大学生怎么说/);
-assert.match(runtime, /school-all-mode\.v3969_2\.js\?v=3969_2&r=r027-card5/);
+assert.match(runtime, /school-all-mode\.v3969_2\.js\?v=3969_2&r=r030-filter-state/);
 assert.match(workspaceCss, /major-path-entry--compact[\s\S]*width: calc\(\(100% - 16px\) \/ 3\)/);
-assert.match(release, /lnRankHumanQueryInputRevision: 'r027'/);
+assert.match(release, /lnRankHumanQueryInputRevision: 'r030'/);
 assert.match(release, /lnRankCardEntryVersion: 'ln-rank-three-card-entries-v004'/);
-assert.match(release, /lnRankCacheRevision: 'r027-card5'/);
+assert.match(release, /lnRankCacheRevision: 'r030-filter-state'/);
 assert.match(manifest, /CURRENT_RELEASE\.lnRankHumanQueryInputRevision/);
 assert.match(manifest, /CURRENT_RELEASE\.lnRankCacheRevision/);
 console.log(JSON.stringify({
@@ -42,6 +42,6 @@ console.log(JSON.stringify({
   sharedMajorResolution: true,
   schoolCanonicalIdentity: true,
   visibleEntries: ['专业升学路径', '大学生说专业', '大学生说学校'],
-  releaseRevision: 'r027',
-  cacheRevision: 'r027-card5'
+  releaseRevision: 'r030',
+  cacheRevision: 'r030-filter-state'
 }, null, 2));

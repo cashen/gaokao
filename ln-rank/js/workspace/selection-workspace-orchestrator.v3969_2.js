@@ -82,7 +82,7 @@ import {
   bindResultCommitBridge,
   commitMajorResults,
   updateResultWorkspaceStatus
-} from './result-commit.v3967_0.js?v=3967_0&r=r027-card5';
+} from './result-commit.v3967_0.js?v=3967_0&r=r030-filter-state';
 import {
   beginQueryScrollIntent,
   finishQueryScrollIntent,
@@ -198,6 +198,35 @@ function normalizeSchoolSort(value) {
   return ['position-near', 'score-desc', 'score-asc'].includes(key) ? key : 'position-near';
 }
 
+let scoreModeReturnSnapshot = null;
+
+function rememberScoreModeReturnState() {
+  if (state.resultMode !== MODE_SCORE || scoreModeReturnSnapshot) return;
+  scoreModeReturnSnapshot = {
+    schoolKeyword: state.filters.schoolKeyword || '',
+    schoolEntityId: state.filters.schoolEntityId || '',
+    schoolSelection: { ...state.schoolSelection }
+  };
+}
+
+function restoreScoreModeReturnState() {
+  const snapshot = scoreModeReturnSnapshot;
+  scoreModeReturnSnapshot = null;
+  if (snapshot) {
+    const input = document.getElementById('schoolKeyword');
+    if (input) input.value = snapshot.schoolKeyword;
+    state.filters.schoolKeyword = snapshot.schoolKeyword;
+    state.filters.schoolEntityId = snapshot.schoolEntityId;
+    state.schoolSelection = { ...snapshot.schoolSelection };
+  } else {
+    const input = document.getElementById('schoolKeyword');
+    if (input) input.value = '';
+    state.filters.schoolKeyword = '';
+    state.filters.schoolEntityId = '';
+    state.schoolSelection = { status: 'empty', input: '', entityId: '', displayName: '', entityType: '', parentEntityId: '' };
+  }
+}
+
 function updateSearchUrl({ push = false } = {}) {
   const url = new URL(location.href);
   const score = scoreQueryValue(scoreInput()?.value);
@@ -311,6 +340,8 @@ function syncSearchIntentUi() {
 function setResultMode(mode, { updateHistory = true } = {}) {
   const next = mode === MODE_SCHOOL ? MODE_SCHOOL : (mode === MODE_MAJOR ? MODE_MAJOR : MODE_SCORE);
   const changed = state.resultMode !== next;
+  if (next === MODE_SCHOOL && changed) rememberScoreModeReturnState();
+  if (next === MODE_SCORE && state.resultMode === MODE_SCHOOL && changed) restoreScoreModeReturnState();
   if (next === MODE_SCHOOL && state.schoolSelection?.input !== schoolInputValue()) {
     resolveSchoolSelectionFromInput();
   }
@@ -1595,6 +1626,7 @@ function bind() {
 
   document.getElementById('schoolAllBack')?.addEventListener('click', event => {
     event.preventDefault();
+    restoreScoreModeReturnState();
     setResultMode(MODE_SCORE);
   });
 
@@ -1635,6 +1667,7 @@ function bind() {
   document.addEventListener('gaokao:view-school-all', event => {
     const school = String(event.detail?.school || '').trim();
     if (!school) return;
+    rememberScoreModeReturnState();
     const schoolInput = document.getElementById('schoolKeyword');
     if (schoolInput) schoolInput.value = school;
     state.filters.schoolKeyword = school;
