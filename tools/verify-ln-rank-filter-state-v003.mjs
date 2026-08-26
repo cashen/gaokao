@@ -15,6 +15,7 @@ assert.match(major, /url\.searchParams\.append\('majorConfirmed'/, 'each confirm
 assert.match(major, /const draftTerms = rawTerms\.filter\(term => !confirmedDirectionTerms\.has\(term\)\)/, 'unconfirmed draft terms must remain editable after restore');
 assert.match(major, /remaining=uniqueTerms\(\[inputValue\(\)\]\)\.filter\(item=>item!==term\)\.join\('\/'\)/, 'confirming one direction must preserve other multi-major draft terms');
 assert.match(major, /state\.filters\.majorKeyword = draftMajorText\(\)/, 'shared filter state must match restored context');
+assert.doesNotMatch(major, /if \(restoredUrlConfirmation\) return/, 'history navigation must re-read URL confirmation state');
 
 assert.match(workspace, /let scoreModeReturnSnapshot = null/, 'score return snapshot must be isolated from shared URL state');
 assert.match(workspace, /rememberScoreModeReturnState\(\)/, 'school handoff must remember the previous score context');
