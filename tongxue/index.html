@@ -50,12 +50,13 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
 @media(max-width:700px) and (max-height:700px){.hero{padding-top:14px;padding-bottom:20px}.hero-logo{width:clamp(175px,52vw,205px)}.hero-copy{margin-top:10px}.search-box{margin-top:15px}}
 @media(prefers-reduced-motion:reduce){.input-state{animation:none;border-top-color:#9bb0b7}.btn,.quick-example,.choice-card{transition:none!important}}
 </style>
+  <link rel="stylesheet" href="/shared/ui/navigation/module-navigation.v001.css?v=001" />
 </head>
 <body data-ui-page="tongxue" data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-tongxue-capability-version="tongxue-runtime-v159-r3968" data-tongxue-major-pathway-version="undergrad-graduate-pathway-view-v001" data-release-surface="tongxue">
 <div data-ui-global-header-mount></div>
 <div data-ui-family-status-mount></div>
 <div class="wrap">
-  <div class="topbar"><span class="brand">学校体验线索</span><div><button class="back-home direct-change-school" type="button" data-change-school hidden>换一所学校</button> <a class="back-home" href="/ln-rank/">返回专业初选</a></div></div>
+  <div class="topbar"><span class="brand">学校体验线索</span><div><button class="back-home direct-change-school" type="button" data-change-school hidden>换一所学校</button> <a class="back-home" href="/ln-rank/" data-ui-module-back>返回专业初选</a></div></div>
   <section class="hero">
     <h1 class="sr-only">同学你好</h1>
     <a class="hero-logo-link" href="/tongxue/" aria-label="返回同学你好首页">
@@ -91,5 +92,6 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
 </div>
 <script type="module" src="./app/tongxue-runtime-v159-r3968.js?v=3968_0"></script>
 <script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2"></script>
+<script type="module" src="/shared/ui/navigation/module-navigation.v001.js?v=001"></script>
 </body>
 </html>
