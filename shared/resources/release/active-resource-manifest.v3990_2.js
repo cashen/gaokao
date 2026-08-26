@@ -26,6 +26,15 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
     contract: 'typed-draft-confirm-commit-v001'
   }),
+  selectionWorkspace: Object.freeze({
+    classification: 'current-generation-with-declared-stable-implementation',
+    owner: CURRENT_RELEASE.resourceOwners.searchIntentState,
+    stableImplementation: entry(CURRENT_RELEASE.resourceOwners.selectionWorkspaceStableImplementation, 'declared-stable-dependency', {
+      implementationVersion: CURRENT_RELEASE.selectionWorkspaceStableImplementationVersion,
+      featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
+      revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision
+    })
+  }),
   aiplus: Object.freeze({
     classification: 'current-generation-with-declared-transitive-implementation',
     browserOwner: CURRENT_RELEASE.resourceOwners.aiRuntime,
