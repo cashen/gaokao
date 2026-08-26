@@ -1,0 +1,30 @@
+{
+  "task": "module-navigation-cache-chain-v005",
+  "repository": "cashen/gaokao",
+  "branch": "agent/module-navigation-cache-chain-v005",
+  "baseSha": "15bd2d1f56f1a6e9b088ef243066837e02c59ead",
+  "pr": null,
+  "headSha": null,
+  "mergeSha": null,
+  "completed": [
+    "NC5-01-remote-state-confirmed"
+  ],
+  "inProgress": "NC5-02-cache-chain-upgrade",
+  "pending": [
+    "NC5-02-cache-chain-upgrade",
+    "NC5-03-contract-preview-multidevice",
+    "NC5-04-merge-production-closeout"
+  ],
+  "evidence": {
+    "latestMain": "15bd2d1f56f1a6e9b088ef243066837e02c59ead",
+    "openPRs": [],
+    "production": "main deploy succeeded but production DOM verification still showed v0.01 duplicate on / and /ln-rank/; entry internal cache identity remains stale",
+    "preview": "main deployment 46e23dfc.gaokao-4y9.pages.dev"
+  },
+  "boundary": "navigation cache identity only; major-bands independent",
+  "fixedTongxueResources": [
+    "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
+    "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
+  ],
+  "verifiedAt": "2026-08-26T02:32:32.672Z"
+}
