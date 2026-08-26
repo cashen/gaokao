@@ -1,5 +1,5 @@
 import { state } from '../state/app-state.v3963_1.js?v=3963_1';
-import { createHumanInputProposal, parseScoreInput, scoreQueryValue } from '../../query/human-query-input-protocol.v001.js?v=3990_2';
+import { createHumanInputProposal, parseScoreInput, scoreQueryValue } from '../query/human-query-input-protocol.v001.js?v=3990_2';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
