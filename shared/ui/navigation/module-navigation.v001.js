@@ -7,11 +7,11 @@ const ROOT_MODULES = Object.freeze([
 ]);
 
 function text(value = '') {
-  return String(value || '').replace(/\\s+/g, ' ').trim();
+  return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
 export function moduleKeyForPath(pathname = '/') {
-  const path = text(pathname).replace(/\\/{2,}/g, '/');
+  const path = text(pathname).replace(/\/{2,}/g, '/');
   if (path === '/') return 'home';
   if (path.startsWith('/tongxue')) return 'tongxue';
   if (path.startsWith('/ln-rank')) return 'selection';
