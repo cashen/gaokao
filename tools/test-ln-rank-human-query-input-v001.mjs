@@ -16,6 +16,7 @@ const cases = [
   ['不低于600', { kind: 'min', min: 600, canSubmit: false }],
   ['600分以下', { kind: 'max', max: 600, canSubmit: false }],
   ['不高于600', { kind: 'max', max: 600, canSubmit: false }],
+  ['超过600', { kind: 'min', min: 600, canSubmit: false }],
   ['600以下', { kind: 'max', max: 600, canSubmit: false }],
   ['位次23000', { kind: 'invalid', canSubmit: false }],
   ['751', { kind: 'out_of_range', canSubmit: false }],

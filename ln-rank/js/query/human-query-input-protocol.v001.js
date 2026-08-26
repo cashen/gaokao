@@ -132,7 +132,7 @@ export function parseScoreInput(value) {
     return bounded('range', lower, upper, normalized);
   }
 
-  const lower = normalized.match(/(?:(?:不低于|不少于|至少|大于等于|高于|超过)\s*(\d{1,3})\s*(?:分)?|(\d{1,3})\s*(?:分)?(?:及以上|以上))/);
+  const lower = normalized.match(/(?:(?:不低于|不少于|至少|大于等于|(?<!不)高于|(?<!不)超过)\s*(\d{1,3})\s*(?:分)?|(\d{1,3})\s*(?:分)?(?:及以上|以上))/);
   if (lower) {
     const valueNumber = number(lower[1] || lower[2]);
     if (!validScore(valueNumber)) return Object.freeze({
