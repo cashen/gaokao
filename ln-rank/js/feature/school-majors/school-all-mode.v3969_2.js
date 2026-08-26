@@ -177,7 +177,7 @@ function renderRecord(record) {
 }
 
 function renderCandidateButtons(candidates = []) {
-  return candidates.map(item => `<button class="ui-button ui-button--compact ui-button--secondary" type="button" data-school-candidate="${escapeHtml(item.school || item.officialName)}"><span>${escapeHtml(item.school || item.officialName)}</span><small>${escapeHtml(item.city || item.province || item.matchReason || '')}</small><em>${fmt(item.count ?? item.recordCount2026)}条记录</em></button>`).join('');
+  return candidates.map(item => `<button class="ui-button ui-button--compact ui-button--secondary" type="button" data-school-candidate="${escapeHtml(item.school || item.officialName)}" data-school-entity-id="${escapeHtml(item.entityId || '')}" data-school-entity-type="${escapeHtml(item.entityType || '')}" data-school-parent-entity-id="${escapeHtml(item.parentEntityId || '')}"><span>${escapeHtml(item.school || item.officialName)}</span><small>${escapeHtml(item.city || item.province || item.matchReason || '')}</small><em>${fmt(item.count ?? item.recordCount2026)}条记录</em></button>`).join('');
 }
 
 function renderCandidates(payload) {
@@ -260,13 +260,15 @@ function mergeRecords(previous, incoming) {
 }
 
 function buildResolveParams() {
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     school: currentSchoolInput(),
     schoolIntent: 'school',
     resolveOnly: '1',
     candidateOffset: '0',
     candidateLimit: '200'
   });
+  if (state.schoolSelection?.entityId) params.set('schoolEntityId', state.schoolSelection.entityId);
+  return params;
 }
 
 function applyResolvedSchoolSelection(payload) {
@@ -462,22 +464,28 @@ function syncSelectionActions() {
   });
 }
 
-function chooseCandidate(name) {
-  const value = String(name || '').trim();
+function chooseCandidate(name, candidate = null) {
+  const value = String(candidate?.officialName || name || '').trim();
   if (!value) return;
+  const entityId = String(candidate?.entityId || '').trim();
   const input = byId('schoolKeyword');
   if (input) input.value = value;
   state.filters.schoolKeyword = value;
-  state.filters.schoolEntityId = '';
+  state.filters.schoolEntityId = entityId;
   state.schoolSelection = {
-    status: 'input',
+    status: entityId ? 'resolved' : 'input',
     input: value,
-    entityId: '',
+    entityId,
     displayName: value,
-    entityType: '',
-    parentEntityId: ''
+    entityType: String(candidate?.entityType || ''),
+    parentEntityId: String(candidate?.parentEntityId || '')
   };
-  document.dispatchEvent(new CustomEvent('gaokao:school-candidate-selected', { detail: { school: value } }));
+  document.dispatchEvent(new CustomEvent('gaokao:school-candidate-selected', { detail: {
+    school: value,
+    entityId,
+    entityType: state.schoolSelection.entityType,
+    parentEntityId: state.schoolSelection.parentEntityId
+  } }));
   preflightSchoolSelection({ submit: true });
 }
 
@@ -486,7 +494,12 @@ function bindEvents() {
     const candidate = event.target.closest('[data-school-candidate]');
     if (candidate) {
       event.preventDefault();
-      chooseCandidate(candidate.dataset.schoolCandidate);
+      chooseCandidate(candidate.dataset.schoolCandidate, {
+        officialName: candidate.dataset.schoolCandidate,
+        entityId: candidate.dataset.schoolEntityId,
+        entityType: candidate.dataset.schoolEntityType,
+        parentEntityId: candidate.dataset.schoolParentEntityId
+      });
       return;
     }
     const detailToggle = event.target.closest('[data-school-detail-toggle]');
