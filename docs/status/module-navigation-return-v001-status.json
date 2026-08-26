@@ -2,20 +2,21 @@
   "task": "module-navigation-return-v001",
   "repository": "cashen/gaokao",
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
-  "branch": "agent/module-navigation-return-v001",
+  "branch": "agent/module-navigation-return-v001-production-cache-recovery",
   "pr": null,
-  "headSha": "b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170",
-  "mergeSha": null,
+  "headSha": "65b677ba8a201210d9875fabfcf619d5bf345589",
+  "mergeSha": "36bf68d80d64cfbece0018ac774bc433647e2ef4",
   "completed": [
     "MN-01-remote-baseline-and-live-ui-confirmed",
     "MN-02-module-root-navigation",
     "MN-03-cross-module-return",
     "MN-04-static-and-script-validation",
-    "MN-05-pr-preview-and-multi-device-validation"
+    "MN-05-pr-preview-and-multi-device-validation",
+    "MC-03-recovery-pr-ci-and-production-verification"
   ],
-  "inProgress": "MN-06-post-merge-production-verification",
+  "inProgress": "MC-04-merge-and-production-closeout",
   "pending": [
-    "MN-06-post-merge-production-verification"
+    "MC-04-merge-and-production-closeout"
   ],
   "baseline": {
     "mainSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
@@ -55,18 +56,23 @@
     "job": 98017551979,
     "reason": "public-company generated index is rewritten by its release sync; removed this page from module navigation scope and contract test"
   },
-  "checkpointNote": "MN-04/MN-05 passed at exact head b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170: 29 checks success, 10 skipped, 0 failure; Preview, Tongxue identity, runtime/API and browser validation succeeded. Status update will create a new head; re-read it and rerun checks before merge.",
-  "verifiedAt": "2026-08-26T00:50:08.522Z",
+  "checkpointNote": "Recovery PR #216 Ready checks completed green at exact head 65b677ba8a201210d9875fabfcf619d5bf345589 (43 success, 16 skipped, 0 failure). Status now records MC-03 complete; the checkpoint commit itself changes the PR head and requires a fresh exact-head CI pass before merge. MC-04 remains pending for merge and live production DOM verification.",
+  "verifiedAt": "2026-08-26T01:16:39.429Z",
   "validation": {
-    "exactHead": "b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170",
+    "exactHead": "65b677ba8a201210d9875fabfcf619d5bf345589",
     "prNumber": 215,
-    "checksSummary": {
-      "completed/skipped": 10,
-      "completed/success": 29
-    },
+    "checksSummary": "43 success, 16 skipped, 0 failure before checkpoint commit",
     "preview": "Cloudflare Pages check success",
-    "requiredSurfaces": "PC/Pad/Android browser and Tongxue release identity checks success",
-    "local": "node --check module-navigation and module return contract passed",
-    "knownIndependentObservation": "bounded-fanout push zero-job observation remains separate"
+    "requiredSurfaces": "PR browser checks and production API/site runtime checks success; post-merge production DOM still pending",
+    "local": "node --check recovery contract passed; remote contract check passed in PR",
+    "knownIndependentObservation": "bounded-fanout push zero-job and major-bands 503 observations remain separate",
+    "recoveryPr": 216
+  },
+  "productionObservation": {
+    "pr215MergeSha": "36bf68d80d64cfbece0018ac774bc433647e2ef4",
+    "pages": "new module navigation visible",
+    "production": "HTML had new navigation CSS but stale tongxue-runtime-v159-r3968.js?v=3968_0; no data-ui-module-navigation; old one-way return remained",
+    "evidence": "live browser at gaokao.powers.org.cn/tongxue/?navcheck=20260826",
+    "recovery": "new cache query identities required for changed existing entry consumers"
   }
 }
