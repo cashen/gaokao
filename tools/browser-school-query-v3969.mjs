@@ -187,9 +187,14 @@ try {
       await chemicalCandidates.first().click();
       const firstRow = page.locator('.school-major-row').first();
       await firstRow.waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(requests.length, 2, `${testCase.name}: query should require one confirmation`);
+      assert.equal(requests.length, 3, `${testCase.name}: ambiguity, entity preflight, and records query are separate requests`);
       assert.equal(requests[0].searchParams.get('school'), '沈阳');
+      assert.equal(requests[0].searchParams.get('resolveOnly'), '1');
       assert.equal(requests[1].searchParams.get('school'), '沈阳化工大学');
+      assert.equal(requests[1].searchParams.get('resolveOnly'), '1');
+      assert.equal(requests[2].searchParams.get('school'), '沈阳化工大学');
+      assert.equal(requests[2].searchParams.get('resolveOnly'), null);
+      assert.equal(requests[2].searchParams.get('schoolEntityId'), '0001');
       assert.match(await page.locator('#schoolAllTitle').textContent(), /沈阳化工大学/);
       assert.match(await firstRow.textContent(), /化学工程与工艺/);
       const reviewLink = firstRow.locator('.school-major-review-link');
