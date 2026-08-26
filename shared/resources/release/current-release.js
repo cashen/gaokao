@@ -85,8 +85,8 @@ export const CURRENT_RELEASE = Object.freeze({
   historyEvidenceVersion: 'ln-physics-history-evidence-v3967_0',
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v001',
-  lnRankHumanQueryInputRevision: 'r024',
-  lnRankCardEntryVersion: 'ln-rank-three-card-entries-v001',
+  lnRankHumanQueryInputRevision: 'r025',
+  lnRankCardEntryVersion: 'ln-rank-three-card-entries-v002',
   lnRankMajorFilterContextVersion: 'major-filter-context-v001',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',

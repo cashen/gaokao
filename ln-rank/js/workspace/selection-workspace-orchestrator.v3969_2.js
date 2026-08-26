@@ -82,7 +82,7 @@ import {
   bindResultCommitBridge,
   commitMajorResults,
   updateResultWorkspaceStatus
-} from './result-commit.v3967_0.js?v=3967_0';
+} from './result-commit.v3967_0.js?v=3967_0&r=r025-card3';
 import {
   beginQueryScrollIntent,
   finishQueryScrollIntent,
