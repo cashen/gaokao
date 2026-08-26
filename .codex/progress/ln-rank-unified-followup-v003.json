@@ -8,11 +8,13 @@
     "live-main-reconciled",
     "production-school-filter-URL-contamination-reproduced",
     "production-confirmed-major-refresh-loss-reproduced",
+    "production-multi-major-confirmation-loss-reproduced",
     "isolated-score-return-context",
     "URL-persisted-resolver-verified-major-confirmation",
     "unified-school-card-three-entry-copy",
     "local-contract-tests",
-    "syntax-and-diff-checks"
+    "syntax-and-diff-checks",
+    "multi-major-draft-preservation-fix"
   ],
   "inProgress": "push-and-open-pr",
   "pending": [
