@@ -7,7 +7,7 @@ import {
 import {
   buildMajorPathFromAcademicBackgroundHref,
   readAcademicBackgroundNavigationContext
-} from '../../../shared/resources/background/academic-background-navigation.v001.js';
+} from '../../../shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links';
 import { resolveMajorUnderstanding } from '../../js/knowledge/major-understanding-resolver.js?v=3949_0';
 
 export const ACADEMIC_BACKGROUND_DIRECT_VERSION = 'academic-background-direct-v0.01';

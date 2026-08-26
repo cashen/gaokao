@@ -16,7 +16,7 @@ const DEVICES=[
 function assert(value,message){if(!value)throw new Error(message);}
 function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function mime(file){if(file.endsWith('.css'))return'text/css; charset=utf-8';if(file.endsWith('.js')||file.endsWith('.mjs'))return'text/javascript; charset=utf-8';if(file.endsWith('.html'))return'text/html; charset=utf-8';if(file.endsWith('.json'))return'application/json; charset=utf-8';if(file.endsWith('.svg'))return'image/svg+xml';return'application/octet-stream';}
-function staticFile(pathname){const mapped=pathname==='/major-path/'?'/major-path/index.html':pathname;const resolved=path.resolve(ROOT,`.${decodeURIComponent(mapped)}`);if(!resolved.startsWith(`${ROOT}${path.sep}`)||!fs.existsSync(resolved)||!fs.statSync(resolved).isFile())return null;return resolved;}
+function staticFile(pathname){const routeMap={'/major-path/':'/major-path/index.html','/ln-rank/local-mainline':'/ln-rank/local-mainline.html','/ln-rank/211-mainline':'/ln-rank/211-mainline.html'};const mapped=routeMap[pathname]||pathname;const resolved=path.resolve(ROOT,`.${decodeURIComponent(mapped)}`);if(!resolved.startsWith(`${ROOT}${path.sep}`)||!fs.existsSync(resolved)||!fs.statSync(resolved).isFile())return null;return resolved;}
 const snapshot=JSON.parse(fs.readFileSync(path.join(ROOT,'ln-rank/data/background-context/background-context-index.v001.json'),'utf8'));
 const byPair=new Map();
 for(const record of snapshot.records||[]){const key=`${record.schoolIdentity||record.school}|${record.canonicalMajor?.code||''}`,item=byPair.get(key)||{school:record.schoolIdentity||record.school,major:record.canonicalMajor,scopes:new Set()};item.scopes.add(record.scope);byPair.set(key,item);}
@@ -72,7 +72,7 @@ async function verifyLnRankScoreToBackground(page,name){
   const detail=state.links.find(x=>x.scope==='211')?.href;
   assert(detail,`${name}: no 211 detail href`);
   const detailUrl=new URL(detail,ORIGIN);
-  assert(detailUrl.pathname==='/ln-rank/211-mainline.html'&&detailUrl.searchParams.get('school')===DUAL.school&&detailUrl.searchParams.get('majorCode')===DUAL.major.code,`${name}: 211 detail identity wrong`);
+  assert(detailUrl.pathname==='/ln-rank/211-mainline'&&detailUrl.searchParams.get('school')===DUAL.school&&detailUrl.searchParams.get('majorCode')===DUAL.major.code,`${name}: 211 detail identity wrong`);
   await page.goto(detailUrl.href,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.body.dataset.backgroundDirectReady==='1');
   const direct=await page.locator('[data-background-direct]').innerText();
@@ -85,7 +85,7 @@ async function verifyLnRankScoreToBackground(page,name){
   const returned=await page.evaluate(()=>({source:document.querySelector('[data-major-path-source-boundary]')?.innerText||'',back:document.querySelector('.back-home')?.innerText||'',href:document.querySelector('.back-home')?.getAttribute('href')||''}));
   assert(returned.source.includes('专业背景依据'),`${name}: major-path did not recognize background source surface`);
   assert(returned.back.includes('返回背景依据'),`${name}: background return copy missing`);
-  assert(returned.href.includes('/ln-rank/211-mainline.html'),`${name}: background return target lost`);
+  assert(returned.href.includes('/ln-rank/211-mainline'),`${name}: background return target lost`);
 }
 async function verifyLnRankSchoolHandoff(page,name){
   await page.goto(`${ORIGIN}/ln-rank/mock-background-handoff.html?mode=school-all`,{waitUntil:'domcontentloaded'});
@@ -116,7 +116,7 @@ async function verifyBackgroundRecordHandoff(page,name){
   assert(url.pathname==='/major-path/'&&url.searchParams.get('sourceSurface')==='academic-background'&&url.searchParams.get('school')===DUAL.school,`${name}: background record handoff identity wrong`);
 }
 async function verifyRealBackgroundPages(page,name){
-  for(const [scope,pathname,recordSelector] of [['liaoning','/ln-rank/local-mainline.html','.ls-record [data-background-major-entry]'],['211','/ln-rank/211-mainline.html','.a211-card [data-background-major-entry]']]){
+  for(const [scope,pathname,recordSelector] of [['liaoning','/ln-rank/local-mainline','.ls-record [data-background-major-entry]'],['211','/ln-rank/211-mainline','.a211-card [data-background-major-entry]']]){
     const p=new URLSearchParams({view:'school',school:DUAL.school});
     await page.goto(`${ORIGIN}${pathname}?${p}`,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(expected=>document.body.dataset[expected]==='ready',scope==='211'?'all211Runtime':'localStrengthRuntime',{timeout:30000});

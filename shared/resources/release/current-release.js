@@ -70,6 +70,8 @@ export const CURRENT_RELEASE = Object.freeze({
   academicBackgroundVersion: 'academic-background-v3968_0',
   academicBackgroundMatcherVersion: 'academic-background-matcher-v3968_0',
   academicBackgroundProviderVersion: 'academic-background-provider-v3968_0',
+  academicBackgroundNavigationVersion: 'academic-background-navigation-v0.02',
+  lnRankBackgroundNavigationRevision: 'r028-android-links',
   selectionWorkspaceVersion: 'selection-workspace-orchestration-v3990_2',
   selectionWorkspaceStableImplementationVersion: 'selection-workspace-orchestration-v3969_2',
   searchIntentVersion: 'school-query-contract-v3969_0',
