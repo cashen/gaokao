@@ -135,6 +135,17 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
   return button;
 }
 
+function normalizeSchoolExperienceEntry(card) {
+  const entry = card.querySelector('.tongxue-card-entry');
+  if (!entry) return;
+  const brand = entry.querySelector('.tongxue-card-entry__brand');
+  const text = entry.querySelector('.tongxue-card-entry__text');
+  if (brand) brand.textContent = '大学生说学校';
+  if (text) text.textContent = '看看这所学校的公开体验';
+  entry.setAttribute('aria-label', '查看这所学校的大学生公开体验');
+  entry.title = '这里是学校公开体验整理，不代表学校官方结论。';
+}
+
 function insertScoreEntry(card, entry) {
   if (!entry) return;
   const tongxue = card.querySelector('.tongxue-card-entry');
@@ -147,6 +158,7 @@ function insertScoreEntry(card, entry) {
 function decorateScoreCards(root = document.getElementById('results')) {
   if (!(root instanceof HTMLElement)) return;
   root.querySelectorAll('.major-card').forEach(card => {
+    normalizeSchoolExperienceEntry(card);
     const sourceKey = clean(card.dataset.workspaceRecordKey);
     const sourceMajor = clean(card.querySelector('.major')?.childNodes?.[0]?.textContent || card.querySelector('.major')?.textContent);
     const code = clean(card.querySelector('.major-code-line b')?.textContent);
