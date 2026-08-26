@@ -1,0 +1,55 @@
+{
+  "task": "module-navigation-return-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
+  "branch": "agent/module-navigation-return-v001",
+  "pr": null,
+  "headSha": null,
+  "mergeSha": null,
+  "completed": [
+    "MN-01-remote-baseline-and-live-ui-confirmed"
+  ],
+  "inProgress": "MN-02-module-root-navigation",
+  "pending": [
+    "MN-03-cross-module-return",
+    "MN-04-static-and-script-validation",
+    "MN-05-pr-preview-and-multi-device-validation",
+    "MN-06-post-merge-production-verification"
+  ],
+  "baseline": {
+    "mainSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
+    "openPrs": [],
+    "postMergeChecks": "22 success, 3 skipped, 0 failure; bounded-fanout push observation 32914037576 has zero jobs and remains independent",
+    "production": "latest aa2 push deployment, production graph, API health, site-runtime, browser-production and Cloudflare Pages checks all success",
+    "liveUi": {
+      "tongxueGlobalNav": [
+        "家庭首页",
+        "专业初选",
+        "已选专业",
+        "补充核验"
+      ],
+      "tongxueMissingRoot": "同学你好",
+      "tongxueBack": "返回专业初选 (单向静态链接)",
+      "professionalGlobalNav": [
+        "家庭首页",
+        "专业初选",
+        "家庭方案",
+        "补充核验"
+      ],
+      "viewport": "1363x936 live browser"
+    },
+    "scope": "navigation only; Tongxue data/query/cache identities and independent major-bands gates are out of scope"
+  },
+  "decisions": {
+    "coreRoots": [
+      "/",
+      "/ln-rank/",
+      "/tongxue/"
+    ],
+    "crossModuleReturn": "same-origin sessionStorage; preserve pathname/search/hash; hide when no real prior module",
+    "responsive": "desktop global nav; Pad core roots remain visible; Android horizontal module strip"
+  },
+  "lastFailure": null,
+  "checkpointNote": "MN-01 completed from live main aa2cf96 and live browser. No PR created yet at this checkpoint; next action is to write the independent navigation implementation and update status with the resulting exact branch head.",
+  "verifiedAt": "2026-08-26T00:20:00Z"
+}\n
