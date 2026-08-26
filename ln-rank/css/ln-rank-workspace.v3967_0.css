@@ -12342,6 +12342,33 @@ body::before{
   .results-grid .major-card .major-path-entry__arrow,
   .results-grid .major-card .student-voice-entry__arrow,
   .results-grid .major-card .tongxue-card-entry__arrow { font-size: 15px; }
+  .results-grid .major-card .major-path-entry--compact,
+  .results-grid .major-card .student-voice-entry--compact,
+  .results-grid .major-card .tongxue-card-entry--compact {
+    display: inline-grid !important;
+    width: calc((100% - 16px) / 3);
+    min-height: 52px;
+    margin-right: 4px;
+    vertical-align: top;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 5px;
+  }
+  .results-grid .major-card .major-path-entry--compact > small,
+  .results-grid .major-card .student-voice-entry--compact > small { grid-column: 1; }
+  .results-grid .major-card .major-path-entry--compact > b,
+  .results-grid .major-card .student-voice-entry--compact > b {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  .results-grid .major-card .tongxue-card-entry--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__brand,
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__text { grid-column: 1; }
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__arrow {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
 }
 
 @media(max-width:360px){
