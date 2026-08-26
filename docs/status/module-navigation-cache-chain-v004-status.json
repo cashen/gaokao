@@ -4,14 +4,14 @@
   "baseSha": "c38f3f5a3c8050489459ead87c499e3156186d24",
   "branch": "agent/module-navigation-cache-chain-v004",
   "pr": null,
-  "headSha": "23a619bc916032f80f30cadc618cf0e2cdaa020a",
+  "headSha": "25fef54af815532d3bdfa37672faf631e09cc94a",
   "mergeSha": null,
   "completed": [
-    "MC-01-production-internal-chain-residual-confirmed"
+    "MC-01-production-internal-chain-residual-confirmed",
+    "MC-02-unify-internal-shell-imports"
   ],
-  "inProgress": "MC-02-unify-internal-shell-imports",
+  "inProgress": "MC-03-contract-preview-multidevice",
   "pending": [
-    "MC-02-unify-internal-shell-imports",
     "MC-03-contract-preview-multidevice",
     "MC-04-merge-production-closeout"
   ],
@@ -25,6 +25,6 @@
     "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
     "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
   ],
-  "checkpointNote": "MC-01 confirmed one more stale navigation import layer after PR #218. Next is a three-file internal import identity update, then fresh PR and production DOM verification.",
-  "verifiedAt": "2026-08-26T02:12:51.610Z"
+  "checkpointNote": "MC-02 completed at pre-status head 25fef54af815532d3bdfa37672faf631e09cc94a: family-home, app-runtime and selection-pool v3990_2 internal family-shell imports now use nav002. No Tongxue business resource changed.",
+  "verifiedAt": "2026-08-26T02:13:18.899Z"
 }
