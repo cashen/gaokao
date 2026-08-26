@@ -23,7 +23,7 @@ const checks = [
   ['active school owner is v3969_2', release.includes("schoolResults: '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'")],
   ['active contract has school owner', contract.includes('school-all-mode.v3969_2.js')],
   ['navigation waits for header mount', nav.includes("[data-ui-global-header],[data-ui-global-header-mount]")],
-  ['navigation marks standalone only in standalone path', nav.split('function ensureMobileNav(visit) {')[1].split('function removeStandaloneNav')[0].includes("if (!hasHeaderSurface()) return null;") && nav.split('function ensureStandaloneNav(visit) {')[1].includes("data-ui-navigation-standalone")),
+  ['navigation marks standalone only in standalone path', nav.split('function ensureMobileNav(visit) {')[1].split('function removeStandaloneNav')[0].includes("if (!hasHeaderSurface()) return null;") && nav.split('function ensureStandaloneNav(visit) {')[1].includes("data-ui-navigation-standalone")],
   ['Tongxue retired cache identity absent', !contract.includes('v=159-major001')]
 ];
 
