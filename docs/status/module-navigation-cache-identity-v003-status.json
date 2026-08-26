@@ -1,0 +1,42 @@
+{
+  "task": "module-navigation-cache-identity-v003",
+  "repository": "cashen/gaokao",
+  "baseSha": "b15ffa794dfedaf8c32f91c76505122c378f91d8",
+  "branch": "agent/module-navigation-cache-identity-v003",
+  "pr": null,
+  "headSha": "438b5d2653436677573ef3fd3330541bcad9cf12",
+  "mergeSha": null,
+  "completed": [
+    "MC-01-production-residual-confirmed"
+  ],
+  "inProgress": "MC-02-unify-entry-cache-identities",
+  "pending": [
+    "MC-02-unify-entry-cache-identities",
+    "MC-03-contract-and-multi-device-validation",
+    "MC-04-merge-and-production-closeout"
+  ],
+  "evidence": {
+    "productionUrl": "https://gaokao.powers.org.cn/",
+    "productionMergeSha": "b15ffa794dfedaf8c32f91c76505122c378f91d8",
+    "productionObserved": "major-path body module-navigation-v0.02; home and ln-rank body module-navigation-v0.01 with stray standalone display:flex at desktop width 1348",
+    "affectedEntries": [
+      "index.html",
+      "ln-rank/index.html",
+      "ln-rank/selection-pool.html",
+      "ln-rank/self-check.html",
+      "tongxue/index.html",
+      "tongxue/changelog.html"
+    ]
+  },
+  "decisions": {
+    "entryIdentity": "upgrade remaining nav001 consumer URLs to nav002",
+    "standalone": "keep only for shell-less pages; remove after delayed global shell mount",
+    "fixedTongxueResources": [
+      "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
+      "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
+    ]
+  },
+  "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
+  "checkpointNote": "MC-01 confirmed that v002 navigation code is not reached by several production shell consumers still cached as nav001. Next update is entry identity only, then fresh CI and production DOM verification.",
+  "verifiedAt": "2026-08-26T01:56:12.078Z"
+}
