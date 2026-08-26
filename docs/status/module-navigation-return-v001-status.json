@@ -2,9 +2,9 @@
   "task": "module-navigation-return-v001",
   "repository": "cashen/gaokao",
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
-  "branch": "agent/module-navigation-return-v001",
+  "branch": "agent/module-navigation-return-v001-production-cache-recovery",
   "pr": null,
-  "headSha": "a910587b5f1b2e9a6bcc8023139bbcb65ccbdb95",
+  "headSha": "83cd6eb2ad45c8196562da92571dc7c2aa3ed37d",
   "mergeSha": "36bf68d80d64cfbece0018ac774bc433647e2ef4",
   "completed": [
     "MN-01-remote-baseline-and-live-ui-confirmed",
@@ -13,10 +13,10 @@
     "MN-04-static-and-script-validation",
     "MN-05-pr-preview-and-multi-device-validation"
   ],
-  "inProgress": "MC-02-production-cache-identity-recovery",
+  "inProgress": "MC-03-recovery-pr-ci-and-production-verification",
   "pending": [
-    "MC-02-production-cache-identity-recovery",
-    "MC-03-recovery-pr-ci-and-production-verification"
+    "MC-03-recovery-pr-ci-and-production-verification",
+    "MC-04-merge-and-production-closeout"
   ],
   "baseline": {
     "mainSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
@@ -56,8 +56,8 @@
     "job": 98017551979,
     "reason": "public-company generated index is rewritten by its release sync; removed this page from module navigation scope and contract test"
   },
-  "checkpointNote": "PR #215 CI and Preview were green, but post-merge live production remained stale because changed existing entry URLs reused old query identities. Recovery branch exact head a910587b5f1b2e9a6bcc8023139bbcb65ccbdb95 adds new query identities for family shell consumers and Tongxue wrapper; next is recovery PR CI and live production recheck.",
-  "verifiedAt": "2026-08-26T01:02:44.493Z",
+  "checkpointNote": "PR #215 merge 36bf68d80d64cfbece0018ac774bc433647e2ef4 was green and Pages showed the new navigation, but production custom-domain verification found the old Tongxue wrapper query identity. Recovery branch agent/module-navigation-return-v001-production-cache-recovery now gives changed shell consumers and Tongxue wrapper the new nav001 query identities; the navigation contract test was repaired to exclude the generated Public_company page and to assert those identities. Exact pre-status recovery head: 83cd6eb2ad45c8196562da92571dc7c2aa3ed37d.",
+  "verifiedAt": "2026-08-26T01:06:16.776Z",
   "validation": {
     "exactHead": "b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170",
     "prNumber": 215,
