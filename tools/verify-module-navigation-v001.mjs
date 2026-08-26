@@ -72,12 +72,12 @@ for (const path of [
   assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=002'), true, `${path}: navigation JS`);
 }
 for (const [path, needle] of [
-  ['index.html', 'family-home.v3990_2.js?v=3990_2-nav001'],
-  ['ln-rank/index.html', 'app.v3990_2.js?v=3990_2-nav001'],
-  ['ln-rank/selection-pool.html', 'selection-pool.v3990_2.js?v=3990_2-nav001'],
-  ['ln-rank/self-check.html', 'family-shell.v3990_2.js?v=3990_2-nav001'],
-  ['tongxue/index.html', 'tongxue-runtime-v159-r3968.js?v=3968_0-nav001'],
-  ['tongxue/changelog.html', 'family-shell.v3990_2.js?v=3990_2-nav001']
+  ['index.html', 'family-home.v3990_2.js?v=3990_2-nav002'],
+  ['ln-rank/index.html', 'app.v3990_2.js?v=3990_2-nav002'],
+  ['ln-rank/selection-pool.html', 'selection-pool.v3990_2.js?v=3990_2-nav002'],
+  ['ln-rank/self-check.html', 'family-shell.v3990_2.js?v=3990_2-nav002'],
+  ['tongxue/index.html', 'tongxue-runtime-v159-r3968.js?v=3968_0-nav002'],
+  ['tongxue/changelog.html', 'family-shell.v3990_2.js?v=3990_2-nav002']
 ]) {
   const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
   assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
