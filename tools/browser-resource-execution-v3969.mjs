@@ -161,7 +161,15 @@ try {
     try {
       await page.goto(`${baseUrl}/ln-rank/`, { waitUntil: 'networkidle', timeout: 60000 });
       await page.locator('#candidateScore').fill('600');
-      await page.locator('#majorKeyword').fill('电气/自动化');
+      const moreConditions = page.locator('#familyConditionsDisclosure');
+      if (await moreConditions.count()) {
+        const wasOpen = await moreConditions.evaluate(node => node.open);
+        if (!wasOpen) await moreConditions.locator('summary').click();
+        await page.locator('#majorKeyword').fill('电气/自动化');
+        assert.equal(await moreConditions.evaluate(node => node.open), true, `${testCase.name}: secondary conditions collapsed during major draft`);
+      }
+      const directionConfirmations = page.locator('#majorCandidatePanel button').filter({ hasText: /按核心专业查看/ });
+      while (await directionConfirmations.count()) await directionConfirmations.first().click();
       await page.locator('#queryButton').click();
       await page.locator('.major-card').first().waitFor({ state: 'visible', timeout: 20000 });
       assert.equal(await page.locator('body').getAttribute('data-runtime-state'), 'ready');
