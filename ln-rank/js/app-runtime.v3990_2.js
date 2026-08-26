@@ -165,7 +165,7 @@ export function startLnRankRuntime() {
     if (globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version !== INTERACTION_VERSION) {
       throw new Error('unified interaction transaction did not initialize');
     }
-    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r025-card3');
+    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r027-card4');
     await workspace.selectionWorkspaceReady;
     const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2');
     await schoolMode.schoolAllModeReady;

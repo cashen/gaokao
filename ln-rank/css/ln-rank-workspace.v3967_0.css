@@ -12278,6 +12278,10 @@ body::before{
 .family-decision-summary p{margin:0;color:var(--family-text,#40515a);font-size:13.5px;line-height:1.6}
 
 .tongxue-card-entry{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:46px;margin-top:12px;padding:10px 12px;border-top:1px solid var(--family-line,#dce6e2);border-radius:10px;color:var(--family-text,#40515a);text-decoration:none}
+.tongxue-card-entry--compact{display:inline-grid;width:auto;max-width:100%;min-height:40px;margin-top:8px;padding:7px 10px;grid-template-columns:auto auto auto;gap:7px;border-top:0}
+.tongxue-card-entry--compact .tongxue-card-entry__brand{font-size:11px}
+.tongxue-card-entry--compact .tongxue-card-entry__text{font-size:11px;line-height:1.35}
+.tongxue-card-entry--compact .tongxue-card-entry__arrow{font-size:15px}
 .tongxue-card-entry:hover{background:var(--family-brand-soft,#e8f3f5)}
 .tongxue-card-entry:focus-visible{outline:3px solid rgba(21,94,117,.2);outline-offset:2px}
 .tongxue-card-entry__brand{color:var(--family-brand,#155e75);font-size:12px;font-weight:950;white-space:nowrap}
@@ -12303,6 +12307,7 @@ body::before{
   .family-decision-mobile b{min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:var(--family-brand-soft,#e8f3f5);color:var(--family-brand,#155e75);font-size:11px}
   .family-decision-summary>div{grid-template-columns:1fr;gap:3px}
   .tongxue-card-entry{min-height:48px}
+  .tongxue-card-entry--compact{display:grid;width:100%;grid-template-columns:auto minmax(0,1fr) auto;min-height:48px}
   .family-secondary-actions__body{grid-template-columns:1fr}
 }
 
@@ -12337,6 +12342,33 @@ body::before{
   .results-grid .major-card .major-path-entry__arrow,
   .results-grid .major-card .student-voice-entry__arrow,
   .results-grid .major-card .tongxue-card-entry__arrow { font-size: 15px; }
+  .results-grid .major-card .major-path-entry--compact,
+  .results-grid .major-card .student-voice-entry--compact,
+  .results-grid .major-card .tongxue-card-entry--compact {
+    display: inline-grid !important;
+    width: calc((100% - 16px) / 3);
+    min-height: 52px;
+    margin-right: 4px;
+    vertical-align: top;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 5px;
+  }
+  .results-grid .major-card .major-path-entry--compact > small,
+  .results-grid .major-card .student-voice-entry--compact > small { grid-column: 1; }
+  .results-grid .major-card .major-path-entry--compact > b,
+  .results-grid .major-card .student-voice-entry--compact > b {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  .results-grid .major-card .tongxue-card-entry--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__brand,
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__text { grid-column: 1; }
+  .results-grid .major-card .tongxue-card-entry--compact .tongxue-card-entry__arrow {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
 }
 
 @media(max-width:360px){
