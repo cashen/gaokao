@@ -1570,8 +1570,24 @@ function bind() {
     scheduleWorkspaceCommit(`school-${event.detail?.reason || 'state'}`, true);
   });
 
-  document.addEventListener('gaokao:school-candidate-selected', () => {
-    resolveSchoolSelectionFromInput();
+  document.addEventListener('gaokao:school-candidate-selected', event => {
+    const detail = event.detail || {};
+    const entityId = String(detail.entityId || '').trim();
+    if (entityId) {
+      const displayName = String(detail.school || schoolInputValue()).trim();
+      state.schoolSelection = {
+        status: 'resolved',
+        input: displayName,
+        entityId,
+        displayName,
+        entityType: String(detail.entityType || ''),
+        parentEntityId: String(detail.parentEntityId || '')
+      };
+      state.filters.schoolKeyword = displayName;
+      state.filters.schoolEntityId = entityId;
+    } else {
+      resolveSchoolSelectionFromInput();
+    }
     syncSearchIntentUi();
     updateSearchUrl();
     scheduleWorkspaceCommit('school-candidate-selected', true);
