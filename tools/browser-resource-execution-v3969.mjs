@@ -172,8 +172,8 @@ try {
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
       }));
       assert.equal(runtime.release, 'v3.9.69.0');
-      assert.equal(runtime.workspace, 'selection-workspace-orchestration-v3969_0');
-      assert.equal(runtime.school, 'school-all-mode-v3969_0');
+      assert.equal(runtime.workspace, 'selection-workspace-orchestration-v3969_2');
+      assert.equal(runtime.school, 'school-all-mode-v3969_2');
       assert.ok(runtime.overflow <= 1, `${testCase.name}: horizontal overflow ${runtime.overflow}`);
 
       const cardDetails = page.locator('.major-card-details').first();
