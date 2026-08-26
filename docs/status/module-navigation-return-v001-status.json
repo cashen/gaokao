@@ -4,7 +4,7 @@
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
   "branch": "agent/module-navigation-return-v001",
   "pr": null,
-  "headSha": "7909e8c746b388f4d4082cc7c57efdb540ce21a2",
+  "headSha": "ce62cdc091d90acd3d60fcda5c138b0a76ff3c4d",
   "mergeSha": null,
   "completed": [
     "MN-01-remote-baseline-and-live-ui-confirmed",
@@ -13,7 +13,6 @@
   ],
   "inProgress": "MN-04-static-and-script-validation",
   "pending": [
-    "MN-03-cross-module-return",
     "MN-04-static-and-script-validation",
     "MN-05-pr-preview-and-multi-device-validation",
     "MN-06-post-merge-production-verification"
@@ -51,7 +50,14 @@
     "crossModuleReturn": "same-origin sessionStorage; preserve pathname/search/hash; hide when no real prior module",
     "responsive": "desktop global nav; Pad core roots remain visible; Android horizontal module strip"
   },
-  "lastFailure": null,
-  "checkpointNote": "MN-02/MN-03 implementation is committed on branch at exact head 7909e8c746b388f4d4082cc7c57efdb540ce21a2. New module navigation JS/CSS is wired into 12 module surfaces; Tongxue fixed v159-startup001 resource identities remain unchanged. Next is static/script validation, then PR CI/Preview and multi-device verification.",
-  "verifiedAt": "2026-08-26T00:25:22.526Z"
+  "lastFailure": {
+    "ciRun": 32915125385,
+    "job": 98017130590,
+    "reason": "home audit counted a second HTML bootstrap owner; fixed by centralizing navigation import in family shell",
+    "ciRunArchitecture": 32915125387,
+    "architectureJob": 98017130502,
+    "architectureReason": "AIPLuS core version contract saw the extra navigation entry; removed AIPLuS page injection"
+  },
+  "checkpointNote": "After CI feedback, navigation JS is centrally owned by family-shell and Tongxue legacy wrapper; homepage/AIPLuS second bootstrap injection removed. Exact branch head is ce62cdc091d90acd3d60fcda5c138b0a76ff3c4d. Local node syntax and navigation return contract passed; rerun PR CI/Preview next.",
+  "verifiedAt": "2026-08-26T00:28:36.860Z"
 }
