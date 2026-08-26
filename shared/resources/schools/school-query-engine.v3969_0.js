@@ -24,6 +24,11 @@ export function normalizeUnifiedSchoolName(value) {
     .trim();
 }
 
+export function admissionEntityIdForName(value) {
+  const normalized = normalizeUnifiedSchoolName(value);
+  return normalized ? `admission:${normalized}` : '';
+}
+
 function unique(values = []) {
   return [...new Set(values.filter(Boolean))];
 }
@@ -92,6 +97,7 @@ function candidateFromRow(row, {
   const entity = row?.entityId ? getSchoolEntity(row.entityId) : findSchoolEntityByName(officialName || row?.officialName);
   const publicEntity = publicSchoolEntity(entity) || publicEntityForName(officialName || row?.officialName);
   const displayName = officialName || row?.officialName || row?.admissionNames?.[0] || '';
+  const entityId = row?.entityId || publicEntity?.entityId || admissionEntityIdForName(displayName);
   return Object.freeze({
     school: displayName,
     officialName: displayName,
@@ -103,7 +109,7 @@ function candidateFromRow(row, {
     matchType,
     matchReason,
     queryIntent: intent,
-    entityId: row?.entityId || publicEntity?.entityId || '',
+    entityId,
     entityType: row?.entityType || publicEntity?.entityType || 'official_school',
     parentEntityId: row?.parentEntityId || publicEntity?.parentEntityId || '',
     province: row?.province || publicEntity?.province || '',
