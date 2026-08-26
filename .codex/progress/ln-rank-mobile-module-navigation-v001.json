@@ -1,0 +1,32 @@
+{
+  "task": "ln-rank-mobile-module-navigation-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-mobile-module-navigation-v001",
+  "baseSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "headSha": "a7579c52556b3b75d042ecbc560887781bb53e50",
+  "remoteHeadSha": "a7579c52556b3b75d042ecbc560887781bb53e50",
+  "pr": 232,
+  "completed": [
+    "live-main-reconciled",
+    "mobile-overlap-root-cause",
+    "two-row-navigation-css",
+    "all-page-style-references",
+    "mobile-geometry-browser-assertions",
+    "local-static-tests",
+    "resource-contract-audits",
+    "push-branch",
+    "pr-created",
+    "pr-ci-preview",
+    "browser-acceptance"
+  ],
+  "inProgress": "merge-main",
+  "pending": ["merge-main", "production-verify"],
+  "lastFailure": "Cloud browser is desktop-only in this runtime; Android geometry is delegated to CI Chromium.",
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "moduleNavigationStyles": "module-navigation-css-v0.05",
+    "revision": "r029-mobile-nav"
+  },
+  "verifiedAt": "2026-08-26T21:22:38Z"
+}

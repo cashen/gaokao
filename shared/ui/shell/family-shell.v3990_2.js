@@ -17,7 +17,7 @@ const STYLE_URLS = Object.freeze([
   '/shared/ui/tokens/semantic.v3959_0.css?v=3962_2',
   '/shared/ui/shell/family-shell.v3972_5.css?v=3972_5',
   '/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5',
-  '/shared/ui/navigation/module-navigation.v004.css?v=004'
+  '/shared/ui/navigation/module-navigation.v005.css?v=005&r=r029-mobile-nav'
 ]);
 const NEXT_COPY = Object.freeze({
   'confirm-score': '先确认孩子目前的参考分数',
@@ -199,4 +199,3 @@ if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountFamilyShell, { once: true });
   else mountFamilyShell();
 }
-

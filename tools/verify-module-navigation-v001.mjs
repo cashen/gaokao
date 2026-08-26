@@ -74,7 +74,7 @@ for (const path of [
   'major-path/index.html'
 ]) {
   const html = fs.readFileSync(path, 'utf8');
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v004.css?v=004'), true, `${path}: navigation CSS`);
+  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v005.css?v=005&r=r029-mobile-nav'), true, `${path}: navigation CSS`);
 }
 const navigationOwners = [
   fs.readFileSync('shared/ui/shell/family-shell.v3990_2.js', 'utf8'),
@@ -95,9 +95,16 @@ for (const [path, needle] of [
   const escaped = needle.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
   assert.match(fs.readFileSync(path, 'utf8'), new RegExp(escaped), `${path}: cache-busted navigation owner`);
 }
-const navigationCss = fs.readFileSync('shared/ui/navigation/module-navigation.v004.css', 'utf8');
+const navigationCss = fs.readFileSync('shared/ui/navigation/module-navigation.v005.css', 'utf8');
 assert.match(navigationCss, /ui-module-navigation--standalone\s*\{\s*display: flex;/);
+assert.match(navigationCss, /grid-template-areas:\s*"head back"\s*"roots roots"/);
+assert.match(navigationCss, /\.ui-mobile-module-nav__head\s*\{[^}]*grid-area:\s*head/s);
+assert.match(navigationCss, /\.ui-mobile-module-nav__roots\s*\{[^}]*grid-area:\s*roots/s);
+assert.match(navigationCss, /\.ui-mobile-module-nav__roots a,[\s\S]*?\.ui-mobile-module-nav__back\s*\{[^}]*flex:\s*0 0 auto/s);
+assert.match(navigationCss, /@media \(max-width: 380px\)[\s\S]*?grid-template-areas:\s*"head"\s*"roots"\s*"back"/);
 const tongxueHtml = fs.readFileSync('tongxue/index.html', 'utf8');
 assert.match(tongxueHtml, /data-ui-module-back/);
 assert.match(tongxueHtml, /159-startup001/);
-console.log('Module navigation v0.04 verified: root links, same-origin full-path return, same-module preservation, and page integration.');
+assert.match(fs.readFileSync('shared/resources/release/current-release.js', 'utf8'), /moduleNavigationStylesVersion: 'module-navigation-css-v0\.05'/);
+assert.match(fs.readFileSync('shared/resources/release/current-release.js', 'utf8'), /moduleNavigationLayoutRevision: 'r029-mobile-nav'/);
+console.log('Module navigation v0.05 verified: two-row mobile root strip, non-shrinking links, root links, return path, and page integration.');

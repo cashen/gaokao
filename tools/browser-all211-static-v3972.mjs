@@ -14,6 +14,43 @@ const cases = [
   { name: 'android-360', viewport: { width: 360, height: 800 } }
 ];
 
+async function verifyMobileModuleNavigation(page, name) {
+  await page.locator('[data-ui-mobile-module-nav]').waitFor({ state: 'visible' });
+  const metrics = await page.locator('[data-ui-mobile-module-nav]').evaluate(node => {
+    const roots = node.querySelector('.ui-mobile-module-nav__roots');
+    const head = node.querySelector('.ui-mobile-module-nav__head');
+    const links = [...(roots?.querySelectorAll('a') || [])].map(link => {
+      const rect = link.getBoundingClientRect();
+      return { text: link.textContent?.trim(), left: rect.left, right: rect.right, width: rect.width };
+    });
+    const navRect = node.getBoundingClientRect();
+    const rootRect = roots?.getBoundingClientRect();
+    const navStyle = getComputedStyle(node);
+    const rootStyle = roots ? getComputedStyle(roots) : null;
+    return {
+      navWidth: navRect.width,
+      navHeight: navRect.height,
+      headHeight: head?.getBoundingClientRect().height || 0,
+      rootWidth: rootRect?.width || 0,
+      rootScrollWidth: roots?.scrollWidth || 0,
+      gridTemplateAreas: navStyle.gridTemplateAreas,
+      rootOverflowX: rootStyle?.overflowX || '',
+      links
+    };
+  });
+  assert.ok(metrics.navHeight >= 86, `${name}: mobile module nav did not get a separate root row ${JSON.stringify(metrics)}`);
+  assert.ok(metrics.headHeight > 0 && metrics.rootWidth > 0, `${name}: mobile module nav row collapsed ${JSON.stringify(metrics)}`);
+  assert.equal(metrics.rootOverflowX, 'auto', `${name}: root module strip is not horizontally scrollable`);
+  assert.ok(metrics.rootScrollWidth > metrics.rootWidth + 1, `${name}: root module strip is not scrollable ${JSON.stringify(metrics)}`);
+  assert.equal(metrics.links.length, 6, `${name}: root module count`);
+  assert.ok(metrics.links.every(link => link.width >= 50), `${name}: root link shrank below a readable width ${JSON.stringify(metrics.links)}`);
+  assert.ok(metrics.links.every((link, index, links) => index === 0 || link.left >= links[index - 1].right - 1), `${name}: root links overlap ${JSON.stringify(metrics.links)}`);
+  assert.equal(metrics.gridTemplateAreas.includes('head') && metrics.gridTemplateAreas.includes('roots'), true, `${name}: two-row grid areas missing`);
+  const pageGeometry = await page.locator('body').evaluate(node => ({ clientWidth: node.clientWidth, scrollWidth: node.scrollWidth }));
+  assert.ok(pageGeometry.scrollWidth <= pageGeometry.clientWidth + 1, `${name}: page horizontal overflow ${JSON.stringify(pageGeometry)}`);
+  return { metrics, pageGeometry };
+}
+
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {
@@ -28,6 +65,7 @@ try {
 
     await page.goto(`${baseUrl}/ln-rank/211-mainline.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.dataset.all211Runtime === 'ready');
+    const navigation = testCase.viewport.width <= 767 ? await verifyMobileModuleNavigation(page, `${testCase.name}:211`) : null;
     assert.equal(await page.getAttribute('body', 'data-release'), 'v3.9.90.2', `${testCase.name}: release`);
     assert.equal(await page.locator('#scoreBands [data-band]').count(), 8, `${testCase.name}: score bands`);
     assert.equal((await page.locator('#scoreBands [data-band]').first().innerText()).includes(index.scoreBands[0].label), true, `${testCase.name}: first band label`);
@@ -54,9 +92,18 @@ try {
     assert.deepEqual(consoleErrors, [], `${testCase.name}: console errors ${consoleErrors.join(' | ')}`);
 
     await page.screenshot({ path: path.join(artifactDir, `${testCase.name}.png`), fullPage: true });
-    results.push({ name: testCase.name, viewport: testCase.viewport, bandColumns, geometry });
+    results.push({ name: testCase.name, viewport: testCase.viewport, bandColumns, geometry, navigation });
     await context.close();
   }
+
+  const localContext = await browser.newContext({ viewport: { width: 360, height: 800 } });
+  const localPage = await localContext.newPage();
+  await localPage.goto(`${baseUrl}/ln-rank/local-mainline.html`, { waitUntil: 'domcontentloaded' });
+  await localPage.waitForFunction(() => document.body.dataset.localStrengthRuntime === 'ready');
+  const localNavigation = await verifyMobileModuleNavigation(localPage, 'android-360:local-strength');
+  await localPage.screenshot({ path: path.join(artifactDir, 'android-360-local-strength.png'), fullPage: true });
+  results.push({ name: 'android-360-local-strength', viewport: { width: 360, height: 800 }, navigation: localNavigation });
+  await localContext.close();
 
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage();
