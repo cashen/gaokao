@@ -1,6 +1,6 @@
 import '../../shared/resources/release/release-presenter.v3968_0.js?v=3968_0';
 import '../../shared/ui/shell/family-shell.v3965_0.js?v=3965_0';
-import '../../shared/ui/navigation/module-navigation.v001.js?v=001';
+import '../../shared/ui/navigation/module-navigation.v001.js?v=002';
 import { startTongxueRuntime } from './tongxue-runtime-controller-v159.js?v=159';
 
 const EXPECTED_BUILD = 'tongxue-v159-single-runtime-owner-20260726';
