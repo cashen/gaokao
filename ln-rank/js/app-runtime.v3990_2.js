@@ -169,7 +169,7 @@ export function startLnRankRuntime() {
     await workspace.selectionWorkspaceReady;
     const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2');
     await schoolMode.schoolAllModeReady;
-    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=001_0');
+    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=major-filter-context-v001');
     await majorMode.majorAllModeReady;
     syncSharedBottomLine();
     return Object.freeze({
@@ -180,6 +180,7 @@ export function startLnRankRuntime() {
       workspace: globalThis.__GAOKAO_SELECTION_WORKSPACE__?.version || '',
       workspaceDelegate: globalThis.__GAOKAO_SELECTION_WORKSPACE__?.delegateVersion || '',
       schoolMode: globalThis.__GAOKAO_SCHOOL_ALL_MODE__?.version || '',
+      majorFilterContext: globalThis.__GAOKAO_MAJOR_ALL_MODE__?.inputVersion || '',
       report: globalThis.__GAOKAO_FEISHU_REPORT__?.version || '',
       historyEvidence: CURRENT_RELEASE.historyEvidenceVersion,
       academicBackground: CURRENT_RELEASE.academicBackgroundVersion,
@@ -191,4 +192,3 @@ export function startLnRankRuntime() {
   })();
   return startPromise;
 }
-
