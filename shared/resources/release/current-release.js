@@ -81,6 +81,8 @@ export const CURRENT_RELEASE = Object.freeze({
   reportFrontendVersion: 'feishu-browser-v3967_0',
   historyEvidenceVersion: 'ln-physics-history-evidence-v3967_0',
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
+  lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v001',
+  lnRankHumanQueryInputRevision: 'r001',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
     release: '/shared/resources/release/current-release.js',
@@ -211,6 +213,7 @@ export const CURRENT_RELEASE = Object.freeze({
     selectionQuickEntryStructure: '/ln-rank/index.html#[data-ui-family-plan-results-footer]',
     tongxueRuntime: '/tongxue/app/tongxue-runtime-v159-r3968.js',
     tongxueState: '/tongxue/app/tongxue-runtime-controller-v159.js',
+    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js',
     reportHistoryPlacement: 'appendix-only'
   })
 });

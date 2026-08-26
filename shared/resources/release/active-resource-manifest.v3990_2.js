@@ -21,6 +21,11 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     releaseFooterStyles: entry(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, 'current-generation'),
     releaseLog: CURRENT_RELEASE.resourceOwners.releaseLog
   }),
+  lnRankHumanQueryInput: entry(CURRENT_RELEASE.resourceOwners.lnRankHumanQueryInput, 'current-generation', {
+    featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
+    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    contract: 'typed-draft-confirm-commit-v001'
+  }),
   aiplus: Object.freeze({
     classification: 'current-generation-with-declared-transitive-implementation',
     browserOwner: CURRENT_RELEASE.resourceOwners.aiRuntime,

@@ -42,7 +42,8 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiStyles: '/aiplus/workspace.v3990_2.css?v=3990_2',
     aiWorkspaceContract: '/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2',
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
-    majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js'
+    majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
+    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js?v=3990_2'
   }),
   activeEntrypointClassifications: Object.freeze({
     releaseCenter: CURRENT,
@@ -74,7 +75,8 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiStyles: CURRENT,
     aiWorkspaceContract: CURRENT,
     majorBandsFilter: CURRENT,
-    majorBandsRegionCatalog: CURRENT
+    majorBandsRegionCatalog: CURRENT,
+    lnRankHumanQueryInput: CURRENT
   }),
   declaredResourceGraph: Object.freeze({
     manifest: ACTIVE_RESOURCE_MANIFEST,
@@ -130,7 +132,8 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
     localStrength: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js',
-    all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js'
+    all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js',
+    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js'
   }),
   stableDependencies: Object.freeze([
     '/shared/resources/exam/liaoning-physics.js',
