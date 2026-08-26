@@ -7,6 +7,7 @@ const read = path => readFileSync(resolve(root, path), 'utf8');
 const school = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js');
 const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js');
 const api = read('functions/api/school-majors.js');
+const engine = read('shared/resources/schools/school-query-engine.v3969_0.js');
 const release = read('shared/resources/release/current-release.js');
 const contract = read('shared/resources/release/site-runtime-contract.v3990_2.js');
 const nav = read('shared/ui/navigation/module-navigation.v004.js');
@@ -22,6 +23,8 @@ const checks = [
   ['school candidates carry canonical entity identity', school.includes('data-school-entity-id=') && school.includes('data-school-entity-type=')],
   ['confirmed school entity reaches resolve-only preflight', school.includes("if (state.schoolSelection?.entityId) params.set('schoolEntityId', state.schoolSelection.entityId)") && school.includes("status: entityId ? 'resolved' : 'input'")],
   ['workspace preserves selected school entity', workspace.includes("document.addEventListener('gaokao:school-candidate-selected', event =>") && workspace.includes("const entityId = String(detail.entityId || '').trim()")],
+  ['ordinary admission schools receive stable canonical identity', engine.includes('export function admissionEntityIdForName') && engine.includes('admission:${normalized}')],
+  ['API validates admission-directory identity', api.includes('function canonicalEntityForSelection') && api.includes("entityId.startsWith('admission:')") && api.includes('entityId !== admissionEntityIdForName(displayName)')],
   ['feature version and revision are registered', /lnRankHumanQueryInputVersion:\s*'ln-rank-human-query-input-v001'/.test(release) && /lnRankHumanQueryInputRevision:\s*'r\d+'/.test(release)],
   ['active school owner is v3969_2', release.includes("schoolResults: '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'")],
   ['active contract has school owner', contract.includes('school-all-mode.v3969_2.js')],
