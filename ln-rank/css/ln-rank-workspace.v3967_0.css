@@ -62,7 +62,6 @@
   --ln-control-max-width: 1180px;
 }
 
-
 /* =========================================================
    SOURCE: css/core/color-system.css
    ========================================================= */
@@ -12307,6 +12306,24 @@ body::before{
   .family-secondary-actions__body{grid-template-columns:1fr}
 }
 
+/* v0.01 human card density: the PC result card keeps one decision summary,
+   two primary actions, and one relevant major path; cross-school experience
+   and school-review links remain reachable from their dedicated surfaces. */
+@media (min-width: 761px) {
+  .results-grid .major-card .family-decision-summary {
+    gap: 6px;
+    margin-top: 10px;
+    padding: 10px 11px;
+  }
+  .results-grid .major-card .family-decision-summary p { line-height: 1.48; }
+  .results-grid .major-card .student-voice-entry,
+  .results-grid .major-card .tongxue-card-entry { display: none !important; }
+  .results-grid .major-card .major-path-entry {
+    margin-top: 8px;
+    padding: 8px 11px;
+  }
+}
+
 @media(max-width:360px){
   .family-decision-bar__main{grid-template-columns:1fr}
   .family-decision-bar__label,.family-decision-bar__next{grid-column:auto}
@@ -12765,6 +12782,7 @@ body.is-workspace-updating #results .major-card {
 .ln-advanced-options[open]>summary::after,.ln-more-conditions[open]>summary::after,.major-card-details[open]>summary::after{content:"收起"}
 .ln-advanced-options__body,.ln-more-conditions__body,.major-card-details__body{padding:0 12px 12px}
 .ln-more-conditions{margin-top:12px}
+.ln-more-conditions{overflow-anchor:none}
 .ln-more-conditions__body>.search-grid-top{margin-top:0}
 .major-card-details{margin-top:12px}
 .major-card-details__body{display:grid;gap:10px}
