@@ -6,7 +6,8 @@ import { createEntityAwareResolver } from '../../shared/resources/schools/school
 import {
   resolveUnifiedSchoolQuery,
   acceptedAdmissionSchoolNames,
-  normalizeUnifiedSchoolName
+  normalizeUnifiedSchoolName,
+  admissionEntityIdForName
 } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 import { SCHOOL_QUERY_POLICY } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
 
@@ -134,7 +135,7 @@ export async function resolveExactAdmissionSchool(source, school) {
     officialName: item.officialName || admissionNames[0] || school,
     admissionName: admissionNames[0] || item.officialName || school,
     admissionNames,
-    entityId: item.entityId || '',
+    entityId: item.entityId || admissionEntityIdForName(item.officialName || admissionNames[0] || school),
     entityType: item.entityType || 'official_school',
     province: item.province || '',
     city: item.city || '',
