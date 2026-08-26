@@ -272,7 +272,8 @@ function syncSearchIntentUi() {
       ? '可以输入完整学校名、简称或城市。城市与校名片段冲突时会分组列出，必须再选择准确学校。'
       : '学校条件只接受统一目录解析后的学校；查看城市学校请使用地区条件，避免把城市词误当校名片段。';
 
-  const moreConditions = document.getElementById('familyConditionsDetails');
+  const moreConditions = document.getElementById('familyConditionsDisclosure')
+    || document.getElementById('familyConditionsDetails');
   // In score mode this is a user-owned disclosure. Reassigning `open = false`
   // on every draft commit made Android close/reflow the panel while a region
   // select or major input was being edited. School/major modes still expose
