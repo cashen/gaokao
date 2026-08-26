@@ -121,11 +121,10 @@ function ensureDecisionSummary(card) {
       : '先确认孩子是否愿意学习这个方向，再核对校区、学费和培养方式。';
   const section = document.createElement('section');
   section.className = 'family-decision-summary';
-  section.setAttribute('aria-label', '家庭先看这三件事');
+  section.setAttribute('aria-label', '家庭先看这两件事');
   section.innerHTML = `
     <div><b>为什么出现</b><p>${why}</p></div>
-    <div><b>最需要确认</b><p>${confirm}</p></div>
-    <div><b>现在还不知道</b><p>${FAMILY_LANGUAGE.unknown2027}</p></div>`;
+    <div><b>最需要确认</b><p>${confirm}</p></div>`;
   actions.before(section);
 }
 
