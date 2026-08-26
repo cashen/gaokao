@@ -83,8 +83,8 @@ async function verifyBrowser(page,name){
   assert(await independent.locator('[data-major-background-scope-link="211"]').count(),`${name}: independent 211 action missing`);
 
   for(const [scope,pathname,readyKey,selector] of [
-    ['liaoning','/ln-rank/local-mainline.html','localStrengthRuntime','.ls-record [data-background-major-entry]'],
-    ['211','/ln-rank/211-mainline.html','all211Runtime','.a211-card [data-background-major-entry]']
+    ['liaoning','/ln-rank/local-mainline','localStrengthRuntime','.ls-record [data-background-major-entry]'],
+    ['211','/ln-rank/211-mainline','all211Runtime','.a211-card [data-background-major-entry]']
   ]){
     const params=new URLSearchParams({view:'school',school:DUAL.school});
     await page.goto(`${BASE}${pathname}?${params}`,{waitUntil:'domcontentloaded',timeout:60000});

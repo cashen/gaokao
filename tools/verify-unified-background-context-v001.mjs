@@ -12,7 +12,7 @@ import {
   buildAcademicBackgroundHref,
   buildMajorPathFromAcademicBackgroundHref,
   sanitizeAcademicBackgroundReturnTarget
-} from '../shared/resources/background/academic-background-navigation.v001.js';
+} from '../shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links';
 import { majorBackgroundFromSnapshot, schoolBackgroundFromSnapshot } from '../functions/_lib/ai/background-resource-adapter.js';
 import { deterministicCommand } from '../functions/_lib/ai/command-interpreter.js';
 import { claimsFromAcademicBackground, validateClaimSet } from '../functions/_lib/ai/claim-evidence.js';
@@ -127,7 +127,7 @@ assert.equal(projectedElectrical.schoolCount, new Set(projectedSchools.map(item 
 // Navigation carries identity/return context only and remains same-origin fail-closed.
 const detailHref = buildAcademicBackgroundHref({ scope: '211', majorCode: dual.major.code, canonicalName: dual.major.name, school: dual.school, returnTo: `/major-path/?majorCode=${dual.major.code}` });
 const detailUrl = new URL(detailHref, 'https://gaokao.powers.org.cn');
-assert.equal(detailUrl.pathname, '/ln-rank/211-mainline.html');
+assert.equal(detailUrl.pathname, '/ln-rank/211-mainline');
 assert.equal(detailUrl.searchParams.get('view'), 'school');
 assert.equal(detailUrl.searchParams.get('majorCode'), dual.major.code);
 assert.equal(detailUrl.searchParams.get('school'), dual.school);

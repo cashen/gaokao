@@ -4,7 +4,7 @@ import {
   resolveSchoolMajorBackgroundContext,
   validateAcademicBackgroundContextSnapshot
 } from '../shared/resources/background/academic-background-context.v001.js';
-import { buildAcademicBackgroundHref } from '../shared/resources/background/academic-background-navigation.v001.js';
+import { buildAcademicBackgroundHref } from '../shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links';
 
 export const MAJOR_PATH_BACKGROUND_CONTEXT_VERSION = 'major-path-background-context-v0.01';
 let snapshotPromise = null;

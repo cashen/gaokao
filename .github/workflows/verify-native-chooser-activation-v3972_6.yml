@@ -37,6 +37,8 @@ jobs:
             if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-native-files.txt; then exit 1; fi
           fi
           node --check shared/ui/interaction/interaction-transaction.v3990_2.js
+          node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
+          node --check shared/resources/background/academic-background-navigation.v002.js
           node --check tools/browser-native-chooser-activation-v3990_2.mjs
           node --check tools/browser-native-chooser-activation-v3990_2-runner.mjs
           node --check tools/browser-resource-execution-v3990_2.mjs

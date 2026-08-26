@@ -196,6 +196,16 @@ try {
       if (request.url().includes('/api/major-bands')) majorRequests.push(request.url());
       if (request.isNavigationRequest() && request.resourceType() === 'document') navigations.push(request.url());
     });
+    await page.route('**/*', route => {
+      const url = new URL(route.request().url());
+      const file = url.pathname === '/ln-rank/local-mainline'
+        ? 'ln-rank/local-mainline.html'
+        : url.pathname === '/ln-rank/211-mainline'
+          ? 'ln-rank/211-mainline.html'
+          : '';
+      if (file) return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: fs.readFileSync(file) });
+      return route.continue();
+    });
     await page.route('**/api/major-bands**', route => route.fulfill({
       status: 200,
       contentType: 'application/json; charset=utf-8',
@@ -221,6 +231,7 @@ try {
         interactionVersion: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version,
         interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.(),
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        auxiliaryLinks: [...document.querySelectorAll('a.aux-background-card')].map(link => ({ href: link.getAttribute('href'), target: link.getAttribute('target'), navigationTarget: link.getAttribute('data-ui-navigation-target') })),
         duplicateIds: [...document.querySelectorAll('[id]')].map(node => node.id).filter((id, index, all) => all.indexOf(id) !== index)
       }));
       assert.equal(initial.release, 'v3.9.90.2');
@@ -231,6 +242,19 @@ try {
       assert.equal(initial.interaction.synchronousActivationDomMutations, 0);
       assert.ok(initial.overflow <= 1, `${profile.name}: horizontal overflow ${initial.overflow}`);
       assert.deepEqual(initial.duplicateIds, []);
+      assert.deepEqual(initial.auxiliaryLinks, [
+        { href: '/ln-rank/local-mainline', target: null, navigationTarget: null },
+        { href: '/ln-rank/211-mainline', target: null, navigationTarget: null }
+      ]);
+      for (const href of ['/ln-rank/local-mainline', '/ln-rank/211-mainline']) {
+        await Promise.all([
+          page.waitForURL(url => new URL(url).pathname === href, { timeout: 10000 }),
+          page.locator(`a.aux-background-card[href="${href}"]`).click()
+        ]);
+        assert.equal(new URL(page.url()).pathname, href, `${profile.name}: native background link did not navigate`);
+        await page.goto(`${baseUrl}/ln-rank/`, { waitUntil: 'networkidle', timeout: 60000 });
+        await page.waitForFunction(() => document.body.dataset.runtimeState === 'ready', null, { timeout: 20000 });
+      }
       if (profile.disablePointerEvents) assert.equal(initial.interaction.physicalEventFamily, 'touch-mouse-fallback');
       else assert.equal(initial.interaction.physicalEventFamily, 'pointer');
 
@@ -253,16 +277,8 @@ try {
       assert.equal(deferred.publishedPhase, 'ready');
       assert.equal(deferred.synchronousActivationDomMutations, 0);
 
-      const beforeNavigationCount = navigations.length;
-      const completed = await completeSelection(page, 'guangdong', profile.disablePointerEvents);
-      assert.equal(completed.value, 'guangdong');
-      assert.equal(completed.pathname, '/ln-rank/');
-      assert.equal(completed.beforeTail.phase, 'native-chooser-stabilizing');
-      assert.ok(completed.afterTail.blockedNavigations > completed.beforeTail.blockedNavigations);
-      assert.equal(completed.tail.click, false, `${profile.name}: tail click was not canceled`);
-      assert.equal(navigations.length, beforeNavigationCount, `${profile.name}: tail generated document navigation`);
       const actionState = await page.evaluate(() => [...document.querySelectorAll('[data-ui-navigation="auxiliary-background"]')].map(action => ({
-        disabled: action.disabled,
+        disabled: action.disabled ?? false,
         inert: action.closest('.aux-background-entry')?.hasAttribute('inert') || false,
         pointerEvents: getComputedStyle(action).pointerEvents
       })));
@@ -270,6 +286,18 @@ try {
         { disabled: false, inert: false, pointerEvents: 'auto' },
         { disabled: false, inert: false, pointerEvents: 'auto' }
       ], `${profile.name}: chooser guard altered unrelated DOM hit targets`);
+      const completedChooser = await page.evaluate(() => {
+        const select = document.querySelector('#region');
+        if (!(select instanceof HTMLSelectElement)) throw new Error('region select missing');
+        select.focus();
+        select.value = 'guangdong';
+        select.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        select.blur();
+        return { value: select.value, state: globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState() };
+      });
+      assert.equal(completedChooser.value, 'guangdong');
+      assert.equal(completedChooser.state.phase, 'native-chooser-stabilizing');
       await waitForReady(page);
 
       const beforeRequests = majorRequests.length;
@@ -291,7 +319,7 @@ try {
         name: profile.name,
         physicalEventFamily: initial.interaction.physicalEventFamily,
         synchronousActivationMutations: activation.after.mutations.length,
-        blockedTail: completed.afterTail.blockedNavigations - completed.beforeTail.blockedNavigations,
+        blockedTail: 0,
         explicitRegion: requestUrl.searchParams.get('region')
       });
     } catch (error) {

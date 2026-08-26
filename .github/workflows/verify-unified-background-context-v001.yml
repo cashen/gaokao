@@ -67,6 +67,7 @@ jobs:
           set -euo pipefail
           node --check shared/resources/background/academic-background-context.v001.js
           node --check shared/resources/background/academic-background-navigation.v001.js
+          node --check shared/resources/background/academic-background-navigation.v002.js
           node --check functions/_lib/academic-background-context-reader.js
           node --check functions/_lib/ai/background-resource-adapter.js
           node --check functions/_lib/ai/human-query-frame.js
@@ -79,9 +80,11 @@ jobs:
           node --check major-path/app.v004.js
           node --check major-path/background-context.v001.js
           node --check ln-rank/js/academic-background/background-context-direct.v001.js
+          node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
           node --check aiplus/selection-workbench.v005.js
           node --check tools/build-background-context-index-v001.mjs
           node --check tools/verify-unified-background-context-v001.mjs
+          node --check tools/verify-ln-rank-android-background-navigation-v001.mjs
           node --check tools/browser-unified-background-context-v001.mjs
           node --check tools/browser-unified-background-context-live-v001.mjs
       - name: Rebuild derived evidence index deterministically
@@ -91,6 +94,8 @@ jobs:
           git diff --exit-code -- ln-rank/data/background-context/background-context-index.v001.json ln-rank/data/background-context/background-context-audit.v001.json
       - name: Verify unified background source truth and semantics
         run: node tools/verify-unified-background-context-v001.mjs
+      - name: Verify Android-safe background navigation
+        run: node tools/verify-ln-rank-android-background-navigation-v001.mjs
       - name: Preserve major-path truth and human-first contracts
         run: |
           set -euo pipefail
@@ -176,7 +181,7 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             major_html="$(curl -fsSL --max-time 20 "$BASE/major-path/?ubc=$attempt" || true)"
             major_app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v004.js?v=004_0&ubc=$attempt" || true)"
-            major_bg="$(curl -fsSL --max-time 20 "$BASE/major-path/background-context.v001.js?v=001_0&ubc=$attempt" || true)"
+            major_bg="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links&ubc=$attempt" || true)"
             context="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-context.v001.js?ubc=$attempt" || true)"
             index="$(curl -fsSL --max-time 20 "$BASE/ln-rank/data/background-context/background-context-index.v001.json?ubc=$attempt" || true)"
             local_html="$(curl -fsSL --max-time 20 "$BASE/ln-rank/local-mainline.html?ubc=$attempt" || true)"
@@ -185,7 +190,7 @@ jobs:
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'background-context.v001.css' <<<"$major_html" \
               && grep -q 'mountMajorPathBackgroundContext' <<<"$major_app" \
-              && grep -q 'major-path-background-context-v0.01' <<<"$major_bg" \
+              && grep -q 'academic-background-navigation-v0.02' <<<"$major_bg" \
               && grep -q 'academic-background-context-v0.01' <<<"$context" \
               && grep -q 'academic-background-context-static-v0.01' <<<"$index" \
               && grep -q 'background-context-direct.v001.js' <<<"$local_html" \
