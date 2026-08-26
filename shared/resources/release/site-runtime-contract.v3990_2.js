@@ -32,7 +32,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     selectionBootstrap: '/ln-rank/js/app.v3990_2.js?v=3990_2',
     selectionRuntime: '/ln-rank/js/app-runtime.v3990_2.js?v=3990_2',
     selectionWorkspace: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2',
-    majorFilterContext: '/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=major-filter-context-v001',
+    majorFilterContext: '/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v001',
     interactionRuntime: '/shared/ui/interaction/interaction-transaction.v3990_2.js?v=3990_2',
     interactionStyles: '/shared/ui/interaction/interaction-transaction.v3990_2.css?v=3990_2',
     familyPlanPage: '/ln-rank/selection-pool.html',
