@@ -1,6 +1,6 @@
 {
   "task": "ln-rank-unified-followup-v003",
-  "status": "local-implementation-complete",
+  "status": "remote-ci-pending",
   "repository": "cashen/gaokao",
   "baseSha": "d83026656c9f0bb89428d44d06c6e28a1beeeed3",
   "branch": "agent/ln-rank-unified-followup-v003",
@@ -16,9 +16,10 @@
     "syntax-and-diff-checks",
     "multi-major-draft-preservation-fix"
   ],
-  "inProgress": "push-and-open-pr",
+  "inProgress": "exact-head-ci",
+  "pullRequest": 233,
+  "remoteHeadSha": "93fa93f1a722ba4c61f47a93a5acc1ee97b18c4b",
   "pending": [
-    "remote-branch-and-pr",
     "exact-head-ci",
     "exact-head-preview-browser",
     "ready-and-merge",
