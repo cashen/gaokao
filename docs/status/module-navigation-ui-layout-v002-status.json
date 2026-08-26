@@ -4,12 +4,13 @@
   "baseSha": "2b2bf9e0f84c229873c43d76ed4caf7b32218207",
   "branch": "agent/module-navigation-ui-layout-v002",
   "pr": null,
-  "headSha": "52a487637758967de47d8b8fba5cdb6fceb1e2d9",
+  "headSha": "2d758ec04f9788ba844df14cfffcaeab969e5708",
   "mergeSha": null,
   "completed": [
     "ML-01-live-layout-regression-confirmed",
     "ML-02-layout-and-async-mount-fix",
-    "ML-03-cache-identity-and-static-contract"
+    "ML-03-cache-identity-and-static-contract",
+    "ML-01-cross-surface-position-audit"
   ],
   "inProgress": "ML-04-pr-preview-and-multi-device-validation",
   "pending": [
@@ -22,7 +23,19 @@
     "bodyNavigation": "module-navigation-v0.01",
     "duplicateObserved": true,
     "mobileBarDisplay": "flex on desktop",
-    "duplicateReason": "standalone nav created before delayed global header was not removed; CSS forced standalone display:flex"
+    "duplicateReason": "standalone nav created before delayed global header was not removed; CSS forced standalone display:flex",
+    "audit": {
+      "desktopWidth": 1348,
+      "pages": [
+        "/",
+        "/ln-rank/",
+        "/tongxue/",
+        "/major-path/",
+        "/zy2026/"
+      ],
+      "findings": "/ and /ln-rank/ had global header plus stray standalone; /major-path/ legitimately had standalone without global header; /tongxue/ and /zy2026/ had only global header.",
+      "rule": "standalone remains only when no global header exists; delayed global header removes it"
+    }
   },
   "decisions": {
     "desktop": "one global top navigation only",
@@ -36,8 +49,8 @@
     "return": "same-origin sessionStorage; preserve pathname/search/hash; hide without real prior module"
   },
   "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
-  "checkpointNote": "ML-02 and ML-03 completed on recovery branch at pre-status head 52a487637758967de47d8b8fba5cdb6fceb1e2d9: remove delayed standalone nav after global shell mount, hide standalone desktop layout, use compact narrow-screen label, and bump navigation JS/CSS identity to v=002. Local syntax checks passed; PR/Preview and post-merge production verification remain.",
-  "verifiedAt": "2026-08-26T01:29:31.891Z",
+  "checkpointNote": "Cross-surface desktop audit completed at 2d758ec04f9788ba844df14cfffcaeab969e5708: duplicate stray standalone was observed on / and /ln-rank/; /major-path/ needs standalone as its only navigation. CSS was corrected to preserve standalone for truly shell-less pages while JS removes it once the delayed global shell appears.",
+  "verifiedAt": "2026-08-26T01:33:45.906Z",
   "validation": {
     "localSyntax": "node --check navigation JS and verification contract passed",
     "codeContract": "v002 identity present; standalone cleanup and desktop hidden assertions passed",
