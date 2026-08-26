@@ -1,4 +1,4 @@
-import { presentFamilyResults } from './family-card-presenter.v3967_0.js?v=3967_0';
+import { presentFamilyResults } from './family-card-presenter.v3967_0.js?v=3967_0&r=r024-card3';
 import {
   createScrollSnapshot,
   preserveScrollSnapshot,
