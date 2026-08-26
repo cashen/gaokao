@@ -1,13 +1,13 @@
 {
   "task": "ln-rank-unified-followup-v002",
-  "status": "draft-pr-open-desktop-density-recheck",
+  "status": "checks-green-preview-verified",
   "baseSha": "36752c0901953fdcf2ac2642e53e981c3989680a",
   "branch": "agent/ln-rank-unified-followup-v002",
   "release": "v3.9.90.2",
   "assetVersion": "3990_2",
   "releaseRevision": "r027",
   "cacheRevision": "r027-card4",
-  "remoteHeadSha": "fc562aa499522faf98960f0f17187c6bb3586a76",
+  "remoteHeadSha": "927ecfe4de6a91e9ac3c1c1b05bc446b3a5fa092",
   "pullRequest": 228,
   "completed": [
     "isolated dirty user worktree from latest main",
@@ -18,13 +18,15 @@
     "local static, parser, resource, navigation, copy, and syntax tests pass",
     "remote branch created through authorized GitHub connector",
     "draft PR #228 opened against main",
-    "desktop three-entry strip locally rechecked"
+    "desktop three-entry strip locally rechecked",
+    "PR head checks completed with no failures",
+    "exact immutable Preview SHA verified for score, school, compound-major, return-path, and desktop entry density"
   ],
   "next": [
-    "update PR head with desktop density recheck",
-    "wait for all checks",
-    "verify exact-head Preview at PC/Pad/Android journeys",
-    "verify Production and merge only after required checks pass",
+    "mark PR Ready after final check refresh",
+    "verify final exact-head Preview after Ready event",
+    "merge only after required checks pass",
+    "verify Production after merge",
     "post-merge recheck main SHA, Pages SHA, assets, interactions, and cache"
   ],
   "preserved": [
