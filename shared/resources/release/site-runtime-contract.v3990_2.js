@@ -157,7 +157,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     '/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
     '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js',
     '/ln-rank/js/selection-pool-runtime.v3967_0.js',
-    '/ln-rank/js/feature/school-majors/school-all-mode.v3969_1.js',
+    '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js',
     '/ln-rank/js/feature/feishu/index.v3967_0.js',
     '/ln-rank/js/feature/report/payload-builder.v3967_0.js',
     '/ln-rank/js/feature/selection-pool/index.v3967_0.js',
