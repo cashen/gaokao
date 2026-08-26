@@ -10,7 +10,7 @@ const {
   sanitizeModulePath
 } = await import('../shared/ui/navigation/module-navigation.v001.js');
 
-assert.equal(VERSION, 'module-navigation-v0.01');
+assert.equal(VERSION, 'module-navigation-v0.02');
 assert.deepEqual(ROOT_MODULES.map(item => [item.key, item.route]), [
   ['home', '/'],
   ['selection', '/ln-rank/'],
@@ -68,8 +68,8 @@ for (const path of [
   'major-path/index.html'
 ]) {
   const html = fs.readFileSync(path, 'utf8');
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.css?v=001'), true, `${path}: navigation CSS`);
-  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=001'), true, `${path}: navigation JS`);
+  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.css?v=002'), true, `${path}: navigation CSS`);
+  assert.equal(html.includes('/shared/ui/navigation/module-navigation.v001.js?v=002'), true, `${path}: navigation JS`);
 }
 for (const [path, needle] of [
   ['index.html', 'family-home.v3990_2.js?v=3990_2-nav001'],

@@ -1,4 +1,4 @@
-export const VERSION = 'module-navigation-v0.01';
+export const VERSION = 'module-navigation-v0.02';
 const STORAGE_KEY = 'gaokao.module-navigation.v001';
 export const ROOT_MODULES = Object.freeze([
   Object.freeze({ key: 'home', label: '家庭首页', route: '/' }),
@@ -134,20 +134,29 @@ function ensureMobileNav(visit) {
     root.className = 'ui-mobile-module-nav';
     root.dataset.uiMobileModuleNav = VERSION;
     root.setAttribute('aria-label', '模块切换');
-    root.innerHTML = '<div class="ui-mobile-module-nav__head"><strong>模块</strong><span>去哪里</span></div><div class="ui-mobile-module-nav__roots"></div><a class="ui-mobile-module-nav__back" data-ui-module-back></a>';
+    root.innerHTML = '<div class="ui-mobile-module-nav__head"><strong>切换模块</strong><span data-ui-module-current-label></span></div><div class="ui-mobile-module-nav__roots"></div><a class="ui-mobile-module-nav__back" data-ui-module-back></a>';
     const header = document.querySelector('[data-ui-global-header]');
     const mount = header?.parentElement || document.body;
     if (header && header.nextSibling) mount.insertBefore(root, header.nextSibling);
     else mount.append(root);
   }
+  const currentLabel = root.querySelector('[data-ui-module-current-label]');
+  if (currentLabel) currentLabel.textContent = currentModuleLabel(visit.currentKey);
   const roots = root.querySelector('.ui-mobile-module-nav__roots');
   if (roots) roots.replaceChildren(...buildModuleRoots(visit.currentKey).map(item => makeRootLink(item, visit.currentKey)));
   setReturnLink(root.querySelector('.ui-mobile-module-nav__back'), visit);
   return root;
 }
 
+function removeStandaloneNav() {
+  document.querySelector('[data-ui-standalone-module-nav]')?.remove();
+}
+
 function ensureStandaloneNav(visit) {
-  if (document.querySelector('[data-ui-global-header]')) return;
+  if (document.querySelector('[data-ui-global-header]')) {
+    removeStandaloneNav();
+    return;
+  }
   let root = document.querySelector('[data-ui-standalone-module-nav]');
   if (!(root instanceof HTMLElement)) {
     root = document.createElement('section');
@@ -178,6 +187,7 @@ function boot() {
   if (document.querySelector('[data-ui-global-header]')) return;
   const observer = new MutationObserver(() => {
     if (enhanceGlobalNav(rememberModuleVisit())) {
+      removeStandaloneNav();
       ensureMobileNav(rememberModuleVisit());
       observer.disconnect();
     }
