@@ -43,7 +43,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiWorkspaceContract: '/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2',
     majorBandsFilter: '/functions/_lib/major-filter.v3990_2.js',
     majorBandsRegionCatalog: '/shared/resources/geo/china-region-catalog.v3990_2.js',
-    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js?v=3990_2'
+    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js?v=3990_2',
+    moduleNavigation: '/shared/ui/navigation/module-navigation.v003.js?v=003',
+    moduleNavigationStyles: '/shared/ui/navigation/module-navigation.v003.css?v=003'
   }),
   activeEntrypointClassifications: Object.freeze({
     releaseCenter: CURRENT,
@@ -76,7 +78,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     aiWorkspaceContract: CURRENT,
     majorBandsFilter: CURRENT,
     majorBandsRegionCatalog: CURRENT,
-    lnRankHumanQueryInput: CURRENT
+    lnRankHumanQueryInput: CURRENT,
+    moduleNavigation: CURRENT,
+    moduleNavigationStyles: CURRENT
   }),
   declaredResourceGraph: Object.freeze({
     manifest: ACTIVE_RESOURCE_MANIFEST,
@@ -134,7 +138,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
     localStrength: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js',
     all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js',
-    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js'
+    lnRankHumanQueryInput: '/ln-rank/js/query/human-query-input-protocol.v001.js',
+    moduleNavigation: '/shared/ui/navigation/module-navigation.v003.js',
+    moduleNavigationStyles: '/shared/ui/navigation/module-navigation.v003.css'
   }),
   stableDependencies: Object.freeze([
     '/shared/resources/exam/liaoning-physics.js',
@@ -156,6 +162,8 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     '/ln-rank/js/domain/family-decision-contract.v3970_0.js',
     '/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
     '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js',
+    '/shared/ui/navigation/module-navigation.v003.js',
+    '/shared/ui/navigation/module-navigation.v003.css',
     '/ln-rank/js/selection-pool-runtime.v3967_0.js',
     '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js',
     '/ln-rank/js/feature/feishu/index.v3967_0.js',
