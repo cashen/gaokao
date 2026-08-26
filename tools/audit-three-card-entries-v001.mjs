@@ -19,6 +19,8 @@ assert.match(presenter, /大学生说学校/);
 assert.match(presenter, /看看这所学校的大学生怎么说/);
 assert.match(handoff, /看看这所学校的大学生怎么说/);
 assert.match(handoff, /entry\.classList\.add\('tongxue-card-entry--compact'\)/);
+assert.match(handoff, /major-path-handoff\.v003\.css\?v=003_0&r=r030-filter-state/);
+assert.match(html, /app\.v3990_2\.js\?v=3990_2-nav003&r=r030-filter-state/);
 assert.match(html, /ln-rank-workspace\.v3967_0\.css\?v=3967_0&r=r030-filter-state/);
 assert.match(commit, /family-card-presenter\.v3967_0\.js\?v=3967_0&r=r030-filter-state/);
 assert.match(release, /lnRankHumanQueryInputRevision: 'r030'/);
