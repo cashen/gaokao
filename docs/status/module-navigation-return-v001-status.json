@@ -4,12 +4,14 @@
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
   "branch": "agent/module-navigation-return-v001",
   "pr": null,
-  "headSha": null,
+  "headSha": "7909e8c746b388f4d4082cc7c57efdb540ce21a2",
   "mergeSha": null,
   "completed": [
-    "MN-01-remote-baseline-and-live-ui-confirmed"
+    "MN-01-remote-baseline-and-live-ui-confirmed",
+    "MN-02-module-root-navigation",
+    "MN-03-cross-module-return"
   ],
-  "inProgress": "MN-02-module-root-navigation",
+  "inProgress": "MN-04-static-and-script-validation",
   "pending": [
     "MN-03-cross-module-return",
     "MN-04-static-and-script-validation",
@@ -50,6 +52,6 @@
     "responsive": "desktop global nav; Pad core roots remain visible; Android horizontal module strip"
   },
   "lastFailure": null,
-  "checkpointNote": "MN-01 completed from live main aa2cf96 and live browser. No PR created yet at this checkpoint; next action is to write the independent navigation implementation and update status with the resulting exact branch head.",
-  "verifiedAt": "2026-08-26T00:20:00Z"
-}\n
+  "checkpointNote": "MN-02/MN-03 implementation is committed on branch at exact head 7909e8c746b388f4d4082cc7c57efdb540ce21a2. New module navigation JS/CSS is wired into 12 module surfaces; Tongxue fixed v159-startup001 resource identities remain unchanged. Next is static/script validation, then PR CI/Preview and multi-device verification.",
+  "verifiedAt": "2026-08-26T00:25:22.526Z"
+}
