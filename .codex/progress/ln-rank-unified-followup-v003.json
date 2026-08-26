@@ -1,0 +1,37 @@
+{
+  "task": "ln-rank-unified-followup-v003",
+  "status": "local-implementation-complete",
+  "repository": "cashen/gaokao",
+  "baseSha": "d83026656c9f0bb89428d44d06c6e28a1beeeed3",
+  "branch": "agent/ln-rank-unified-followup-v003",
+  "completed": [
+    "live-main-reconciled",
+    "production-school-filter-URL-contamination-reproduced",
+    "production-confirmed-major-refresh-loss-reproduced",
+    "isolated-score-return-context",
+    "URL-persisted-resolver-verified-major-confirmation",
+    "unified-school-card-three-entry-copy",
+    "local-contract-tests",
+    "syntax-and-diff-checks"
+  ],
+  "inProgress": "push-and-open-pr",
+  "pending": [
+    "remote-branch-and-pr",
+    "exact-head-ci",
+    "exact-head-preview-browser",
+    "ready-and-merge",
+    "post-merge-production-verification"
+  ],
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "majorFilterContext": "major-filter-context-v002",
+    "majorMode": "major-all-mode-v003",
+    "revision": "r030",
+    "cacheRevision": "r030-filter-state"
+  },
+  "preserved": [
+    "/workspace/scratch/e656e218a4d4/gaokao-followup",
+    "sunshine admissions-plan collection"
+  ]
+}

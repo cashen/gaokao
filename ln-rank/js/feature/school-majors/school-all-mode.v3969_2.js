@@ -25,7 +25,7 @@ const ACTION_COPY = Object.freeze({
   remove: UI_ACTION_COPY.removeSelectedMajor?.label || '移出已选',
   detail: UI_ACTION_COPY.inspectDetails?.label || '查看详情',
   collapse: UI_ACTION_COPY.inspectDetails?.expandedLabel || '收起详情',
-  reviews: UI_ACTION_COPY.publicReviews?.compactLabel || '大学生怎么说',
+  reviews: '大学生说学校',
   retry: UI_ACTION_COPY.retry?.label || '重新尝试'
 });
 
@@ -165,7 +165,7 @@ function renderRecord(record) {
     <div class="school-major-actions">
       <button type="button" data-school-selection-action="${selected ? 'remove' : 'add'}" data-school-record-key="${escapeHtml(key)}" class="ui-button ui-button--compact ui-button--secondary ${selected ? 'is-selected' : ''}" aria-pressed="${selected}">${selected ? ACTION_COPY.remove : ACTION_COPY.add}</button>
       <button type="button" data-school-detail-toggle="${escapeHtml(key)}" class="ui-button ui-button--compact ui-button--tertiary" aria-expanded="${expanded}" aria-controls="${detailId}">${expanded ? ACTION_COPY.collapse : ACTION_COPY.detail}</button>
-      ${tongxueHref ? `<a class="ui-button ui-button--compact ui-button--tertiary school-major-review-link" href="${escapeHtml(tongxueHref)}">${ACTION_COPY.reviews}</a>` : ''}
+      ${tongxueHref ? `<a class="ui-button ui-button--compact ui-button--tertiary school-major-review-link" href="${escapeHtml(tongxueHref)}" aria-label="看看这所学校的大学生怎么说"><span class="school-major-review-link__brand">${ACTION_COPY.reviews}</span><small>看看这所学校的大学生怎么说</small><span aria-hidden="true">→</span></a>` : ''}
     </div>
     <section id="${detailId}" class="school-major-detail" data-school-detail-panel="${escapeHtml(key)}" ${expanded ? '' : 'hidden'}>
       <div class="school-major-detail-grid">
