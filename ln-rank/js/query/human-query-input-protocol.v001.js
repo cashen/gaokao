@@ -18,7 +18,7 @@ const EMPTY = Object.freeze({
 });
 
 function text(value) {
-  return String(value == null ? '' : value).replace(/[　\\t\\n\\r]+/g, ' ').trim();
+  return String(value == null ? '' : value).replace(/[　\t\n\r]+/g, ' ').trim();
 }
 
 function normalize(value) {
@@ -26,7 +26,7 @@ function normalize(value) {
     .replace(/[，,]/g, ',')
     .replace(/[～~]/g, '—')
     .replace(/[−–]/g, '-')
-    .replace(/\\s+/g, ' ');
+    .replace(/\s+/g, ' ');
 }
 
 function number(value) {
@@ -110,7 +110,7 @@ export function parseScoreInput(value) {
     return invalid(normalized, '这看起来是位次，不是分数；请把位次填到位次入口，或改填高考分数。');
   }
 
-  const range = normalized.match(/(\\d{1,3})\\s*(?:-|—|至|到)\\s*(\\d{1,3})\\s*(?:分)?/);
+  const range = normalized.match(/(\d{1,3})\s*(?:-|—|至|到)\s*(\d{1,3})\s*(?:分)?/);
   if (range) {
     const lower = number(range[1]);
     const upper = number(range[2]);
@@ -132,7 +132,7 @@ export function parseScoreInput(value) {
     return bounded('range', lower, upper, normalized);
   }
 
-  const lower = normalized.match(/(?:不低于|不少于|至少|大于等于|高于|超过)\\s*(\\d{1,3})\\s*(?:分)?/);
+  const lower = normalized.match(/(?:不低于|不少于|至少|大于等于|高于|超过)\s*(\d{1,3})\s*(?:分)?/);
   if (lower) {
     const valueNumber = number(lower[1]);
     if (!validScore(valueNumber)) return Object.freeze({
@@ -148,7 +148,7 @@ export function parseScoreInput(value) {
     return bounded('min', valueNumber, null, normalized);
   }
 
-  const upper = normalized.match(/(?:不高于|不超过|至多|最多|低于|少于)\\s*(\\d{1,3})\\s*(?:分)?/);
+  const upper = normalized.match(/(?:不高于|不超过|至多|最多|低于|少于)\s*(\d{1,3})\s*(?:分)?/);
   if (upper) {
     const valueNumber = number(upper[1]);
     if (!validScore(valueNumber)) return Object.freeze({
@@ -164,7 +164,7 @@ export function parseScoreInput(value) {
     return bounded('max', null, valueNumber, normalized);
   }
 
-  const pointMatch = normalized.match(/^(?:(?:我|孩子)?(?:目前)?(?:的)?(?:分数|成绩)?(?:是|为|考了)?\\s*)(\\d{1,3})\\s*(?:分)?$/);
+  const pointMatch = normalized.match(/^(?:(?:我|孩子)?(?:目前)?(?:的)?(?:分数|成绩)?(?:是|为|考了)?\s*)(\d{1,3})\s*(?:分)?$/);
   if (pointMatch) return point(number(pointMatch[1]), normalized);
 
   return invalid(normalized);
