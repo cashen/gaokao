@@ -4,8 +4,8 @@
   "baseSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
   "branch": "agent/module-navigation-return-v001",
   "pr": null,
-  "headSha": "b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170",
-  "mergeSha": null,
+  "headSha": "a910587b5f1b2e9a6bcc8023139bbcb65ccbdb95",
+  "mergeSha": "36bf68d80d64cfbece0018ac774bc433647e2ef4",
   "completed": [
     "MN-01-remote-baseline-and-live-ui-confirmed",
     "MN-02-module-root-navigation",
@@ -13,9 +13,10 @@
     "MN-04-static-and-script-validation",
     "MN-05-pr-preview-and-multi-device-validation"
   ],
-  "inProgress": "MN-06-post-merge-production-verification",
+  "inProgress": "MC-02-production-cache-identity-recovery",
   "pending": [
-    "MN-06-post-merge-production-verification"
+    "MC-02-production-cache-identity-recovery",
+    "MC-03-recovery-pr-ci-and-production-verification"
   ],
   "baseline": {
     "mainSha": "aa2cf96de3c626a9bb7e20f24d8ee093a1608d40",
@@ -55,8 +56,8 @@
     "job": 98017551979,
     "reason": "public-company generated index is rewritten by its release sync; removed this page from module navigation scope and contract test"
   },
-  "checkpointNote": "MN-04/MN-05 passed at exact head b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170: 29 checks success, 10 skipped, 0 failure; Preview, Tongxue identity, runtime/API and browser validation succeeded. Status update will create a new head; re-read it and rerun checks before merge.",
-  "verifiedAt": "2026-08-26T00:50:08.522Z",
+  "checkpointNote": "PR #215 CI and Preview were green, but post-merge live production remained stale because changed existing entry URLs reused old query identities. Recovery branch exact head a910587b5f1b2e9a6bcc8023139bbcb65ccbdb95 adds new query identities for family shell consumers and Tongxue wrapper; next is recovery PR CI and live production recheck.",
+  "verifiedAt": "2026-08-26T01:02:44.493Z",
   "validation": {
     "exactHead": "b20c6ab3e4bea51dfa9a84c28ed22dad58d1c170",
     "prNumber": 215,
@@ -68,5 +69,12 @@
     "requiredSurfaces": "PC/Pad/Android browser and Tongxue release identity checks success",
     "local": "node --check module-navigation and module return contract passed",
     "knownIndependentObservation": "bounded-fanout push zero-job observation remains separate"
+  },
+  "productionObservation": {
+    "pr215MergeSha": "36bf68d80d64cfbece0018ac774bc433647e2ef4",
+    "pages": "new module navigation visible",
+    "production": "HTML had new navigation CSS but stale tongxue-runtime-v159-r3968.js?v=3968_0; no data-ui-module-navigation; old one-way return remained",
+    "evidence": "live browser at gaokao.powers.org.cn/tongxue/?navcheck=20260826",
+    "recovery": "new cache query identities required for changed existing entry consumers"
   }
 }
