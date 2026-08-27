@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
   "baseSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
-  "headSha": "e475f46bdb878a7955f2ca4ac4f884ce98566441",
-  "remoteHeadSha": "4ff585c9e923d13bffc5bb9fe4bc4e60c75c5b66",
+  "headSha": "578fa2c6bb57db1acb81398605f98e6fb3e2a41e",
+  "remoteHeadSha": "aa26b2fd0160f93689fe28c4d3b5cdce65a83a94",
   "pr": 241,
   "completed": [
     "live-main-reconciled",
@@ -14,6 +14,7 @@
     "scope-and-acceptance-written",
     "implementation",
     "cache-identity-importmap-fixed",
+    "cache-contract-test-fixed",
     "local-contract-tests",
     "commit-and-push",
     "draft-pr",
@@ -51,12 +52,13 @@
     "专业查询、分数+学校查询、学校查询、多专业输入/恢复和返回路径通过现有测试。",
     "Preview 使用精确提交 SHA 验证，Production 与合并后的 main、资源 manifest、版本和关键浏览器交互全部复核。"
   ],
-  "lastFailure": "PR checks at 2cd23c1 exposed a real import-map cache identity regression: the controller import bypassed the canonical 159-startup001 mapping. Fixed by keeping the canonical import key and adding r033 on its target; local regression passes. Shell git push remains unavailable; synchronize through the connected GitHub API.",
+  "lastFailure": "PR checks at aa26b2f exposed a stale exact-string assertion in verify-tongxue-uec-cache-identity-v001: the controller target correctly includes canonical 159-startup001 plus r033, while the test still required no cache revision. Updated the test to assert both identity and r033; local regression passes. Shell git push remains unavailable; synchronize through the connected GitHub API.",
   "remoteCommits": [
     "7894cb2053743f095e946b2bd794aa5fb65323f3",
     "354f0faf11e8356c42b3689ab11f5272e7e893fc",
     "a6454949098393f0139d783c385af545c106192f",
-    "4ff585c9e923d13bffc5bb9fe4bc4e60c75c5b66"
+    "4ff585c9e923d13bffc5bb9fe4bc4e60c75c5b66",
+    "aa26b2fd0160f93689fe28c4d3b5cdce65a83a94"
   ],
   "checks": [
     "node --check changed JavaScript modules",
