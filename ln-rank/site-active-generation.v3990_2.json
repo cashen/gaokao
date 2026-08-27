@@ -24,7 +24,7 @@
     "majorBandsBucketLoader": "/functions/_lib/major-bands-rank-bucket-loader.v3990_2.js",
     "majorBandsResultOrder": "/functions/_lib/major-bands-result-order.v3990_2.js",
     "majorBandsResponseTransport": "/functions/_lib/major-bands-response-transport.v3990_2.js",
-    "home": "/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2",
+    "home": "/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2-nav003&r=r031-home-redesign",
     "familyShell": "/shared/ui/shell/family-shell.v3990_2.js?v=3990_2",
     "familyPlanEntry": "/shared/ui/components/family-plan-entry.v3990_2.js?v=3990_2",
     "selectionBootstrap": "/ln-rank/js/app.v3990_2.js?v=3990_2",

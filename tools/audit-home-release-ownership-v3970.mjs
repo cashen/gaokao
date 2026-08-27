@@ -19,7 +19,8 @@ assert.equal(CURRENT_RELEASE.assetVersion, 'v3990_2');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.90.2');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3990_2');
 assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
-assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3990_2');
+assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3990_2-r031');
+assert.equal(CURRENT_RELEASE.homeUiRevision, 'r031-home-redesign');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3990_2.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.familyShell, '/shared/ui/shell/family-shell.v3990_2.js');
@@ -30,8 +31,8 @@ assert.equal(CURRENT_RELEASE.resourceOwners.industryMap, '/Public_company/');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.owner, '/ln-rank/js/ux/family-home.v3990_2.js');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.structureOwner, '/index.html');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.classification, 'current-generation');
-assert.equal(RESOURCE_EXECUTION_REGISTRY.home.schemaVersion, 'family-home-runtime-v3990_2');
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.homeRuntime, '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2');
+assert.equal(RESOURCE_EXECUTION_REGISTRY.home.schemaVersion, 'family-home-runtime-v3990_2-r031');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.homeRuntime, '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2-nav003&r=r031-home-redesign');
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.owners.home, '/ln-rank/js/ux/family-home.v3990_2.js');
 assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3990_2.js'));
 assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules.includes('/ln-rank/js/ux/family-home.v3990_2.js'));
@@ -79,7 +80,8 @@ for (const marker of [
   'release-presenter.v3990_2.js?v=3990_2',
   'family-shell.v3990_2.js?v=3990_2',
   'family-decision-contract.v3970_0.js?v=3970_0',
-  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_2'",
+  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_2-r031'",
+  "HOME_UI_REVISION = 'r031-home-redesign'",
   "window.addEventListener('gaokao:selection-change'",
   'generation: release.siteRuntimeGeneration',
   'releaseOwner: release.resourceOwners.release',
@@ -106,7 +108,7 @@ for (const route of ['/', '/index.html']) {
 
 assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(manifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
-assert.equal(manifest.currentGenerationEntrypoints.home, '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2');
+assert.equal(manifest.currentGenerationEntrypoints.home, '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2-nav003&r=r031-home-redesign');
 assert.equal(manifest.declaredStableActiveEntrypoints.familyShellStyles, '/shared/ui/shell/family-shell.v3972_5.css?v=3972_5');
 assert.equal(manifest.resourceGraph.version, SHARED_RESOURCE_GRAPH_VERSION);
 assert.equal(manifest.resourceGraph.registry, CURRENT_RELEASE.resourceOwners.resourceRegistry);

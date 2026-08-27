@@ -6,7 +6,8 @@ import {
   readFamilySelectionItems
 } from '../domain/family-decision-contract.v3970_0.js?v=3970_0';
 
-export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_2';
+export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_2-r031';
+export const HOME_UI_REVISION = 'r031-home-redesign';
 const EXAM_START_AT = new Date('2027-06-07T09:00:00+08:00');
 const CLOCK_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
@@ -151,6 +152,7 @@ document.addEventListener('visibilitychange', () => {
 
 globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   version: HOME_RUNTIME_VERSION,
+  uiRevision: HOME_UI_REVISION,
   generation: release.siteRuntimeGeneration,
   release: release.display,
   releaseOwner: release.resourceOwners.release,
@@ -162,4 +164,3 @@ globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   examStartAt: EXAM_START_AT.toISOString(),
   timer: countdownTimer
 });
-

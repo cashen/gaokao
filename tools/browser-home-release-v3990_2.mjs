@@ -14,7 +14,10 @@ const devices = [
   { name: 'desktop-1280', width: 1280, height: 800 }
 ];
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined
+});
 const results = [];
 try {
   for (const device of devices) {
@@ -36,14 +39,15 @@ try {
     });
     await page.goto(`${baseURL}/?home-release=${Date.now()}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() =>
-      globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_2'
+      globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_2-r031'
       && globalThis.__GAOKAO_UI__?.version === 'family-shell-v3990_2'
     );
 
     const state = await page.evaluate(() => {
       const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
-      const supportLinks = [...document.querySelectorAll('.grid .link')];
+      const supportLinks = [...document.querySelectorAll('.tool-groups .tool-link')];
+      const groups = [...document.querySelectorAll('details[data-tool-group]')];
       return {
         bodyRelease: document.body.dataset.release,
         htmlRelease: document.documentElement.dataset.release,
@@ -57,6 +61,12 @@ try {
         title: document.getElementById('homeTitle')?.textContent?.trim(),
         action: document.querySelector('#homePrimaryAction span')?.textContent?.trim(),
         actionHref: document.getElementById('homePrimaryAction')?.getAttribute('href'),
+        homeUiRevision: document.body.dataset.homeUiRevision,
+        homeLayout: document.querySelector('.shell')?.dataset.homeLayout,
+        primaryActionCount: document.querySelectorAll('#homePrimaryAction').length,
+        toolGroupCount: groups.length,
+        openToolGroups: groups.filter(group => group.open).map(group => group.dataset.toolGroup),
+        toolLinkCount: supportLinks.length,
         majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
         majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
         majorPathHref: majorPathEntry?.getAttribute('href'),
@@ -86,9 +96,16 @@ try {
     assert.equal(state.bodyGeneration, 'v3990_2', `${device.name}: body generation`);
     assert.equal(state.htmlGeneration, 'v3990_2', `${device.name}: html generation`);
     assert.equal(state.visibleRelease, 'v3.9.90.2', `${device.name}: visible release`);
-    assert.equal(state.runtime?.version, 'family-home-runtime-v3990_2', `${device.name}: runtime`);
+    assert.equal(state.runtime?.version, 'family-home-runtime-v3990_2-r031', `${device.name}: runtime`);
+    assert.equal(state.runtime?.uiRevision, 'r031-home-redesign', `${device.name}: UI revision`);
     assert.equal(state.runtime?.generation, 'v3990_2', `${device.name}: runtime generation`);
     assert.equal(state.runtime?.release, 'v3.9.90.2', `${device.name}: runtime release`);
+    assert.equal(state.homeUiRevision, 'r031-home-redesign', `${device.name}: body UI revision`);
+    assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker`);
+    assert.equal(state.primaryActionCount, 1, `${device.name}: one primary action`);
+    assert.equal(state.toolGroupCount, 4, `${device.name}: four grouped tool areas`);
+    assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline group open initially`);
+    assert.equal(state.toolLinkCount, 8, `${device.name}: all existing tool links retained`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3990_2\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.shell?.version, 'family-shell-v3990_2', `${device.name}: shell owner`);
@@ -105,8 +122,8 @@ try {
     assert.equal(state.majorPathEntryCount, 1, `${device.name}: one major path entry`);
     assert.equal(state.majorPathTitle, '专业升学地图', `${device.name}: major path title`);
     assert.equal(state.majorPathHref, '/major-path/', `${device.name}: major path route`);
-    assert.equal(state.majorPathOrder, 1, `${device.name}: major path follows primary major selection`);
-    assert.equal(state.scoreOrder, 2, `${device.name}: score history follows major path`);
+    assert.ok(state.majorPathOrder >= 0 && state.majorPathOrder < state.scoreOrder, `${device.name}: major path follows primary major selection`);
+    assert.ok(state.scoreOrder < state.industryOrder, `${device.name}: score history follows major path and precedes industry map`);
     assert.ok(state.industryOrder > state.scoreOrder, `${device.name}: industry map follows core professional understanding links`);
     assert.equal(state.industryEntryCount, 1, `${device.name}: one industry map entry`);
     assert.equal(state.industryTitle, '全国上市公司产业落地图', `${device.name}: industry map title`);
@@ -159,7 +176,8 @@ console.log(JSON.stringify({
   ok: true,
   release: 'v3.9.90.2',
   generation: 'v3990_2',
-  runtime: 'family-home-runtime-v3990_2',
+  runtime: 'family-home-runtime-v3990_2-r031',
+  uiRevision: 'r031-home-redesign',
   shell: 'family-shell-v3990_2',
   stableCss: ['family-shell.v3972_5.css', 'family-plan-entry.v3972_5.css'],
   devices: results

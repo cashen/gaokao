@@ -23,7 +23,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     majorBandsResultOrder: '/functions/_lib/major-bands-result-order.v3990_2.js',
     majorBandsResponseTransport: '/functions/_lib/major-bands-response-transport.v3990_2.js',
     homePage: '/',
-    homeRuntime: '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2',
+    homeRuntime: '/ln-rank/js/ux/family-home.v3990_2.js?v=3990_2-nav003&r=r031-home-redesign',
     familyShell: '/shared/ui/shell/family-shell.v3990_2.js?v=3990_2',
     familyShellStyles: '/shared/ui/shell/family-shell.v3972_5.css?v=3972_5',
     familyPlanEntry: '/shared/ui/components/family-plan-entry.v3990_2.js?v=3990_2',
