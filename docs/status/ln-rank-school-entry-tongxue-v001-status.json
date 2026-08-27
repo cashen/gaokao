@@ -1,6 +1,6 @@
 {
   "task": "ln-rank-school-entry-tongxue-v001",
-  "status": "entrypoint-and-live-contract-fixed-awaiting-sync",
+  "status": "remote-tree-integrity-restored-awaiting-sync",
   "baseMainSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
   "pr": 241,
@@ -24,7 +24,7 @@
     ],
     "excluded": ["阳光高考招生计划全量采集"]
   },
-  "remoteHeadSha": "16b2465f661c93afa16a7249f010823b8f71c35a",
+  "remoteHeadSha": "6d9ba39f006c3698df2183d2f8ed5ec0c1875956",
   "checks": [
     "changed JavaScript syntax",
     "school link and Tongxue handoff contract",
@@ -35,7 +35,7 @@
     "three-card entry audit",
     "unified release surface"
   ],
-  "preview": {"status": "awaiting-deploy", "exactSha": "16b2465f661c93afa16a7249f010823b8f71c35a"},
+  "preview": {"status": "awaiting-deploy", "exactSha": "6d9ba39f006c3698df2183d2f8ed5ec0c1875956"},
   "localLiveSmoke": "not executed: external network approval was cancelled",
   "production": null,
   "merge": null,
