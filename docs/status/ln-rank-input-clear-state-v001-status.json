@@ -3,7 +3,8 @@
   "repository": "cashen/gaokao",
   "baseSha": "fabaf6470706e79ec124e971c08821c90fb719c2",
   "branch": "agent/ln-rank-input-clear-state-v001",
-  "status": "local-contract-tests-passed",
+  "status": "remote-status-reconciled-local-contract-tests-passed",
+  "remoteHeadSha": "80e6fde9e313687e4d64859d3d1ff63e6187de86",
   "defect": {
     "kind": "stale-input-fallback",
     "affectedOwners": [
@@ -27,11 +28,11 @@
     "remote-branch-created",
     "live-field-precedence-fixed",
     "history-input-clear-fixed",
-    "release-cache-revision-updated"
+    "release-cache-revision-updated",
+    "remote-status-reconciled"
   ],
-  "inProgress": "commit-and-push",
+  "inProgress": "draft-pr",
   "pending": [
-    "commit-and-push",
     "draft-pr",
     "ci-and-preview",
     "ready-and-production-verify",
