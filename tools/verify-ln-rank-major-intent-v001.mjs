@@ -9,8 +9,9 @@ import { matchMajorProject } from '../functions/_lib/major-project-matcher.js';
 
 const resolver = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
 const majorHistorySource = readFileSync('functions/api/ai/major-history.js', 'utf8');
-assert.match(majorHistorySource, /createMajorIntentResolver/);
+assert.doesNotMatch(majorHistorySource, /createMajorIntentResolver|standard-major-catalog-2026-full\.generated/);
 assert.match(majorHistorySource, /resolveMajorInputs/);
+assert.match(majorHistorySource, /manifestIntentForInput/);
 assert.match(majorHistorySource, /major_query_requires_choice/);
 assert.match(majorHistorySource, /majorScope/);
 assert.match(majorHistorySource, /isAdmissionGroupKey/);

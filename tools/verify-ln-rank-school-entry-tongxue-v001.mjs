@@ -42,14 +42,14 @@ assert.match(runtimeController, /requestedEntityId/);
 assert.match(runtimeController, /const entityId = entity\?\.entityId \|\| ''/);
 assert.match(release, /lnRankSchoolEntryVersion: 'ln-rank-school-entry-v001'/);
 assert.match(release, /tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001'/);
-assert.match(release, /lnRankCacheRevision: 'r034-worker-1102-bounded-api'/);
+assert.match(release, /lnRankCacheRevision: 'r035-major-history-1102-bounded-api'/);
 assert.match(manifest, /CURRENT_RELEASE\.lnRankCacheRevision/);
-assert.match(generation, /major-filter-context-v004&r=r034-worker-1102-bounded-api/);
+assert.match(generation, /major-filter-context-v004&r=r035-major-history-1102-bounded-api/);
 
 console.log(JSON.stringify({
   ok: true,
   staleAdmissionHandoff: 'name-only fallback',
   canonicalHandoff: 'canonical entity preserved',
   majorSchoolLink: 'native school-all href with major and score context',
-  revision: 'r034-worker-1102-bounded-api'
+  revision: 'r035-major-history-1102-bounded-api'
 }, null, 2));

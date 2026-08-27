@@ -22,6 +22,7 @@
       <div class="release-meta"><span class="badge">运行时 v3990_2</span><span class="badge">资源查询 3990_2</span><span class="badge">ln-rank 入口 r029</span></div>
       <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_2-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
       <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.2 / v3990_2。</p>
+      <p>本次 r035：继续修复专业历史入口在 Worker 冷路径加载完整 420KB 专业目录并全量扫描意图，导致有效专业查询触发 error code 1102/HTTP 503 的问题。专业历史现在先使用已加载的 canonical manifest 做精确、别名和有界候选解析，再读取预聚合 shard；保留宽泛输入的 fail-closed 选择状态，禁止公共 origin 自回源。能力版本为 major-history-resource-boundary-v001，缓存修订为 r035-major-history-1102-bounded-api。</p>
       <p>本次 r034：修复学校专业接口丢失 Cloudflare Pages Functions context 的问题。学校查询现在始终使用绑定的 ASSETS 资源，不再在 Worker 内错误回源正式域名，避免有效的 canonical schoolEntityId 查询触发 error code 1102/HTTP 503；专业历史、学校 resolve-only 和完整学校查询均加入资源边界回归验收。能力版本为 worker-resource-boundary-v001、school-query-context-binding-v001，缓存修订为 r034-worker-1102-bounded-api。</p>
       <p>本次 r033：修复专业查询学校卡片缺少原生链接的问题，学校名称现在可以刷新、分享、键盘访问，并保留当前专业和参考分数上下文进入学校查询；同时阻断 admission 临时标识进入 Tongxue canonical entity，旧的辽东学院 handoff 会按学校名称兼容降级，不再在来源请求前误报 invalid_entity。模块版本为 ln-rank-school-entry-v001、tongxue-entity-handoff-v001，缓存修订为 r033-tongxue-school-entry。</p>
       <ul class="module-list" aria-label="模块能力版本">
@@ -35,6 +36,6 @@
   </main>
   <footer class="site-release-footer" data-release-footer>当前发布：<span data-current-release></span> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a></footer>
 </div>
-<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2&r=r034-worker-1102-bounded-api"></script>
+<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api"></script>
 </body>
 </html>

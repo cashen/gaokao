@@ -30,7 +30,7 @@
     "selectionBootstrap": "/ln-rank/js/app.v3990_2.js?v=3990_2",
     "selectionRuntime": "/ln-rank/js/app-runtime.v3990_2.js?v=3990_2",
     "selectionWorkspace": "/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2",
-    "majorFilterContext": "/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v004&r=r034-worker-1102-bounded-api",
+    "majorFilterContext": "/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v004&r=r035-major-history-1102-bounded-api",
     "interaction": "/shared/ui/interaction/interaction-transaction.v3990_2.js?v=3990_2",
     "interactionStyles": "/shared/ui/interaction/interaction-transaction.v3990_2.css?v=3990_2",
     "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3990_2.js?v=3990_2",
@@ -41,7 +41,7 @@
     "aiWorkspaceContract": "/shared/ai/ai-workspace-contract.v3990_2.js?v=3990_2",
     "majorBandsFilter": "/functions/_lib/major-filter.v3990_2.js",
     "majorBandsRegionCatalog": "/shared/resources/geo/china-region-catalog.v3990_2.js",
-    "resourceManifest": "/shared/resources/release/active-resource-manifest.v3990_2.js?v=3990_2&r=r034-worker-1102-bounded-api"
+    "resourceManifest": "/shared/resources/release/active-resource-manifest.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api"
   },
   "currentGenerationInternalModules": {
     "majorBandsPaginationSnapshotGuard": "/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js?v=3990_2"

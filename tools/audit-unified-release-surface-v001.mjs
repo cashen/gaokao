@@ -71,8 +71,8 @@ for (const file of activePages) {
 }
 
 const releaseFooter = read('shared/resources/release/release-footer.v3990_2.js');
-assert.match(releaseFooter, /from '\.\/current-release\.js\?v=3990_2(?:&r=r034-worker-1102-bounded-api)?'/);
-assert.match(releaseFooter, /from '\.\/release-presenter\.v3990_2\.js\?v=3990_2(?:&r=r034-worker-1102-bounded-api)?'/);
+assert.match(releaseFooter, /from '\.\/current-release\.js\?v=3990_2(?:&r=r035-major-history-1102-bounded-api)?'/);
+assert.match(releaseFooter, /from '\.\/release-presenter\.v3990_2\.js\?v=3990_2(?:&r=r035-major-history-1102-bounded-api)?'/);
 assert.ok(!releaseFooter.includes('MutationObserver'));
 assert.ok(!releaseFooter.includes('setInterval('));
 assert.ok(!releaseFooter.includes('setTimeout('));

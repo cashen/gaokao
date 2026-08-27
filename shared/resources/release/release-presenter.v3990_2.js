@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r034-worker-1102-bounded-api';
-import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2&r=r034-worker-1102-bounded-api';
+import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r035-major-history-1102-bounded-api';
+import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api';
 
 export function syncCurrentRelease(root = document) {
   if (typeof document === 'undefined') return CURRENT_RELEASE;

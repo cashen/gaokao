@@ -1,8 +1,6 @@
 import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 import { lookupScoreRank } from '../../_lib/rank-table-provider.js';
-import { createMajorIntentResolver } from '../../../shared/resources/majors/major-intent-resolver.v001.js';
-import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../../_lib/kb/standard-major-catalog-2026-full.generated.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
@@ -10,9 +8,19 @@ const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_1/manifest.json';
 const MANIFEST_TTL_MS = 5 * 60 * 1000;
 const SHARD_TTL_MS = 60 * 1000;
 const SHARD_CACHE_MAX = 2;
-const MAJOR_INTENT_RESOLVER = createMajorIntentResolver(STANDARD_MAJOR_CATALOG_2026_FULL, [], { sourceVersion: 'standard-major-catalog-2026' });
 let manifestCache = null;
 const shardCache = new Map();
+
+const MAJOR_QUERY_ALIASES = Object.freeze({
+  '电气工程及自动化': '电气工程及其自动化',
+  '电气自动化': '电气工程及其自动化',
+  '计科': '计算机科学与技术',
+  '软工': '软件工程',
+  '测控': '测控技术与仪器',
+  '机械电子': '机械电子工程'
+});
+
+const BROAD_MAJOR_INPUTS = new Set(['机', '工科', '工学', '教育', '生命科学', '医疗']);
 
 function clean(value, max = 220) { return String(value == null ? '' : value).trim().slice(0, max); }
 function norm(value) { return clean(value, 220).normalize('NFKC').toLowerCase().replace(/[\s·•,，。；;：:'"“”‘’!！?？_—\-（）()【】\[\]]+/g, ''); }
@@ -82,18 +90,46 @@ function resolveMajorKeys(manifest, query, scope = 'core') {
   if (!normalized) return [];
   const exact = manifest.lookup?.[normalized];
   const keys = Object.keys(manifest.majors || {});
-  const fuzzy = keys.filter(key => { const candidate = norm(key); return (candidate.includes(normalized) || normalized.includes(candidate)) && (scope === 'admission-groups' ? isAdmissionGroupKey(key) : true); });
+  const fuzzy = keys.filter(key => {
+    const candidate = norm(key);
+    const scopeMatch = scope === 'admission-groups' ? isAdmissionGroupKey(key) : !isAdmissionGroupKey(key);
+    return (candidate.includes(normalized) || normalized.includes(candidate)) && scopeMatch;
+  });
   if (scope !== 'admission-groups' && exact) return [exact];
   return [...new Set([...(exact ? [exact] : []), ...fuzzy])].slice(0, 8);
 }
-function resolveMajorInputs(inputs = []) {
-  const intentRows = inputs.map(input => ({ input, intent: MAJOR_INTENT_RESOLVER.resolve(input, { limit: 12 }) }));
+
+// The manifest is already the canonical query index for this endpoint. Keep
+// exact and bounded fuzzy resolution on that index so a cold Worker does not
+// load the 420KB undergraduate catalogue and scan it before reading one
+// pre-aggregated history shard. Complex language normalization belongs to the
+// command parser; direct API inputs fail closed into the same choice state.
+function manifestIntentForInput(manifest, rawInput = '') {
+  const raw = String(rawInput || '').trim();
+  const query = norm(raw);
+  if (!query) return { rawInput: raw, query, status: 'missing', intentLevel: 'unknown', confidence: 'none', coreMajorNames: [], relatedMajorNames: [] };
+  if (BROAD_MAJOR_INPUTS.has(raw)) {
+    return { rawInput: raw, query, status: 'too-broad', intentLevel: 'broad-field', confidence: 'high', coreMajorNames: [], relatedMajorNames: [], warnings: ['这个说法范围较宽，先选一个具体专业方向。'] };
+  }
+  const canonical = MAJOR_QUERY_ALIASES[raw] || manifest.lookup?.[query] || '';
+  if (canonical && manifest.majors?.[canonical]) {
+    return { rawInput: raw, query, status: 'ready', intentLevel: 'exact-major', matchType: canonical === raw ? 'manifest_exact' : 'manifest_alias', confidence: 'high', coreMajorNames: [canonical], relatedMajorNames: [], matchedTerms: [raw] };
+  }
+  const candidates = Object.keys(manifest.majors || {})
+    .filter(name => { const candidate = norm(name); return candidate.includes(query) || query.includes(candidate); })
+    .sort((a, b) => a.length - b.length || a.localeCompare(b, 'zh-CN'))
+    .slice(0, 12);
+  if (candidates.length) {
+    return { rawInput: raw, query, status: 'needs-choice', intentLevel: 'unknown', matchType: 'manifest_candidates', confidence: 'candidate', coreMajorNames: [], relatedMajorNames: candidates, matchedTerms: [raw], warnings: ['这不是完整的正式专业名，请从候选中确认。'] };
+  }
+  return { rawInput: raw, query, status: 'unresolved', intentLevel: 'unknown', confidence: 'none', coreMajorNames: [], relatedMajorNames: [], matchedTerms: [raw], warnings: ['暂时没有安全匹配到本科专业，请换一个更完整的名称或代码。'] };
+}
+
+function resolveMajorInputs(manifest, inputs = []) {
+  const intentRows = inputs.map(input => ({ input, intent: manifestIntentForInput(manifest, input) }));
   const blocked = intentRows.filter(item => ['broad-field', 'discipline', 'major-class'].includes(item.intent.intentLevel) && item.intent.status !== 'ready');
-  if (blocked.length) return { intentRows, blocked, inputs: [] };
-  const expanded = [...new Set(intentRows.flatMap(item => item.intent.status === 'ready' && item.intent.coreMajorNames?.length
-    ? item.intent.coreMajorNames
-    : [item.input]))];
-  return { intentRows, blocked: [], inputs: expanded };
+  const expanded = [...new Set(intentRows.flatMap(item => item.intent.status === 'ready' && item.intent.coreMajorNames?.length ? item.intent.coreMajorNames : [item.input]))];
+  return { intentRows, blocked, inputs: blocked.length ? [] : expanded };
 }
 function rowRecord(row, ix) {
   const record = {
@@ -150,7 +186,7 @@ export async function onRequestGet(context) {
     const requestedLimit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!majorInputs.length) return json({ ok: false, code: 'major_required', message: '需要先明确一个或多个具体专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context);
-    const resolvedInputs = resolveMajorInputs(majorInputs);
+    const resolvedInputs = resolveMajorInputs(manifest, majorInputs);
     if (resolvedInputs.blocked.length) {
       return json({
         ok: false,
