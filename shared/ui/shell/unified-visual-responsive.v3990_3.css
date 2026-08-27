@@ -1,0 +1,185 @@
+/*
+ * Unified visual and responsive contract v001.
+ *
+ * This layer is intentionally additive: page-specific business CSS remains the
+ * owner of content and interaction geometry; this file owns shared rhythm,
+ * readable containers, touch targets, overflow safety and viewport behavior.
+ */
+:root {
+  --ui-v001-content-reading: 1040px;
+  --ui-v001-content-workspace: 1180px;
+  --ui-v001-gutter-desktop: 24px;
+  --ui-v001-gutter-tablet: 18px;
+  --ui-v001-gutter-mobile: 10px;
+  --ui-v001-space-1: 6px;
+  --ui-v001-space-2: 10px;
+  --ui-v001-space-3: 14px;
+  --ui-v001-space-4: 18px;
+  --ui-v001-space-5: 24px;
+  --ui-v001-space-6: 32px;
+  --ui-v001-control-min: 44px;
+  --ui-v001-focus: 0 0 0 3px rgba(21, 94, 117, .2);
+  --ui-v001-surface-raised: rgba(255, 255, 255, .96);
+}
+
+body[data-ui-visual-responsive="unified-v001"] {
+  min-height: 100dvh;
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(a, button, input, select, textarea, summary) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(a, button, input, select, textarea):focus-visible,
+body[data-ui-visual-responsive="unified-v001"] :where(summary):focus-visible {
+  outline: 3px solid var(--ui-focus, rgba(21, 94, 117, .2));
+  outline-offset: 2px;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(button, [role="button"], summary) {
+  touch-action: manipulation;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.page, .wrap, .advisor-layout) {
+  width: min(var(--ui-v001-content-workspace), calc(100% - (var(--ui-v001-gutter-desktop) * 2)));
+  margin-inline: auto;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.panel, .result-shell, .state-card, .shell, .ln-console) {
+  background: var(--ui-v001-surface-raised);
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.panel, .result-shell, .state-card, .ln-console) {
+  border-color: var(--ui-line, #dce6e2);
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.panel, .result-shell, .state-card) {
+  overflow-wrap: anywhere;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.site-release-footer, .footer, .aiplus-product-footer) {
+  max-width: var(--ui-v001-content-reading);
+  margin-inline: auto;
+  padding-inline: var(--ui-v001-gutter-desktop);
+  overflow-wrap: anywhere;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.ui-button, .query-button, .workspace-button, .button, .btn, .primary, .load-more, .quick-example) {
+  min-height: var(--ui-v001-control-min);
+}
+
+/* Home: keep the first action and supporting information in one reading path. */
+body[data-ui-visual-responsive="unified-v001"] .page {
+  max-width: var(--ui-v001-content-reading);
+}
+
+body[data-ui-visual-responsive="unified-v001"] .hero,
+body[data-ui-visual-responsive="unified-v001"] .hero-copy,
+body[data-ui-visual-responsive="unified-v001"] .section-head {
+  min-width: 0;
+}
+
+body[data-ui-visual-responsive="unified-v001"] .hero :where(h1, h2, p),
+body[data-ui-visual-responsive="unified-v001"] .section-head :where(h2, p) {
+  overflow-wrap: anywhere;
+}
+
+/* Selection and family-plan workspaces: no horizontal math on narrow screens. */
+body[data-ui-visual-responsive="unified-v001"] :where(.ln-page-shell, .ln-selection-page) {
+  max-width: var(--ui-v001-content-workspace);
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.ln-console, .ln-filter-panel, .results-shell, .school-all-results-shell, .major-all-results-shell) {
+  min-width: 0;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.filter-grid, .action-layout, .tool-groups, .comparison-grid, .summary-grid, .review-grid, .major-pathway-grid) > * {
+  min-width: 0;
+}
+
+/* AIPLuS: the conversation remains readable while controls collapse safely. */
+body[data-ui-visual-responsive="unified-v001"] .advisor-shell,
+body[data-ui-visual-responsive="unified-v001"] .conversation,
+body[data-ui-visual-responsive="unified-v001"] .assistant-turn,
+body[data-ui-visual-responsive="unified-v001"] .result-card {
+  min-width: 0;
+}
+
+body[data-ui-visual-responsive="unified-v001"] :where(.candidate-school, .candidate-major, .candidate-location, .result-card a, .tool-link, .region-school-name) {
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  body[data-ui-visual-responsive="unified-v001"] :where(.page, .wrap, .advisor-layout) {
+    width: min(var(--ui-v001-content-reading), calc(100% - (var(--ui-v001-gutter-tablet) * 2)));
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.hero, .result-head, .school-all-results-head) {
+    gap: var(--ui-v001-space-3);
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.filter-grid, .action-layout, .tool-groups) {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-ui-visual-responsive="unified-v001"] :where(.page, .wrap, .advisor-layout) {
+    width: calc(100% - (var(--ui-v001-gutter-mobile) * 2));
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.site-release-footer, .footer, .aiplus-product-footer) {
+    padding-inline: var(--ui-v001-gutter-mobile);
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.hero, .result-head, .school-all-results-head, .tabs-head) {
+    min-width: 0;
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.hero h1, .app-title, .result-head h2) {
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.filter-grid, .action-layout, .tool-groups, .summary-grid, .review-grid, .major-pathway-grid, .comparison-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.search-row, .composer-row) {
+    min-width: 0;
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.search-row, .composer-row) > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.search-input, .input, .select, .score-input, textarea) {
+    max-width: 100%;
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.ui-button, .query-button, .workspace-button, .button, .btn, .primary, .load-more, .quick-example) {
+    min-height: var(--ui-v001-control-min);
+  }
+}
+
+@media (max-width: 380px) {
+  body[data-ui-visual-responsive="unified-v001"] :where(.page, .wrap, .advisor-layout) {
+    width: calc(100% - 16px);
+  }
+
+  body[data-ui-visual-responsive="unified-v001"] :where(.top-actions, .hero-primary, .state-actions) {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-ui-visual-responsive="unified-v001"] :where(*, *::before, *::after) {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

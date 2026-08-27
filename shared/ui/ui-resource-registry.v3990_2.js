@@ -66,7 +66,8 @@ export const UI_STABLE_RESOURCE_REGISTRY = Object.freeze({
   academicBackgroundCss: stable('/ln-rank/css/academic-background.v3968_0.css'),
   localStrengthCss: stable('/ln-rank/css/local-strength.v3971_2.css'),
   localStrengthScorePositionCss: stable('/ln-rank/css/local-strength-score-position.v3972_3.css'),
-  all211Css: stable('/ln-rank/css/all211-static.v3972_0.css')
+  all211Css: stable('/ln-rank/css/all211-static.v3972_0.css'),
+  unifiedVisualResponsiveCss: stable('/shared/ui/shell/unified-visual-responsive.v3990_3.css')
 });
 
 export const UI_COMPONENT_REGISTRY = Object.freeze({
@@ -149,7 +150,8 @@ export const UI_CSS_RESOURCE_GRAPH = Object.freeze([
   resource(UI_STABLE_RESOURCE_REGISTRY.academicBackgroundCss, 'stable-business-resource', 'academic-background'),
   resource(UI_STABLE_RESOURCE_REGISTRY.localStrengthCss, 'stable-page-resource', 'local-strength'),
   resource(UI_STABLE_RESOURCE_REGISTRY.localStrengthScorePositionCss, 'stable-page-resource', 'local-strength-score-position'),
-  resource(UI_STABLE_RESOURCE_REGISTRY.all211Css, 'stable-page-resource', 'all-211')
+  resource(UI_STABLE_RESOURCE_REGISTRY.all211Css, 'stable-page-resource', 'all-211'),
+  resource(UI_STABLE_RESOURCE_REGISTRY.unifiedVisualResponsiveCss, 'stable-component', 'unified-visual-responsive', CURRENT_RELEASE.resourceOwners.unifiedVisualResponsiveStyles)
 ]);
 
 export const UI_RESOURCE_POLICIES = Object.freeze({
@@ -176,4 +178,3 @@ export function getUiComponent(key) {
 export function getUiResource(key) {
   return UI_ACTIVE_RESOURCE_REGISTRY[key] || UI_STABLE_RESOURCE_REGISTRY[key] || '';
 }
-

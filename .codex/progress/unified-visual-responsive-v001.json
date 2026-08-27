@@ -1,0 +1,51 @@
+{
+  "task": "unified-visual-responsive-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
+  "branch": "fix/unified-visual-responsive-v001",
+  "status": "implementation-complete-local-verification-pending",
+  "plan": [
+    "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
+    "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
+    "保持查询、实体、数据、AI 和导航业务行为不变",
+    "同步资源合同、版本、变更日志、状态和断点",
+    "完成本地测试、PR 检查、精确 Preview、生产和合并后复核"
+  ],
+  "completed": [
+    "live-main-reconciled",
+    "isolated-worktree-created",
+    "taste-skill-rules-applied",
+    "shared-visual-responsive-css",
+    "core-entrypoint-integration",
+    "resource-contract-registration",
+    "release-changelog-sync"
+  ],
+  "inProgress": "local-verification",
+  "pending": [
+    "local-static-tests",
+    "remote-branch-and-pr",
+    "pr-ci-and-ready",
+    "preview-exact-sha-and-browser",
+    "production-and-resource-manifest",
+    "merge-main-and-post-merge-verify"
+  ],
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r037-unified-visual-responsive",
+    "uiVisualResponsiveVersion": "unified-visual-responsive-v001"
+  },
+  "scope": {
+    "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],
+    "breakpoints": [">1100", "761-1100", "0-760", "0-380"],
+    "touchTarget": "44px",
+    "businessLogicChanged": false
+  },
+  "preservation": {
+    "originalWorktree": "untouched",
+    "knownUserFiles": [
+      ".codex/progress/ln-rank-input-clear-state-v001.json",
+      "docs/status/ln-rank-input-clear-state-v001-status.json"
+    ]
+  }
+}

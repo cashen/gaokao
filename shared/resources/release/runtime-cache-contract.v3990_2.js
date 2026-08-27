@@ -35,7 +35,8 @@ const declaredCurrentDataModules = Object.freeze([
 
 const declaredStableActiveModules = Object.freeze([
   '/shared/ui/shell/family-shell.v3972_5.css',
-  '/shared/ui/components/family-plan-entry.v3972_5.css'
+  '/shared/ui/components/family-plan-entry.v3972_5.css',
+  '/shared/ui/shell/unified-visual-responsive.v3990_3.css'
 ]);
 
 export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({

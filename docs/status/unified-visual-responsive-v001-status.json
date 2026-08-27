@@ -1,0 +1,41 @@
+{
+  "task": "unified-visual-responsive-v001",
+  "status": "implementation-complete-local-verification-pending",
+  "repository": "cashen/gaokao",
+  "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
+  "branch": "fix/unified-visual-responsive-v001",
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r037-unified-visual-responsive",
+    "componentVersion": "unified-visual-responsive-v001"
+  },
+  "summary": "新增统一视觉与响应式共享层，接入首页、专业初选、家庭方案、AIPLuS、同学你好和专业路径；只改变 CSS 和资源声明，不改变业务逻辑。",
+  "acceptance": [
+    "桌面阅读宽度和工作区宽度有明确上限",
+    "Pad 使用中间布局，不压缩为单字符窄列",
+    "Android 使用单列文档流，主要控件至少 44px",
+    "长学校名、专业名和链接可换行且无横向溢出",
+    "焦点环、reduced motion 和 safe-area 规则存在",
+    "核心入口均声明统一样式版本和 visual marker",
+    "查询、实体、数据、AI 和导航行为保持不变"
+  ],
+  "files": [
+    "shared/ui/shell/unified-visual-responsive.v3990_3.css",
+    "tools/verify-unified-visual-responsive-v3990_3.mjs",
+    "shared/resources/release/current-release.js",
+    "shared/resources/release/active-resource-manifest.v3990_2.js",
+    "shared/resources/release/site-runtime-contract.v3990_2.js",
+    "shared/resources/release/runtime-cache-contract.v3990_2.js",
+    "shared/ui/ui-resource-registry.v3990_2.js",
+    "index.html",
+    "ln-rank/index.html",
+    "ln-rank/selection-pool.html",
+    "aiplus/index.html",
+    "tongxue/index.html",
+    "major-path/index.html",
+    "changelog.html"
+  ],
+  "next": "运行本地验证并根据失败结果修复；网络中断后从该文件的 inProgress/pending 继续。",
+  "preservation": "原工作树未触碰；独立工作树承担本任务。"
+}

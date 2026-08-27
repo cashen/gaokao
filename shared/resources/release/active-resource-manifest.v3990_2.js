@@ -41,6 +41,14 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
     cacheRevision: CURRENT_RELEASE.lnRankCacheRevision
   }),
+  uiVisualResponsive: entry(CURRENT_RELEASE.resourceOwners.unifiedVisualResponsiveStyles, 'stable-component', {
+    featureVersion: CURRENT_RELEASE.uiVisualResponsiveVersion,
+    revision: CURRENT_RELEASE.uiVisualResponsiveRevision,
+    contract: 'shared-visual-rhythm-touch-overflow-v001',
+    breakpoints: Object.freeze(['>1100', '761-1100', '0-760', '0-380']),
+    touchTarget: '44px',
+    policy: 'additive-css-only; business-state-and-device-specific-business-branches-forbidden'
+  }),
   selectionWorkspace: Object.freeze({
     classification: 'current-generation-with-declared-stable-implementation',
     owner: CURRENT_RELEASE.resourceOwners.searchIntentState,
