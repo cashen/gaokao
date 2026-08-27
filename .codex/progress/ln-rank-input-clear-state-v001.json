@@ -4,7 +4,7 @@
   "branch": "agent/ln-rank-input-clear-state-v001",
   "headSha": "80e6fde9e313687e4d64859d3d1ff63e6187de86",
   "baseSha": "fabaf6470706e79ec124e971c08821c90fb719c2",
-  "pr": null,
+  "pr": 239,
   "completed": [
     "live-main-reconciled",
     "isolated-worktree-created",
@@ -13,9 +13,10 @@
     "implementation",
     "local-contract-tests",
     "commit-and-push",
-    "remote-status-reconciled"
+    "remote-status-reconciled",
+    "draft-pr"
   ],
-  "inProgress": "draft-pr",
+  "inProgress": "ci-and-preview",
   "pending": [
     "ci-and-preview",
     "ready-and-production-verify",
@@ -29,5 +30,5 @@
     "revision": "r032-input-clear-state",
     "homeRuntime": "family-home-runtime-v3990_2-r031"
   },
-  "verifiedAt": "2026-08-27T02:15:00Z"
+  "verifiedAt": "2026-08-27T05:09:00Z"
 }
