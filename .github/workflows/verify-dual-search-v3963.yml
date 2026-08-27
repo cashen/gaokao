@@ -86,7 +86,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-1-family-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-family-http.log; exit 1; fi
           V3970_ARTIFACT_DIR=/tmp/v3990-1-browser-family node tools/browser-family-action-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-family.out
 
       - name: Verify preserved PC Pad Android main journey
@@ -95,7 +100,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-1-main-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-main-http.log; exit 1; fi
           V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-main node tools/browser-resource-execution-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-main.out
 
       - name: Verify native chooser activation and tail transaction
@@ -104,7 +114,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-1-interaction-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-interaction-http.log; exit 1; fi
           V3990_2_ARTIFACT_DIR=/tmp/v3990-1-interaction-browser node tools/browser-native-chooser-activation-v3990_2-runner.mjs 2>&1 | tee /tmp/v3990-1-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
@@ -113,7 +128,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-1-school-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-school-http.log; exit 1; fi
           V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-school node tools/browser-school-query-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-school.out
 
       - name: Verify preserved 211 and LocalStrength journeys
@@ -122,7 +142,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-1-background-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-background-http.log; exit 1; fi
           V3968_ARTIFACT_DIR=/tmp/v3990-1-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3990-1-browser-background.out
 
       - name: Upload verification diagnostics
