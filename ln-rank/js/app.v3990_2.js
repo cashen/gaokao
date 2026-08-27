@@ -1,5 +1,5 @@
-import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api';
-import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r035-major-history-1102-bounded-api';
+import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy';
+import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r036-major-history-rank-lazy';
 
 const RUNTIME_VERSION = 'resource-execution-v3990_2';
 const CONTROL_SELECTOR = '[data-runtime-control]';
@@ -58,7 +58,7 @@ globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__ = Object.freeze({
 
 setRuntimeState('loading');
 try {
-  const runtime = await import('./app-runtime.v3990_2.js?v=3990_2-nav003&r=r035-major-history-1102-bounded-api');
+  const runtime = await import('./app-runtime.v3990_2.js?v=3990_2-nav003&r=r036-major-history-rank-lazy');
   await runtime.startLnRankRuntime();
   mountMajorPathHandoff();
   currentState = 'ready';

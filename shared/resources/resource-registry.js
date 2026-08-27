@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2&r=r035-major-history-1102-bounded-api';
-import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2&r=r036-major-history-rank-lazy';
+import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,

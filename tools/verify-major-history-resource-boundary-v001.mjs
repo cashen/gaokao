@@ -4,6 +4,8 @@ import { onRequestGet } from '../functions/api/ai/major-history.js';
 
 const source = fs.readFileSync('functions/api/ai/major-history.js', 'utf8');
 assert.doesNotMatch(source, /standard-major-catalog-2026-full\.generated|createMajorIntentResolver/, 'major-history must not cold-load the full intent catalogue');
+assert.doesNotMatch(source, /from ['"]\.\.\/\.\.\/_lib\/rank-table-provider\.js['"]/, 'major-history must not cold-load rank tables for queries without a score');
+assert.match(source, /import\(['"]\.\.\/\.\.\/_lib\/rank-table-provider\.js['"]\)/, 'candidate-score rank lookup must remain lazy');
 assert.match(source, /manifestIntentForInput/, 'major-history must resolve direct inputs from the bounded manifest index');
 
 const assets = {
@@ -35,7 +37,13 @@ try {
   assert.equal(broad.status, 409);
   assert.equal(broadPayload.code, 'major_query_requires_choice');
 
-  console.log(JSON.stringify({ ok: true, exactRecords: exactPayload.records.length, ambiguousRecords: ambiguousPayload.records.length, broadCode: broadPayload.code }, null, 2));
+  const scored = await onRequestGet({ request: request('major=%E6%B5%8B%E6%8E%A7%E6%8A%80%E6%9C%AF%E4%B8%8E%E4%BB%AA%E5%99%A8&candidateScore=580&limit=1'), env: { ASSETS: assets } });
+  const scoredPayload = await scored.json();
+  assert.equal(scored.status, 200);
+  assert.equal(scoredPayload.ok, true);
+  assert.equal(scoredPayload.candidateScore, 580);
+
+  console.log(JSON.stringify({ ok: true, exactRecords: exactPayload.records.length, ambiguousRecords: ambiguousPayload.records.length, broadCode: broadPayload.code, scoredCandidate: scoredPayload.candidateScore }, null, 2));
 } finally {
   globalThis.fetch = originalFetch;
 }

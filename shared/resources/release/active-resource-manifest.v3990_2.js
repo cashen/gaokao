@@ -99,7 +99,8 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     schoolQueryContextBindingVersion: CURRENT_RELEASE.schoolQueryContextBindingVersion,
     majorHistoryResourceBoundaryVersion: CURRENT_RELEASE.majorHistoryResourceBoundaryVersion,
     majorHistoryApi: CURRENT_RELEASE.resourceOwners.majorHistoryApi,
-    policy: 'Pages Functions APIs must receive the full context and use bound ASSETS; public origin self-fetch is forbidden; major-history direct inputs use the bounded manifest index before any optional language resolver'
+    majorHistoryRankLookupBoundaryVersion: CURRENT_RELEASE.majorHistoryRankLookupBoundaryVersion,
+    policy: 'Pages Functions APIs must receive the full context and use bound ASSETS; public origin self-fetch is forbidden; major-history direct inputs use the bounded manifest index and load rank tables only when candidateScore is present'
   }),
   verification: Object.freeze({
     sourceGraphOwner: CURRENT_RELEASE.resourceOwners.resourceRegistry,

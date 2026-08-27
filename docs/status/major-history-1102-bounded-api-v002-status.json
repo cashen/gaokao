@@ -1,0 +1,25 @@
+{
+  "task": "major-history-1102-bounded-api-v002",
+  "status": "local-tests-passed-pr-pending",
+  "baseMainSha": "a97e73569f7e33268d93631673a3a6ba23a4dc01",
+  "branch": "fix/major-history-1102-bounded-api-v002",
+  "release": "v3.9.90.2",
+  "generation": "v3990_2",
+  "revision": "r036-major-history-rank-lazy",
+  "problem": "r035 后正式站的专业历史冷路径仍可触发 Worker 1102，说明未传分数的查询仍初始化了不必要的 rank-table provider。",
+  "rootCause": ["major-history 静态 import rank-table-provider 及三年位次表；candidateScore 缺失时这些模块没有业务用途，却增加了冷实例资源预算。"],
+  "acceptance": [
+    "未传 candidateScore 的电气工程专业历史查询从绑定 ASSETS 返回 200。",
+    "传 candidateScore 的查询仍延迟加载位次表并返回正确 candidateReferenceRank2026。",
+    "公共 fetch 被阻断时 exact/ambiguous/scored 查询仍成功，宽泛输入仍 409。",
+    "r036 版本、manifest、footer、变更日志、状态和断点一致。",
+    "PR、精确 Preview、Production、正式站、Pages、manifest 和 PC/Pad/Android 交互全部复核后才合并。"
+  ],
+  "nonScope": ["阳光高考招生计划全量采集"],
+  "tests": ["node tools/verify-major-history-resource-boundary-v001.mjs", "node tools/verify-ai-major-region-history-v3992_3.mjs", "node tools/verify-ln-rank-major-scope-v001.mjs", "node tools/verify-ln-rank-major-intent-v001.mjs", "node tools/verify-worker-resource-boundary-v001.mjs", "node tools/verify-resource-consistency-v3990_2.mjs", "node tools/audit-unified-release-surface-v001.mjs", "node tools/audit-site-runtime-generation-v3990_2.mjs", "node tools/audit-unified-resource-graph-v3990_2.mjs", "node --check functions/api/ai/major-history.js"],
+  "pullRequest": null,
+  "preview": null,
+  "production": null,
+  "merge": null,
+  "verifiedAt": "2026-08-27T22:12:06Z"
+}

@@ -1,7 +1,7 @@
 import { state } from '../../state/app-state.v3963_1.js?v=3963_1';
 import { resolveMajorQueryCandidates } from '../../knowledge/major-understanding-resolver.js?v=3949_0';
 import { createSelectionPoolAdapter, refreshSelectionPool } from '../selection-pool/index.v3964_0.js?v=3964_0';
-import { buildSchoolAllHref } from '../../../../shared/resources/schools/school-resource-center.js?v=3990_2&r=r035-major-history-1102-bounded-api';
+import { buildSchoolAllHref } from '../../../../shared/resources/schools/school-resource-center.js?v=3990_2&r=r036-major-history-rank-lazy';
 
 export const MAJOR_ALL_MODE_VERSION = 'major-all-mode-v004';
 const API_PATH = '/api/ai/major-history';

@@ -47,7 +47,8 @@ export const CURRENT_RELEASE = Object.freeze({
   resourceOwnershipVersion: 'resource-ownership-v3990_2',
   resourceExecutionVersion: 'resource-execution-v3990_2',
   workerResourceBoundaryVersion: 'worker-resource-boundary-v001',
-  majorHistoryResourceBoundaryVersion: 'major-history-resource-boundary-v001',
+  majorHistoryResourceBoundaryVersion: 'major-history-resource-boundary-v002',
+  majorHistoryRankLookupBoundaryVersion: 'major-history-rank-lookup-lazy-v001',
   sharedResourceGraphVersion: 'site-resource-graph-v3990_2',
   uiResourceRegistryVersion: 'ui-resource-registry-v3990_2',
   cssResourceGraphVersion: 'css-resource-graph-v3990_2',
@@ -96,7 +97,7 @@ export const CURRENT_RELEASE = Object.freeze({
   lnRankCardEntryVersion: 'ln-rank-three-card-entries-v005',
   lnRankSchoolEntryVersion: 'ln-rank-school-entry-v001',
   tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001',
-  lnRankCacheRevision: 'r035-major-history-1102-bounded-api',
+  lnRankCacheRevision: 'r036-major-history-rank-lazy',
   lnRankMajorFilterContextVersion: 'major-filter-context-v004',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_2.js',
