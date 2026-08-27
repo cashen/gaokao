@@ -1,0 +1,49 @@
+{
+  "task": "worker-1102-bounded-api-v001",
+  "repository": "cashen/gaokao",
+  "status": "local-validation-complete",
+  "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
+  "branch": "fix/worker-1102-bounded-api-v001",
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r034-worker-1102-bounded-api"
+  },
+  "completed": [
+    "live-main-reconciled",
+    "open-prs-and-actions-reconciled",
+    "dirty-worktrees-preserved",
+    "production-and-pages-1102-reproduced",
+    "isolated-branch-created",
+    "root-cause-confirmed-public-origin-fallback",
+    "context-bound-api-fix",
+    "release-and-cache-revision-synchronized",
+    "local-api-and-contract-tests"
+  ],
+  "inProgress": "commit-and-pr",
+  "pending": [
+    "commit-and-pr",
+    "pr-checks-and-ready",
+    "exact-preview-sha-and-browser-verification",
+    "production-manifest-and-site-verification",
+    "merge-main",
+    "post-merge-verification"
+  ],
+  "evidence": {
+    "production": "canonical school-majors full query returned HTTP 503 Cloudflare error code 1102; major-history was rechecked as HTTP 200",
+    "pages": "canonical school-majors full query returned HTTP 503 Cloudflare error code 1102; major-history was rechecked as HTTP 200",
+    "rootCause": "school-majors passed context.request to school-query-provider, so provider lost env.ASSETS and used public-origin fetch inside the Worker",
+    "localRegression": "with global fetch forced to throw, bound ASSETS resolve-only and full school query both returned HTTP 200 with verified records",
+    "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure is excluded from product failure assessment"
+  },
+  "preserved": [
+    "/workspace/scratch/7d83622e98d3/gaokao",
+    "/workspace/scratch/87ab76c7e5b8/gaokao",
+    "/workspace/scratch/8996e2cad2aa/gaokao",
+    "/workspace/scratch/b9c6d79e120e/gaokao",
+    "/workspace/scratch/e656e218a4d4/gaokao",
+    "sunshine admissions-plan collection",
+    "tools/.verify-production-resource-graph-v3990_2.generated.mjs"
+  ],
+  "verifiedAt": "2026-08-27T21:25:20Z"
+}

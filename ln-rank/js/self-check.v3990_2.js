@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_2&r=r033-tongxue-school-entry';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_2&r=r034-worker-1102-bounded-api';
 import {
   SHARED_RESOURCE_GRAPH_VERSION,
   DATA_RESOURCE_GRAPH_VERSION,

@@ -94,6 +94,12 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     admissionDirectory: CURRENT_RELEASE.resourceOwners.schoolAdmissionDirectory,
     policy: 'one-school-identity-truth; bounded shared directory loading; compatibility exports may not create a second entity truth'
   }),
+  workerResourceBoundary: entry(CURRENT_RELEASE.resourceOwners.schoolMajorsApi, 'current-generation', {
+    version: CURRENT_RELEASE.workerResourceBoundaryVersion,
+    schoolQueryContextBindingVersion: CURRENT_RELEASE.schoolQueryContextBindingVersion,
+    majorHistoryApi: CURRENT_RELEASE.resourceOwners.majorHistoryApi,
+    policy: 'Pages Functions APIs must receive the full context and use bound ASSETS; public origin self-fetch is forbidden'
+  }),
   verification: Object.freeze({
     sourceGraphOwner: CURRENT_RELEASE.resourceOwners.resourceRegistry,
     runtimeGraphOwner: CURRENT_RELEASE.resourceOwners.siteRuntimeContract,
