@@ -13,6 +13,7 @@
     "rootCause": "major-history still statically imported rank-table-provider and three yearly rank modules even when candidateScore was absent; this added an unnecessary cold-path initialization budget.",
     "localRegression": "candidateScore-less and scored queries both return 200 from bound ASSETS with global public fetch forced to throw; candidate rank lookup is loaded only for scored queries.",
     "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure remains excluded from product failure assessment",
+    "localPreservationNote": "Previously recorded untracked tools/.verify-production-resource-graph-v3990_2.generated.mjs was not found in the final scratch/worktree scan; no delete, cleanup, overwrite, or reconstruction was performed.",
     "pullRequest": {"number": 244, "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "ready": true, "checks": "30 relevant Actions successful"},
     "preview": {"url": "https://fix-major-history-1102-bound-p42l.gaokao-4y9.pages.dev", "immutableUrl": "https://416d85e3.gaokao-4y9.pages.dev", "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "workerMixedRequests": 50, "cloudflare1102": 0, "browser": ["pc", "pad", "android"]},
     "production": {"pages": "https://gaokao-4y9.pages.dev", "formal": "https://gaokao.powers.org.cn", "mainSha": "9d77e28bde271c4e65075487391bfcd6807e8f90", "immutableUrl": "https://7de04be4.gaokao-4y9.pages.dev", "measuredTotal": 14, "schoolCount": 11, "scoreRange": [467, 594], "workerMixedRequests": 50, "cloudflare1102": 0, "resourceGraph": "verified", "browser": ["pc", "pad", "android"]},
@@ -24,8 +25,7 @@
     "/workspace/scratch/8996e2cad2aa/gaokao",
     "/workspace/scratch/b9c6d79e120e/gaokao",
     "/workspace/scratch/e656e218a4d4/gaokao",
-    "sunshine admissions-plan collection",
-    "tools/.verify-production-resource-graph-v3990_2.generated.mjs"
+    "sunshine admissions-plan collection"
   ],
   "verifiedAt": "2026-08-27T22:26:43Z"
 }
