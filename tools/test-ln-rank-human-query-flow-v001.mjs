@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const school = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js');
+const majorAll = read('ln-rank/js/feature/major-all/major-all-mode.v001.js');
 const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js');
 const api = read('functions/api/school-majors.js');
 const engine = read('shared/resources/schools/school-query-engine.v3969_0.js');
@@ -25,7 +26,9 @@ const checks = [
   ['workspace preserves selected school entity', workspace.includes("document.addEventListener('gaokao:school-candidate-selected', event =>") && workspace.includes("const entityId = String(detail.entityId || '').trim()")],
   ['ordinary admission schools receive stable canonical identity', engine.includes('export function admissionEntityIdForName') && engine.includes('admission:${normalized}')],
   ['API validates admission-directory identity', api.includes('function canonicalEntityForSelection') && api.includes("entityId.startsWith('admission:')") && api.includes('entityId !== admissionEntityIdForName(displayName)')],
-  ['feature version and revision are registered', /lnRankHumanQueryInputVersion:\s*'ln-rank-human-query-input-v001'/.test(release) && /lnRankHumanQueryInputRevision:\s*'r\d+'/.test(release)],
+  ['feature version and revision are registered', /lnRankHumanQueryInputVersion:\s*'ln-rank-human-query-input-v002'/.test(release) && /lnRankHumanQueryInputRevision:\s*'r032-input-clear-state'/.test(release)],
+  ['live DOM input wins over stale state', [school, majorAll, workspace].every(source => !/\?\.value\s*\|\|\s*state\.filters/.test(source)) && majorAll.includes('function liveFieldValue') && school.includes('function liveFieldValue')],
+  ['history restore clears absent query fields', workspace.includes('if (schoolInput) schoolInput.value = school;') && workspace.includes('if (majorInput) majorInput.value = major;') && workspace.includes('if (candidateInput) candidateInput.value = score;')],
   ['active school owner is v3969_2', release.includes("schoolResults: '/ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'")],
   ['active contract has school owner', contract.includes('school-all-mode.v3969_2.js')],
   ['navigation waits for header mount', nav.includes("[data-ui-global-header],[data-ui-global-header-mount]")],

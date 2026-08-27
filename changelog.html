@@ -21,6 +21,7 @@
       <p>统一全站发布版本、运行时 generation、资源查询版本与 footer 更新入口。模块能力版本继续按各自合同维护，不与全站发布版本混用。</p>
       <div class="release-meta"><span class="badge">运行时 v3990_2</span><span class="badge">资源查询 3990_2</span><span class="badge">ln-rank 入口 r029</span></div>
       <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_2-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
+      <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.2 / v3990_2。</p>
       <ul class="module-list" aria-label="模块能力版本">
         <li><span>Tongxue · 同学你好</span><span>v1.5.9 / tongxue-runtime-v159-r3968</span></li>
         <li><span>AIPLuS 产品版</span><span>v0.02</span></li>

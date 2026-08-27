@@ -165,11 +165,11 @@ export function startLnRankRuntime() {
     if (globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version !== INTERACTION_VERSION) {
       throw new Error('unified interaction transaction did not initialize');
     }
-    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r030-filter-state-path1');
+    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r032-input-clear-state');
     await workspace.selectionWorkspaceReady;
-    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r030-filter-state-path1');
+    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r032-input-clear-state');
     await schoolMode.schoolAllModeReady;
-    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v002&r=r030-filter-state-path1');
+    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v003&r=r032-input-clear-state');
     await majorMode.majorAllModeReady;
     syncSharedBottomLine();
     return Object.freeze({
