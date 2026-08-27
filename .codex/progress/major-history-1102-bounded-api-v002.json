@@ -1,18 +1,22 @@
 {
   "task": "major-history-1102-bounded-api-v002",
   "repository": "cashen/gaokao",
-  "status": "local-tests-passed-pr-pending",
+  "status": "merged-production-verified",
   "baseMainSha": "a97e73569f7e33268d93631673a3a6ba23a4dc01",
   "branch": "fix/major-history-1102-bounded-api-v002",
   "release": { "site": "v3.9.90.2", "generation": "v3990_2", "revision": "r036-major-history-rank-lazy" },
   "completed": ["formal-major-history-1102-reproduced-after-v001", "lazy-rank-lookup-fix", "release-and-cache-revision-sync"],
-  "inProgress": "branch-commit-and-pr",
-  "pending": ["commit-and-pr", "pr-checks", "exact-preview", "production-and-browser", "merge-main", "post-merge-verification"],
+  "inProgress": null,
+  "pending": [],
   "evidence": {
     "productionBeforeFix": "After r035 deployment, Pages production and formal major-history requests could still hit 1102 on cold/repeated probes while school-majors was stable.",
     "rootCause": "major-history still statically imported rank-table-provider and three yearly rank modules even when candidateScore was absent; this added an unnecessary cold-path initialization budget.",
     "localRegression": "candidateScore-less and scored queries both return 200 from bound ASSETS with global public fetch forced to throw; candidate rank lookup is loaded only for scored queries.",
-    "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure remains excluded from product failure assessment"
+    "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure remains excluded from product failure assessment",
+    "pullRequest": {"number": 244, "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "ready": true, "checks": "30 relevant Actions successful"},
+    "preview": {"url": "https://fix-major-history-1102-bound-p42l.gaokao-4y9.pages.dev", "immutableUrl": "https://416d85e3.gaokao-4y9.pages.dev", "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "workerMixedRequests": 50, "cloudflare1102": 0, "browser": ["pc", "pad", "android"]},
+    "production": {"pages": "https://gaokao-4y9.pages.dev", "formal": "https://gaokao.powers.org.cn", "mainSha": "9d77e28bde271c4e65075487391bfcd6807e8f90", "immutableUrl": "https://7de04be4.gaokao-4y9.pages.dev", "measuredTotal": 14, "schoolCount": 11, "scoreRange": [467, 594], "workerMixedRequests": 50, "cloudflare1102": 0, "resourceGraph": "verified", "browser": ["pc", "pad", "android"]},
+    "merge": {"commitSha": "9d77e28bde271c4e65075487391bfcd6807e8f90", "mergedPr": 244}
   },
   "preserved": [
     "/workspace/scratch/7d83622e98d3/gaokao",
@@ -23,5 +27,5 @@
     "sunshine admissions-plan collection",
     "tools/.verify-production-resource-graph-v3990_2.generated.mjs"
   ],
-  "verifiedAt": "2026-08-27T22:12:06Z"
+  "verifiedAt": "2026-08-27T22:26:43Z"
 }
