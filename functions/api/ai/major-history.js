@@ -1,6 +1,5 @@
 import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
-import { lookupScoreRank } from '../../_lib/rank-table-provider.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
@@ -10,6 +9,7 @@ const SHARD_TTL_MS = 60 * 1000;
 const SHARD_CACHE_MAX = 2;
 let manifestCache = null;
 const shardCache = new Map();
+let rankLookupPromise = null;
 
 const MAJOR_QUERY_ALIASES = Object.freeze({
   '电气工程及自动化': '电气工程及其自动化',
@@ -50,6 +50,12 @@ function projectMatches(record, mode) {
 function indexes(schema = []) { return Object.fromEntries(schema.map((key, index) => [key, index])); }
 function fresh(entry, ttl) { return entry && Date.now() - entry.time < ttl; }
 function assetRequest(request, pathname) { const url = new URL(pathname, new URL(request.url).origin); return new Request(url.toString(), { method: 'GET', headers: { accept: 'application/json' } }); }
+async function lookupCandidateRank(score) {
+  if (score === null) return null;
+  rankLookupPromise ||= import('../../_lib/rank-table-provider.js').then(module => module.lookupScoreRank);
+  const lookupScoreRank = await rankLookupPromise;
+  return lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
+}
 async function readAssetJson(context, pathname) {
   const request = assetRequest(context.request, pathname);
   const response = context.env?.ASSETS?.fetch ? await context.env.ASSETS.fetch(request) : await fetch(request);
@@ -177,7 +183,7 @@ export async function onRequestGet(context) {
     const requestedSort = ['position-near', 'score-desc', 'score-asc'].includes(String(url.searchParams.get('sort') || '').trim())
       ? String(url.searchParams.get('sort')).trim()
       : (candidateScore !== null ? 'position-near' : 'score-desc');
-    const candidateRow = candidateScore !== null ? lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score: candidateScore }) : null;
+    const candidateRow = await lookupCandidateRank(candidateScore);
     const candidateRank = Number(candidateRow?.rankForGap ?? candidateRow?.rankEnd);
     const rawMinScore = scoreBound(url.searchParams.get('minScore')), rawMaxScore = scoreBound(url.searchParams.get('maxScore'));
     const minScore = rawMinScore !== null && rawMaxScore !== null ? Math.min(rawMinScore, rawMaxScore) : rawMinScore, maxScore = rawMinScore !== null && rawMaxScore !== null ? Math.max(rawMinScore, rawMaxScore) : rawMaxScore;

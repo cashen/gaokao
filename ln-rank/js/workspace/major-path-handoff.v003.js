@@ -29,7 +29,7 @@ function ensureStylesheet() {
   if (document.querySelector('link[data-major-path-handoff-style]')) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = '/ln-rank/css/major-path-handoff.v003.css?v=003_0&r=r035-major-history-1102-bounded-api';
+  link.href = '/ln-rank/css/major-path-handoff.v003.css?v=003_0&r=r036-major-history-rank-lazy';
   link.dataset.majorPathHandoffStyle = MAJOR_PATH_HANDOFF_VERSION;
   document.head.append(link);
 }

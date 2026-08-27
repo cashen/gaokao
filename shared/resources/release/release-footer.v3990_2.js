@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r035-major-history-1102-bounded-api';
-import { syncCurrentRelease } from './release-presenter.v3990_2.js?v=3990_2&r=r035-major-history-1102-bounded-api';
+import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r036-major-history-rank-lazy';
+import { syncCurrentRelease } from './release-presenter.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy';
 
 export const RELEASE_FOOTER_VERSION = CURRENT_RELEASE.releaseFooterContractVersion;
 const STYLE_HREF = `${CURRENT_RELEASE.resourceOwners.releaseFooterStyles}?v=${CURRENT_RELEASE.asset}`;

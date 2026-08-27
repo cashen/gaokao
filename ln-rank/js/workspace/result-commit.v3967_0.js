@@ -1,4 +1,4 @@
-import { presentFamilyResults } from './family-card-presenter.v3967_0.js?v=3967_0&r=r035-major-history-1102-bounded-api';
+import { presentFamilyResults } from './family-card-presenter.v3967_0.js?v=3967_0&r=r036-major-history-rank-lazy';
 import {
   createScrollSnapshot,
   preserveScrollSnapshot,
