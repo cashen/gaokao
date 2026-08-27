@@ -157,6 +157,8 @@ try {
     const screenshot = path.join(artifactDir, `${device.name}.png`);
     await page.screenshot({ path: screenshot, fullPage: true });
 
+    await page.locator('details[data-tool-group="understand"] > summary').click();
+    assert.ok(await page.locator('details[data-tool-group="understand"]').getAttribute('open') !== null, `${device.name}: understand group expands before navigation`);
     await Promise.all([
       page.waitForURL(url => url.pathname === '/major-path/' || url.pathname === '/major-path/index.html'),
       page.locator('[data-home-major-path-entry]').click()
