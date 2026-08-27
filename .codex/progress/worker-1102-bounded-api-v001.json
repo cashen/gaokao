@@ -1,7 +1,7 @@
 {
   "task": "worker-1102-bounded-api-v001",
   "repository": "cashen/gaokao",
-  "status": "pr-open-awaiting-ci",
+  "status": "preview-verified-final-head-sync",
   "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
   "branch": "fix/worker-1102-bounded-api-v001",
   "release": {
@@ -19,11 +19,16 @@
     "context-bound-api-fix",
     "release-and-cache-revision-synchronized",
     "local-api-and-contract-tests",
-    "commit-and-pr"
+    "commit-and-pr",
+    "pr-checks-28-of-28-green",
+    "ready-for-review",
+    "exact-preview-sha-verified",
+    "preview-api-and-manifest-verified",
+    "preview-browser-key-path-verified"
   ],
-  "inProgress": "pr-ci-and-preview",
+  "inProgress": "final-head-sync-and-ci",
   "pending": [
-    "pr-checks-and-ready",
+    "final-head-pr-checks",
     "exact-preview-sha-and-browser-verification",
     "production-manifest-and-site-verification",
     "merge-main",
@@ -39,8 +44,17 @@
   "pullRequest": {
     "number": 242,
     "url": "https://github.com/cashen/gaokao/pull/242",
-    "remoteHeadSha": "81124b36137297857ba101c7723b5dd22386b3cf",
-    "draft": true
+    "remoteHeadSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "draft": false,
+    "checks": "28/28 PR-triggered workflows successful"
+  },
+  "preview": {
+    "url": "https://3026fdf2.gaokao-4y9.pages.dev",
+    "exactSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "health": "deployment.commitSha exact; branch fix/worker-1102-bounded-api-v001",
+    "api": "school resolve-only 200; school full 200; major-history electric 200",
+    "workerStress": "50 mixed requests; cloudflare1102 0",
+    "browser": "major-path human-first Preview PC/Pad/Android passed"
   },
   "preserved": [
     "/workspace/scratch/7d83622e98d3/gaokao",
@@ -51,5 +65,5 @@
     "sunshine admissions-plan collection",
     "tools/.verify-production-resource-graph-v3990_2.generated.mjs"
   ],
-  "verifiedAt": "2026-08-27T21:25:20Z"
+  "verifiedAt": "2026-08-27T21:37:05Z"
 }
