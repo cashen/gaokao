@@ -1,6 +1,6 @@
 {
   "task": "major-history-1102-bounded-api-v002",
-  "status": "local-tests-passed-pr-pending",
+  "status": "merged-production-verified",
   "baseMainSha": "a97e73569f7e33268d93631673a3a6ba23a4dc01",
   "branch": "fix/major-history-1102-bounded-api-v002",
   "release": "v3.9.90.2",
@@ -17,9 +17,9 @@
   ],
   "nonScope": ["阳光高考招生计划全量采集"],
   "tests": ["node tools/verify-major-history-resource-boundary-v001.mjs", "node tools/verify-ai-major-region-history-v3992_3.mjs", "node tools/verify-ln-rank-major-scope-v001.mjs", "node tools/verify-ln-rank-major-intent-v001.mjs", "node tools/verify-worker-resource-boundary-v001.mjs", "node tools/verify-resource-consistency-v3990_2.mjs", "node tools/audit-unified-release-surface-v001.mjs", "node tools/audit-site-runtime-generation-v3990_2.mjs", "node tools/audit-unified-resource-graph-v3990_2.mjs", "node --check functions/api/ai/major-history.js"],
-  "pullRequest": null,
-  "preview": null,
-  "production": null,
-  "merge": null,
-  "verifiedAt": "2026-08-27T22:12:06Z"
+  "pullRequest": {"number": 244, "url": "https://github.com/cashen/gaokao/pull/244", "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "ready": true, "relevantActions": 30, "knownIrrelevantFailure": "verify-major-bands-bounded-fanout push/no-job"},
+  "preview": {"url": "https://fix-major-history-1102-bound-p42l.gaokao-4y9.pages.dev", "immutableUrl": "https://416d85e3.gaokao-4y9.pages.dev", "headSha": "0fdae4f0e2e95bb7d8227d38f33e588ad326df53", "workerMixedRequests": 50, "cloudflare1102": 0, "majorHistory": {"total": 14, "schoolCount": 11, "minScore": 467, "maxScore": 594, "complete": true}, "browser": ["pc", "pad", "android"]},
+  "production": {"pages": "https://gaokao-4y9.pages.dev", "formal": "https://gaokao.powers.org.cn", "mainSha": "9d77e28bde271c4e65075487391bfcd6807e8f90", "immutableUrl": "https://7de04be4.gaokao-4y9.pages.dev", "release": "v3.9.90.2", "generation": "v3990_2", "revision": "r036-major-history-rank-lazy", "manifest": "active-resource-manifest-v3990_2 / site-resource-graph-v3990_2", "majorHistory": {"total": 14, "schoolCount": 11, "minScore": 467, "maxScore": 594, "complete": true}, "workerMixedRequests": 50, "cloudflare1102": 0, "resourceGraph": "verified", "browser": ["pc", "pad", "android"]},
+  "merge": {"commitSha": "9d77e28bde271c4e65075487391bfcd6807e8f90", "mergedPr": 244},
+  "verifiedAt": "2026-08-27T22:26:43Z"
 }
