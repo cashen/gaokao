@@ -2,7 +2,7 @@
   "task": "ln-rank-input-clear-state-v001",
   "repository": "cashen/gaokao",
   "branch": "agent/ln-rank-input-clear-state-v001",
-  "headSha": "80e6fde9e313687e4d64859d3d1ff63e6187de86",
+  "headSha": "2e4bed666fd234f88be9ce98296e2599bdf92028",
   "baseSha": "fabaf6470706e79ec124e971c08821c90fb719c2",
   "pr": 239,
   "completed": [
@@ -14,11 +14,11 @@
     "local-contract-tests",
     "commit-and-push",
     "remote-status-reconciled",
-    "draft-pr"
+    "draft-pr",
+    "ci-and-preview"
   ],
-  "inProgress": "ci-and-preview",
+  "inProgress": "ready-and-production-verify",
   "pending": [
-    "ci-and-preview",
     "ready-and-production-verify",
     "merge-main",
     "post-merge-verify"
@@ -30,5 +30,5 @@
     "revision": "r032-input-clear-state",
     "homeRuntime": "family-home-runtime-v3990_2-r031"
   },
-  "verifiedAt": "2026-08-27T05:09:00Z"
+  "verifiedAt": "2026-08-27T05:12:00Z"
 }
