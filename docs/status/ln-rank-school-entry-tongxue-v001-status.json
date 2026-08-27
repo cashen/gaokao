@@ -1,0 +1,43 @@
+{
+  "task": "ln-rank-school-entry-tongxue-v001",
+  "status": "entrypoint-and-live-contract-fixed-awaiting-sync",
+  "baseMainSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
+  "branch": "fix/ln-rank-tongxue-school-entry-v001",
+  "pr": 241,
+  "release": "v3.9.90.2",
+  "generation": "v3990_2",
+  "revision": "r033-tongxue-school-entry",
+  "overview": "修复学校/专业查询进入 Tongxue 时把 admission 临时标识误当 canonical entity 导致 invalid_entity；为专业查询学校卡片增加带查询上下文的原生学校链接，并保留原有工作台内切换。",
+  "defectEvidence": {
+    "reportedUrl": "/tongxue/?school=辽东学院&entity=admission:辽东学院",
+    "badOutcome": "tongxue-summary 在来源请求前返回 invalid_entity",
+    "safeOutcome": "/tongxue/?school=辽东学院，不携带无效 entity；来源真实不可用时显示 source_api_unavailable 或已核验的不可用状态",
+    "majorQueryGap": "major-all 卡片学校名称为纯文本，只有 data-major-school 工作台按钮，没有原生 href"
+  },
+  "scope": {
+    "included": [
+      "canonical Tongxue entity handoff",
+      "过期 admission handoff 兼容降级",
+      "专业查询和分数结果卡片学校原生链接",
+      "查询上下文保留",
+      "版本/缓存修订/变更日志/manifest 验证"
+    ],
+    "excluded": ["阳光高考招生计划全量采集"]
+  },
+  "remoteHeadSha": "16b2465f661c93afa16a7249f010823b8f71c35a",
+  "checks": [
+    "changed JavaScript syntax",
+    "school link and Tongxue handoff contract",
+    "direct handoff compatibility",
+    "school entity API compatibility",
+    "major-all product contract",
+    "unified card context",
+    "three-card entry audit",
+    "unified release surface"
+  ],
+  "preview": {"status": "awaiting-deploy", "exactSha": "16b2465f661c93afa16a7249f010823b8f71c35a"},
+  "localLiveSmoke": "not executed: external network approval was cancelled",
+  "production": null,
+  "merge": null,
+  "verifiedAt": null
+}
