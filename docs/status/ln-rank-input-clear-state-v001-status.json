@@ -1,0 +1,43 @@
+{
+  "task": "ln-rank-input-clear-state-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "fabaf6470706e79ec124e971c08821c90fb719c2",
+  "branch": "agent/ln-rank-input-clear-state-v001",
+  "status": "local-contract-tests-passed",
+  "defect": {
+    "kind": "stale-input-fallback",
+    "affectedOwners": [
+      "ln-rank/js/feature/major-all/major-all-mode.v001.js",
+      "ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js",
+      "ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js"
+    ],
+    "impact": "cleared DOM input could be replaced by stale state; absent history URL parameters did not clear visible inputs"
+  },
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "feature": "ln-rank-human-query-input-v002",
+    "majorFilterContext": "major-filter-context-v003",
+    "revision": "r032-input-clear-state",
+    "cacheRevision": "r032-input-clear-state"
+  },
+  "completed": [
+    "live-main-reconciled",
+    "real-defect-reproduced",
+    "remote-branch-created",
+    "live-field-precedence-fixed",
+    "history-input-clear-fixed",
+    "release-cache-revision-updated"
+  ],
+  "inProgress": "commit-and-push",
+  "pending": [
+    "commit-and-push",
+    "draft-pr",
+    "ci-and-preview",
+    "ready-and-production-verify",
+    "merge-main",
+    "post-merge-verify"
+  ],
+  "lastFailure": null,
+  "verifiedAt": "2026-08-27T02:00:00Z"
+}

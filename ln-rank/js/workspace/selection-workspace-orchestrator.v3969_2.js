@@ -173,8 +173,13 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function liveFieldValue(id, fallback = '') {
+  const field = document.getElementById(id);
+  return String(field ? field.value : fallback == null ? '' : fallback).trim();
+}
+
 function schoolInputValue() {
-  return String(document.getElementById('schoolKeyword')?.value || state.filters.schoolKeyword || '').trim();
+  return liveFieldValue('schoolKeyword', state.filters.schoolKeyword);
 }
 
 function resolveSchoolSelectionFromInput() {
@@ -361,9 +366,9 @@ function restoreSearchIntentFromUrl() {
   const schoolInput = document.getElementById('schoolKeyword');
   const majorInput = document.getElementById('majorKeyword');
   const candidateInput = document.getElementById('candidateScore');
-  if (schoolInput && school) schoolInput.value = school;
-  if (majorInput && major) majorInput.value = major;
-  if (candidateInput && score && !candidateInput.value) candidateInput.value = score;
+  if (schoolInput) schoolInput.value = school;
+  if (majorInput) majorInput.value = major;
+  if (candidateInput) candidateInput.value = score;
   state.filters.schoolKeyword = school;
   state.filters.majorKeyword = major;
   state.schoolAll.sort = normalizeSchoolSort(params.get('schoolSort'));
@@ -1485,7 +1490,7 @@ function initDirectionExplorerBridge() {
   directionExplorerController = initDirectionExplorer({
     entryMount: document.getElementById('directionExplorerEntryMount'),
     panelMount: document.getElementById('directionExplorerPanelMount'),
-    getMajorKeyword: () => state.filters.majorKeyword || document.getElementById('majorKeyword')?.value || '',
+    getMajorKeyword: () => liveFieldValue('majorKeyword', state.filters.majorKeyword),
     setMajorKeyword: setMajorKeywordFromDirectionExplorer,
     onApplied: () => markSharedInputDirty('direction_keywords_changed'),
     onCleared: applied => {

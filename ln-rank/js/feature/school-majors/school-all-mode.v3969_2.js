@@ -57,12 +57,17 @@ function fmt(value) {
   return Number.isFinite(n) ? Math.round(n).toLocaleString('zh-CN') : '—';
 }
 
+function liveFieldValue(id, fallback = '') {
+  const field = byId(id);
+  return String(field ? field.value : fallback == null ? '' : fallback).trim();
+}
+
 function currentSchoolInput() {
-  return String(byId('schoolKeyword')?.value || state.filters.schoolKeyword || '').trim();
+  return liveFieldValue('schoolKeyword', state.filters.schoolKeyword);
 }
 
 function currentMajorKeyword() {
-  return String(byId('majorKeyword')?.value || state.filters.majorKeyword || '').trim();
+  return liveFieldValue('majorKeyword', state.filters.majorKeyword);
 }
 
 function currentScore() {
