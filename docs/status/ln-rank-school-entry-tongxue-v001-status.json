@@ -1,6 +1,6 @@
 {
   "task": "ln-rank-school-entry-tongxue-v001",
-  "status": "cache-identity-fixed-awaiting-remote-sync",
+  "status": "draft-pr-ci-preview-running",
   "baseMainSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
   "pr": 241,
@@ -24,7 +24,7 @@
     ],
     "excluded": ["阳光高考招生计划全量采集"]
   },
-  "remoteHeadSha": "2cd23c146ecf55248173e591e7d2bc0510e7ca39",
+  "remoteHeadSha": "a6454949098393f0139d783c385af545c106192f",
   "checks": [
     "changed JavaScript syntax",
     "school link and Tongxue handoff contract",
@@ -35,7 +35,7 @@
     "three-card entry audit",
     "unified release surface"
   ],
-  "preview": {"status": "blocked-by-new-commit-sync", "exactSha": "de9083fc7cb262311f1ff41c45e91c9639c227cc"},
+  "preview": {"status": "awaiting-deploy", "exactSha": "a6454949098393f0139d783c385af545c106192f"},
   "production": null,
   "merge": null,
   "verifiedAt": null
