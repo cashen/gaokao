@@ -1,0 +1,61 @@
+{
+  "task": "home-countdown-redesign-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/home-countdown-redesign-v001",
+  "headSha": "ab1995394a63a66112a9aa08b6bf0567c161fd92",
+  "baseSha": "0b9072be6ca19b94c7368f24f52527b932ccfdcb",
+  "pr": 238,
+  "status": "preview-verified-pr-ready-pending",
+  "completed": [
+    "live-main-reconciled",
+    "isolated-worktree-created",
+    "plan-written",
+    "homepage-implementation",
+    "local-static-tests",
+    "remote-branch-pushed",
+    "pr-created",
+    "pr-ci",
+    "preview-exact-sha"
+  ],
+  "inProgress": "pr-ready",
+  "pending": [
+    "pr-ready",
+    "production-verify",
+    "merge-main",
+    "post-merge-verify"
+  ],
+  "lastFailure": {
+    "kind": "environment",
+    "step": "local-browser-tests",
+    "message": "Local Playwright Chromium launch is blocked by the runtime socket permission; GitHub Actions standard runner and Cloudflare Preview browser verification passed."
+  },
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r031-home-redesign",
+    "homeRuntime": "family-home-runtime-v3990_2-r031"
+  },
+  "verifiedAt": "2026-08-27T01:12:00Z",
+  "preview": {
+    "commitSha": "ab1995394a63a66112a9aa08b6bf0567c161fd92",
+    "shortSha": "ab19953",
+    "url": "https://73f855de.gaokao-4y9.pages.dev/",
+    "branchPreviewUrl": "https://agent-home-countdown-redesig.gaokao-4y9.pages.dev",
+    "status": "deploy-success-and-browser-verified",
+    "checks": [
+      "release/generation/revision",
+      "single-primary-action",
+      "four-tool-groups",
+      "countdown",
+      "desktop-overflow-recheck",
+      "major-path-navigation",
+      "primary-action-navigation"
+    ]
+  },
+  "actions": {
+    "pullRequestRuns": 23,
+    "successful": 23,
+    "failed": 0,
+    "unrelatedPushNoJobFailure": true
+  }
+}

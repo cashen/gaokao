@@ -101,7 +101,7 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     owner: SITE_RUNTIME_CONTRACT.owners.home,
     shellOwner: SITE_RUNTIME_CONTRACT.owners.sharedShell,
     releaseOwner: SITE_RUNTIME_CONTRACT.owners.release,
-    schemaVersion: 'family-home-runtime-v3990_2',
+    schemaVersion: 'family-home-runtime-v3990_2-r031',
     classification: 'current-generation',
     validationTools: ['/tools/audit-site-runtime-generation-v3990_2.mjs', '/tools/browser-home-release-v3990_2.mjs']
   }),
