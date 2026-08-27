@@ -1,11 +1,11 @@
 {
   "task": "home-countdown-redesign-v001",
   "repository": "cashen/gaokao",
-  "branch": "agent/home-countdown-redesign-v001",
-  "headSha": "ab1995394a63a66112a9aa08b6bf0567c161fd92",
+  "branch": "main",
+  "headSha": "ffe7bb6c38cf0d3aadded38686777ec51015609d",
   "baseSha": "0b9072be6ca19b94c7368f24f52527b932ccfdcb",
   "pr": 238,
-  "status": "preview-verified-pr-ready-pending",
+  "status": "complete",
   "completed": [
     "live-main-reconciled",
     "isolated-worktree-created",
@@ -15,19 +15,18 @@
     "remote-branch-pushed",
     "pr-created",
     "pr-ci",
-    "preview-exact-sha"
-  ],
-  "inProgress": "pr-ready",
-  "pending": [
+    "preview-exact-sha",
     "pr-ready",
     "production-verify",
     "merge-main",
     "post-merge-verify"
   ],
+  "inProgress": null,
+  "pending": [],
   "lastFailure": {
-    "kind": "environment",
-    "step": "local-browser-tests",
-    "message": "Local Playwright Chromium launch is blocked by the runtime socket permission; GitHub Actions standard runner and Cloudflare Preview browser verification passed."
+    "kind": "transient-external",
+    "step": "post-merge-production-resource-graph",
+    "message": "Production resource graph first two attempts hit HTTP 503 for a live API probe; the third targeted rerun passed. No product or resource contract failure."
   },
   "release": {
     "site": "v3.9.90.2",
@@ -35,27 +34,50 @@
     "revision": "r031-home-redesign",
     "homeRuntime": "family-home-runtime-v3990_2-r031"
   },
-  "verifiedAt": "2026-08-27T01:12:00Z",
+  "verifiedAt": "2026-08-27T01:30:14.215Z",
   "preview": {
-    "commitSha": "ab1995394a63a66112a9aa08b6bf0567c161fd92",
-    "shortSha": "ab19953",
-    "url": "https://73f855de.gaokao-4y9.pages.dev/",
+    "commitSha": "ffe7bb6c38cf0d3aadded38686777ec51015609d",
+    "shortSha": "ffe7bb6",
+    "url": "https://964fb1d8.gaokao-4y9.pages.dev/",
     "branchPreviewUrl": "https://agent-home-countdown-redesig.gaokao-4y9.pages.dev",
-    "status": "deploy-success-and-browser-verified",
+    "status": "deploy-success",
     "checks": [
+      "cloudflare-exact-commit",
       "release/generation/revision",
-      "single-primary-action",
-      "four-tool-groups",
-      "countdown",
-      "desktop-overflow-recheck",
-      "major-path-navigation",
-      "primary-action-navigation"
+      "home-countdown-browser-contract"
     ]
   },
   "actions": {
-    "pullRequestRuns": 23,
-    "successful": 23,
-    "failed": 0,
-    "unrelatedPushNoJobFailure": true
+    "prPullRequestRuns": 23,
+    "prSuccessful": 23,
+    "prFailed": 0,
+    "mainProductionGates": [
+      "Deploy main to Cloudflare Pages",
+      "Verify production API health v3990.1",
+      "Verify production release v3990.1",
+      "Verify production resource graph v3990.1",
+      "Verify unified site runtime v3990.1",
+      "Verify Worker resource vNext Production"
+    ],
+    "mainProductionGatesPassed": true,
+    "unrelatedPushNoJobFailures": true
+  },
+  "production": {
+    "mergeSha": "e11eb7cb28bb0c38fe2200890d39a6953072c12d",
+    "mainSha": "e11eb7cb28bb0c38fe2200890d39a6953072c12d",
+    "pages": "https://gaokao-4y9.pages.dev",
+    "customDomain": "https://gaokao.powers.org.cn",
+    "checks": [
+      "pages-deploy-success",
+      "production-api-health",
+      "production-release",
+      "production-resource-graph-attempt-3",
+      "unified-site-runtime",
+      "worker-resource-vnext",
+      "browser-home-on-custom-domain",
+      "browser-home-on-pages",
+      "major-path-navigation",
+      "primary-action-navigation"
+    ]
   }
 }
