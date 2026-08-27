@@ -40,8 +40,8 @@ for (const school of schools) {
   };
 
   assert.ok(response.status < 500, `大学生声音 live smoke 发生 5xx：${school} -> ${JSON.stringify(row)}`);
-  assert.equal(row.version, 'v1.4.0', `接口版本漂移：${school}`);
-  assert.equal(row.headerVersion, 'v1.4.0', `接口 header 版本漂移：${school}`);
+  assert.equal(row.version, 'v1.4.1', `接口版本漂移：${school}`);
+  assert.equal(row.headerVersion, 'v1.4.1', `接口 header 版本漂移：${school}`);
 
   if (response.status === 200) {
     assert.equal(payload.ok, true, `200 响应必须 ok=true：${school}`);

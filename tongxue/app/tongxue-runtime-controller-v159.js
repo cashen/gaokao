@@ -846,9 +846,12 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
     return null;
   }
   applyScopePresentation(ui, 'school', state);
-  const entityId = normalizeSchool(params.get('entity'));
-  const entity = entityId ? getSchoolEntity(entityId) : null;
-  const school = normalizeSchool(entity?.displayName || params.get('school'));
+  const requestedEntityId = normalizeSchool(params.get('entity'));
+  const requestedSchool = normalizeSchool(params.get('school'));
+  const entity = (requestedEntityId ? getSchoolEntity(requestedEntityId) : null)
+    || (requestedSchool ? findSchoolEntityByName(requestedSchool) : null);
+  const entityId = entity?.entityId || '';
+  const school = normalizeSchool(entity?.displayName || requestedSchool);
   const query = normalizeSchool(params.get('q'));
   state.voiceScope = 'school';
   state.currentTopic = topic;

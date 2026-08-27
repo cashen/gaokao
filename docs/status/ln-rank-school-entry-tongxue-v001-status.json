@@ -1,9 +1,9 @@
 {
   "task": "ln-rank-school-entry-tongxue-v001",
-  "status": "implementation",
+  "status": "local-tests-passed-awaiting-remote-sync",
   "baseMainSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
-  "pr": null,
+  "pr": 241,
   "release": "v3.9.90.2",
   "generation": "v3990_2",
   "revision": "r033-tongxue-school-entry",
@@ -24,7 +24,16 @@
     ],
     "excluded": ["阳光高考招生计划全量采集"]
   },
-  "checks": [],
+  "checks": [
+    "changed JavaScript syntax",
+    "school link and Tongxue handoff contract",
+    "direct handoff compatibility",
+    "school entity API compatibility",
+    "major-all product contract",
+    "unified card context",
+    "three-card entry audit",
+    "unified release surface"
+  ],
   "preview": null,
   "production": null,
   "merge": null,

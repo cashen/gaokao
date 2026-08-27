@@ -23,13 +23,13 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
   }),
   lnRankHumanQueryInput: entry(CURRENT_RELEASE.resourceOwners.lnRankHumanQueryInput, 'current-generation', {
     featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
-    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    revision: CURRENT_RELEASE.lnRankCacheRevision,
     cacheRevision: CURRENT_RELEASE.lnRankCacheRevision,
     contract: 'typed-draft-confirm-commit-v001'
   }),
   lnRankMajorFilterContext: entry(CURRENT_RELEASE.resourceOwners.lnRankMajorFilterContext, 'current-generation', {
     featureVersion: CURRENT_RELEASE.lnRankMajorFilterContextVersion,
-    revision: CURRENT_RELEASE.lnRankHumanQueryInputRevision,
+    revision: CURRENT_RELEASE.lnRankCacheRevision,
     contract: 'shared-major-confirm-before-submit-v001',
     modes: Object.freeze(['score-bands', 'school-all', 'major-all'])
   }),

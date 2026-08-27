@@ -1,4 +1,5 @@
 import {
+  getSchoolEntity,
   findSchoolEntityByName,
   publicSchoolEntity,
   isEntitySourceAvailable
@@ -106,12 +107,30 @@ export function resolveCardSchoolResource(candidates = []) {
   return resolveCompactSchoolResource(baseSchool || rows.at(-1));
 }
 
+function canonicalSchoolEntity(school, entityId = '') {
+  const requestedId = String(entityId || '').trim();
+  const requestedEntity = requestedId ? getSchoolEntity(requestedId) : null;
+  return requestedEntity || findSchoolEntityByName(String(school || '').trim()) || null;
+}
+
 export function buildTongxueSchoolHref({ school, entityId = '' } = {}) {
   const name = String(school || '').trim();
   if (!name) return '';
-  const params = new URLSearchParams({ school: name });
-  if (entityId) params.set('entity', String(entityId));
+  const entity = canonicalSchoolEntity(name, entityId);
+  const params = new URLSearchParams({ school: entity?.displayName || name });
+  if (entity?.entityId) params.set('entity', entity.entityId);
   return `/tongxue/?${params.toString()}`;
+}
+
+export function buildSchoolAllHref({ school, majorKeyword = '', score = '' } = {}) {
+  const name = String(school || '').trim();
+  if (!name) return '';
+  const params = new URLSearchParams({ mode: 'school-all', school: name });
+  const major = String(majorKeyword || '').trim();
+  if (major) params.set('majorKeyword', major);
+  const scoreText = String(score || '').replace(/[^0-9]/g, '');
+  if (scoreText) params.set('score', scoreText);
+  return `/ln-rank/?${params.toString()}`;
 }
 
 export async function loadTongxueSchoolDirectory() {

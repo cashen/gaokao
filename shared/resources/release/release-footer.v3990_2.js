@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './current-release.js?v=3990_2';
-import { syncCurrentRelease } from './release-presenter.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r033-tongxue-school-entry';
+import { syncCurrentRelease } from './release-presenter.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry';
 
 export const RELEASE_FOOTER_VERSION = CURRENT_RELEASE.releaseFooterContractVersion;
 const STYLE_HREF = `${CURRENT_RELEASE.resourceOwners.releaseFooterStyles}?v=${CURRENT_RELEASE.asset}`;

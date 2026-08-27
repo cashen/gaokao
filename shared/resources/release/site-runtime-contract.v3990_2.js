@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './current-release.js?v=3990_2';
-import { ACTIVE_RESOURCE_MANIFEST } from './active-resource-manifest.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from './current-release.js?v=3990_2&r=r033-tongxue-school-entry';
+import { ACTIVE_RESOURCE_MANIFEST } from './active-resource-manifest.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry';
 
 const CURRENT = 'current-generation';
 const STABLE = 'declared-stable-dependency';
@@ -13,9 +13,9 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
   releaseVersion: CURRENT_RELEASE.version,
   scope: 'whole-site-active-generation-with-declared-stable-dependencies',
   activeEntrypoints: Object.freeze({
-    releaseCenter: '/shared/resources/release/current-release.js?v=3990_2',
+    releaseCenter: '/shared/resources/release/current-release.js?v=3990_2&r=r033-tongxue-school-entry',
     releasePresenter: '/shared/resources/release/release-presenter.v3990_2.js?v=3990_2',
-    runtimeCache: '/shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2',
+    runtimeCache: '/shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry',
     resourceExecution: '/shared/governance/resource-execution-contract.v3990_2.js?v=3990_2',
     majorBandsRankIndex: '/functions/_lib/major-bands-rank-index.v3990_2.js',
     majorBandsQueryKernel: '/functions/_lib/major-bands-rank-query-kernel.v3990_2.js',
@@ -32,7 +32,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     selectionBootstrap: '/ln-rank/js/app.v3990_2.js?v=3990_2',
     selectionRuntime: '/ln-rank/js/app-runtime.v3990_2.js?v=3990_2',
     selectionWorkspace: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2',
-    majorFilterContext: '/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v003&r=r032-input-clear-state',
+    majorFilterContext: '/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v004&r=r033-tongxue-school-entry',
     interactionRuntime: '/shared/ui/interaction/interaction-transaction.v3990_2.js?v=3990_2',
     interactionStyles: '/shared/ui/interaction/interaction-transaction.v3990_2.css?v=3990_2',
     familyPlanPage: '/ln-rank/selection-pool.html',

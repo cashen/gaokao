@@ -1,4 +1,4 @@
-import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2';
+import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry';
 
 const activeGenerationModules = Object.freeze([
   '/shared/resources/release/active-resource-manifest.v3990_2.js',

@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2';
-import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2&r=r033-tongxue-school-entry';
+import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
