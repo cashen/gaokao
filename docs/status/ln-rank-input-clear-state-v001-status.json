@@ -3,9 +3,9 @@
   "repository": "cashen/gaokao",
   "baseSha": "fabaf6470706e79ec124e971c08821c90fb719c2",
   "branch": "agent/ln-rank-input-clear-state-v001",
-  "status": "ci-preview-all-green-ready-for-review",
+  "status": "merged-main-production-verified",
   "pr": 239,
-  "remoteHeadSha": "2e4bed666fd234f88be9ce98296e2599bdf92028",
+  "remoteHeadSha": "f13071a24bfda429d5561f0694f9e5f5f8c93c16",
   "defect": {
     "kind": "stale-input-fallback",
     "affectedOwners": [
@@ -32,14 +32,16 @@
     "release-cache-revision-updated",
     "remote-status-reconciled",
     "draft-pr",
-    "ci-and-preview"
-  ],
-  "inProgress": "ready-and-production-verify",
-  "pending": [
+    "ci-and-preview",
     "ready-and-production-verify",
     "merge-main",
     "post-merge-verify"
   ],
+  "inProgress": null,
+  "pending": [],
   "lastFailure": null,
-  "verifiedAt": "2026-08-27T05:12:00Z"
+  "mergeSha": "f13071a24bfda429d5561f0694f9e5f5f8c93c16",
+  "mainSha": "f13071a24bfda429d5561f0694f9e5f5f8c93c16",
+  "productionVerifiedAt": "2026-08-27T05:28:00Z",
+  "verifiedAt": "2026-08-27T05:28:00Z"
 }
