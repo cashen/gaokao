@@ -1,7 +1,7 @@
 {
   "task": "worker-1102-bounded-api-v001",
   "repository": "cashen/gaokao",
-  "status": "preview-verified-final-head-sync",
+  "status": "final-head-ci-pending",
   "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
   "branch": "fix/worker-1102-bounded-api-v001",
   "release": {
@@ -24,7 +24,8 @@
     "ready-for-review",
     "exact-preview-sha-verified",
     "preview-api-and-manifest-verified",
-    "preview-browser-key-path-verified"
+    "preview-browser-key-path-verified",
+    "preview-stress-verified"
   ],
   "inProgress": "final-head-sync-and-ci",
   "pending": [
@@ -46,7 +47,7 @@
     "url": "https://github.com/cashen/gaokao/pull/242",
     "remoteHeadSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
     "draft": false,
-    "checks": "28/28 PR-triggered workflows successful"
+    "checks": "28/28 PR-triggered workflows successful for prior exact HEAD; final handoff commit pending"
   },
   "preview": {
     "url": "https://3026fdf2.gaokao-4y9.pages.dev",
