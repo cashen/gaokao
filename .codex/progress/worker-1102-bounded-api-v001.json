@@ -1,7 +1,7 @@
 {
   "task": "worker-1102-bounded-api-v001",
   "repository": "cashen/gaokao",
-  "status": "local-validation-complete",
+  "status": "pr-open-awaiting-ci",
   "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
   "branch": "fix/worker-1102-bounded-api-v001",
   "release": {
@@ -18,11 +18,11 @@
     "root-cause-confirmed-public-origin-fallback",
     "context-bound-api-fix",
     "release-and-cache-revision-synchronized",
-    "local-api-and-contract-tests"
+    "local-api-and-contract-tests",
+    "commit-and-pr"
   ],
-  "inProgress": "commit-and-pr",
+  "inProgress": "pr-ci-and-preview",
   "pending": [
-    "commit-and-pr",
     "pr-checks-and-ready",
     "exact-preview-sha-and-browser-verification",
     "production-manifest-and-site-verification",
@@ -35,6 +35,12 @@
     "rootCause": "school-majors passed context.request to school-query-provider, so provider lost env.ASSETS and used public-origin fetch inside the Worker",
     "localRegression": "with global fetch forced to throw, bound ASSETS resolve-only and full school query both returned HTTP 200 with verified records",
     "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure is excluded from product failure assessment"
+  },
+  "pullRequest": {
+    "number": 242,
+    "url": "https://github.com/cashen/gaokao/pull/242",
+    "remoteHeadSha": "81124b36137297857ba101c7723b5dd22386b3cf",
+    "draft": true
   },
   "preserved": [
     "/workspace/scratch/7d83622e98d3/gaokao",

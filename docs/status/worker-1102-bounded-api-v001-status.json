@@ -1,6 +1,6 @@
 {
   "task": "worker-1102-bounded-api-v001",
-  "status": "local-validation-complete",
+  "status": "pr-open-awaiting-ci",
   "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
   "branch": "fix/worker-1102-bounded-api-v001",
   "release": "v3.9.90.2",
@@ -33,5 +33,14 @@
     "node tools/audit-unified-resource-graph-v3990_2.mjs",
     "node --check changed JavaScript modules"
   ],
+  "pullRequest": {
+    "number": 242,
+    "url": "https://github.com/cashen/gaokao/pull/242",
+    "remoteHeadSha": "81124b36137297857ba101c7723b5dd22386b3cf",
+    "draft": true
+  },
+  "preview": null,
+  "production": null,
+  "merge": null,
   "verifiedAt": "2026-08-27T21:25:20Z"
 }
