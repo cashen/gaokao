@@ -97,8 +97,9 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
   workerResourceBoundary: entry(CURRENT_RELEASE.resourceOwners.schoolMajorsApi, 'current-generation', {
     version: CURRENT_RELEASE.workerResourceBoundaryVersion,
     schoolQueryContextBindingVersion: CURRENT_RELEASE.schoolQueryContextBindingVersion,
+    majorHistoryResourceBoundaryVersion: CURRENT_RELEASE.majorHistoryResourceBoundaryVersion,
     majorHistoryApi: CURRENT_RELEASE.resourceOwners.majorHistoryApi,
-    policy: 'Pages Functions APIs must receive the full context and use bound ASSETS; public origin self-fetch is forbidden'
+    policy: 'Pages Functions APIs must receive the full context and use bound ASSETS; public origin self-fetch is forbidden; major-history direct inputs use the bounded manifest index before any optional language resolver'
   }),
   verification: Object.freeze({
     sourceGraphOwner: CURRENT_RELEASE.resourceOwners.resourceRegistry,

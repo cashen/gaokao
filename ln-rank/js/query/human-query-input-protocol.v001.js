@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js?v=3990_2&r=r034-worker-1102-bounded-api';
+import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js?v=3990_2&r=r035-major-history-1102-bounded-api';
 
 export const HUMAN_QUERY_INPUT_PROTOCOL_VERSION = CURRENT_RELEASE.lnRankHumanQueryInputVersion;
 export const HUMAN_QUERY_INPUT_PROTOCOL_REVISION = CURRENT_RELEASE.lnRankHumanQueryInputRevision;
