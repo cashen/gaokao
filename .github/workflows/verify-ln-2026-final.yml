@@ -135,7 +135,12 @@ jobs:
           python3 -m http.server 8765 >/tmp/v3990-2-final-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8765/ >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" -eq 1
           paths=(
             / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/self-check.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html /aiplus/
             /shared/resources/release/current-release.js
