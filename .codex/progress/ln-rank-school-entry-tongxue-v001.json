@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
   "baseSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
-  "headSha": "578fa2c6bb57db1acb81398605f98e6fb3e2a41e",
-  "remoteHeadSha": "aa26b2fd0160f93689fe28c4d3b5cdce65a83a94",
+  "headSha": "1f36a45995ae6e10f96218c3631f959bac1040f5",
+  "remoteHeadSha": "16b2465f661c93afa16a7249f010823b8f71c35a",
   "pr": 241,
   "completed": [
     "live-main-reconciled",
@@ -15,6 +15,8 @@
     "implementation",
     "cache-identity-importmap-fixed",
     "cache-contract-test-fixed",
+    "preview-entrypoint-sync-fixed",
+    "live-unavailability-contract-fixed",
     "local-contract-tests",
     "commit-and-push",
     "draft-pr",
@@ -52,17 +54,19 @@
     "专业查询、分数+学校查询、学校查询、多专业输入/恢复和返回路径通过现有测试。",
     "Preview 使用精确提交 SHA 验证，Production 与合并后的 main、资源 manifest、版本和关键浏览器交互全部复核。"
   ],
-  "lastFailure": "PR checks at aa26b2f exposed a stale exact-string assertion in verify-tongxue-uec-cache-identity-v001: the controller target correctly includes canonical 159-startup001 plus r033, while the test still required no cache revision. Updated the test to assert both identity and r033; local regression passes. Shell git push remains unavailable; synchronize through the connected GitHub API.",
+  "lastFailure": "PR checks at 0d96e5d found the remote branch still had the pre-fix wrapper import, so the browser bypassed import map and loaded v=159; remote entrypoint was corrected at 16b2465f. The live smoke also received the real source_api_unavailable/502 state; its contract now accepts only that explicit unavailable state and rejects unexplained 5xx. Local live smoke was not executed because external network approval was cancelled; static and contract tests pass.",
   "remoteCommits": [
     "7894cb2053743f095e946b2bd794aa5fb65323f3",
     "354f0faf11e8356c42b3689ab11f5272e7e893fc",
     "a6454949098393f0139d783c385af545c106192f",
     "4ff585c9e923d13bffc5bb9fe4bc4e60c75c5b66",
-    "aa26b2fd0160f93689fe28c4d3b5cdce65a83a94"
+    "aa26b2fd0160f93689fe28c4d3b5cdce65a83a94",
+    "0d96e5dc5df4d4a9b72a399882517fea3b100d59"
   ],
   "checks": [
     "node --check changed JavaScript modules",
     "Tongxue controller import-map cache identity regression fixed and rechecked",
+    "explicit source_api_unavailable/502 state contract added; local external live smoke blocked by network approval",
     "node tools/verify-ln-rank-school-entry-tongxue-v001.mjs",
     "node tools/tongxue/verify-direct-handoff-v155.mjs",
     "node tools/tongxue/verify-school-entities-v130.mjs",

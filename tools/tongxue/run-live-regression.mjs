@@ -39,11 +39,21 @@ for (const school of schools) {
     elapsedMs:Date.now() - startedAt
   };
 
-  assert.ok(response.status < 500, `大学生声音 live smoke 发生 5xx：${school} -> ${JSON.stringify(row)}`);
+  const sourceUnavailable = response.status === 502
+    && payload?.mode === 'source_unavailable'
+    && payload?.error === 'source_api_unavailable'
+    && payload?.ok === false;
+  assert.ok(response.status < 500 || sourceUnavailable, `大学生声音 live smoke 发生未解释的 5xx：${school} -> ${JSON.stringify(row)}`);
   assert.equal(row.version, 'v1.4.1', `接口版本漂移：${school}`);
   assert.equal(row.headerVersion, 'v1.4.1', `接口 header 版本漂移：${school}`);
 
-  if (response.status === 200) {
+  if (sourceUnavailable) {
+    assert.equal(payload.scope, 'school', `source_unavailable 必须保留 school scope：${school}`);
+    assert.ok(payload.schoolMeta?.id !== undefined && payload.schoolMeta?.id !== null, `source_unavailable 必须保留已解析学校实体：${school}`);
+    assert.equal(row.summaryLength, 0, `source_unavailable 不应伪造摘要：${school}`);
+    assert.equal(row.studentEvidenceCount, 0, `source_unavailable 不应伪造学生证据：${school}`);
+    assert.equal(row.reviewCount, 0, `source_unavailable 不应伪造评论：${school}`);
+  } else if (response.status === 200) {
     assert.equal(payload.ok, true, `200 响应必须 ok=true：${school}`);
     assert.ok(['ai_summary','recent_reviews','no_content','topic_reviews','topic_no_content','topic_not_found_within_budget'].includes(payload.mode), `未知内容模式：${school} -> ${payload.mode}`);
     assert.equal(payload.scope, 'school', `school scope 丢失：${school}`);
@@ -73,7 +83,7 @@ for (const school of schools) {
 }
 
 await writeFile(`${artifactDir}/student-voice-live-smoke.json`, JSON.stringify({ ok:true, results }, null, 2));
-console.log(JSON.stringify({ ok:true, contract:'student-voice-live-smoke-v0.02', results }, null, 2));
+console.log(JSON.stringify({ ok:true, contract:'student-voice-live-smoke-v0.03', results }, null, 2));
 
 function validateStudentEvidence(evidence, school) {
   assert.ok(evidence && typeof evidence === 'object', `studentEvidence 非对象：${school}`);
