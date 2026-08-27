@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-tongxue-school-entry-v001",
   "baseSha": "437f1e885febc53229c4bfbbd3e0af312f7bdc90",
-  "headSha": "354f0faf11e8356c42b3689ab11f5272e7e893fc",
+  "headSha": "de9083fc7cb262311f1ff41c45e91c9639c227cc",
   "remoteHeadSha": "354f0faf11e8356c42b3689ab11f5272e7e893fc",
   "pr": 241,
   "completed": [
@@ -13,6 +13,7 @@
     "interaction-gap-confirmed",
     "scope-and-acceptance-written",
     "implementation",
+    "cache-identity-importmap-fixed",
     "local-contract-tests",
     "commit-and-push",
     "draft-pr"
@@ -49,13 +50,14 @@
     "专业查询、分数+学校查询、学校查询、多专业输入/恢复和返回路径通过现有测试。",
     "Preview 使用精确提交 SHA 验证，Production 与合并后的 main、资源 manifest、版本和关键浏览器交互全部复核。"
   ],
-  "lastFailure": "Local git push lacks shell credentials; commits were synchronized through the connected GitHub API.",
+  "lastFailure": "PR checks at 2cd23c1 exposed a real import-map cache identity regression: the controller import bypassed the canonical 159-startup001 mapping. Fixed by keeping the canonical import key and adding r033 on its target; local regression passes. Shell git push remains unavailable; synchronize through the connected GitHub API.",
   "remoteCommits": [
     "7894cb2053743f095e946b2bd794aa5fb65323f3",
     "354f0faf11e8356c42b3689ab11f5272e7e893fc"
   ],
   "checks": [
     "node --check changed JavaScript modules",
+    "Tongxue controller import-map cache identity regression fixed and rechecked",
     "node tools/verify-ln-rank-school-entry-tongxue-v001.mjs",
     "node tools/tongxue/verify-direct-handoff-v155.mjs",
     "node tools/tongxue/verify-school-entities-v130.mjs",
@@ -64,5 +66,5 @@
     "node tools/audit-three-card-entries-v001.mjs",
     "node tools/audit-unified-release-surface-v001.mjs"
   ],
-  "verifiedAt": null
+  "verifiedAt": "2026-08-27T07:00:00Z"
 }
