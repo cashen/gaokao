@@ -9,7 +9,7 @@ const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js', 'ut
 
 const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159';
 const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001';
-const CONTROLLER_CACHE_IDENTITY = `${CONTROLLER_IDENTITY}&r=r033-tongxue-school-entry`;
+const CONTROLLER_CACHE_IDENTITY = `${CONTROLLER_IDENTITY}&r=r034-worker-1102-bounded-api`;
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
 const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004';
 

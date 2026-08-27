@@ -1,7 +1,7 @@
 import { state } from '../../state/app-state.v3963_1.js?v=3963_1';
 import {
   buildTongxueSchoolHref
-} from '../../../../shared/resources/schools/school-resource-center.js?v=3990_2&r=r033-tongxue-school-entry';
+} from '../../../../shared/resources/schools/school-resource-center.js?v=3990_2&r=r034-worker-1102-bounded-api';
 import { UI_ACTION_COPY } from '../../../../shared/ui/contracts/action-contract.v3970_0.js?v=3970_0-hc001';
 import {
   createSelectionPoolAdapter,

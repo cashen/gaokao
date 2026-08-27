@@ -202,7 +202,10 @@ export async function onRequest(context) {
     const schoolIntent = normalizeSchoolQueryIntent(url.searchParams.get('schoolIntent') || 'auto');
     const resolveOnly = url.searchParams.get('resolveOnly') === '1';
 
-    const directoryMeta = await getAdmissionSchoolDirectoryMeta(context.request);
+    // Keep the full Pages Functions context so the provider can use the bound
+    // ASSETS fetch. Passing only context.request falls back to a public origin
+    // fetch inside the Worker and can exhaust the Worker resource budget.
+    const directoryMeta = await getAdmissionSchoolDirectoryMeta(context);
 
     let entity = entityId ? getSchoolEntity(entityId) : null;
     if (entityId && !entity && !entityId.startsWith('admission:')) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
@@ -219,19 +222,19 @@ export async function onRequest(context) {
         entityType: entity.entityType
       };
     } else if (entityId) {
-      selection = await resolveExactAdmissionSchool(context.request, schoolInput);
+      selection = await resolveExactAdmissionSchool(context, schoolInput);
       if (!selection || selection.entityId !== entityId) return json({ ok: false, message: '学校实体与招生目录不匹配，请重新选择学校。' }, 400);
       entity = canonicalEntityForSelection(selection);
       if (!entity) return json({ ok: false, message: '学校实体无法从统一招生目录确认，请重新选择学校。' }, 409);
     } else {
       const exactSelection = schoolIntent === 'school'
-        ? await resolveExactAdmissionSchool(context.request, schoolInput)
+        ? await resolveExactAdmissionSchool(context, schoolInput)
         : null;
       if (exactSelection) {
         selection = exactSelection;
         entity = canonicalEntityForSelection(selection);
       } else {
-        queryResult = await resolveAdmissionSchoolQuery(context.request, {
+        queryResult = await resolveAdmissionSchoolQuery(context, {
           query: schoolInput,
           intent: schoolIntent,
           offset: candidateOffset,
@@ -278,7 +281,7 @@ export async function onRequest(context) {
     const { manifest, records: exactRaw, rawScanned } = exactLoad;
     const chunkFiles2026 = exactLoad.shardFiles || [];
     if (!exactRaw.length) {
-      const fallback = queryResult || await resolveAdmissionSchoolQuery(context.request, {
+      const fallback = queryResult || await resolveAdmissionSchoolQuery(context, {
         query: schoolInput || selection.officialName,
         intent: schoolIntent,
         offset: candidateOffset,
