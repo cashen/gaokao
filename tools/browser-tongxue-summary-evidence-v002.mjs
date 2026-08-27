@@ -43,7 +43,7 @@ const payload = {
   transport:'来源评论摘要 + 学生证据 · 测试镜像',
   evidence:{ type:'student_voice', scope:'school', topic:'general', matchCount:3, sampleLevel:'source_summary', scannedCount:6, scannedPages:1, exhaustive:false, sourceSummary:true, officialFact:false, rankingInput:false, recommendationScoreInput:false, verificationWeight:'none', disagreementPolicy:'preserve_not_average' },
   source:{ id:'srgaoxiao', name:'神人高校网', url:'https://eo.srgaoxiao.cn/school/test' },
-  version:'v1.4.0'
+  version:'v1.4.1'
 };
 
 const browser = await chromium.launch({ headless:true });

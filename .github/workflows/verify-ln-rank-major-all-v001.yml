@@ -33,9 +33,13 @@ jobs:
           node --check ln-rank/js/knowledge/major-understanding-resolver.js
           node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js
           node --check ln-rank/js/workspace/major-path-handoff.v003.js
+          node --check tools/verify-ln-rank-school-entry-tongxue-v001.mjs
 
       - name: Verify major-all product and ownership contract
         run: node tools/verify-ln-rank-major-all-v001.mjs
+
+      - name: Verify school link and Tongxue handoff contract
+        run: node tools/verify-ln-rank-school-entry-tongxue-v001.mjs
 
       - name: Install verified Chromium journey runner
         run: bash .github/scripts/install-playwright-chromium.sh

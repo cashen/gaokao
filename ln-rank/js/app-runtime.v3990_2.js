@@ -6,8 +6,8 @@ import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
 } from '../../shared/resources/exam/liaoning-physics.js?v=3967_0';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_2';
-import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_2&r=r033-tongxue-school-entry';
+import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry';
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../../shared/resources/release/runtime-cache-contract.v3990_2.js?v=3990_2';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3969_0';
 import { state } from './state/app-state.v3963_1.js?v=3963_1';
@@ -165,11 +165,11 @@ export function startLnRankRuntime() {
     if (globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version !== INTERACTION_VERSION) {
       throw new Error('unified interaction transaction did not initialize');
     }
-    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r032-input-clear-state');
+    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_2.js?v=3990_2&r=r033-tongxue-school-entry');
     await workspace.selectionWorkspaceReady;
-    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r032-input-clear-state');
+    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r033-tongxue-school-entry');
     await schoolMode.schoolAllModeReady;
-    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v003&r=r032-input-clear-state');
+    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_2&context=major-filter-context-v004&r=r033-tongxue-school-entry');
     await majorMode.majorAllModeReady;
     syncSharedBottomLine();
     return Object.freeze({

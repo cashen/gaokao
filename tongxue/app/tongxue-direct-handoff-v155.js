@@ -1,4 +1,4 @@
-import { getSchoolEntity } from '../data/school-entities-v150.js?v=150';
+import { findSchoolEntityByName, getSchoolEntity } from '../data/school-entities-v150.js?v=150';
 
 const HANDOFF_TIMEOUT_MS = 12000;
 
@@ -6,12 +6,13 @@ export function readTongxueDirectHandoff(search = globalThis.location?.search ||
   const params = new URLSearchParams(String(search || ''));
   const requestedSchool = String(params.get('school') || '').trim();
   const requestedEntityId = String(params.get('entity') || '').trim();
-  const entity = requestedEntityId ? getSchoolEntity(requestedEntityId) : null;
+  const entity = (requestedEntityId ? getSchoolEntity(requestedEntityId) : null)
+    || (requestedSchool ? findSchoolEntityByName(requestedSchool) : null);
   const school = String(entity?.displayName || requestedSchool || '').trim();
 
   return Object.freeze({
     school,
-    entityId: entity?.entityId || requestedEntityId,
+    entityId: entity?.entityId || '',
     requestedSchool,
     shouldAutoQuery: Boolean(school),
     source: school ? 'url-school-handoff' : 'none'

@@ -25,6 +25,7 @@ on:
       - 'tools/verify-student-voice-evidence-layer-v002.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/verify-tongxue-startup-status-v001.mjs'
+      - 'tools/verify-ln-rank-school-entry-tongxue-v001.mjs'
       - 'tools/audit-school-query-v3970.mjs'
       - 'tools/build-school-admission-directory-v3969.mjs'
       - 'tools/schools/**'
@@ -114,6 +115,7 @@ jobs:
           console.log('Tongxue stable v159 package under current site generation v3990_2 and release v3.9.90.2 passed');
           NODE
           node tools/verify-tongxue-uec-cache-identity-v001.mjs
+          node tools/verify-ln-rank-school-entry-tongxue-v001.mjs
 
       - name: Verify student voice summary evidence pipeline
         run: |
