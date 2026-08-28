@@ -28,7 +28,7 @@ assert.doesNotMatch(index, /关系图不是“平替排行榜”|本科目录硬
 
 assert.match(human, /major-path-human-v0\.05/);
 assert.match(human, /major-path-viewport-v0\.05/);
-assert.match(human, /await import\('\.\/app\.v002\.js\?v=002_0'\)/);
+assert.match(human, /await import\('\.\/app-core\.v005\.js\?v=005_0'\)/);
 assert.doesNotMatch(human, /app\.v003\.js/);
 assert.match(human, /本科到读研，先看这条线/);
 assert.match(human, /dataMajorPathwayFocus|majorPathwayFocus/);
