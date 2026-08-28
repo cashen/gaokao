@@ -1,0 +1,137 @@
+name: Verify native chooser activation v3990.1
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-chooser-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check protected paths and current browser source syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+            git diff --name-only "$base" HEAD | tee /tmp/v3990-1-native-files.txt
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-native-files.txt; then exit 1; fi
+          fi
+          node --check shared/ui/interaction/interaction-transaction.v3990_2.js
+          node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
+          node --check shared/resources/background/academic-background-navigation.v002.js
+          node --check tools/browser-native-chooser-activation-v3990_2.mjs
+          node --check tools/browser-native-chooser-activation-v3990_2-runner.mjs
+          node --check tools/browser-resource-execution-v3990_2.mjs
+          node --check tools/browser-family-action-v3990_2.mjs
+          node --check tools/browser-school-query-v3990_2.mjs
+          grep -q "interaction-transaction-v3990_2" shared/ui/interaction/interaction-transaction.v3990_2.js
+          grep -q "nativeChooserActivationVersion: 'native-chooser-activation-integrity-v3990_2'" shared/resources/release/current-release.js
+          grep -q "nativeChooserActivation: '/shared/ui/interaction/interaction-transaction.v3990_2.js'" shared/resources/release/site-runtime-contract.v3990_2.js
+          if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_2.js; then exit 1; fi
+
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
+
+      - name: Verify first-tap activation integrity and tail isolation
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-native-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-native-http.log; exit 1; fi
+          V3990_2_ARTIFACT_DIR=/tmp/v3990-1-native-browser \
+            node tools/browser-native-chooser-activation-v3990_2-runner.mjs 2>&1 | tee /tmp/v3990-1-native-browser.out
+
+      - name: Verify preserved PC Pad Android main journey
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-main-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-main-http.log; exit 1; fi
+          V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-main \
+            node tools/browser-resource-execution-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-main.out
+
+      - name: Verify family action geometry
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-family-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-family-http.log; exit 1; fi
+          V3970_ARTIFACT_DIR=/tmp/v3990-1-browser-family \
+            node tools/browser-family-action-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-family.out
+
+      - name: Verify school ambiguity and mode switching
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-school-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-school-http.log; exit 1; fi
+          V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-school \
+            node tools/browser-school-query-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-school.out
+
+      - name: Verify preserved 211 and LocalStrength journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-background-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-background-http.log; exit 1; fi
+          V3968_ARTIFACT_DIR=/tmp/v3990-1-browser-background \
+            node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3990-1-browser-background.out
+
+      - name: Upload chooser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-1-native-chooser-browser
+          path: /tmp/v3990-1-*
+          if-no-files-found: warn
+          retention-days: 7

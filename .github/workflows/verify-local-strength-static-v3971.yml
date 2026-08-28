@@ -1,0 +1,140 @@
+name: Verify LocalStrength static v3971.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/css/local-strength.v3971_2.css'
+      - 'ln-rank/css/local-strength-score-position.v3972_3.css'
+      - 'ln-rank/js/local-strength/local-strength-app.v3971_2.js'
+      - 'ln-rank/data/local-strength/**'
+      - 'tools/build-local-strength-static-v3971.mjs'
+      - 'tools/compact-local-strength-static-v3971.mjs'
+      - 'tools/audit-local-strength-static-v3971.mjs'
+      - 'tools/browser-local-strength-static-v3971.mjs'
+      - 'shared/resources/release/**'
+      - '.github/workflows/verify-local-strength-static-v3971.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/css/local-strength.v3971_2.css'
+      - 'ln-rank/css/local-strength-score-position.v3972_3.css'
+      - 'ln-rank/js/local-strength/local-strength-app.v3971_2.js'
+      - 'ln-rank/data/local-strength/**'
+      - 'shared/resources/release/**'
+      - '.github/workflows/verify-local-strength-static-v3971.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  local-strength-static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Protect runtime boundaries and verify immutable data
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+            git diff --name-only "$base" HEAD | tee /tmp/local-strength-static-files.txt
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/api/local-strength\.js$|functions/_lib/local-strength-api\.js$)' /tmp/local-strength-static-files.txt; then exit 1; fi
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && ! git diff --quiet "$base" HEAD -- \
+              ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+              ln-rank/data/local-strength/local-strength-audit.v3971_2.json; then
+              echo 'LocalStrength v3971.2 is a published immutable asset; create a new generation instead of modifying it.'
+              exit 1
+            fi
+          fi
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
+          test -f ln-rank/css/local-strength-score-position.v3972_3.css
+          grep -q 'local-strength-score-position-v3972_3' ln-rank/local-mainline.html
+          grep -q '.ls-score-position-groups' ln-rank/css/local-strength-score-position.v3972_3.css
+          node --check ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/release-presenter.v3971_2.js
+          node --check tools/build-local-strength-static-v3971.mjs
+          node --check tools/compact-local-strength-static-v3971.mjs
+          node --check tools/audit-local-strength-static-v3971.mjs
+          node --check tools/browser-local-strength-static-v3971.mjs
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const indexPath='ln-rank/data/local-strength/local-strength-index.v3971_2.json';
+          const auditPath='ln-rank/data/local-strength/local-strength-audit.v3971_2.json';
+          const index=JSON.parse(fs.readFileSync(indexPath,'utf8'));
+          const audit=JSON.parse(fs.readFileSync(auditPath,'utf8'));
+          if(index.version!=='local-strength-static-v3971_2') throw new Error('index version');
+          if(index.meta.matchedRecordCount!==243||index.records.length!==243) throw new Error(`immutable record count ${index.meta.matchedRecordCount}/${index.records.length}`);
+          if(!index.meta.completeEvaluation||index.meta.evaluatedRecordCount!==index.meta.localAdmissionRecordCount) throw new Error('coverage');
+          if(index.meta.duplicatePublicRecordCount!==0||index.meta.unresolvedLocalRecordCount!==0) throw new Error('integrity');
+          const auditCount=audit?.summary?.matchedRecordCount ?? audit?.meta?.matchedRecordCount ?? audit?.matchedRecordCount;
+          if(auditCount!==243) throw new Error(`audit immutable record count ${auditCount}`);
+          console.log(JSON.stringify({version:index.version,records:index.records.length,auditCount,indexBytes:fs.statSync(indexPath).size},null,2));
+          NODE
+          node tools/audit-local-strength-static-v3971.mjs 2>&1 | tee /tmp/local-strength-static-audit.out
+      - name: Install browser and Wrangler
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0 wrangler@4.28.1
+          npx playwright install --with-deps chromium
+      - name: Verify seven viewport static journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8789 >/tmp/local-strength-static-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          LOCAL_STRENGTH_BASE=http://127.0.0.1:8789 node tools/browser-local-strength-static-v3971.mjs 2>&1 | tee /tmp/local-strength-static-browser.out
+      - name: Verify existing Functions score and school queries remain healthy
+        run: |
+          set -euo pipefail
+          npx wrangler pages dev . --port 8790 --compatibility-date=2026-07-01 >/tmp/local-strength-static-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8790/api/ln-rank-runtime-health' >/tmp/runtime-health.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/local-strength-static-wrangler.log; exit 1; fi
+          curl -fsS 'http://127.0.0.1:8790/api/major-bands-health?probe=1' > /tmp/major-bands-health.json
+          curl -fsS 'http://127.0.0.1:8790/api/major-bands?candidateScore=579&limit=16' > /tmp/major-bands-score.json
+          curl -fsS --get 'http://127.0.0.1:8790/api/major-bands' --data-urlencode 'candidateScore=650' --data-urlencode 'schoolKeyword=东北大学' --data-urlencode 'limit=16' > /tmp/major-bands-school.json
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
+          const runtime=read('/tmp/runtime-health.json');
+          const health=read('/tmp/major-bands-health.json');
+          const score=read('/tmp/major-bands-score.json');
+          const school=read('/tmp/major-bands-school.json');
+          if(runtime.ok===false) throw new Error(JSON.stringify(runtime));
+          if(health.ok===false) throw new Error(JSON.stringify(health));
+          if(score.ok===false) throw new Error(JSON.stringify(score));
+          if(school.ok===false) throw new Error(JSON.stringify(school));
+          const scoreCount=['upper','near','steady'].reduce((n,k)=>n+(score.bands?.[k]?.records?.length||0),0);
+          const schoolCount=['upper','near','steady'].reduce((n,k)=>n+(school.bands?.[k]?.records?.length||0),0);
+          if(scoreCount<1) throw new Error('score query empty');
+          if(schoolCount<1) throw new Error('school query empty');
+          console.log(JSON.stringify({scoreCount,schoolCount,runtime:true,health:true},null,2));
+          NODE
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-strength-static-v3971-2-verification
+          path: |
+            /tmp/local-strength-static-*
+            /tmp/runtime-health.json
+            /tmp/major-bands-*.json
+          if-no-files-found: warn
+          retention-days: 7

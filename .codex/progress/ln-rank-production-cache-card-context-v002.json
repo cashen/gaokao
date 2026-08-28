@@ -1,0 +1,31 @@
+{
+  "task": "ln-rank-production-cache-card-context-v002",
+  "status": "merged-production-verified",
+  "baseMainSha": "5715dcfe7d448159bccf1d13106dde421d354496",
+  "mergeCommitSha": "3cc63357b6b46193925620a68d23a3dc8850f703",
+  "finalVerifiedMainSha": "3cc63357b6b46193925620a68d23a3dc8850f703",
+  "pullRequests": [228, 229, 230],
+  "branch": "agent/production-cache-card-context-v002",
+  "release": "v3.9.90.2",
+  "assetVersion": "3990_2",
+  "releaseRevision": "r027",
+  "cacheRevision": "r027-card5",
+  "completed": [
+    "post-merge PR #229 production checks completed",
+    "production still served stale app-runtime chain after same-query card4 deployment",
+    "bumped all active r027-card4 URLs to canonical r027-card5",
+    "declared cache revision in current release and active resource manifest",
+    "PR #230 Ready checks completed with no failures",
+    "exact Preview 4e28936 verified with r027-card5 and compound school entries",
+    "main production deployment, resource graph, release, API, and site runtime checks completed",
+    "formal production domain and Pages domain verified with r027-card5",
+    "formal production score, school, compound-entry, and return-path journeys verified"
+  ],
+  "next": [
+    "no remaining product action; continue from this checkpoint only if new production state changes"
+  ],
+  "preserved": [
+    "original dirty worktree /workspace/scratch/e656e218a4d4/gaokao-followup",
+    "sunshine admissions-plan collection"
+  ]
+}

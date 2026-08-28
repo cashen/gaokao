@@ -1,0 +1,11 @@
+import fs from 'node:fs';import path from 'node:path';
+const norm=v=>String(v??'').trim().replaceAll(' ','');
+const identity=r=>[r.schoolCode2026??r.schoolCode,r.majorCode2026??r.majorCode,r.school??r.schoolName,r.major??r.majorName,r.score2026??r.score,r.rank2026??r.rank].map(norm).join('|');
+const rawManifest=JSON.parse(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json','utf8'));
+const raw=[];
+for(const ch of rawManifest.chunks||[]){const rel=ch.file||ch.path;const candidates=[path.join('fenxi',rel),rel,path.join('fenxi/data/ln-rank-2026',path.basename(rel))];const file=candidates.find(fs.existsSync);if(!file)throw new Error(`raw chunk missing ${rel}`);const data=JSON.parse(fs.readFileSync(file,'utf8'));raw.push(...(Array.isArray(data)?data:data.records||[]));}
+const index=JSON.parse(fs.readFileSync('data/zy2026/school-index.json','utf8'));const projected=[];const schools=new Set();const chunks=new Set();
+for(const info of Object.values(index.schools||{})){chunks.add(info.chunk);const payload=JSON.parse(fs.readFileSync(path.join('data/zy2026/chunks',info.chunk),'utf8'));const school=payload.schools?.[info.key];if(!school)throw new Error(`missing projected school ${info.name||info.key}`);const rows=(school.relations||[]).flatMap(r=>r.records2026||[]);projected.push(...rows);if(rows.length)schools.add(info.key);if(info.recordCount2026!=null&&Number(info.recordCount2026)!==rows.length)throw new Error(`record count mismatch ${info.name||info.key}`);}
+const count=arr=>{const m=new Map();for(const r of arr){const k=identity(r);m.set(k,(m.get(k)||0)+1);}return m;};const a=count(raw),b=count(projected);const missing=[...a].filter(([k,v])=>(b.get(k)||0)!==v);const extra=[...b].filter(([k,v])=>(a.get(k)||0)!==v);
+if(raw.length!==11628||projected.length!==11628||schools.size!==956||chunks.size>100||missing.length||extra.length||[...b.values()].some(v=>v!==1))throw new Error(JSON.stringify({raw:raw.length,projected:projected.length,schools:schools.size,chunks:chunks.size,missing:missing.slice(0,3),extra:extra.slice(0,3)}));
+console.log(JSON.stringify({ok:true,sourceRecords:raw.length,projectionRecords:projected.length,schools:schools.size,usedShards:chunks.size,missing:0,duplicate:0,sourceManifestVersion:rawManifest.version||''},null,2));

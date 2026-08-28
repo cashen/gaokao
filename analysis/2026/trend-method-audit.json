@@ -1,0 +1,144 @@
+{
+  "recordContainerType": "dict",
+  "recordContainerKey": "root.records",
+  "sourceCount": 6553,
+  "completeCount": 6553,
+  "candidateTotals": {
+    "2024": 126332,
+    "2025": 118109,
+    "2026": 141691
+  },
+  "sampleKeys": [
+    "id",
+    "major",
+    "majorDirectionLabel",
+    "rank2024",
+    "rank2025",
+    "rank2026",
+    "rankDelta25vs24",
+    "rankDelta26vs25",
+    "rankPctPoint26vs25",
+    "school",
+    "score2024",
+    "score2025",
+    "score2026",
+    "scoreBandLabel",
+    "trendLabel",
+    "trendType"
+  ],
+  "sampleRecords": [
+    {
+      "id": "ln-2026-0378-12",
+      "school": "安徽财经大学",
+      "major": "电子商务",
+      "score2026": 519,
+      "rank2026": 44924,
+      "score2025": 520,
+      "rank2025": 46756,
+      "score2024": 534,
+      "rank2024": 38095,
+      "trendType": "rebound_2026",
+      "trendLabel": "2026 出现反向前移",
+      "rankDelta26vs25": -1832,
+      "rankDelta25vs24": 8661,
+      "rankPctPoint26vs25": -7.882,
+      "majorDirectionLabel": "财经管理",
+      "scoreBandLabel": "500—549 分"
+    },
+    {
+      "id": "ln-2026-0378-14",
+      "school": "安徽财经大学",
+      "major": "会计学",
+      "score2026": 583,
+      "rank2026": 19611,
+      "score2025": 591,
+      "rank2025": 16621,
+      "score2024": 599,
+      "rank2024": 14879,
+      "trendType": "stable",
+      "trendLabel": "三年对应位置变化较小",
+      "rankDelta26vs25": 2990,
+      "rankDelta25vs24": 1742,
+      "rankPctPoint26vs25": -0.232,
+      "majorDirectionLabel": "财经管理",
+      "scoreBandLabel": "550—589 分"
+    },
+    {
+      "id": "ln-2026-0378-17",
+      "school": "安徽财经大学",
+      "major": "财政学类(财政学、税收学)",
+      "score2026": 564,
+      "rank2026": 26311,
+      "score2025": 568,
+      "rank2025": 25204,
+      "score2024": 577,
+      "rank2024": 21796,
+      "trendType": "rebound_2026",
+      "trendLabel": "2026 出现反向前移",
+      "rankDelta26vs25": 1107,
+      "rankDelta25vs24": 3408,
+      "rankPctPoint26vs25": -2.77,
+      "majorDirectionLabel": "财经管理",
+      "scoreBandLabel": "550—589 分"
+    }
+  ],
+  "rankPctPoint26vs25": {
+    "count": 6553,
+    "min": -63.239726,
+    "q1": -9.295381,
+    "median": -4.853927,
+    "q3": -1.945753,
+    "max": 33.942806,
+    "mean": -5.628731985045017
+  },
+  "rankPctPoint25vs24": {
+    "count": 6553,
+    "min": -26.464421,
+    "q1": 0.991607,
+    "median": 2.679232,
+    "q3": 5.115284,
+    "max": 58.70919,
+    "mean": 3.4762869421638944
+  },
+  "rawRankDelta26vs25": {
+    "count": 6553,
+    "min": -66023.0,
+    "q1": -501.0,
+    "median": 612.0,
+    "q3": 2780.0,
+    "max": 53605.0,
+    "mean": 1390.9702426369602
+  },
+  "rawRankDelta25vs24": {
+    "count": 6553,
+    "min": -35744.0,
+    "q1": -529.0,
+    "median": 599.0,
+    "q3": 2384.0,
+    "max": 68032.0,
+    "mean": 1125.6244468182513
+  },
+  "annualCommonShift": {
+    "pctPoint26vs25Median": -4.853927,
+    "pctPoint25vs24Median": 2.679232
+  },
+  "centeredPctPoint26vs25": {
+    "count": 6553,
+    "min": -58.385799,
+    "q1": -4.441454000000001,
+    "median": 0.0,
+    "q3": 2.908174,
+    "max": 38.796732999999996,
+    "mean": -0.7748049850450179
+  },
+  "centeredPctPoint25vs24": {
+    "count": 6553,
+    "min": -29.143653,
+    "q1": -1.6876249999999997,
+    "median": 0.0,
+    "q3": 2.436052,
+    "max": 56.029958,
+    "mean": 0.7970549421638945
+  },
+  "interpretation": "When a yearly median is materially different from zero, aggregate major and score-band labels should remove the common annual shift before classifying relative movement."
+}

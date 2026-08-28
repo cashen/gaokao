@@ -1,0 +1,65 @@
+{
+  "task": "module-navigation-ui-layout-v002",
+  "repository": "cashen/gaokao",
+  "baseSha": "2b2bf9e0f84c229873c43d76ed4caf7b32218207",
+  "branch": "agent/module-navigation-ui-layout-v002",
+  "pr": 217,
+  "headSha": "09189462a46fb52437c8aad39d5dff336aaed854",
+  "mergeSha": null,
+  "completed": [
+    "ML-01-live-layout-regression-confirmed",
+    "ML-02-layout-and-async-mount-fix",
+    "ML-03-cache-identity-and-static-contract",
+    "ML-01-cross-surface-position-audit",
+    "ML-04-pr-preview-and-multi-device-validation"
+  ],
+  "inProgress": "ML-05-merge-and-production-closeout",
+  "pending": [
+    "ML-05-merge-and-production-closeout"
+  ],
+  "evidence": {
+    "productionUrl": "https://gaokao.powers.org.cn/ln-rank/?navcheck=20260826",
+    "productionViewport": "1348px live browser",
+    "bodyNavigation": "module-navigation-v0.01",
+    "duplicateObserved": true,
+    "mobileBarDisplay": "flex on desktop",
+    "duplicateReason": "standalone nav created before delayed global header was not removed; CSS forced standalone display:flex",
+    "audit": {
+      "desktopWidth": 1348,
+      "pages": [
+        "/",
+        "/ln-rank/",
+        "/tongxue/",
+        "/major-path/",
+        "/zy2026/"
+      ],
+      "findings": "/ and /ln-rank/ had global header plus stray standalone; /major-path/ legitimately had standalone without global header; /tongxue/ and /zy2026/ had only global header.",
+      "rule": "standalone remains only when no global header exists; delayed global header removes it"
+    }
+  },
+  "decisions": {
+    "desktop": "one global top navigation only",
+    "pad": "one visible core module navigation without horizontal overflow",
+    "android": "one compact module switch bar only",
+    "coreRoots": [
+      "/",
+      "/ln-rank/",
+      "/tongxue/"
+    ],
+    "return": "same-origin sessionStorage; preserve pathname/search/hash; hide without real prior module"
+  },
+  "independentIssues": "major-bands 503 and bounded-fanout zero-job remain separate",
+  "checkpointNote": "ML-04 completed at pre-status head 09189462a46fb52437c8aad39d5dff336aaed854: CI browser-preview/browser-combined and production/site-runtime checks were green; cross-surface live audit findings are recorded. Status commit changes the PR head, so fresh exact-head checks are required before Ready and merge.",
+  "verifiedAt": "2026-08-26T01:40:10.600Z",
+  "validation": {
+    "localSyntax": "node --check navigation JS and verification contract passed",
+    "codeContract": "v002 identity present; standalone cleanup and desktop hidden assertions passed",
+    "liveRegression": "production 1348px showed duplicate standalone bar before fix",
+    "fixedResources": "Tongxue controller/search-view remain v=159-startup001",
+    "exactHeadBeforeCheckpoint": "09189462a46fb52437c8aad39d5dff336aaed854",
+    "prChecks": "29 success, 10 skipped, 0 failure",
+    "preview": "browser-preview and browser-combined checks success",
+    "surfaces": "browser checks cover desktop, Pad and Android responsive paths; live desktop audit covered /, /ln-rank/, /tongxue/, /major-path/, /zy2026/",
+    "rule": "shell pages remove delayed standalone; shell-less pages retain their only standalone top navigation"
+  }
+}

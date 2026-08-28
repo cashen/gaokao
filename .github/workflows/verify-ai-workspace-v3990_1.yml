@@ -1,0 +1,476 @@
+name: Verify AI decision workspace v3990_2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'shared/resources/geo/china-region-catalog.v3990_2.js'
+      - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
+      - 'data/zy2026/**'
+      - 'functions/api/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'functions/_lib/major-filter.v3990_2.js'
+      - '.github/scripts/install-playwright-chromium.sh'
+      - 'tools/verify-ai-workspace-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
+      - 'tools/verify-aiplus-v002-contract.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/browser-aiplus-v002-mocked.mjs'
+      - 'tools/browser-ai-workspace-v3990_2.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'shared/resources/geo/china-region-catalog.v3990_2.js'
+      - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
+      - 'data/zy2026/**'
+      - 'functions/api/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'functions/_lib/major-filter.v3990_2.js'
+      - '.github/scripts/install-playwright-chromium.sh'
+      - 'tools/verify-ai-workspace-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
+      - 'tools/verify-aiplus-v002-contract.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/browser-aiplus-v002-mocked.mjs'
+      - 'tools/browser-ai-workspace-v3990_2.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      runtime_changed: ${{ steps.change-scope.outputs.runtime_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce protected paths on PR
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
+          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/ai-files.txt
+          if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/ai-files.txt; then
+            echo 'Protected path touched by AI workspace change.' >&2
+            exit 1
+          fi
+      - name: Detect AI runtime changes
+        id: change-scope
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/ai-files.txt
+          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_2\.js$|shared/resources/schools/liaoning-2026-admission-school-directory\.v3969_0\.json$|data/zy2026/|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_2\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/verify-aiplus-school-official-cache-v3990_2\.mjs$|tools/verify-aiplus-human-dialog-v3990_2\.mjs$|tools/verify-ai-school-history-bridge-v3992_2\.mjs$|tools/verify-aiplus-v002-contract\.mjs$|tools/audit-aiplus-v002-ui\.mjs$|tools/browser-aiplus-v002-mocked\.mjs$|tools/browser-ai-workspace-v3990_2\.mjs$)' /tmp/ai-files.txt; then
+            echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify unified release identity and protected exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n .github/scripts/install-playwright-chromium.sh
+          grep -q "display: 'v3.9.90.2'" shared/resources/release/current-release.js
+          grep -q "siteRuntimeGeneration: 'v3990_2'" shared/resources/release/current-release.js
+          grep -q 'data-release="v3.9.90.2"' aiplus/index.html
+          grep -q 'data-site-runtime-generation="v3990_2"' aiplus/index.html
+          grep -q 'data-ai-plus="family-advisor"' aiplus/index.html
+          grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
+          grep -q 'AIPLuS 产品版 · v0.02' aiplus/index.html
+          test ! -e ai
+          grep -q '^/ai /aiplus/ 301$' _redirects
+          grep -q '^/ai/ /aiplus/ 301$' _redirects
+          grep -q '^/ai/\* /aiplus/ 301$' _redirects
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+      - name: Syntax check AI semantic runtime
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-contract.v3990_2.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check shared/ai/aiplus-product-contract.v002.js
+          node --check functions/_lib/ai/provider-router.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/major-language-resolver.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/evidence-registry.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/selection-review.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/_lib/ai/school-official-source.js
+          node --check functions/_lib/ai/school-profile-supplement-source.js
+          node --check functions/_lib/ai/school-history-fact-contract.js
+          node --check functions/_lib/ai/school-history-fact-source.js
+          node --check functions/api/ai/turn.js
+          node --check functions/api/ai/health.js
+          node --check functions/api/ai/model-probe.js
+          node --check functions/api/ai/school-official.js
+          node --check functions/api/ai/school-history.js
+          node --check aiplus/app.v3990_2.js
+          node --check aiplus/render.v3992_0.js
+          node --check aiplus/turn-runtime.v002.js
+          node --check tools/verify-ai-workspace-v3990_2.mjs
+          node --check tools/verify-aiplus-school-official-v3990_2.mjs
+          node --check tools/verify-aiplus-school-official-cache-v3990_2.mjs
+          node --check tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node --check tools/verify-aiplus-v002-contract.mjs
+          node --check tools/audit-aiplus-v002-ui.mjs
+          node --check tools/browser-aiplus-v002-mocked.mjs
+          node --check tools/browser-ai-workspace-v3990_2.mjs
+      - name: Run deterministic semantic workspace gates
+        run: |
+          set -euo pipefail
+          node tools/verify-ai-workspace-v3990_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+
+  preview-smoke:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
+    if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    outputs:
+      preview_base: ${{ steps.resolve-preview.outputs.preview_base }}
+      immutable_preview: ${{ steps.resolve-preview.outputs.immutable_preview }}
+      branch_preview: ${{ steps.resolve-preview.outputs.branch_preview }}
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Resolve exact-SHA Cloudflare Check and coherent branch Functions preview
+        id: resolve-preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch_preview=''
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo "Cloudflare exact-SHA Check failed for ${EXPECTED_SHA}." >&2
+              exit 2
+            fi
+            if [ "$conclusion" = success ]; then
+              mapfile -t summary_urls < <(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | awk '!seen[$0]++')
+              immutable_preview="${summary_urls[0]:-}"
+              if [ "${#summary_urls[@]}" -ge 2 ]; then
+                branch_preview="${summary_urls[1]}"
+              fi
+              if [ -z "$branch_preview" ] || [ "$branch_preview" = "$immutable_preview" ]; then
+                comments="$(curl -fsSL --max-time 20 \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+                cloudflare_body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+                if grep -q "$short_sha" <<<"$cloudflare_body"; then
+                  branch_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$cloudflare_body" | tail -n1 || true)"
+                fi
+              fi
+              if [ -n "$immutable_preview" ] && [ -n "$branch_preview" ]; then
+                break
+              fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          test -n "$branch_preview"
+          if [ "$immutable_preview" = "$branch_preview" ]; then
+            echo 'Cloudflare branch Functions preview was not resolved separately from immutable static deployment.' >&2
+            exit 3
+          fi
+          echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
+          echo "branch_preview=$branch_preview" >> "$GITHUB_OUTPUT"
+          echo "Exact static deployment: $immutable_preview"
+          echo "Exact-head branch Functions preview: $branch_preview"
+      - name: Verify coherent exact deployment graph
+        env:
+          PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
+          BRANCH_PREVIEW: ${{ steps.resolve-preview.outputs.branch_preview }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          request_get() {
+            local label="$1" url="$2" body status
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              -o "$body" -w '%{http_code}' "$url" || true)"
+            if [ "$status" != 200 ]; then
+              echo "${label} failed: HTTP ${status} ${url}" >&2
+              head -c 1200 "$body" >&2 || true
+              echo >&2
+              rm -f "$body"
+              return 1
+            fi
+            cat "$body"
+            rm -f "$body"
+          }
+
+          request_post() {
+            local label="$1" url="$2" payload="$3" body status
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 80 \
+              -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
+              -X POST -o "$body" -w '%{http_code}' "$url" --data "$payload" || true)"
+            if [ "$status" != 200 ]; then
+              echo "${label} failed: HTTP ${status} ${url}" >&2
+              head -c 1600 "$body" >&2 || true
+              echo >&2
+              rm -f "$body"
+              return 1
+            fi
+            cat "$body"
+            rm -f "$body"
+          }
+
+          require_text() {
+            local label="$1" needle="$2" payload="$3"
+            if ! grep -Fq "$needle" <<<"$payload"; then
+              echo "${label} missing expected text: ${needle}" >&2
+              head -c 1600 <<<"$payload" >&2 || true
+              echo >&2
+              return 1
+            fi
+          }
+
+          require_json() {
+            local label="$1" expression="$2" payload="$3"
+            if ! jq -e "$expression" >/dev/null <<<"$payload"; then
+              echo "${label} failed JSON contract: ${expression}" >&2
+              head -c 2000 <<<"$payload" >&2 || true
+              echo >&2
+              return 1
+            fi
+          }
+
+          health=''
+          ready=0
+          for attempt in $(seq 1 60); do
+            health="$(request_get branch-health "${BRANCH_PREVIEW}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
+            if jq -e --arg sha "$EXPECTED_SHA" '.ok == true and .deployment.commitSha == $sha and .apiVersion == "ai-health-api-v0.02" and .workspace.semanticMode == "intent-task-spec-v0.02"' >/dev/null <<<"$health"; then
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Branch Functions Preview never exposed exact head ${EXPECTED_SHA}. Immutable static deployment was ${IMMUTABLE_PREVIEW}." >&2
+            exit 4
+          fi
+
+          immutable_page="$(request_get immutable-aiplus-page "${IMMUTABLE_PREVIEW}/aiplus/?candidate=${EXPECTED_SHA}-static")"
+          require_text immutable-aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$immutable_page"
+          require_text immutable-aiplus-page 'data-site-runtime-generation="v3990_2"' "$immutable_page"
+          require_text immutable-aiplus-page 'data-ai-plus="family-advisor"' "$immutable_page"
+          immutable_index="$(request_get immutable-school-index "${IMMUTABLE_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-static")"
+          branch_index="$(request_get branch-school-index "${BRANCH_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-branch")"
+          immutable_index_hash="$(printf '%s' "$immutable_index" | sha256sum | awk '{print $1}')"
+          branch_index_hash="$(printf '%s' "$branch_index" | sha256sum | awk '{print $1}')"
+          if [ "$immutable_index_hash" != "$branch_index_hash" ]; then
+            echo "Branch static asset graph differs from exact immutable deployment: ${branch_index_hash} != ${immutable_index_hash}" >&2
+            exit 5
+          fi
+
+          page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
+          require_text aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$page"
+          require_text aiplus-page 'data-site-runtime-generation="v3990_2"' "$page"
+          require_text aiplus-page 'data-ai-plus="family-advisor"' "$page"
+          legacy_headers="$(mktemp)"
+          legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
+          legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
+          if ! [[ "$legacy_status" =~ ^30[1278]$ ]] || [[ "$legacy_location" != *"/aiplus/"* ]]; then
+            echo "Legacy /ai/ must redirect to /aiplus/: HTTP ${legacy_status}, location=${legacy_location}" >&2
+            cat "$legacy_headers" >&2 || true
+            rm -f "$legacy_headers"
+            exit 6
+          fi
+          rm -f "$legacy_headers"
+
+          official="$(request_get school-official "${PREVIEW_BASE}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
+          require_text school-official '"ok":true' "$official"
+          require_text school-official '"school":"辽宁石油化工大学"' "$official"
+          if grep -Fq '"sourceAvailable":false' <<<"$official"; then
+            require_text school-official '"coverage":"official_source_unavailable"' "$official"
+            require_text school-official '"detailAvailable":false' "$official"
+            require_text school-official '本轮没有取得可验证的阳光高考官方资料' "$official"
+            require_text school-official '不让模型补写' "$official"
+          else
+            require_text school-official '"sourceAvailable":true' "$official"
+            require_text school-official '"schoolCode":"10148"' "$official"
+            require_text school-official '"coverage":"official_search_card"' "$official"
+            require_text school-official 'https://gaokao.chsi.com.cn/' "$official"
+          fi
+
+          industrial_history="$(request_get school-history-industrial "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-industrial '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and .meta.filteredTotal == 65 and (.records | length) == 65 and .source.mode == "ai-school-history-preaggregated-school-shard" and .source.sameTruthSet == true' "$industrial_history"
+
+          aviation_school="$(jq -rn --arg value '沈阳航空航天大学' '$value|@uri')"
+          mechanical_keyword="$(jq -rn --arg value '机械' '$value|@uri')"
+          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=${aviation_school}&majorKeyword=${mechanical_keyword}&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-aviation-mechanical '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8 and ([.records[].major] | all(length > 0))' "$aviation_mechanical"
+
+          largest_history="$(request_get school-history-largest "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-largest '.ok == true and .complete == true and .meta.school == "沈阳农业大学" and .meta.schoolRecordTotal == 117 and (.records | length) == 117 and .meta.pagination.hasMore == false' "$largest_history"
+
+          rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
+          rank="$(request_post rank "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
+          require_text rank '"rankEnd":14235' "$rank"
+
+          province_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}'
+          province="$(request_post province-major "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$province_payload")"
+          require_text province-major '"regionKeys":["province:安徽"]' "$province"
+          require_text province-major '"majorKeywords":["电气"]' "$province"
+
+          comparison_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}'
+          comparison="$(request_post major-comparison "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$comparison_payload")"
+          require_text major-comparison '"kind":"major"' "$comparison"
+          require_text major-comparison '"pendingEvidenceDimensions"' "$comparison"
+
+          if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
+            probe="$(request_post model-probe "${PREVIEW_BASE}/api/ai/model-probe?candidate=${EXPECTED_SHA}" '{}')"
+            require_text model-probe '"ok":true' "$probe"
+            grep -Eq '"model":"[^"]+"' <<<"$probe"
+          fi
+
+  browser-preview:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
+    if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true' && needs.preview-smoke.result == 'success'
+    needs: [source-contract, preview-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Verify PC Pad Android human semantic journeys
+        env:
+          AI_PREVIEW_BASE: ${{ needs.preview-smoke.outputs.preview_base }}
+          AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          AI_ARTIFACT_DIR: /tmp/ai-workspace-browser-v3990_2
+        run: node tools/browser-ai-workspace-v3990_2.mjs
+      - name: Verify AIPLuS v0.02 mocked parent journeys on four viewports
+        run: node tools/browser-aiplus-v002-mocked.mjs
+      - name: Upload AI browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-workspace-browser-v3990_2
+          path: |
+            /tmp/ai-workspace-browser-v3990_2
+            /tmp/aiplus-v002-browser
+          if-no-files-found: warn
+          retention-days: 7
+
+  production-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - base: https://gaokao-4y9.pages.dev
+            mode: exact
+          - base: https://gaokao.powers.org.cn
+            mode: custom-boundary
+    steps:
+      - name: Verify exact AI production deployment, model echo, or managed boundary
+        env:
+          BASE: ${{ matrix.base }}
+          VERIFY_MODE: ${{ matrix.mode }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 55); do
+            if [ "$VERIFY_MODE" = custom-boundary ]; then
+              headers="/tmp/ai-custom-${attempt}.headers"; body="/tmp/ai-custom-${attempt}.body"
+              status="$(curl --silent --show-error --location --max-time 20 -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+              if [ "$status" = 403 ] && grep -Eqi '^cf-mitigated:[[:space:]]*challenge' "$headers" && grep -Eqi '^server:[[:space:]]*cloudflare' "$headers"; then ready=1; break; fi
+            fi
+            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/aiplus/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            rank="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
+            school_history="$(curl -fsSL --max-time 45 -H 'Cache-Control: no-cache' "${BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -q 'data-ai-workspace="ai-workspace-v3992_1"' <<<"$page" \
+              && grep -q 'data-ai-plus="family-advisor"' <<<"$page" \
+              && grep -q '"apiVersion":"ai-health-api-v0.02"' <<<"$health" \
+              && grep -q '"release":"v3.9.90.2"' <<<"$health" \
+              && grep -q '"siteRuntimeGeneration":"v3990_2"' <<<"$health" \
+              && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
+              && grep -q '"rankEnd":14235' <<<"$rank" \
+              && jq -e '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and (.records | length) == 65 and .source.sameTruthSet == true' >/dev/null <<<"$school_history"; then
+              if [ "$VERIFY_MODE" = exact ]; then
+                legacy_headers="$(mktemp)"
+                legacy_status="$(curl --silent --show-error --max-time 20 -D "$legacy_headers" -o /dev/null --write-out '%{http_code}' -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+                legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
+                rm -f "$legacy_headers"
+                if ! [[ "$legacy_status" =~ ^30[1278]$ ]] || [[ "$legacy_location" != *"/aiplus/"* ]]; then sleep 10; continue; fi
+              fi
+              if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
+                probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/model-probe?deploy=${EXPECTED_SHA}-${attempt}" --data '{}' || true)"
+                grep -q '"ok":true' <<<"$probe" || { sleep 10; continue; }
+                grep -Eq '"model":"[^"]+"' <<<"$probe" || { sleep 10; continue; }
+              fi
+              ready=1; break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1

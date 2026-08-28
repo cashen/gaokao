@@ -1,0 +1,54 @@
+{
+  "version": "V2.9.4.5",
+  "generated_at": "2026-05-06 12:11:50",
+  "base_package": "V2.9.4.4",
+  "checks": [
+    {
+      "name": "base_chunk_records_present",
+      "passed": true,
+      "detail": "chunk_records=13145"
+    },
+    {
+      "name": "parent_identity_rules_cover_all_records",
+      "passed": true,
+      "detail": {
+        "具体专业倾向": 9862,
+        "方向/培养模式": 741,
+        "试验班/特色班": 575,
+        "大类招生": 957,
+        "中外合作/高收费": 814,
+        "专项/特殊入口": 196
+      }
+    },
+    {
+      "name": "rank_trend_rules_cover_all_records",
+      "passed": true,
+      "detail": {
+        "基本稳定": 1176,
+        "缺少对比": 4801,
+        "位次放宽": 4769,
+        "竞争增强": 2399
+      }
+    },
+    {
+      "name": "cost_rules_cover_all_records",
+      "passed": true,
+      "detail": {
+        "学费待核验": 12331,
+        "高收费/中外合作": 814
+      }
+    },
+    {
+      "name": "no_external_baoyan_module_added",
+      "passed": true,
+      "detail": "V2.9.4.5 does not calculate professional postgraduate recommendation rate."
+    }
+  ],
+  "overall_passed": true,
+  "known_limits": [
+    "候选建议是初筛表达，不是最终志愿顺序。",
+    "成本提示依赖已有学费/高收费识别字段，正式填报前必须回到招生计划核验。",
+    "名称风险为规则提示，不覆盖所有学校个性化培养方案。",
+    "位次趋势未自动剔除扩招、缩招、校区变化等因素，只提示复核方向。"
+  ]
+}

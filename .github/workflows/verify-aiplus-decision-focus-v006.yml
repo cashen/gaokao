@@ -1,0 +1,206 @@
+name: Verify AIPLuS decision focus v0.06
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'functions/_lib/ai/next-action-engine.js'
+      - '.github/scripts/install-playwright-chromium.sh'
+      - 'tools/verify-aiplus-decision-focus-v006.mjs'
+      - 'tools/browser-aiplus-decision-focus-v006.mjs'
+      - 'tools/browser-aiplus-decision-focus-live-v006.mjs'
+      - 'docs/architecture/AIPLUS-DECISION-FOCUS-STATUS.md'
+      - '.github/workflows/verify-aiplus-decision-focus-v006.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax and single-owner contract
+        run: |
+          set -euo pipefail
+          bash -n .github/scripts/install-playwright-chromium.sh
+          node --check shared/ai/decision-focus.v006_1.js
+          node --check shared/ai/decision-progress.v003.js
+          node --check shared/ai/decision-book.v003.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check aiplus/render.v3992_0.js
+          node --check aiplus/app.v3990_2.js
+          node --check tools/verify-aiplus-decision-focus-v006.mjs
+          node --check tools/browser-aiplus-decision-focus-v006.mjs
+          node --check tools/browser-aiplus-decision-focus-live-v006.mjs
+          test "$(find shared/ai -maxdepth 1 -type f -name 'decision-focus.v006*.js' | wc -l | tr -d ' ')" = "1"
+          ! grep -Eq 'localStorage|sessionStorage|indexedDB|fetch\(' shared/ai/decision-focus.v006_1.js
+          grep -q "aiplus-decision-focus-v0.06" shared/ai/decision-focus.v006_1.js
+          grep -q 'data-ai-decision-focus="aiplus-decision-focus-v0.06"' aiplus/index.html
+          grep -q 'decision-focus.v006.css?v=006_0&fdw=003_0' aiplus/index.html
+          grep -q 'app.v3990_2.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0' aiplus/index.html
+          grep -q 'render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0' aiplus/app.v3990_2.js
+          grep -q 'decision-book.v003.js?v=003_1&focus=006_0' aiplus/render.v3992_0.js
+          grep -q 'decision-progress.v003.js?focus=006_0' shared/ai/decision-book.v003.js
+          grep -q 'decision-focus.v006_1.js?v=006_1' shared/ai/decision-book.v003.js
+          grep -q 'grid-template-columns:minmax(0,1fr)' aiplus/decision-focus.v006.css
+      - name: Decision focus semantic proof
+        run: node tools/verify-aiplus-decision-focus-v006.mjs
+      - name: Preserve existing AIPLuS owners
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_2.mjs
+      - name: Protected boundaries
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch origin "$GITHUB_BASE_REF" --depth=1
+            if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ]; then git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js; fi
+          else
+            before="$PUSH_BEFORE"
+            if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then before="$(git rev-parse HEAD^1)"; fi
+            git cat-file -e "${before}^{commit}"
+            test "$(git rev-parse HEAD)" = "$PUSH_SHA"
+            if [ "$(git ls-tree -r "$before" | wc -l)" -ge 100 ]; then git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js; fi
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+  browser-combined:
+    if: github.event_name == 'pull_request'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Verify decision focus PC Pad Android
+        run: node tools/browser-aiplus-decision-focus-v006.mjs
+      - name: Preserve existing AIPLuS browser journeys
+        run: node tools/browser-aiplus-v002-mocked.mjs
+      - name: Resolve exact-head Cloudflare Preview
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then exit 2; fi
+            if [ "$conclusion" = success ]; then
+              grep -q "$short_sha" <<<"$summary"
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              if [ -n "$immutable_preview" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          echo "base=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "Exact decision-focus Preview: $immutable_preview"
+      - name: Verify exact-head Preview PC Pad Android
+        env:
+          DECISION_FOCUS_LIVE_BASE: ${{ steps.preview.outputs.base }}
+          DECISION_FOCUS_LIVE_MODE: preview
+          EXPECTED_SHA: ${{ env.EXPECTED_SHA }}
+        run: node tools/browser-aiplus-decision-focus-live-v006.mjs
+
+  browser-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      EXPECTED_SHA: ${{ github.sha }}
+      DECISION_FOCUS_LIVE_BASE: https://gaokao-4y9.pages.dev
+      DECISION_FOCUS_LIVE_MODE: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Wait for coherent exact-main decision-focus assets
+        run: |
+          set -euo pipefail
+          base="$DECISION_FOCUS_LIVE_BASE"
+          for attempt in $(seq 1 60); do
+            html="$(curl -fsSL --max-time 20 "$base/aiplus/" || true)"
+            health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$base/api/ai/health" || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            app="$(curl -fsSL --max-time 20 "$base/aiplus/app.v3990_2.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0" || true)"
+            render="$(curl -fsSL --max-time 20 "$base/aiplus/render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0" || true)"
+            book="$(curl -fsSL --max-time 20 "$base/shared/ai/decision-book.v003.js?v=003_1&focus=006_0" || true)"
+            focus="$(curl -fsSL --max-time 20 "$base/shared/ai/decision-focus.v006_1.js?v=006_1" || true)"
+            css="$(curl -fsSL --max-time 20 "$base/aiplus/decision-focus.v006.css?v=006_0&fdw=003_0" || true)"
+            if grep -q 'data-ai-decision-focus="aiplus-decision-focus-v0.06"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0' <<<"$app" && grep -q 'decision-book.v003.js?v=003_1&focus=006_0' <<<"$render" && grep -q 'decision-progress.v003.js?focus=006_0' <<<"$book" && grep -q "aiplus-decision-focus-v0.06" <<<"$focus" && grep -q 'decision-focus-grid' <<<"$css"; then
+              echo "Coherent decision-focus asset graph reached exact main $EXPECTED_SHA"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Decision-focus Production asset graph never became coherent for $EXPECTED_SHA" >&2
+          exit 2
+      - name: Verify Production PC Pad Android
+        run: node tools/browser-aiplus-decision-focus-live-v006.mjs
+
+  publish-production-status:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [source-contract, browser-production]
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      contents: read
+    steps:
+      - name: Publish durable Production status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          SOURCE_RESULT: ${{ needs.source-contract.result }}
+          BROWSER_RESULT: ${{ needs.browser-production.result }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          state=failure
+          description='Decision focus Production verification failed'
+          if [ "$SOURCE_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
+            state=success
+            description='Decision focus Production verified'
+          fi
+          jq -n --arg state "$state" --arg target_url "$RUN_URL" --arg description "$description" --arg context 'production/aiplus-decision-focus-v0.06' '{state:$state,target_url:$target_url,description:$description,context:$context}' > /tmp/status.json
+          curl -fsSL --request POST -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/statuses/${SHA}" --data-binary @/tmp/status.json >/dev/null

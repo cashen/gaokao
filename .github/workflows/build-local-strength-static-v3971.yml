@@ -1,0 +1,76 @@
+name: Preserve LocalStrength immutable index v3971.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/css/local-strength.v3971_2.css'
+      - 'ln-rank/js/local-strength/local-strength-app.v3971_2.js'
+      - 'ln-rank/data/local-strength/local-strength-index.v3971_2.json'
+      - 'ln-rank/data/local-strength/local-strength-audit.v3971_2.json'
+      - 'tools/audit-local-strength-static-v3971.mjs'
+      - 'tools/browser-local-strength-static-v3971.mjs'
+      - 'functions/_lib/academic-background-provider.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/site-runtime-contract.v3972_5.js'
+      - '.github/workflows/build-local-strength-static-v3971.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preserve-static-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject changes to published immutable data
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && ! git diff --quiet "$base" HEAD -- \
+            ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+            ln-rank/data/local-strength/local-strength-audit.v3971_2.json; then
+            echo 'LocalStrength v3971.2 is published immutable data. Create a new data generation instead of modifying it.'
+            git diff --stat "$base" HEAD -- \
+              ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+              ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+            exit 1
+          fi
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const index=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
+          if(index.version!=='local-strength-static-v3971_2') throw new Error('index version');
+          if(index.meta.matchedRecordCount!==243||index.records.length!==243) throw new Error(`immutable record count ${index.meta.matchedRecordCount}/${index.records.length}`);
+          if(!index.meta.completeEvaluation||index.meta.evaluatedRecordCount!==index.meta.localAdmissionRecordCount) throw new Error('coverage');
+          if(index.meta.duplicatePublicRecordCount!==0||index.meta.unresolvedLocalRecordCount!==0) throw new Error('integrity');
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size},null,2));
+          NODE
+      - name: Verify stable page package under current site generation
+        run: |
+          set -euo pipefail
+          node --check ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          node --check tools/audit-local-strength-static-v3971.mjs
+          node tools/audit-local-strength-static-v3971.mjs | tee /tmp/local-strength-v3971-2-immutable.out
+          if grep -q '/api/local-strength' ln-rank/local-mainline.html ln-rank/js/local-strength/local-strength-app.v3971_2.js; then
+            echo 'forbidden LocalStrength runtime API reference'
+            exit 1
+          fi
+      - name: Upload immutable verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-strength-v3971-2-immutable
+          path: /tmp/local-strength-v3971-2-immutable.out
+          if-no-files-found: warn
+          retention-days: 7

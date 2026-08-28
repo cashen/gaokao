@@ -1,0 +1,72 @@
+{
+  "version": "zy2026-structure-2025-2026-v1.0.0",
+  "source": {
+    "oldManifest": "fenxi/data/manifest.json",
+    "newManifest": "fenxi/data/ln-rank-2026/manifest.json",
+    "oldUnionRows": 13145,
+    "newRows": 11628
+  },
+  "coverage": {
+    "records2025": 10915,
+    "assigned2025": 10915,
+    "records2026": 11628,
+    "assigned2026": 11628
+  },
+  "relationCounts": {
+    "continued": 8809,
+    "name_adjustment": 351,
+    "project_change": 124,
+    "class_split": 67,
+    "class_merge": 5,
+    "needs_review": 67,
+    "reappeared": 194,
+    "first_seen": 1920,
+    "not_listed": 1487
+  },
+  "relationRecordCounts2025": {
+    "continued": 8809,
+    "name_adjustment": 351,
+    "project_change": 124,
+    "class_split": 67,
+    "class_merge": 10,
+    "needs_review": 67,
+    "reappeared": 0,
+    "first_seen": 0,
+    "not_listed": 1487
+  },
+  "relationRecordCounts2026": {
+    "continued": 8809,
+    "name_adjustment": 351,
+    "project_change": 124,
+    "class_split": 158,
+    "class_merge": 5,
+    "needs_review": 67,
+    "reappeared": 194,
+    "first_seen": 1920,
+    "not_listed": 0
+  },
+  "schoolCount": 960,
+  "majorBaseCount": 802,
+  "schoolChunkCount": 16,
+  "majorChunkCount": 16,
+  "rules": {
+    "primaryComparison": "2025→2026",
+    "year2024Role": "only-for-reappearance-and-continuity-evidence",
+    "automaticClaims": [
+      "continued",
+      "name_adjustment",
+      "project_change",
+      "class_split",
+      "class_merge",
+      "reappeared",
+      "first_seen",
+      "not_listed",
+      "needs_review"
+    ],
+    "forbiddenInference": [
+      "record-count-as-plan-count",
+      "first-seen-as-new-major",
+      "not-listed-as-abolished-major"
+    ]
+  }
+}

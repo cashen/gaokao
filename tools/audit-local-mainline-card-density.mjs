@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const jsRel = (assets.jsEntry || []).find(x => x.includes('local-mainline-app'));
+const js = fs.readFileSync(path.join(lr, jsRel), 'utf8');
+const cssRel = (assets.cssEntry || []).find(x => x.includes('local-mainline'));
+const css = fs.readFileSync(path.join(lr, cssRel), 'utf8');
+const failures=[];
+if (!js.includes('slice(0,3)')) failures.push('evidence chips should be capped at 3');
+if (!js.includes('slice(0,4)')) failures.push('review points should be capped at 4');
+if (!css.includes('.lm-record-card .lm-card-note')) failures.push('record card note density CSS missing');
+if (!css.includes('.lm-record-card .lm-review-row')) failures.push('review row density CSS missing');
+for (const bad of ['承载完整解释','完整解释和边界说明']) if(js.includes(bad)) failures.push(`card copy too report-like: ${bad}`);
+const out={version:assets.version,assetVersion:assets.assetVersion,checked:[jsRel,cssRel],failures,status:failures.length?'fail':'pass'};
+fs.writeFileSync(path.join(lr, `local-mainline-card-density-audit.${q}.json`), JSON.stringify(out,null,2));
+console.log(JSON.stringify(out,null,2));
+if(failures.length) process.exit(1);

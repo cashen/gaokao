@@ -1,9 +1,9 @@
 {
   "task": "unified-visual-responsive-v001",
   "repository": "cashen/gaokao",
-  "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
-  "branch": "fix/unified-visual-responsive-v001",
-  "status": "preview-verified-ready-pending",
+  "baseSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
+  "branch": "fix/unified-visual-production-contract-v002",
+  "status": "main-tree-integrity-repair-in-progress",
   "plan": [
     "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
     "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
@@ -18,24 +18,29 @@
     "shared-visual-responsive-css",
     "core-entrypoint-integration",
     "resource-contract-registration",
-    "release-changelog-sync"
+    "release-changelog-sync",
+    "merged-main-visual-release",
+    "production-stale-resource-observed",
+    "base-tree-recovery-guards"
   ],
-  "inProgress": "final-head-ci",
+  "inProgress": "main-tree-integrity-repair",
   "lastFailure": {
     "kind": "resolved-transient-runtime-regression",
     "step": "verify-ai-decision-workspace-v3990_2",
     "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；重跑当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 后成功，未放宽断言。"
   },
   "pending": [
-    "mark-pr-ready-after-final-head-checks",
-    "production-and-resource-manifest",
-    "merge-main-and-post-merge-verify"
+    "run-followup-local-contract-tests",
+    "create-followup-pr-and-pass-checks",
+    "verify-exact-preview-and-production",
+    "merge-followup-and-post-merge-verify"
   ],
   "release": {
     "site": "v3.9.90.2",
     "generation": "v3990_2",
-    "revision": "r037-unified-visual-responsive",
-    "uiVisualResponsiveVersion": "unified-visual-responsive-v001"
+    "revision": "r038-unified-visual-responsive-production-contract",
+    "uiVisualResponsiveVersion": "unified-visual-responsive-v001",
+    "recoveryRevision": "r039-main-tree-integrity-recovery"
   },
   "evidence": {
     "prActionsRun": 33129444498,
@@ -47,7 +52,17 @@
     "previewBrowserJob": 98715892775,
     "productionBaselineCommitSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
     "productionRelease": "v3.9.90.2",
-    "productionGeneration": "v3990_2"
+    "productionGeneration": "v3990_2",
+    "mergedMainSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
+    "mergedVisualPreviewCheck": "https://github.com/cashen/gaokao/runs/98723313515",
+    "formalProductionObserved": "data-runtime-state=loading; new CSS absent",
+    "pagesProductionObserved": "data-runtime-state=loading; new CSS absent",
+    "rootCause": "main merge commit 0e01dc has a 10-entry tree and omits index.html, .github/workflows, _headers and most site files; the previous merge tree was assembled incompletely, so production could not receive the visual release",
+    "mainTreeSha": "cb9a5c5057a609b1bd0a971096863d4c3e5d38cd",
+    "mainTreeEntryCount": 10,
+    "completeBaselineTreeSha": "789e9fb7b0e42c9c78eaed8ebac554b17958802b",
+    "actionsForMergedMain": 0,
+    "recoveryGuardPolicy": "skip protected-path diff rejection only when the compared base tree has fewer than 100 recursive entries; retain rejection for complete bases"
   },
   "scope": {
     "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],

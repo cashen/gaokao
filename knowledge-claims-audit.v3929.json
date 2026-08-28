@@ -1,0 +1,98 @@
+{
+  "version": "v3929",
+  "generatedAt": "2026-06-13T05:35:29.464Z",
+  "scannedFiles": 133,
+  "forbiddenHits": [],
+  "internalGuardHits": [
+    {
+      "file": "functions/_lib/advisor-ai-prompt.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-prompt.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-prompt.js",
+      "term": "必录"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-validator.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-validator.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-validator.js",
+      "term": "必录"
+    },
+    {
+      "file": "functions/_lib/advisor-ai-validator.js",
+      "term": "保底"
+    },
+    {
+      "file": "functions/_lib/advisor-fallback-writer.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/advisor-zone-policy.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/advisor-zone-policy.js",
+      "term": "必录"
+    },
+    {
+      "file": "functions/_lib/advisor-zone-policy.js",
+      "term": "捡漏"
+    },
+    {
+      "file": "functions/_lib/ai-card-prompt.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/ai-card-prompt.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/ai-card-prompt.js",
+      "term": "必录"
+    },
+    {
+      "file": "functions/_lib/ai-card-prompt.js",
+      "term": "捡漏"
+    },
+    {
+      "file": "functions/_lib/ai-skills/realistic-career-skill.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/parent-decision-coach-validator.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/parent-decision-coach-validator.js",
+      "term": "必录"
+    },
+    {
+      "file": "functions/_lib/path-ai-output-schema.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/path-ai-prompt.js",
+      "term": "录取概率"
+    },
+    {
+      "file": "functions/_lib/path-ai-prompt.js",
+      "term": "稳进"
+    },
+    {
+      "file": "functions/_lib/path-ai-prompt.js",
+      "term": "必录"
+    }
+  ],
+  "missingModules": [],
+  "status": "pass"
+}

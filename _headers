@@ -1,0 +1,562 @@
+/shared/resources/release/*.js
+  Content-Type: application/javascript; charset=utf-8
+/tongxue/app/*.js
+  Content-Type: application/javascript; charset=utf-8
+/ln-rank/js/*
+  Content-Type: application/javascript; charset=utf-8
+/ln-rank/css/*
+  Content-Type: text/css; charset=utf-8
+/shared/ui/*.js
+  Content-Type: application/javascript; charset=utf-8
+/shared/ui/*.css
+  Content-Type: text/css; charset=utf-8
+
+# v3990_3 unified responsive stylesheet: shell is nested under shared/ui.
+/shared/ui/shell/unified-visual-responsive.v3990_3.css
+  Content-Type: text/css; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/tongxue/index.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/tongxue/app/tongxue-performance-v150.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-region-ui-v150.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-school-entity-ui-v150.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/data/school-name-resolver-v150.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/data/school-entities-v150.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/data/school-search-index.20260617-v150.json
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v151.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v152.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-copy-v152.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-region-ui-v152.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-school-entity-ui-v152.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v153.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/portrait/tongxue-school-portrait-v121.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v154.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/assets/brand/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v155.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-direct-handoff-v155.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v156.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/tongxue/app/tongxue-direct-result-v156.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-performance-v157.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/ui/tokens/foundation.v3959_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/tokens/semantic.v3959_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3959_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/action-contract.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/state-contract.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/copy-contract.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-registry.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/js/app.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/self-check.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/major-difficulty-2026.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/zy2026/assets/zy2026.v3959_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/ui/shell/family-shell.v3964_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/index.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-controller.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-render.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/report/payload-builder.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/analysis.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/path-analysis-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/controller.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/shared/feishu-api-client.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/reports/feishu-report-contract.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/index.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/index.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/selection-pool.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/local-mainline.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/211-mainline.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln2026.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/zy2026.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/zy2026/
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/zy2026/index.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+
+/shared/ui/shell/family-shell.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-registry.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/release-presenter.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/major-difficulty-2026.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/zy2026/assets/zy2026.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-performance-v158.js
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# v3965 runtime ownership
+/shared/ui/shell/family-shell.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-registry.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/release-presenter.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/index.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/report-state.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/report-render.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/report-controller.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-v159.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-controller-v159.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-search-view-v159.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-result-view-v159.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-utils-v159.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/release/current-release.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+
+/ln-rank/js/ux/family-home.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/ui/shell/family-shell.v3965_0.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/major-difficulty-2026.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/zy2026/assets/zy2026.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/zy2026/assets/zy2026.v3965_0.js
+  Content-Type: application/javascript; charset=utf-8
+
+/tongxue/changelog.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
+
+
+# v3966 three-year rank evidence
+/shared/resources/release/release-presenter.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/reports/feishu-report-contract.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/exam/historical-score-rank-contract.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+/ln-rank/css/history-evidence.v3966_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/major-pool/history-score-render.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/school-majors/school-all-mode.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/index.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/feishu/report-controller.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/report/payload-builder.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/major-difficulty-2026.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/zy2026/assets/zy2026.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-v159-r3966.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-api.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/shared/feishu-api-client.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/selection-pool/index.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/selection-pool/feishu-report-api.v3966_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# v3967 resource execution governance
+/shared/resources/release/release-presenter.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/derived-asset-trace.v3967_0.json
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/component-registry.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/algorithms/ranking/result-ranking.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/algorithms/trend/trend-interpretation.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/trends/liaoning-major-trend.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/css/history-evidence.v3967_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/major-pool/index.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/major-pool/render.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/major-pool/history-score-render.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/school-majors/school-all-mode.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/trend/data.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/trend/rules.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/trend/integration.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/trend/index.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/major-difficulty-2026.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/major-difficulty-2026-core.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/zy2026/assets/zy2026.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/tongxue/app/tongxue-runtime-v159-r3967.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/workspace/result-commit.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/workspace/family-card-presenter.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/report/payload-builder.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/index.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-controller.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/diagnose/api.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/diagnose/controller.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/index.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/store.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/analysis.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/controller.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/local-mainline/local-mainline-app.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/css/ln-rank-workspace.v3967_0.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/css/school-all-mode.v3967_0.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/algorithms/position/historical-rank-selection.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/auxiliary/liaoning-key-subjects.v3967_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/app.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/app-runtime.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/selection-pool.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/ux/family-home.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/major-difficulty-2026.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/academic-background/academic-background-app.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/css/academic-background.v3968_0.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/zy2026/assets/zy2026.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/tongxue/app/tongxue-runtime-v159-r3968.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/release/release-presenter.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/release/runtime-cache-contract.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/governance/resource-execution-contract.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/background/academic-background-contract.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/background/academic-background-source-registry.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/algorithms/background/academic-background-matcher.v3968_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# v3970 unified family action and root home ownership
+/shared/resources/release/release-presenter.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-registry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/component-registry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/action-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/copy-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/state-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3970_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3970_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/domain/family-decision-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# v3972_5 unified whole-site active generation
+/shared/resources/release/site-runtime-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/release-presenter.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/site-active-generation.v3972_5.json
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# v3990_2 current site generation
+/shared/resources/release/site-runtime-contract.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/release-presenter.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/site-active-generation.v3990_2.json
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-resource-registry.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/production-resource-verification-contract.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3990_2.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/self-check.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/geo/china-region-catalog.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/aiplus/app.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable
+/aiplus/workspace.v3990_2.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ai/ai-workspace-contract.v3990_2.js
+  Cache-Control: public, max-age=31536000, immutable

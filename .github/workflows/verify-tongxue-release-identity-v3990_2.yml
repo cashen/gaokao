@@ -1,0 +1,48 @@
+name: Verify Tongxue release identity v3990_2
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'tongxue/index.html'
+      - 'tongxue/changelog.html'
+      - 'tongxue/app/**'
+      - 'shared/resources/release/**'
+      - 'tools/verify-tongxue-release-identity-v002.mjs'
+      - '.github/workflows/verify-tongxue-release-identity-v3990_2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tongxue-release-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check syntax and identity
+        run: |
+          set -euo pipefail
+          node --check tools/verify-tongxue-release-identity-v002.mjs
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/site-runtime-contract.v3990_2.js
+          node --check tongxue/app/tongxue-runtime-v159-r3968.js
+          node --check tongxue/app/tongxue-runtime-controller-v159.js
+          node tools/verify-tongxue-release-identity-v002.mjs
+          node tools/audit-canonical-release-version-v3990_2.mjs
+
+      - name: Check protected paths and diff
+        run: |
+          set -euo pipefail
+          git diff --check
+          if [ "$(git ls-tree -r origin/main | wc -l)" -ge 100 ] && git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+            echo 'Protected path changed'
+            exit 1
+          fi

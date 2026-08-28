@@ -1,0 +1,1 @@
+import{fetchFenxiJson}from'./fenxi-fetcher.js';let mc=null;const TTL=5*60*1000;function fresh(i){return i&&Date.now()-i.time<TTL}export async function loadManifest(request,env){if(fresh(mc))return mc.data;const data=await fetchFenxiJson(request,env,'manifest.json');mc={time:Date.now(),data};return data}

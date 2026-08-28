@@ -1,0 +1,70 @@
+{
+  "task": "worker-1102-bounded-api-v001",
+  "repository": "cashen/gaokao",
+  "status": "final-head-ci-pending",
+  "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
+  "branch": "fix/worker-1102-bounded-api-v001",
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r034-worker-1102-bounded-api"
+  },
+  "completed": [
+    "live-main-reconciled",
+    "open-prs-and-actions-reconciled",
+    "dirty-worktrees-preserved",
+    "production-and-pages-1102-reproduced",
+    "isolated-branch-created",
+    "root-cause-confirmed-public-origin-fallback",
+    "context-bound-api-fix",
+    "release-and-cache-revision-synchronized",
+    "local-api-and-contract-tests",
+    "commit-and-pr",
+    "pr-checks-28-of-28-green",
+    "ready-for-review",
+    "exact-preview-sha-verified",
+    "preview-api-and-manifest-verified",
+    "preview-browser-key-path-verified",
+    "preview-stress-verified"
+  ],
+  "inProgress": "final-head-sync-and-ci",
+  "pending": [
+    "final-head-pr-checks",
+    "exact-preview-sha-and-browser-verification",
+    "production-manifest-and-site-verification",
+    "merge-main",
+    "post-merge-verification"
+  ],
+  "evidence": {
+    "production": "canonical school-majors full query returned HTTP 503 Cloudflare error code 1102; major-history was rechecked as HTTP 200",
+    "pages": "canonical school-majors full query returned HTTP 503 Cloudflare error code 1102; major-history was rechecked as HTTP 200",
+    "rootCause": "school-majors passed context.request to school-query-provider, so provider lost env.ASSETS and used public-origin fetch inside the Worker",
+    "localRegression": "with global fetch forced to throw, bound ASSETS resolve-only and full school query both returned HTTP 200 with verified records",
+    "knownIrrelevantActionFailure": "verify-major-bands-bounded-fanout push/no-job failure is excluded from product failure assessment"
+  },
+  "pullRequest": {
+    "number": 242,
+    "url": "https://github.com/cashen/gaokao/pull/242",
+    "remoteHeadSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "draft": false,
+    "checks": "28/28 PR-triggered workflows successful for prior exact HEAD; final handoff commit pending"
+  },
+  "preview": {
+    "url": "https://3026fdf2.gaokao-4y9.pages.dev",
+    "exactSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "health": "deployment.commitSha exact; branch fix/worker-1102-bounded-api-v001",
+    "api": "school resolve-only 200; school full 200; major-history electric 200",
+    "workerStress": "50 mixed requests; cloudflare1102 0",
+    "browser": "major-path human-first Preview PC/Pad/Android passed"
+  },
+  "preserved": [
+    "/workspace/scratch/7d83622e98d3/gaokao",
+    "/workspace/scratch/87ab76c7e5b8/gaokao",
+    "/workspace/scratch/8996e2cad2aa/gaokao",
+    "/workspace/scratch/b9c6d79e120e/gaokao",
+    "/workspace/scratch/e656e218a4d4/gaokao",
+    "sunshine admissions-plan collection",
+    "tools/.verify-production-resource-graph-v3990_2.generated.mjs"
+  ],
+  "verifiedAt": "2026-08-27T21:37:05Z"
+}

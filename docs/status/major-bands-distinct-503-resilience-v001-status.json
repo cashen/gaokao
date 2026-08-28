@@ -1,0 +1,100 @@
+{
+  "task": "major-bands-distinct-503-resilience-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "3eaca66ee9967e2cf511e63e35fa9334a7960794",
+  "branch": "agent/major-bands-distinct-503-resilience-v001",
+  "pr": 213,
+  "headSha": "5ce5dddd66dab3ff935a11ebefad0d2eda54def6",
+  "mergeSha": "6500d32ed566223444933aeb3ff8efc63f44124f",
+  "completed": [
+    "MB-01-reconcile-current-baseline",
+    "MB-02-add-bounded-retry-and-evidence",
+    "MB-03-static-and-local-validation",
+    "MB-04-pr-ci-and-preview-validation",
+    "MB-05-ready-merge-and-post-merge"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "baseline": {
+    "failingRun": 32910886708,
+    "failingJob": 98004745539,
+    "failingScenario": "distinct-9-407-standard-upper",
+    "observed": "HTTP 503",
+    "source": "production-resource-graph-v3990.1",
+    "scope": "independent major-bands stress; not Tongxue"
+  },
+  "postMergeVerification": {
+    "mainSha": "6500d32ed566223444933aeb3ff8efc63f44124f",
+    "cloudflarePagesDeployRun": 32912906704,
+    "cloudflarePagesDeploy": "success",
+    "productionGraphRun": 32912906608,
+    "productionGraph": "success",
+    "productionGraphEvidence": {
+      "totalRequests": 523,
+      "status5xx": 0,
+      "cloudflare1102": 0,
+      "retryRecoveredSamples": 0,
+      "retryFailureCount": 0,
+      "pagination": "success",
+      "sharedAndDistinctConcurrency": "success"
+    },
+    "productionApiHealthRun": 32912906612,
+    "productionApiHealth": "success",
+    "browserProductionRuns": [
+      32912906585,
+      32912906790,
+      32912906631
+    ],
+    "browserProduction": "success",
+    "siteRuntimeRun": 32912906739,
+    "siteRuntime": "success",
+    "nativeChooserRun": 32912906641,
+    "nativeChooser": "success",
+    "productionReleaseRun": 32912906622,
+    "productionRelease": "success",
+    "directHttpProbe": {
+      "productionController": {
+        "http": 200,
+        "bytes": 43843,
+        "markers": [
+          "beginCatalogLoad",
+          "pendingSubmit",
+          "setTongxueIndexStatus"
+        ]
+      },
+      "productionSearchView": {
+        "http": 200,
+        "bytes": 13263,
+        "markers": [
+          "createTongxueSearchView",
+          "setTongxueIndexStatus"
+        ]
+      },
+      "pagesController": {
+        "http": 200,
+        "bytes": 43843,
+        "markers": [
+          "beginCatalogLoad",
+          "pendingSubmit",
+          "setTongxueIndexStatus"
+        ]
+      },
+      "pagesSearchView": {
+        "http": 200,
+        "bytes": 13263,
+        "markers": [
+          "createTongxueSearchView",
+          "setTongxueIndexStatus"
+        ]
+      },
+      "productionMajorBandsApi": 200,
+      "pagesMajorBandsApi": 200
+    },
+    "boundedFanoutPushZeroJobRun": 32912905617,
+    "boundedFanoutPushZeroJobJobs": [],
+    "boundedFanoutNote": "A same-named push run still appeared with zero jobs after merge even though current main workflow contains no push trigger. It is retained as a separate workflow-trigger observation, not reclassified as a 503 or Tongxue failure."
+  },
+  "lastFailure": null,
+  "checkpointNote": "PR #213 merged at exact head 5ce5dddd66dab3ff935a11ebefad0d2eda54def6. Main 6500d32ed566223444933aeb3ff8efc63f44124f passed production deployment, production resource graph, API health, site-runtime, PC/Pad/Android browser, native chooser, release, resource, and source checks. The distinct-50 gate ran 523 requests with status5xx=0 and no retries needed. The bounded-fanout zero-job push observation remains separately recorded.",
+  "verifiedAt": "2026-08-26T00:02:00Z"
+}

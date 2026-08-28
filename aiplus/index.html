@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f6f1" />
+  <title>AIPLuS 家庭顾问｜辽宁高考家庭工具</title>
+  <meta name="description" content="AIPLuS 家庭顾问：理解家长自然语言中的分数、学校、专业、家庭偏好和取舍目标，再用确定性招生事实与可核验官方证据回答。只有明确筛选时才修改候选条件。" />
+  <link rel="stylesheet" href="/aiplus/workspace.v3990_2.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/product.v002.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/feedback-log.v004.css?v=004_0" />
+  <link rel="stylesheet" href="/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/decision-focus.v006.css?v=006_0&fdw=003_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/unified-visual-responsive.v3990_3.css?v=002_4&scroll=002_1&fdw=003_0" />
+</head>
+<body data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-decision-generation="aiplus-parent-decision-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_4" data-ai-family-decision="aiplus-family-decision-v0.03" data-ai-feedback-log="aiplus-feedback-log-v0.04" data-ai-selection-workbench="aiplus-selection-workbench-v0.05" data-ai-decision-focus="aiplus-decision-focus-v0.06" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02" data-release-surface="aiplus" data-ui-visual-responsive="unified-v001">
+  <header class="topbar">
+    <a class="brand" href="/">辽宁高考家庭工具</a>
+    <nav class="top-actions" aria-label="主要入口">
+      <button id="historyToggle" class="history-toggle" type="button">我的决策</button>
+      <a href="/aiplus/" aria-current="page">家庭顾问</a>
+      <a href="/ln-rank/">专业初选</a>
+      <a href="/ln-rank/selection-pool.html">家庭方案</a>
+      <button id="newWorkspace" type="button">新话题</button>
+    </nav>
+  </header>
+
+  <div class="advisor-layout">
+    <aside id="historyPanel" class="history-panel decision-panel" aria-label="我的决策">
+      <div class="history-head decision-panel-head">
+        <div><strong>我的决策</strong><span>孩子情况、进度和当前结论</span></div>
+        <button id="historyClose" type="button" aria-label="关闭我的决策">×</button>
+      </div>
+      <button id="newWorkspaceSide" class="history-new" type="button">＋ 开始新话题</button>
+      <section class="decision-rail-section" aria-labelledby="childDecisionTitle">
+        <h2 id="childDecisionTitle">孩子现在</h2>
+        <strong id="decisionChildSummary" class="decision-child-summary">分数位置还没确认</strong>
+        <div id="decisionProfileSummary" class="decision-profile-summary"></div>
+      </section>
+      <section class="decision-rail-section" aria-labelledby="decisionProgressTitle">
+        <h2 id="decisionProgressTitle">决策进度</h2>
+        <div id="decisionProgressList" class="decision-progress-list"></div>
+      </section>
+      <details class="decision-book-card" id="decisionBookDetails">
+        <summary>家庭决策书 <span>随讨论整理差异和缺口</span></summary>
+        <div id="decisionBookContent" class="decision-book-content"></div>
+      </details>
+      <details class="decision-support-card">
+        <summary>已确认条件与依据</summary>
+        <div class="decision-support-body">
+          <section><h2>已确认条件</h2><div id="constraintList" class="support-list"></div></section>
+          <section><h2>还要核实</h2><div id="pendingList" class="support-list"></div></section>
+          <section><h2>本轮依据</h2><div id="evidenceList" class="support-list"></div></section>
+          <div class="selection-import"><button id="importSelection" type="button">导入当前家庭方案</button><span id="importStatus" class="muted" aria-live="polite"></span></div>
+          <button id="exportWorkspace" class="quiet" type="button">导出这份家庭决策</button>
+        </div>
+      </details>
+      <button id="feedbackLogToggle" class="feedback-log-toggle" type="button">问题反馈 / Log <span>本地生成，不自动上传</span></button>
+      <details class="decision-history-card">
+        <summary>其他家庭档案</summary>
+        <button id="newFamilyProfile" class="history-new secondary-family" type="button">＋ 新建另一份家庭档案</button>
+        <label class="history-search-label" for="historySearch">搜索历史档案</label>
+        <input id="historySearch" class="history-search" type="search" placeholder="学校、专业或问题" autocomplete="off" />
+        <div id="historyList" class="history-list" aria-live="polite"></div>
+        <p class="history-local-note">家庭档案只保存在本设备，不会改动专业初选或家庭方案。</p>
+      </details>
+    </aside>
+    <button id="historyBackdrop" class="history-backdrop" type="button" aria-label="关闭历史"></button>
+
+    <main class="advisor-shell">
+      <section class="hero compact-hero" aria-labelledby="pageTitle">
+        <span class="eyebrow">AIPLuS · 辽宁高考家庭顾问</span>
+        <h1 id="pageTitle">把孩子的选择一步一步定下来</h1>
+        <p>分数、专业、学校、就业、读研和家庭条件都可以直接说。只记住你明确表达过的取舍，没有确认的不会替你做主。</p>
+      </section>
+
+      <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
+        <div class="context-title"><span>仍记得的参考条件</span><strong id="currentContextTitle">当前探索</strong></div>
+        <div id="activeViewChips" class="view-chips"></div>
+      </section>
+
+      <section id="decisionContextStrip" class="current-context readonly-decision-context" aria-live="polite" hidden>
+        <div class="context-title"><span>刚才的查询条件</span><strong>只读带入</strong></div>
+      </section>
+
+      <button id="mobileDecisionStrip" class="mobile-decision-strip" type="button"><strong>我的决策</strong><span>查看当前进度</span></button>
+      <section id="conversationStream" class="conversation" aria-live="polite" aria-busy="false"></section>
+      <button id="newAnswerNotice" class="new-answer-notice" type="button" hidden>新回答在下方</button>
+
+      <section class="starter" id="starterPanel">
+        <div class="starter-copy">
+          <h2>先说孩子现在最真实的情况</h2>
+          <p>例如“578分，普通家庭，本科就业优先，不太想读研，现在不知道电气、自动化还是机械更适合”。不知道从哪开始也没关系，我会告诉你下一步最值得解决什么。</p>
+        </div>
+        <div class="starter-score">
+          <label for="starterScore">孩子大概分数 <span>可选</span></label>
+          <div class="starter-score-row"><input id="starterScore" type="number" inputmode="numeric" min="150" max="750" placeholder="例如 580" /><button id="starterScoreApply" type="button">带上这个分数</button></div>
+        </div>
+        <div id="starterScenarios" class="starter-grid" aria-live="polite"></div>
+      </section>
+
+      <form id="promptForm" class="composer">
+        <label for="promptInput">问学校、专业、分数或怎么选</label>
+        <div class="composer-row">
+          <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：孩子568分，普通家庭，不太想考研，更看重就业，电气、自动化、机械怎么选？"></textarea>
+          <div class="composer-buttons">
+            <button id="stopButton" class="quiet stop" type="button" hidden>停止本轮</button>
+            <button id="sendButton" class="primary" type="submit">发送</button>
+          </div>
+        </div>
+        <p class="composer-help">招生分数来自站内确定性数据；学校官方资料优先核对阳光高考等可验证官方来源，学校、专业和政策事实拿不到可靠依据就明确告诉你。</p>
+      </form>
+
+    </main>
+  </div>
+
+  <footer data-release-footer class="aiplus-product-footer" aria-label="AIPLuS 产品版本">AIPLuS 产品版 · v0.02 · 决策语义 v0.03 · 自选诊断 v0.05 · 决策聚焦 v0.06 · 全站发布：<span data-current-release></span> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a></footer>
+
+  <dialog id="feedbackLogDialog" class="feedback-log-dialog">
+    <form method="dialog" class="dialog-card feedback-log-card">
+      <div class="feedback-log-title"><div><h2>问题反馈 / Log</h2><p>把现象写下来后复制给 ChatGPT。默认不上传，也不附带完整家庭对话。</p></div><button value="close" type="submit" aria-label="关闭问题反馈">×</button></div>
+      <label class="feedback-log-note" for="feedbackLogNote">你遇到了什么问题<textarea id="feedbackLogNote" rows="3" maxlength="500" placeholder="例如：手机上问完学校分数后页面突然跳了一下。"></textarea></label>
+      <label class="feedback-log-option"><input id="feedbackLogIncludeTurn" type="checkbox" /> 我同意附带当前这一轮问题与可见回答</label>
+      <textarea id="feedbackLogPreview" class="feedback-log-preview" readonly rows="14" aria-label="反馈日志预览"></textarea>
+      <div class="feedback-log-actions"><button id="feedbackLogClear" type="button">清空本地日志</button><button id="feedbackLogCopy" class="primary" type="button">复制给 ChatGPT</button></div>
+      <p id="feedbackLogStatus" class="feedback-log-status" aria-live="polite"></p>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDialog">
+    <form method="dialog" class="dialog-card">
+      <h2>这句话我不想替你猜</h2>
+      <p id="confirmText"></p>
+      <div class="dialog-actions">
+        <button value="cancel" type="submit">先不改</button>
+        <button id="confirmApply" value="default" class="primary" type="button">按这个理解继续</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/aiplus/app.v3990_2.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0"></script>
+  <script type="module" src="/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0"></script>
+  <script type="module" src="/aiplus/feedback-log-ui.v004.js?v=004_0"></script>
+</body>
+</html>

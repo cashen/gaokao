@@ -1,0 +1,66 @@
+name: Verify resource consistency v3990_2
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'shared/resources/**'
+      - 'shared/governance/**'
+      - 'ln-rank/site-active-generation.v3990_2.json'
+      - 'ln-rank/kb/major-understanding/**'
+      - 'aiplus/app.v3990_2.js'
+      - 'aiplus/index.html'
+      - 'index.html'
+      - 'ln-rank/index.html'
+      - 'ln-rank/selection-pool.html'
+      - 'docs/architecture/**'
+      - 'tools/verify-resource-consistency-v3990_2.mjs'
+      - '.github/workflows/verify-resource-consistency-v3990_2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resource-consistency:
+    name: resource-consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check changed JavaScript syntax
+        run: |
+          node --check shared/resources/release/active-resource-manifest.v3990_2.js
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/site-runtime-contract.v3990_2.js
+          node --check shared/resources/release/runtime-cache-contract.v3990_2.js
+          node --check shared/resources/resource-registry.js
+          node --check shared/governance/resource-execution-contract.v3990_2.js
+          node --check tools/verify-resource-consistency-v3990_2.mjs
+
+      - name: Verify resource graph and site release identity
+        run: node tools/verify-resource-consistency-v3990_2.mjs
+
+      - name: Run architecture and source audits
+        run: |
+          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-human-copy-v001.mjs
+          node tools/verify-major-source-profile-v001.mjs
+          node tools/verify-tongxue-major-source-intro-v001.mjs
+          node tools/verify-tongxue-uec-cache-identity-v001.mjs
+
+      - name: Check diff and protected paths
+        run: |
+          git diff --check
+          if [ "$(git ls-tree -r origin/main | wc -l)" -ge 100 ] && git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+            echo 'Protected path changed'
+            exit 1
+          fi

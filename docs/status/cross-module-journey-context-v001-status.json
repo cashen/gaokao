@@ -1,0 +1,47 @@
+{
+  "task": "cross-module-journey-context-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/cross-module-journey-context-v001",
+  "baseSha": "b7e4e5bad3b386a212ea1c8a32af76366a83bf88",
+  "remoteHead": "e76a07214cc13196b069d6fad17195f10d5af471",
+  "pr": 206,
+  "completed": [
+    "TX-00-plan-written-and-draft-pr",
+    "TX-01-context-contract",
+    "TX-02-next-actions-and-return",
+    "TX-03-query-scope-and-evidence-copy",
+    "TX-04-multiterminal-and-recovery-tests",
+    "TX-05-ci-preview-ready-merge-main"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "lastFailure": {
+    "workflow": ".github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml",
+    "headSha": "24706302b04debd6a939544b9a1373592c7674e4",
+    "conclusion": "failure",
+    "note": "Pre-existing baseline workflow failure with no generated jobs; all PR #206 acceptance checks and main release checks for merge commit succeeded."
+  },
+  "latestGreenCiHead": "e76a07214cc13196b069d6fad17195f10d5af471",
+  "mergedHead": "e76a07214cc13196b069d6fad17195f10d5af471",
+  "mergeCommitSha": "24706302b04debd6a939544b9a1373592c7674e4",
+  "parentPerspective": {
+    "surfaces": [
+      "/ln-rank",
+      "/aiplus",
+      "/tongxue",
+      "/major-path/"
+    ],
+    "familyFirst": true,
+    "answerFirst": true,
+    "noSilentFilterMutation": true,
+    "tongxueMajorMode": "single-major-only",
+    "lnRankMajorMode": "multi-major-supported",
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ]
+  },
+  "checkpointNote": "PR #206 merged to main at mergeCommitSha. Resume rule after interruption: read this file, verify main SHA and PR #206 state, then continue from the first incomplete task; no implementation task remains.",
+  "verifiedAt": "2026-08-25T17:30:00Z"
+}
