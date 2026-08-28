@@ -22,6 +22,7 @@ on:
       - 'tools/browser-tongxue-major-direct-v001.mjs'
       - 'tools/browser-tongxue-major-scope-v001.mjs'
       - 'tools/browser-tongxue-summary-evidence-v002.mjs'
+      - 'tools/browser-tongxue-human-reading-flow-v001.mjs'
       - 'tools/verify-student-voice-evidence-layer-v002.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/verify-tongxue-startup-status-v001.mjs'
@@ -80,6 +81,7 @@ jobs:
             tools/browser-tongxue-major-direct-v001.mjs \
             tools/browser-tongxue-major-scope-v001.mjs \
             tools/browser-tongxue-summary-evidence-v002.mjs \
+            tools/browser-tongxue-human-reading-flow-v001.mjs \
             tools/verify-student-voice-evidence-layer-v002.mjs \
             tools/verify-tongxue-uec-cache-identity-v001.mjs; do
             node --check "$file"
@@ -186,6 +188,7 @@ jobs:
           node tools/browser-tongxue-major-direct-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-direct-result.json
           node tools/browser-tongxue-major-scope-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-scope-result.json
           node tools/browser-tongxue-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/browser-summary-evidence-result.json
+          node tools/browser-tongxue-human-reading-flow-v001.mjs | tee /tmp/tongxue-live-artifact/browser-human-reading-flow-result.json
 
       - name: Upload verification report
         if: always()

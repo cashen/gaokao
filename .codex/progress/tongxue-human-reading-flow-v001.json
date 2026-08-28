@@ -1,0 +1,66 @@
+{
+  "task": "tongxue-human-reading-flow-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/tongxue-human-reading-flow-v001",
+  "baseSha": "94d2f6523eb52821ef4408a47f76785cc4140464",
+  "headSha": "83fbc5f6b589086bae95a3c2b685715d97ed6246",
+  "status": "in_progress",
+  "completed": [
+    "live-state-reconciled",
+    "branch-created",
+    "plan-and-audit-doc",
+    "implementation-first-pass",
+    "local-static-contract-tests",
+    "local-browser-acceptance",
+    "commit-created",
+    "remote-branch-written",
+    "pr-created",
+    "ci-failure-diagnosed",
+    "ci-failure-fixed-locally",
+    "ci-failures-diagnosed",
+    "ci-contract-fixes-locally"
+  ],
+  "inProgress": "pr-ci-preview",
+  "pending": [
+    "pr-ci-preview",
+    "merge-main",
+    "post-merge-production-and-data-integrity-verify"
+  ],
+  "lastFailure": {
+    "runId": 33146988537,
+    "jobId": 98770089178,
+    "steps": [
+      "Verify Android-safe background navigation",
+      "Verify exact-head Preview PC Pad Android and compact Android",
+      "Verify school resolver and unified query contracts"
+    ],
+    "cause": "three stale test contracts expected pre-PR UI copy/cache identities; runtime and data checks passed",
+    "localResolution": "updated the Android cache assertion, major direct browser badge assertion, and v1.5.9 directory footer assertion; targeted local contracts pass",
+    "remoteFixCommits": ["83fbc5f6b589086bae95a3c2b685715d97ed6246"],
+    "needsRemoteVerification": true
+  },
+  "releaseBaseline": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "mainSha": "94d2f6523eb52821ef4408a47f76785cc4140464"
+  },
+  "preservedUserFiles": [
+    "ln-rank/v3.9.35-function-regression-matrix.json"
+  ],
+  "pullRequest": {
+    "number": 249,
+    "url": "https://github.com/cashen/gaokao/pull/249",
+    "headSha": "83fbc5f6b589086bae95a3c2b685715d97ed6246",
+    "draft": true
+  },
+  "verifiedAt": "2026-08-28T06:11:41Z",
+  "localEvidence": {
+    "browserContract": "tongxue-human-reading-flow-browser-v001",
+    "devices": ["pc-1366", "pad-820", "android-390", "android-compact-360"],
+    "routes": ["manual-school", "direct-school-with-dc", "direct-major-with-dc", "tongxue-to-major-path-return"],
+    "horizontalOverflow": 0,
+    "resultViewIdentity": "159-flow004&r=r040-human-reading-flow",
+    "staticContracts": "pass",
+    "diffCheck": "pass"
+  }
+}

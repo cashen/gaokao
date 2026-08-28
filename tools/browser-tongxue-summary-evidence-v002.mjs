@@ -68,7 +68,7 @@ try {
     await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
 
     const text = await page.locator('#result').textContent();
-    assert.match(text, /大家主要在说什么/);
+    assert.match(text, /先看这两件事/);
     assert.match(text, /这些概括从哪来/);
     assert.match(text, /几条有代表性的学生留言/);
     assert.doesNotMatch(text, /AI总结/);

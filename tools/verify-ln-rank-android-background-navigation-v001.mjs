@@ -20,7 +20,7 @@ assert.match(local, /background-context-direct\.v001\.js\?v=001_0&r=r028-android
 assert.match(all211, /background-context-direct\.v001\.js\?v=001_0&r=r028-android-links/);
 assert.match(all211, /href="\/ln-rank\/local-mainline"/);
 assert.match(all211, /href="\/ln-rank\/211-mainline"/);
-assert.match(majorPath, /app\.v004\.js\?v=004_0&r=r028-android-links/);
+assert.match(majorPath, /app\.v004\.js\?v=004_0&r=r040-human-reading-flow/);
 assert.match(majorContext, /academic-background-navigation\.v002\.js\?v=002_0&r=r028-android-links/);
 assert.match(directContext, /academic-background-navigation\.v002\.js\?v=002_0&r=r028-android-links/);
 assert.match(canonicalizer, /\/ln-rank\/local-mainline\.html': '\/ln-rank\/local-mainline'/);

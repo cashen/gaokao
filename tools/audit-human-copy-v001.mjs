@@ -48,7 +48,7 @@ assert.doesNotMatch(lnHtml, /系统会换算为辽宁2026物理类历史位次/,
 for (const phrase of ['AI总结', '为什么这么判断？', 'provenance', '暂无足够反馈生成总结', '公开评论服务']) {
   assert.doesNotMatch(tongxueView, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Tongxue public copy still exposes implementation language: ${phrase}`);
 }
-for (const phrase of ['大家主要在说什么', '这些概括从哪来？', '几条有代表性的学生留言', '学生留言']) {
+for (const phrase of ['先看这两件事', '这些概括从哪来？', '几条有代表性的学生留言', '学生留言']) {
   assert.ok(tongxueView.includes(phrase), `Tongxue human copy marker missing: ${phrase}`);
 }
 assert.match(tongxueHtml, /tongxue-runtime-result-view-v159\.js\?v=159-flow004/, 'Tongxue result view must use the new immutable copy identity');
@@ -77,7 +77,7 @@ console.log(JSON.stringify({
   foundations: ['eastern-philosophy', 'human-copy'],
   aiplusCopyOwnerPreserved: true,
   lnRankStudentVoiceLabel: '大学生怎么说',
-  tongxueSummaryHeading: '大家主要在说什么',
+  tongxueSummaryHeading: '先看这两件事',
   publicSourcesChecked: productSources.length,
   checkedHardAssistantPhrases: hardAssistantPhrases.length
 }, null, 2));

@@ -520,7 +520,7 @@ document.addEventListener('click', event => {
 });
 
 function directBoot(context) {
-  if (!context.fromLnRank || !context.majorCode) return false;
+  if (!(context.fromLnRank || context.fromTongxue) || !context.majorCode) return false;
   const major = findMajorByCode(context.majorCode);
   if (!major || !(els.input instanceof HTMLInputElement) || !(els.form instanceof HTMLFormElement)) {
     renderState.directBoot = false;

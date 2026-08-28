@@ -21,14 +21,21 @@ export function createTongxueSearchView(ui, state) {
 
   function syncHero(kind) {
     const resultOnly = state.directMode && !['idle', 'confirmation', 'region'].includes(kind);
+    const resultReady = !['idle', 'confirmation'].includes(kind);
     if (ui.hero) ui.hero.hidden = resultOnly;
     if (ui.changeSchool) ui.changeSchool.hidden = !resultOnly;
     document.body.classList.toggle('tongxue-direct-result', resultOnly);
+    document.body.classList.toggle('tongxue-result-ready', resultReady);
     document.body.classList.toggle('tongxue-needs-confirmation', state.directMode && !resultOnly);
   }
 
-  function focusResult() {
-    requestAnimationFrame(() => document.getElementById('resultTitle')?.focus({ preventScroll: false }));
+  function focusResult({ reveal = true } = {}) {
+    requestAnimationFrame(() => {
+      const target = document.getElementById('resultTitle');
+      if (!target) return;
+      target.focus({ preventScroll: true });
+      if (reveal) target.scrollIntoView({ block: 'start', behavior: 'auto' });
+    });
   }
 
   function announce(message) {
