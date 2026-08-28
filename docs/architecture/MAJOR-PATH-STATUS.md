@@ -1,6 +1,6 @@
-# 专业升学地图 v0.04 · durable status
+# 专业升学地图 v0.05 · durable status
 
-本文件是 `/major-path/` 当前总入口账本。v0.04 改的是 presentation / viewport / 信息顺序；专业事实、搜索、研究生导航和 SVG 关系图仍由已经验证的 v0.02 core owners 提供。
+本文件是 `/major-path/` 当前总入口账本。v0.05 收敛 presentation / viewport / 搜索交互；专业事实、搜索、研究生导航和 SVG 关系图仍由同一组 canonical owners 提供。
 
 ## Product job
 
@@ -12,7 +12,7 @@
 4. 还可以和哪些专业一起比较；
 5. 为什么这里只写“可以先看”，以及官方依据是什么。
 
-v0.04 的默认信息顺序是：
+v0.05 的默认信息顺序是：
 
 `专业是什么 → 本科属于哪里 → 读研先看什么 → 相关专业（折叠）→ 目录边界/官方依据（折叠）`
 
@@ -79,23 +79,23 @@ v0.04 的默认信息顺序是：
 活动入口：
 
 - `major-path/index.html`
-- `major-path/app.v004.js`
-- `major-path/major-path-human.v004.css`
+- `major-path/app.v005.js`
+- `major-path/major-path-human.v005.css`
 
-稳定 core：
+稳定 core runtime：
 
-- `major-path/app.v002.js`
+- `major-path/app-core.v005.js`
 - `major-path/major-path.v001.css`
 - `major-path/major-path-graph.v002.css`
 
-v0.04 `app.v004.js` 直接 import v0.02 core。历史 `app.v003.js` / `major-path-direct.v003.css` 不再由 HTML 加载，避免 `v0.04 → v0.03 → v0.02` wrapper chain。
+v0.05 `app.v005.js` 直接 import `app-core.v005.js`。历史 `app.v003.js` / `major-path-direct.v003.css` 不再由 HTML 加载，避免 wrapper chain。
 
 版本边界：
 
-- visible product：`major-path-v0.04`
-- truth/search/graph core：`major-path-v0.02`
+- visible product：`major-path-v0.05`
+- truth/search/graph core runtime：`major-path-core-v0.05`
 - ln-rank handoff：`major-path-handoff-v0.03`
-- human presentation：`major-path-human-v0.04`
+- human presentation：`major-path-human-v0.05`
 
 ## Search contract
 
@@ -138,7 +138,7 @@ v0.04 `app.v004.js` 直接 import v0.02 core。历史 `app.v003.js` / `major-pat
 
 ## ln-rank handoff
 
-跨页 concrete-major gate、same-origin return 与 resume snapshot 继续由 v0.03 owners 管理。当前 Direct Mode 的 landing/presentation 已由 v0.04 接管。
+跨页 concrete-major gate、same-origin return 与 resume snapshot 继续由 v0.03 owners 管理。当前 Direct Mode 的 landing/presentation 已由 v0.05 接管。
 
 详见：`docs/architecture/MAJOR-PATH-HANDOFF-STATUS.md`。
 
@@ -146,16 +146,16 @@ v0.04 `app.v004.js` 直接 import v0.02 core。历史 `app.v003.js` / `major-pat
 
 - `tools/verify-major-path-v002.mjs`
   - 883/92/13 parity、交叉学科、研究生目录、关系真值、搜索语义；
-- `tools/verify-major-path-human-v004.mjs`
+- `tools/verify-major-path-human-v005.mjs`
   - 当前入口、presentation/viewport ownership、人类语言和 handoff boundary；
-- `tools/browser-major-path-human-v004.mjs`
+- `tools/browser-major-path-human-v005.mjs`
   - 本地 PC / Pad / Android / Android compact；
-- `tools/browser-major-path-human-live-v004.mjs`
+- `tools/browser-major-path-human-live-v005.mjs`
   - exact-head Preview / exact-main Production PC / Pad / Android；
 - `.github/workflows/verify-major-path-v001.yml`
   - 历史文件名继续作为唯一活动 major-path workflow owner。
 
-Production durable status：`production/major-path-v0.04`。
+Production durable status：`production/major-path-v0.05`。
 
 ## Release protocol
 
