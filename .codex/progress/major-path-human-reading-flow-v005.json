@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "55e5b4be75872808cbc104bd82971f60ca845df3",
+  "headSha": "3b80e8a7d833a8759161a2dc70973962f5a8ba4d",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -37,11 +37,11 @@
     "post-merge-production"
   ],
   "lastFailure": {
-    "stage": "truth-audit",
-    "runId": 33151574231,
-    "reason": "canonical audit still asserted v0.04 active HTML and app.v002 core",
-    "resolvedBy": "55e5b4be75872808cbc104bd82971f60ca845df3"
+    "stage": "human-first-source-test",
+    "runId": 33151686041,
+    "reason": "v0.05 test still contained escaped v0.04/app.v004/core-v0.02 assertions",
+    "resolvedBy": "3b80e8a7d833a8759161a2dc70973962f5a8ba4d"
   },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T08:05:00Z"
+  "verifiedAt": "2026-08-28T08:35:00Z"
 }
