@@ -1,60 +1,42 @@
 {
   "task": "unified-visual-responsive-v001",
-  "status": "main-tree-integrity-repair-in-progress",
+  "status": "complete",
   "repository": "cashen/gaokao",
-  "baseSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
-  "branch": "fix/unified-visual-production-contract-v002",
   "release": {
     "site": "v3.9.90.2",
     "generation": "v3990_2",
-    "revision": "r038-unified-visual-responsive-production-contract",
-    "componentVersion": "unified-visual-responsive-v001",
-    "recoveryRevision": "r039-main-tree-integrity-recovery"
+    "revision": "r039-main-tree-integrity-recovery",
+    "componentVersion": "unified-visual-responsive-v001"
   },
-  "summary": "新增统一视觉与响应式共享层，接入首页、专业初选、家庭方案、AIPLuS、同学你好和专业路径；只改变 CSS 和资源声明，不改变业务逻辑。",
-  "acceptance": [
-    "桌面阅读宽度和工作区宽度有明确上限",
-    "Pad 使用中间布局，不压缩为单字符窄列",
-    "Android 使用单列文档流，主要控件至少 44px",
-    "长学校名、专业名和链接可换行且无横向溢出",
-    "焦点环、reduced motion 和 safe-area 规则存在",
-    "核心入口均声明统一样式版本和 visual marker",
-    "查询、实体、数据、AI 和导航行为保持不变"
-  ],
-  "files": [
-    "shared/ui/shell/unified-visual-responsive.v3990_3.css",
-    "tools/verify-unified-visual-responsive-v3990_3.mjs",
-    "shared/resources/release/current-release.js",
-    "shared/resources/release/active-resource-manifest.v3990_2.js",
-    "shared/resources/release/site-runtime-contract.v3990_2.js",
-    "shared/resources/release/runtime-cache-contract.v3990_2.js",
-    "shared/ui/ui-resource-registry.v3990_2.js",
-    "index.html",
-    "ln-rank/index.html",
-    "ln-rank/selection-pool.html",
-    "aiplus/index.html",
-    "tongxue/index.html",
-    "major-path/index.html",
-    "changelog.html",
-    "_headers",
-    ".github/workflows/*protected-path-checks*"
-  ],
-  "lastFailure": {
-    "kind": "resolved-transient-runtime-regression",
-    "step": "verify-ai-decision-workspace-v3990_2",
-    "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 重跑成功，未放宽断言。"
+  "summary": "PR #245 合并造成的 main tree 丢失已由 PR #246 恢复；统一视觉层已发布，生产 CSS、运行时和数据完整性已核验。",
+  "acceptance": {
+    "mainTreeRestored": true,
+    "criticalCssAll200": true,
+    "productionActionsProductChecks": "28 success; 1 no-job failure isolated",
+    "dataShaParity": true,
+    "jsonIntegrity": "235 valid, 0 invalid",
+    "majorBandsManifest": "13145 total = 6 chunk sum",
+    "businessLogicChanged": false
   },
-  "observed": {
-    "mainCommit": "0e01dc4815748a4ab1290b98649edf88922bfb44",
-    "mainTree": "cb9a5c5057a609b1bd0a971096863d4c3e5d38cd",
-    "mainTreeEntryCount": 10,
-    "completeBaselineTree": "789e9fb7b0e42c9c78eaed8ebac554b17958802b",
-    "missingFromMainTree": ["index.html", ".github/workflows", "_headers", "most site files"],
-    "formalSite": "data-runtime-state=loading; unified responsive stylesheet absent",
-    "pagesSite": "data-runtime-state=loading; unified responsive stylesheet absent",
-    "cloudflareCheck": "https://github.com/cashen/gaokao/runs/98723313515",
-    "actionsForMergedMain": 0
+  "merge": {
+    "pr": 246,
+    "headSha": "d3471ed0a3608ba8bb6b915e69363f3ba397850d",
+    "mergeSha": "391442235713d074f4f0f3d49b43ad8eab08916b"
   },
-  "next": "提交恢复门合同后重跑 PR 检查；核对精确 Preview/Production 资源和正式站关键交互后合并，再次复核 main。",
-  "preservation": "原工作树未触碰；独立工作树承担本任务。"
+  "production": {
+    "domains": [
+      "https://gaokao.powers.org.cn",
+      "https://gaokao-4y9.pages.dev"
+    ],
+    "cssStatus": "all critical resources 200 text/css",
+    "runtimeHealth": "pass",
+    "dataStatus": "static SHA parity and API checks passed"
+  },
+  "noJobFailure": {
+    "runId": 33133641689,
+    "workflow": "verify-major-bands-bounded-fanout-v3972_5",
+    "jobs": 0,
+    "blocking": false
+  },
+  "next": "无剩余事故恢复动作；后续接管先读取本断点并确认 main SHA 未漂移。"
 }
