@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
   "branch": "fix/unified-visual-responsive-v001",
-  "status": "pr-ci-pending",
+  "status": "blocked-by-pre-existing-ai-preview-regression",
   "plan": [
     "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
     "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
@@ -20,16 +20,15 @@
     "resource-contract-registration",
     "release-changelog-sync"
   ],
-  "inProgress": "pr-ci",
+  "inProgress": "pr-ci-regression-triage",
   "lastFailure": {
-    "kind": "contract",
-    "step": "aiplus-cache-transaction",
-    "message": "新增共享 CSS 初次被 AIPLuS 核心缓存审计识别为 v3990_3，未加入 v=002_4&scroll=002_1&fdw=003_0 原子事务；已修正并由本地 audit-aiplus-v002-ui.mjs 复核通过。"
+    "kind": "pre-existing-runtime-regression",
+    "step": "verify-ai-decision-workspace-v3990_2",
+    "message": "AIPLuS 缓存事务问题已修正并由本地与远端审计通过；随后 PR #245 的既有 AI 浏览器回归在学校历史旅程两次复现 /api/ai/turn 150 秒超时。失败产物 networkTrace 显示上游 /api/major-bands?region=shenyang&band=steady 返回 503，紧随其后的 /api/ai/turn 也返回 503；新 PR 未修改 AI、数据或业务逻辑，不能以放宽断言掩盖。"
   },
   "pending": [
-    "local-static-tests-passed",
-    "remote-branch-and-pr",
-    "pr-ci-and-ready",
+    "resolve-pre-existing-ai-preview-regression-or-obtain-owner-decision",
+    "rerun-pr-ci-and-reach-all-success",
     "preview-exact-sha-and-browser",
     "production-and-resource-manifest",
     "merge-main-and-post-merge-verify"
