@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "c17515fde7b11561a77a74600a2d6dd8383a1295",
+  "headSha": "55e5b4be75872808cbc104bd82971f60ca845df3",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -37,11 +37,11 @@
     "post-merge-production"
   ],
   "lastFailure": {
-    "stage": "source-contract",
-    "runId": 33151311569,
-    "reason": "body core version marker remained at major-path-v0.02 after meta was promoted",
-    "resolvedBy": "c17515fde7b11561a77a74600a2d6dd8383a1295"
+    "stage": "truth-audit",
+    "runId": 33151574231,
+    "reason": "canonical audit still asserted v0.04 active HTML and app.v002 core",
+    "resolvedBy": "55e5b4be75872808cbc104bd82971f60ca845df3"
   },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T07:50:00Z"
+  "verifiedAt": "2026-08-28T08:05:00Z"
 }
