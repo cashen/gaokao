@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "3b80e8a7d833a8759161a2dc70973962f5a8ba4d",
+  "headSha": "751da0a08026f9db8d3751383eb67ac1b4e8d35b",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -38,10 +38,10 @@
   ],
   "lastFailure": {
     "stage": "human-first-source-test",
-    "runId": 33151686041,
-    "reason": "v0.05 test still contained escaped v0.04/app.v004/core-v0.02 assertions",
-    "resolvedBy": "3b80e8a7d833a8759161a2dc70973962f5a8ba4d"
+    "runId": 33151920306,
+    "reason": "human-first test retained old escaped app.v002 dynamic-import assertion",
+    "resolvedBy": "751da0a08026f9db8d3751383eb67ac1b4e8d35b"
   },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T08:35:00Z"
+  "verifiedAt": "2026-08-28T09:10:00Z"
 }
