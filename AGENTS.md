@@ -36,3 +36,32 @@ Protected paths remain:
 - `functions/_middleware.js`
 
 `functions/_lib/release-contract.js` must retain both `LN_RANK_RELEASE_CONTRACT` and `RELEASE_CONTRACT` exports.
+
+## T0 tree-integrity rule
+
+The 2026-08-28 T0 visual outage was caused by merging a pull request whose
+head tree contained only three files into a `main` tree containing 2394 files.
+The merge completed, but it silently replaced the deployable site tree with a
+sparse tree; the browser then received HTML without the shared shell and core
+CSS resources.
+
+This failure mode is now a release blocker:
+
+- Every pull request targeting `main` must pass
+  `tools/verify-main-tree-integrity-v001.mjs` through
+  `.github/workflows/verify-main-tree-integrity-v001.yml`.
+- The pull-request check compares the recursive file count of the proposed
+  head with its base and fails when a mature tree shrinks below 90% of its
+  base, or when any required entrypoint, release contract, deployment workflow,
+  data index or critical CSS sentinel is missing.
+- The `push` check repeats the sentinel and minimum-tree checks on the exact
+  commit that reached `main`; a green deployment alone is not evidence of a
+  complete source tree.
+- A merge must use the final reviewed head SHA. If the head changes after
+  verification, the PR returns to Draft/verification and must not be merged
+  from stale evidence.
+- After merge, verify the exact main SHA, recursive tree count, critical CSS
+  HTTP 200/content type, runtime/API health and production data SHA parity.
+
+The incident record and evidence are maintained in
+`docs/status/t0-visual-tree-loss-incident-2026-08-28.md`.
