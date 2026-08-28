@@ -1,0 +1,65 @@
+{
+  "task": "unified-visual-responsive-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
+  "branch": "fix/unified-visual-responsive-v001",
+  "status": "preview-verified-ready-pending",
+  "plan": [
+    "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
+    "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
+    "保持查询、实体、数据、AI 和导航业务行为不变",
+    "同步资源合同、版本、变更日志、状态和断点",
+    "完成本地测试、PR 检查、精确 Preview、生产和合并后复核"
+  ],
+  "completed": [
+    "live-main-reconciled",
+    "isolated-worktree-created",
+    "taste-skill-rules-applied",
+    "shared-visual-responsive-css",
+    "core-entrypoint-integration",
+    "resource-contract-registration",
+    "release-changelog-sync"
+  ],
+  "inProgress": "final-head-ci",
+  "lastFailure": {
+    "kind": "resolved-transient-runtime-regression",
+    "step": "verify-ai-decision-workspace-v3990_2",
+    "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；重跑当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 后成功，未放宽断言。"
+  },
+  "pending": [
+    "mark-pr-ready-after-final-head-checks",
+    "production-and-resource-manifest",
+    "merge-main-and-post-merge-verify"
+  ],
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "revision": "r037-unified-visual-responsive",
+    "uiVisualResponsiveVersion": "unified-visual-responsive-v001"
+  },
+  "evidence": {
+    "prActionsRun": 33129444498,
+    "prActionsPullRequestRuns": 34,
+    "prActionsAllSuccess": true,
+    "previewStatic": "https://e4ab556e.gaokao-4y9.pages.dev",
+    "previewBranchFunctions": "https://fix-unified-visual-responsiv.gaokao-4y9.pages.dev",
+    "previewExpectedSha": "fab6a6459238fc1171e4fd8404bbe0ccf1c61829",
+    "previewBrowserJob": 98715892775,
+    "productionBaselineCommitSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
+    "productionRelease": "v3.9.90.2",
+    "productionGeneration": "v3990_2"
+  },
+  "scope": {
+    "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],
+    "breakpoints": [">1100", "761-1100", "0-760", "0-380"],
+    "touchTarget": "44px",
+    "businessLogicChanged": false
+  },
+  "preservation": {
+    "originalWorktree": "untouched",
+    "knownUserFiles": [
+      ".codex/progress/ln-rank-input-clear-state-v001.json",
+      "docs/status/ln-rank-input-clear-state-v001-status.json"
+    ]
+  }
+}
