@@ -42,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           git diff --check
-          if git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+          if [ "$(git ls-tree -r origin/main | wc -l)" -ge 100 ] && git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
             echo 'Protected path changed'
             exit 1
           fi

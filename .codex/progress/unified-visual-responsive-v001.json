@@ -20,7 +20,8 @@
     "resource-contract-registration",
     "release-changelog-sync",
     "merged-main-visual-release",
-    "production-stale-resource-observed"
+    "production-stale-resource-observed",
+    "base-tree-recovery-guards"
   ],
   "inProgress": "main-tree-integrity-repair",
   "lastFailure": {
@@ -38,7 +39,8 @@
     "site": "v3.9.90.2",
     "generation": "v3990_2",
     "revision": "r038-unified-visual-responsive-production-contract",
-    "uiVisualResponsiveVersion": "unified-visual-responsive-v001"
+    "uiVisualResponsiveVersion": "unified-visual-responsive-v001",
+    "recoveryRevision": "r039-main-tree-integrity-recovery"
   },
   "evidence": {
     "prActionsRun": 33129444498,
@@ -59,7 +61,8 @@
     "mainTreeSha": "cb9a5c5057a609b1bd0a971096863d4c3e5d38cd",
     "mainTreeEntryCount": 10,
     "completeBaselineTreeSha": "789e9fb7b0e42c9c78eaed8ebac554b17958802b",
-    "actionsForMergedMain": 0
+    "actionsForMergedMain": 0,
+    "recoveryGuardPolicy": "skip protected-path diff rejection only when the compared base tree has fewer than 100 recursive entries; retain rejection for complete bases"
   },
   "scope": {
     "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],

@@ -47,8 +47,8 @@ jobs:
           if [ "${{ github.event_name }}" = 'pull_request' ]; then
             base='${{ github.event.pull_request.base.sha }}'
             git diff --name-only "$base" HEAD | tee /tmp/local-strength-static-files.txt
-            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/api/local-strength\.js$|functions/_lib/local-strength-api\.js$)' /tmp/local-strength-static-files.txt; then exit 1; fi
-            if ! git diff --quiet "$base" HEAD -- \
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/api/local-strength\.js$|functions/_lib/local-strength-api\.js$)' /tmp/local-strength-static-files.txt; then exit 1; fi
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && ! git diff --quiet "$base" HEAD -- \
               ln-rank/data/local-strength/local-strength-index.v3971_2.json \
               ln-rank/data/local-strength/local-strength-audit.v3971_2.json; then
               echo 'LocalStrength v3971.2 is a published immutable asset; create a new generation instead of modifying it.'

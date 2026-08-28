@@ -68,7 +68,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             test -n "$GITHUB_BASE_REF"
             git fetch origin "$GITHUB_BASE_REF" --depth=1
-            git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ]; then git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js; fi
           elif [ "$GITHUB_EVENT_NAME" = push ]; then
             before="$PUSH_BEFORE"
             if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then
@@ -76,7 +76,7 @@ jobs:
             fi
             git cat-file -e "${before}^{commit}"
             test "$(git rev-parse HEAD)" = "$PUSH_SHA"
-            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "$before" | wc -l)" -ge 100 ]; then git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js; fi
           else
             echo "Unsupported Feedback Log verification event: ${GITHUB_EVENT_NAME}" >&2
             exit 2

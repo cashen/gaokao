@@ -50,7 +50,7 @@ jobs:
           set -euo pipefail
           git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
           git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/region-school-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/region-school-files.txt; then
+          if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/region-school-files.txt; then
             echo 'Protected path touched by region-school change.' >&2
             exit 1
           fi

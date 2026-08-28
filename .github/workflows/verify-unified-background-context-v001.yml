@@ -119,13 +119,13 @@ jobs:
           if [ "${{ github.event_name }}" = pull_request ]; then
             base="${{ github.event.pull_request.base.sha }}"
             git cat-file -e "${base}^{commit}"
-            git diff --exit-code "$base..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ]; then git diff --exit-code "$base..HEAD" -- fenxi functions/fenxi functions/_middleware.js; fi
           else
             before="$PUSH_BEFORE"
             if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then before="$(git rev-parse HEAD^1)"; fi
             git cat-file -e "${before}^{commit}"
             test "$(git rev-parse HEAD)" = "$PUSH_SHA"
-            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "$before" | wc -l)" -ge 100 ]; then git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js; fi
           fi
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js

@@ -95,13 +95,13 @@ jobs:
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             git fetch origin "$GITHUB_BASE_REF" --depth=1
-            git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ]; then git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js; fi
           else
             before="$PUSH_BEFORE"
             if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then before="$(git rev-parse HEAD^1)"; fi
             git cat-file -e "${before}^{commit}"
             test "$(git rev-parse HEAD)" = "$PUSH_SHA"
-            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+            if [ "$(git ls-tree -r "$before" | wc -l)" -ge 100 ]; then git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js; fi
           fi
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js

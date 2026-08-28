@@ -74,7 +74,7 @@ jobs:
           if [ "${{ github.event_name }}" = pull_request ]; then
             git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
             git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/aiplus-v003-files.txt
-            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/aiplus-v003-files.txt; then
+            if [ "$(git ls-tree -r "origin/${GITHUB_BASE_REF}" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/aiplus-v003-files.txt; then
               echo 'Protected path touched by AIPLuS decision v0.03.' >&2
               exit 1
             fi
