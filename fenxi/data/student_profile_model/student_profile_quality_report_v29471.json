@@ -1,7 +1,0 @@
-{
-  "version": "V2.9.4.7.1",
-  "rule_count": 8,
-  "field_count": 5,
-  "gender_policy": "pass",
-  "note": "性别仅改变提醒显著性，规则不包含“女孩不适合/男孩适合”等排除性表达。"
-}

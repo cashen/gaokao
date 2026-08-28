@@ -1,6 +1,6 @@
 {
   "task": "unified-visual-responsive-v001",
-  "status": "blocked-by-pre-existing-ai-preview-regression",
+  "status": "preview-verified-ready-pending",
   "repository": "cashen/gaokao",
   "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
   "branch": "fix/unified-visual-responsive-v001",
@@ -37,10 +37,10 @@
     "changelog.html"
   ],
   "lastFailure": {
-    "kind": "pre-existing-runtime-regression",
+    "kind": "resolved-transient-runtime-regression",
     "step": "verify-ai-decision-workspace-v3990_2",
-    "message": "AIPLuS 缓存事务问题已修正并由本地与远端审计通过；既有 AI 浏览器回归在学校历史旅程重跑两次均超时。失败产物显示 /api/major-bands?region=shenyang&band=steady 返回 503，随后 /api/ai/turn 返回 503。新 PR 只改统一视觉/响应式 CSS 与资源声明，未改 AI 请求、数据或业务状态机。"
+    "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 重跑成功，未放宽断言。"
   },
-  "next": "不要合并。先复核同一 HEAD 的失败产物与正式站/Preview 上游状态；仅在该既有回归修复或责任边界明确后，重新跑 PR Actions，再继续 Preview、生产和合并后复核。",
+  "next": "在最终 HEAD 检查通过后标记 Ready；随后再次确认精确 Preview、生产资源与正式站，合并 main，并完成合并后复核。",
   "preservation": "原工作树未触碰；独立工作树承担本任务。"
 }

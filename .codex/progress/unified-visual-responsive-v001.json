@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
   "branch": "fix/unified-visual-responsive-v001",
-  "status": "blocked-by-pre-existing-ai-preview-regression",
+  "status": "preview-verified-ready-pending",
   "plan": [
     "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
     "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
@@ -20,16 +20,14 @@
     "resource-contract-registration",
     "release-changelog-sync"
   ],
-  "inProgress": "pr-ci-regression-triage",
+  "inProgress": "ready-after-final-head-checks",
   "lastFailure": {
-    "kind": "pre-existing-runtime-regression",
+    "kind": "resolved-transient-runtime-regression",
     "step": "verify-ai-decision-workspace-v3990_2",
-    "message": "AIPLuS 缓存事务问题已修正并由本地与远端审计通过；随后 PR #245 的既有 AI 浏览器回归在学校历史旅程两次复现 /api/ai/turn 150 秒超时。失败产物 networkTrace 显示上游 /api/major-bands?region=shenyang&band=steady 返回 503，紧随其后的 /api/ai/turn 也返回 503；新 PR 未修改 AI、数据或业务逻辑，不能以放宽断言掩盖。"
+    "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；重跑当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 后成功，未放宽断言。"
   },
   "pending": [
-    "resolve-pre-existing-ai-preview-regression-or-obtain-owner-decision",
-    "rerun-pr-ci-and-reach-all-success",
-    "preview-exact-sha-and-browser",
+    "mark-pr-ready-after-final-head-checks",
     "production-and-resource-manifest",
     "merge-main-and-post-merge-verify"
   ],
@@ -38,6 +36,18 @@
     "generation": "v3990_2",
     "revision": "r037-unified-visual-responsive",
     "uiVisualResponsiveVersion": "unified-visual-responsive-v001"
+  },
+  "evidence": {
+    "prActionsRun": 33129444498,
+    "prActionsPullRequestRuns": 34,
+    "prActionsAllSuccess": true,
+    "previewStatic": "https://e4ab556e.gaokao-4y9.pages.dev",
+    "previewBranchFunctions": "https://fix-unified-visual-responsiv.gaokao-4y9.pages.dev",
+    "previewExpectedSha": "fab6a6459238fc1171e4fd8404bbe0ccf1c61829",
+    "previewBrowserJob": 98715892775,
+    "productionBaselineCommitSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
+    "productionRelease": "v3.9.90.2",
+    "productionGeneration": "v3990_2"
   },
   "scope": {
     "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],
