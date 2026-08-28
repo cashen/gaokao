@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "3380655d6d8655ae901a01526eafd3933081df93",
+  "headSha": "11bcb87f73d8b2dc54abc9c48b1fb69844ab8541",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -25,17 +25,17 @@
     "v0.05-entrypoint-written",
     "v0.05-tests-written",
     "v0.05-workflow-written",
-    "v0.05-status-docs-written"
-  ],
-  "inProgress": "rerun-full-exact-head-gates",
-  "pending": [
+    "v0.05-status-docs-written",
     "source-contract-tests",
     "browser-local-tests",
     "preview-tests",
     "ready-same-sha",
-    "merge-main",
-    "post-merge-production"
+    "pr-merged",
+    "main-merge-verified",
+    "post-merge-major-path-production-verified"
   ],
+  "inProgress": "post-merge-audit-complete",
+  "pending": [],
   "lastFailure": {
     "stage": "shared-background-guard",
     "runId": 33153052166,
@@ -43,5 +43,18 @@
     "resolvedBy": "3380655d6d8655ae901a01526eafd3933081df93"
   },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T12:45:00Z"
+  "verifiedAt": "2026-08-28T08:10:00Z",
+  "mergedMainSha": "bdcb83cc27722e5d1b74d68c204f775ec524c5b3",
+  "auditFindings": {
+    "majorPath": "production source-contract, production browser PC/Pad/Android, deployment and key CSS/JS resource graph passed",
+    "independentP1": "production rank-kernel concurrency verifier observed HTTP 503 for standard-508-near under shared-identity concurrency; not caused by this PR",
+    "preExisting": "verify-major-bands-bounded-fanout-v3972_5 workflow remained failed independently"
+  },
+  "productionVerification": {
+    "mainSha": "bdcb83cc27722e5d1b74d68c204f775ec524c5b3",
+    "pagesAndCustomDomain": "deployment and production workflow verification passed",
+    "majorPathVersion": "major-path-v0.05 / major-path-core-v0.05 / major-path-human-v0.05",
+    "keyAssets": "production resource contract and browser checks passed",
+    "verifiedAt": "2026-08-28T08:07:42Z"
+  }
 }
