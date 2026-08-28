@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>全站更新记录 · 辽宁高考家庭决策工作台</title>
+<meta name="description" content="辽宁高考家庭决策工作台的全站发布记录与模块版本说明。">
+<style>
+:root{--bg:#f6f8f7;--card:#fff;--primary:#155e75;--text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#e8f3f5}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:860px;margin:auto;padding:26px 20px 44px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center}.brand{color:var(--primary);font-weight:850;font-size:18px}.back{color:var(--primary);font-size:13px;font-weight:800;text-decoration:none}.hero{padding:48px 0 28px}.hero h1{margin:0 0 10px;font-size:38px;line-height:1.2}.hero p{margin:0;color:var(--muted);line-height:1.8}.release{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 14px 38px rgba(20,40,50,.07)}.release h2{margin:0;font-size:23px}.release p{margin:12px 0 0;line-height:1.8;color:#344750}.release-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.badge{display:inline-flex;border-radius:999px;padding:5px 9px;background:var(--soft);color:var(--primary);font-size:11px;font-weight:850}.module-list{display:grid;gap:10px;margin:20px 0 0;padding:0;list-style:none}.module-list li{display:flex;justify-content:space-between;gap:16px;padding:12px 14px;border:1px solid var(--border);border-radius:13px;background:#fbfcfc}.module-list span:first-child{font-weight:800}.module-list span:last-child{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;text-align:right}.module-link{display:inline-flex;margin-top:18px;color:var(--primary);font-weight:800;text-underline-offset:3px}@media(max-width:640px){.wrap{padding:18px 14px 30px}.hero{padding:34px 0 22px}.hero h1{font-size:31px}.release{padding:19px 18px}.module-list li{display:block}.module-list span:last-child{display:block;margin-top:4px;text-align:left}}
+</style>
+</head>
+<body data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-release-surface="release-log">
+<div class="wrap">
+  <div class="topbar"><div class="brand">辽宁高考家庭决策工作台</div><a class="back" href="/">返回首页</a></div>
+  <header class="hero"><h1>全站更新记录</h1><p>这里记录全站发布版本，以及各模块仍在独立维护的能力版本。</p></header>
+  <main>
+    <article class="release">
+      <span class="badge">当前全站发布</span>
+      <h2>v3.9.90.2</h2>
+      <p>统一全站发布版本、运行时 generation、资源查询版本与 footer 更新入口。模块能力版本继续按各自合同维护，不与全站发布版本混用。</p>
+      <div class="release-meta"><span class="badge">运行时 v3990_2</span><span class="badge">资源查询 3990_2</span><span class="badge">ln-rank 入口 r029</span></div>
+      <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_2-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
+      <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.2 / v3990_2。</p>
+      <p>本次 r036：继续收敛专业历史入口的 Worker 冷路径。未提供 candidateScore 时不再静态加载三年位次表，只有需要分数换算时才延迟加载 rank-table provider；叠加 r035 的 manifest 解析边界，避免正式站冷实例触发 error code 1102/HTTP 503。能力版本为 major-history-resource-boundary-v002、major-history-rank-lookup-lazy-v001，缓存修订为 r036-major-history-rank-lazy。</p>
+      <p>本次 r037：新增统一视觉与响应式样式合同。共享层统一阅读宽度、间距节奏、焦点环、44px 触控目标、长文本换行和横向溢出保护；核心入口按桌面、Pad、Android 和窄屏断点收敛布局，不改变查询、实体、数据或 AI 行为。能力版本为 unified-visual-responsive-v001，样式修订为 r037-unified-visual-responsive。</p>
+      <p>本次 r038：补齐统一响应式样式在 Cloudflare Pages 嵌套目录下的资源发布合同。为带版本号的 shell CSS 明确声明 CSS MIME 类型与 immutable 缓存，避免正式站部署后出现资源类型或缓存不一致；能力版本保持 unified-visual-responsive-v001，样式修订为 r038-unified-visual-responsive-production-contract。</p>
+      <p>本次 r035：继续修复专业历史入口在 Worker 冷路径加载完整 420KB 专业目录并全量扫描意图，导致有效专业查询触发 error code 1102/HTTP 503 的问题。专业历史现在先使用已加载的 canonical manifest 做精确、别名和有界候选解析，再读取预聚合 shard；保留宽泛输入的 fail-closed 选择状态，禁止公共 origin 自回源。能力版本为 major-history-resource-boundary-v001，缓存修订为 r035-major-history-1102-bounded-api。</p>
+      <p>本次 r034：修复学校专业接口丢失 Cloudflare Pages Functions context 的问题。学校查询现在始终使用绑定的 ASSETS 资源，不再在 Worker 内错误回源正式域名，避免有效的 canonical schoolEntityId 查询触发 error code 1102/HTTP 503；专业历史、学校 resolve-only 和完整学校查询均加入资源边界回归验收。能力版本为 worker-resource-boundary-v001、school-query-context-binding-v001，缓存修订为 r034-worker-1102-bounded-api。</p>
+      <p>本次 r033：修复专业查询学校卡片缺少原生链接的问题，学校名称现在可以刷新、分享、键盘访问，并保留当前专业和参考分数上下文进入学校查询；同时阻断 admission 临时标识进入 Tongxue canonical entity，旧的辽东学院 handoff 会按学校名称兼容降级，不再在来源请求前误报 invalid_entity。模块版本为 ln-rank-school-entry-v001、tongxue-entity-handoff-v001，缓存修订为 r033-tongxue-school-entry。</p>
+      <ul class="module-list" aria-label="模块能力版本">
+        <li><span>Tongxue · 同学你好</span><span>v1.5.9 / tongxue-runtime-v159-r3968</span></li>
+        <li><span>AIPLuS 产品版</span><span>v0.02</span></li>
+        <li><span>省内优势背景</span><span>local-strength-static-v3971_2</span></li>
+        <li><span>211 背景静态资源</span><span>all-211-static-v3972_0</span></li>
+      </ul>
+      <a class="module-link" href="/tongxue/changelog.html">查看同学你好更新记录</a>
+    </article>
+  </main>
+  <footer class="site-release-footer" data-release-footer>当前发布：<span data-current-release></span> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a></footer>
+</div>
+<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy"></script>
+</body>
+</html>

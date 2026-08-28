@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f7f6" />
+  <title>辽宁 2027 物理类家庭方案与复核报告</title>
+  <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
+  <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3962_2" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3972_5.css?v=3972_5" />
+  <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5" />
+  <link rel="stylesheet" href="/ln-rank/css/selection-pool.v3964_0.css?v=3964_0" />
+  <link rel="stylesheet" href="/ln-rank/css/history-evidence.v3967_0.css?v=3967_0" />
+  <link rel="stylesheet" href="/shared/ui/navigation/module-navigation.v005.css?v=005&r=r029-mobile-nav" />
+  <link rel="stylesheet" href="/shared/ui/shell/unified-visual-responsive.v3990_3.css?v=3990_3&r=r038-unified-visual-responsive-production-contract" />
+</head>
+<body class="ln-parent-guided-flow ln-selection-guided-flow ui-orchestrated" data-ui-page="selected" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-runtime-state="loading" data-release-surface="selection-pool" data-ui-visual-responsive="unified-v001">
+  <div data-ui-global-header-mount></div>
+  <div data-ui-family-status-mount></div>
+  <main class="page ln-selection-page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">辽宁 2027 物理类家庭专业初选</p>
+        <h1 class="app-title">把愿意继续了解的专业放在一起，逐项确认家庭方案</h1>
+        <p class="app-subtitle">这里保存的是准备继续讨论的专业，不代表已经确定为正式志愿。先让孩子表达真实想法，再检查地区、费用、校区、体检和培养方式，最后整理成一份可以直接分享的家庭方案报告。</p>
+      </div>
+      <div class="hero-badges"><a class="scope-pill" href="/ln-rank/">返回继续看专业</a><div class="scope-pill">正式填报仍要查官方计划和章程</div></div>
+    </header>
+
+    <section id="selectionRuntimeStatus" class="runtime-status-panel is-loading" aria-live="polite">
+      <div><b id="selectionRuntimeTitle">正在准备家庭方案</b><p id="selectionRuntimeMessage">本机保存的专业和报告功能准备好后，操作按钮才会可用。</p></div>
+      <button id="selectionRuntimeReload" class="workspace-button muted" type="button" hidden>重新加载</button>
+    </section>
+
+    <section class="ln-plan-status-strip" aria-label="家庭方案整理流程">
+      <div class="ln-plan-status-main"><b>家庭方案整理流程</b><span>先确认孩子目前的位置，再检查愿意程度、家庭条件和待确认事项，最后保存并分享报告。</span></div>
+      <ol class="ln-plan-status-steps"><li>确认孩子的位置</li><li>检查家庭方案</li><li>处理待确认事项</li><li>保存并分享报告</li></ol><p class="ln-plan-status-note" data-plan-flow-note>先逐项看孩子是否愿意继续了解，再处理家庭条件。</p>
+    </section>
+
+    <section class="ln-selection-step ln-selection-score-panel" aria-labelledby="selectionScoreTitle">
+      <div class="ln-step-marker">孩子目前的位置</div>
+      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认模考 / 预估参考分数</h2><p>报告中的位置分组会按同一个算法重新计算：2026位次用于主要判断，分数用于解释；2025、2024只作历史对照。</p></div>
+      <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">模考 / 预估参考分数</label><input id="pathCandidateScore" class="score-input" data-selection-runtime-control disabled aria-disabled="true" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="如 580" /></div></div>
+    </section>
+
+    <section class="ln-selection-main" aria-label="家庭方案与家庭复核">
+      <div id="selected-list" class="workspace-panel workspace-panel-list ln-selection-list-panel">
+        <div class="workspace-head ln-selection-panel-head">
+          <div><div class="ln-step-marker">家庭方案</div><h2 class="workspace-title">逐项检查愿意继续讨论的专业</h2><p class="workspace-desc">先让孩子确认是否愿意继续了解，不合适的可以移出。旧版保存且暂时无法对应到2026同口径记录的条目会单独标记，不进入当前正式报告。</p></div>
+          <div class="workspace-actions workspace-actions-list ln-selection-list-actions"><a class="workspace-button muted" href="/ln-rank/">返回继续添加</a><button id="sortByBand" class="workspace-button" type="button" data-selection-runtime-control disabled aria-disabled="true">按分段整理</button><button id="clearPool" class="workspace-button danger-muted" type="button" data-selection-runtime-control disabled aria-disabled="true">清空家庭方案</button></div>
+        </div>
+        <div id="workspaceStats"></div>
+        <section id="selectionFilterRelation" class="ln-selection-filter-relation" hidden></section>
+        <div id="selectionUndoStatus" class="ln-selection-undo-status" aria-live="polite"></div>
+        <div id="workspaceList" class="workspace-list compact-list"></div>
+        <div id="reviewChecklistPanel"></div>
+      </div>
+
+      <aside class="ln-selection-side" aria-label="检查与报告操作">
+        <section id="family-review" class="workspace-panel ln-selection-action-panel">
+          <div class="workspace-head ln-selection-panel-head ln-action-panel-head"><div><div class="ln-step-marker">家庭复核</div><h2 class="workspace-title">检查真实接受度和必须确认的事项</h2><p class="workspace-desc">算法只检查位置、证据和结构，不替家庭决定专业。低分侧只有在专业、城市、费用、校区和项目条件都能接受时，才算真正可用的承接。</p></div></div>
+          <div id="selectionActionHint"></div>
+          <div id="directionExplorerReportMount" class="direction-explorer-report-mount"></div>
+          <div class="workspace-actions ln-action-button-grid">
+            <button id="runAnalysis" class="workspace-button primary" type="button" data-selection-runtime-control disabled aria-disabled="true">检查当前家庭方案</button>
+            <button id="sendAnalyzedPool" class="workspace-button report-primary" type="button" data-selection-runtime-control disabled aria-disabled="true">生成家庭方案报告</button>
+            <details class="family-secondary-actions">
+              <summary>其他保存方式</summary>
+              <div class="family-secondary-actions__body">
+                <button id="sendSelectionPool" class="workspace-button" type="button" data-selection-runtime-control disabled aria-disabled="true">不检查，直接生成报告</button>
+                <button id="copySelectionText" class="workspace-button muted" type="button" data-selection-runtime-control disabled aria-disabled="true">复制文字版</button>
+              </div>
+            </details>
+          </div>
+          <div class="ln-report-help"><strong>分享说明：</strong>生成后会得到一个可直接打开和转发的飞书链接。知道链接的人可以查看，请只转发给需要一起讨论的人。报告使用当前家庭方案和同一算法快照；2025、2024只放在报告末尾作历史对照，不参与当前分组。</div>
+          <div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="workspace-panel ln-selection-analysis-panel" id="selectionAnalysisPanel" aria-labelledby="selectionAnalysisTitle">
+      <div class="workspace-head ln-selection-panel-head"><div><div class="ln-step-marker">检查结果</div><h2 id="selectionAnalysisTitle" class="workspace-title">专业分布和待确认事项会显示在这里</h2><p class="workspace-desc">这里会提醒位置覆盖、孩子接受度、费用、校区和特殊项目等需要家庭继续确认的地方。</p></div></div>
+      <div id="analysisResult"></div>
+    </section>
+
+    <section class="data-note">当前报告主要依据辽宁2026年普通类本科批物理类专业投档记录，2025、2024只作严格同口径历史对照。输入的是模考或预估参考分数，不是2027年正式高考成绩；历史位次也不代表2027年实际位次。正式填报应重新确认2027年一分一段、招生计划、选科、体检、学费、校区和院校章程。<br>当前发布：<span data-current-release>v3.9.90.2</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+  </main>
+  <div data-ui-family-plan-live class="ui-family-plan-live" aria-live="polite"></div>
+  <script type="module" src="/ln-rank/js/selection-pool.v3990_2.js?v=3990_2-nav003"></script>
+  <footer class="site-release-footer" data-release-footer>当前发布：<span data-current-release></span> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a></footer>
+<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2"></script>
+</body>
+</html>
