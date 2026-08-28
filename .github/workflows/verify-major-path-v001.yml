@@ -1,4 +1,4 @@
-name: Verify major path human-first v0.04
+name: Verify major path human-first v0.05
 
 on:
   pull_request:
@@ -14,9 +14,9 @@ on:
       - 'ln-rank/css/major-path-handoff.v003.css'
       - 'ln-rank/js/app.v3990_2.js'
       - 'tools/verify-major-path-v002.mjs'
-      - 'tools/verify-major-path-human-v004.mjs'
-      - 'tools/browser-major-path-human-v004.mjs'
-      - 'tools/browser-major-path-human-live-v004.mjs'
+      - 'tools/verify-major-path-human-v005.mjs'
+      - 'tools/browser-major-path-human-v005.mjs'
+      - 'tools/browser-major-path-human-live-v005.mjs'
       - 'docs/architecture/MAJOR-PATH*.md'
       - '.github/workflows/verify-major-path-v001.yml'
   push:
@@ -31,9 +31,9 @@ on:
       - 'ln-rank/css/major-path-handoff.v003.css'
       - 'ln-rank/js/app.v3990_2.js'
       - 'tools/verify-major-path-v002.mjs'
-      - 'tools/verify-major-path-human-v004.mjs'
-      - 'tools/browser-major-path-human-v004.mjs'
-      - 'tools/browser-major-path-human-live-v004.mjs'
+      - 'tools/verify-major-path-human-v005.mjs'
+      - 'tools/browser-major-path-human-v005.mjs'
+      - 'tools/browser-major-path-human-live-v005.mjs'
       - 'docs/architecture/MAJOR-PATH*.md'
       - '.github/workflows/verify-major-path-v001.yml'
 
@@ -61,30 +61,30 @@ jobs:
           node --check shared/resources/majors/major-search-intent.v001.js
           node --check shared/resources/majors/major-relationship-graph.v002.js
           node --check shared/resources/majors/major-path-navigation.v003.js
-          node --check major-path/app.v002.js
-          node --check major-path/app.v004.js
+          node --check major-path/app-core.v005.js
+          node --check major-path/app.v005.js
           node --check ln-rank/js/workspace/major-path-handoff.v003.js
           node --check tools/verify-major-path-v002.mjs
-          node --check tools/verify-major-path-human-v004.mjs
-          node --check tools/browser-major-path-human-v004.mjs
-          node --check tools/browser-major-path-human-live-v004.mjs
+          node --check tools/verify-major-path-human-v005.mjs
+          node --check tools/browser-major-path-human-v005.mjs
+          node --check tools/browser-major-path-human-live-v005.mjs
           test "$(find shared/resources/graduate -maxdepth 1 -type f -name 'graduate-catalog-2022*.js' | wc -l | tr -d ' ')" = "1"
-          grep -q 'data-major-path-version="major-path-v0.04"' major-path/index.html
-          grep -q 'data-major-path-core-version="major-path-v0.02"' major-path/index.html
+          grep -q 'data-major-path-version="major-path-v0.05"' major-path/index.html
+          grep -q 'data-major-path-core-version="major-path-core-v0.05"' major-path/index.html
           grep -q 'data-major-path-handoff-version="major-path-handoff-v0.03"' major-path/index.html
-          grep -q 'data-major-path-human-version="major-path-human-v0.04"' major-path/index.html
-          grep -q '/major-path/app.v004.js?v=004_0' major-path/index.html
-          grep -q '/major-path/major-path-human.v004.css?v=004_0' major-path/index.html
+          grep -q 'data-major-path-human-version="major-path-human-v0.05"' major-path/index.html
+          grep -q '/major-path/app.v005.js?v=005_0' major-path/index.html
+          grep -q '/major-path/major-path-human.v005.css?v=005_0' major-path/index.html
           ! grep -q '/major-path/app.v003.js?v=003_0' major-path/index.html
           ! grep -q '/major-path/major-path-direct.v003.css?v=003_0' major-path/index.html
           grep -q 'major-path-handoff.v003.js?v=003_0' ln-rank/js/app.v3990_2.js
-          ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app.v002.js
-          ! grep -Eq 'localStorage|sessionStorage|indexedDB|MutationObserver|scrollIntoView\s*\(' major-path/app.v004.js
+          ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app-core.v005.js
+          ! grep -Eq 'localStorage|sessionStorage|indexedDB|MutationObserver|scrollIntoView\s*\(' major-path/app.v005.js
           ! grep -Eq 'location\.assign\s*\(' ln-rank/js/workspace/major-path-handoff.v003.js
-      - name: Preserve v0.02 full professional truth audit
+      - name: Preserve full professional truth audit v0.05
         run: node tools/verify-major-path-v002.mjs
-      - name: Verify human-first presentation and handoff boundary v0.04
-        run: node tools/verify-major-path-human-v004.mjs
+      - name: Verify human-first presentation and handoff boundary v0.05
+        run: node tools/verify-major-path-human-v005.mjs
       - name: Preserve architecture handoff
         run: node tools/audit-architecture-handoff-v3990_2.mjs
       - name: Protected boundaries
@@ -121,7 +121,7 @@ jobs:
       - name: Install verified Chromium
         run: bash .github/scripts/install-playwright-chromium.sh
       - name: Verify local human-first PC Pad Android and compact Android
-        run: node tools/browser-major-path-human-v004.mjs
+        run: node tools/browser-major-path-human-v005.mjs
       - name: Resolve exact-head Cloudflare Preview
         id: preview
         env:
@@ -150,8 +150,8 @@ jobs:
           done
           test -n "$immutable_preview"
           echo "base=$immutable_preview" >> "$GITHUB_OUTPUT"
-          echo "Exact major-path human-first v0.04 Preview: $immutable_preview"
-      - name: Wait for exact-head v0.04 presentation and preserved truth assets
+          echo "Exact major-path human-first v0.05 Preview: $immutable_preview"
+      - name: Wait for exact-head v0.05 presentation and preserved truth assets
         env:
           BASE: ${{ steps.preview.outputs.base }}
         run: |
@@ -160,19 +160,19 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$BASE/major-path/" || true)"
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
-            core="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v002.js?v=002_0" || true)"
-            human="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v004.js?v=004_0" || true)"
-            human_css="$(curl -fsSL --max-time 20 "$BASE/major-path/major-path-human.v004.css?v=004_0" || true)"
+            core="$(curl -fsSL --max-time 20 "$BASE/major-path/app-core.v005.js?v=005_0" || true)"
+            human="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v005.js?v=005_0" || true)"
+            human_css="$(curl -fsSL --max-time 20 "$BASE/major-path/major-path-human.v005.css?v=005_0" || true)"
             nav="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-path-navigation.v003.js?v=003_0" || true)"
             handoff="$(curl -fsSL --max-time 20 "$BASE/ln-rank/js/workspace/major-path-handoff.v003.js?v=003_0" || true)"
-            graph="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-relationship-graph.v002.js?v=002_0" || true)"
+            graph="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-relationship-graph.v002.js?v=005_0" || true)"
             grad="$(curl -fsSL --max-time 20 "$BASE/shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.04"' <<<"$html" \
-              && grep -q 'data-major-path-core-version="major-path-v0.02"' <<<"$html" \
-              && grep -q 'data-major-path-human-version="major-path-human-v0.04"' <<<"$html" \
+            if grep -q 'data-major-path-version="major-path-v0.05"' <<<"$html" \
+              && grep -q 'data-major-path-core-version="major-path-core-v0.05"' <<<"$html" \
+              && grep -q 'data-major-path-human-version="major-path-human-v0.05"' <<<"$html" \
               && [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'createMajorRelationshipGraphResolver' <<<"$core" \
-              && grep -q 'major-path-human-v0.04' <<<"$human" \
+              && grep -q 'major-path-human-v0.05' <<<"$human" \
               && grep -q 'major-pathway-focus' <<<"$human_css" \
               && grep -q 'major-path-navigation-v0.03' <<<"$nav" \
               && grep -q 'major-path-ln-rank-handoff-v0.03' <<<"$handoff" \
@@ -180,13 +180,13 @@ jobs:
               && grep -q 'graduate-catalog-2022-v001' <<<"$grad"; then exit 0; fi
             sleep 8
           done
-          echo "Major-path human-first v0.04 Preview asset graph never reached exact head $EXPECTED_SHA" >&2
+          echo "Major-path human-first v0.05 Preview asset graph never reached exact head $EXPECTED_SHA" >&2
           exit 2
       - name: Verify exact-head Preview human-first PC Pad Android
         env:
           MAJOR_PATH_LIVE_BASE: ${{ steps.preview.outputs.base }}
           MAJOR_PATH_LIVE_MODE: preview
-        run: node tools/browser-major-path-human-live-v004.mjs
+        run: node tools/browser-major-path-human-live-v005.mjs
 
   browser-production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -206,7 +206,7 @@ jobs:
           node-version: 22
       - name: Install verified Chromium
         run: bash .github/scripts/install-playwright-chromium.sh
-      - name: Wait for coherent exact-main v0.04 assets
+      - name: Wait for coherent exact-main v0.05 assets
         run: |
           set -euo pipefail
           base="$MAJOR_PATH_LIVE_BASE"
@@ -214,19 +214,19 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$base/major-path/" || true)"
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$base/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
-            human="$(curl -fsSL --max-time 20 "$base/major-path/app.v004.js?v=004_0" || true)"
-            css="$(curl -fsSL --max-time 20 "$base/major-path/major-path-human.v004.css?v=004_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.04"' <<<"$html" \
-              && grep -q 'data-major-path-core-version="major-path-v0.02"' <<<"$html" \
+            human="$(curl -fsSL --max-time 20 "$base/major-path/app.v005.js?v=005_0" || true)"
+            css="$(curl -fsSL --max-time 20 "$base/major-path/major-path-human.v005.css?v=005_0" || true)"
+            if grep -q 'data-major-path-version="major-path-v0.05"' <<<"$html" \
+              && grep -q 'data-major-path-core-version="major-path-core-v0.05"' <<<"$html" \
               && [ "$sha" = "$EXPECTED_SHA" ] \
-              && grep -q 'major-path-human-v0.04' <<<"$human" \
+              && grep -q 'major-path-human-v0.05' <<<"$human" \
               && grep -q 'major-pathway-focus' <<<"$css"; then exit 0; fi
             sleep 10
           done
-          echo "Major-path v0.04 Production never reached exact main $EXPECTED_SHA" >&2
+          echo "Major-path v0.05 Production never reached exact main $EXPECTED_SHA" >&2
           exit 2
       - name: Verify Production human-first PC Pad Android
-        run: node tools/browser-major-path-human-live-v004.mjs
+        run: node tools/browser-major-path-human-live-v005.mjs
 
   publish-production-status:
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -244,12 +244,12 @@ jobs:
         run: |
           set -euo pipefail
           state=failure
-          description='major-path v0.04 Production verification failed'
+          description='major-path v0.05 Production verification failed'
           if [ "$SOURCE_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
             state=success
-            description='major-path v0.04 human-first Production verified'
+            description='major-path v0.05 human-first Production verified'
           fi
-          payload="$(jq -n --arg state "$state" --arg context 'production/major-path-v0.04' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          payload="$(jq -n --arg state "$state" --arg context 'production/major-path-v0.05' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
           curl -fsSL --max-time 25 -X POST \
             -H 'Accept: application/vnd.github+json' \
             -H "Authorization: Bearer ${GH_TOKEN}" \

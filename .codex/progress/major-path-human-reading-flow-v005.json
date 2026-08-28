@@ -1,0 +1,47 @@
+{
+  "task": "major-path human reading flow v0.05",
+  "repository": "cashen/gaokao",
+  "baseBranch": "main",
+  "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
+  "branch": "fix/major-path-human-reading-flow-v005",
+  "headSha": "3380655d6d8655ae901a01526eafd3933081df93",
+  "pr": 250,
+  "release": {
+    "site": "gaokao.powers.org.cn",
+    "generation": "v3990_2",
+    "release": "v3.9.90.2"
+  },
+  "completed": [
+    "live-state-reconciled",
+    "branch-created",
+    "source-audit",
+    "taste-review-read",
+    "recovery-checkpoint-written",
+    "plan-written",
+    "draft-pr-created",
+    "v0.05-core-written",
+    "v0.05-human-shell-written",
+    "v0.05-css-written",
+    "v0.05-entrypoint-written",
+    "v0.05-tests-written",
+    "v0.05-workflow-written",
+    "v0.05-status-docs-written"
+  ],
+  "inProgress": "rerun-full-exact-head-gates",
+  "pending": [
+    "source-contract-tests",
+    "browser-local-tests",
+    "preview-tests",
+    "ready-same-sha",
+    "merge-main",
+    "post-merge-production"
+  ],
+  "lastFailure": {
+    "stage": "shared-background-guard",
+    "runId": 33153052166,
+    "reason": "Android background navigation verifier still expected app.v004 query and skipped after that failure",
+    "resolvedBy": "3380655d6d8655ae901a01526eafd3933081df93"
+  },
+  "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
+  "verifiedAt": "2026-08-28T12:45:00Z"
+}

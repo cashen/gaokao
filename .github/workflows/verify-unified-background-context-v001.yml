@@ -77,7 +77,7 @@ jobs:
           node --check functions/_lib/ai/decision-research-runtime.js
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/_lib/ai/advisor-presentation.js
-          node --check major-path/app.v004.js
+          node --check major-path/app.v005.js
           node --check major-path/background-context.v001.js
           node --check ln-rank/js/academic-background/background-context-direct.v001.js
           node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
@@ -100,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-major-path-v002.mjs
-          node tools/verify-major-path-human-v004.mjs
+          node tools/verify-major-path-human-v005.mjs
       - name: Preserve architecture handoff and temporary-artifact boundary
         run: |
           set -euo pipefail
@@ -185,7 +185,7 @@ jobs:
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health?ubc=$attempt" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             major_html="$(curl -fsSL --max-time 20 "$BASE/major-path/?ubc=$attempt" || true)"
-            major_app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v004.js?v=004_0&ubc=$attempt" || true)"
+            major_app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v005.js?v=005_0&ubc=$attempt" || true)"
             major_bg="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links&ubc=$attempt" || true)"
             context="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-context.v001.js?ubc=$attempt" || true)"
             index="$(curl -fsSL --max-time 20 "$BASE/ln-rank/data/background-context/background-context-index.v001.json?ubc=$attempt" || true)"
@@ -234,7 +234,7 @@ jobs:
           for attempt in $(seq 1 65); do
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE_URL/api/ai/health?ubc_prod=$attempt" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
-            major="$(curl -fsSL --max-time 20 "$BASE_URL/major-path/app.v004.js?v=004_0&ubc_prod=$attempt" || true)"
+            major="$(curl -fsSL --max-time 20 "$BASE_URL/major-path/app.v005.js?v=005_0&ubc_prod=$attempt" || true)"
             direct="$(curl -fsSL --max-time 20 "$BASE_URL/ln-rank/js/academic-background/background-context-direct.v001.js?v=001_0&ubc_prod=$attempt" || true)"
             index="$(curl -fsSL --max-time 20 "$BASE_URL/ln-rank/data/background-context/background-context-index.v001.json?ubc_prod=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \

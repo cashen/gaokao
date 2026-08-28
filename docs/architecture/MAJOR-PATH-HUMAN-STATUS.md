@@ -1,10 +1,10 @@
-# 专业升学地图 v0.04 · human-first durable status
+# 专业升学地图 v0.05 · human-first durable status
 
-本文件记录 `/major-path/` v0.04 的人类信息架构、presentation ownership 与 viewport contract。它不替代 `MAJOR-PATH-STATUS.md` 的专业事实/关系图 truth，也不替代 `MAJOR-PATH-HANDOFF-STATUS.md` 的 ln-rank 跨页返回合同。
+本文件记录 `/major-path/` v0.05 的人类信息架构、presentation ownership 与 viewport contract。它不替代 `MAJOR-PATH-STATUS.md` 的专业事实/关系图 truth，也不替代 `MAJOR-PATH-HANDOFF-STATUS.md` 的 ln-rank 跨页返回合同。
 
 ## Product job
 
-v0.04 解决的不是“增加更多专业知识”，而是把现有可靠事实按家长的思考顺序呈现：
+v0.05 解决的不是“增加更多专业知识”，而是把现有可靠事实按家长的思考顺序呈现：
 
 `这个专业是什么 → 本科属于哪里 → 如果读研先看哪些方向 → 还可以比较哪些专业 → 为什么这样说 / 官方依据`
 
@@ -16,9 +16,9 @@ v0.04 解决的不是“增加更多专业知识”，而是把现有可靠事�
 
 ## Preserved truth owners
 
-v0.04 不新建专业事实、研究生事实、搜索、关系图或 handoff 状态：
+v0.05 不新建专业事实、研究生事实、搜索、关系图或 handoff 状态：
 
-- 本科专业事实 / 搜索解释：继续复用 major-path v0.02 的 canonical owners；
+- 本科专业事实 / 搜索解释：继续复用 major-path 的 canonical owners；
 - 本科→研究生导航：`undergrad-graduate-pathway.v001.js`；
 - SVG 关系图：`major-relationship-graph.v002.js`；
 - ln-rank 具体专业 gate / return snapshot：继续使用 `major-path-handoff.v003.js`；
@@ -29,27 +29,27 @@ v0.04 不新建专业事实、研究生事实、搜索、关系图或 handoff �
 活动页面入口：
 
 - `major-path/index.html`
-- `major-path/app.v004.js`
-- `major-path/major-path-human.v004.css`
+- `major-path/app.v005.js`
+- `major-path/major-path-human.v005.css`
 
-稳定事实/搜索/图谱 core：
+稳定事实/搜索/图谱 core runtime：
 
-- `major-path/app.v002.js`
+- `major-path/app-core.v005.js`
 
-历史 `major-path/app.v003.js` 与 `major-path-direct.v003.css` 不再由页面加载。v0.04 直接 import v0.02 core，不形成 `v0.04 → v0.03 → v0.02` wrapper chain。
+历史 `major-path/app.v003.js` 与 `major-path-direct.v003.css` 不再由页面加载。v0.05 直接 import v0.02 core，不形成 `v0.05 → v0.03 → v0.02` wrapper chain。
 
-Visible product identity：`major-path-v0.04`。
-Stable core identity：`major-path-v0.02`。
+Visible product identity：`major-path-v0.05`。
+Stable core identity：`major-path-core-v0.05`。
 Cross-page handoff identity：`major-path-handoff-v0.03`。
-Human presentation identity：`major-path-human-v0.04`。
+Human presentation identity：`major-path-human-v0.05`。
 
 ## Presentation / viewport ownership
 
-v0.02 core 继续负责事实、搜索语义、SVG 与 raw result HTML。v0.04 负责把 raw result 转成人类信息顺序，并拥有最终可见 landing。
+v0.05 core runtime 继续负责事实、搜索语义、SVG 与 raw result HTML；v0.05 human shell 负责把 raw result 转成人类信息顺序，并拥有最终可见 landing。
 
 ### Core-ready boundary
 
-v0.02 通过动态 import 启动。`DOMContentLoaded` 之后、core handler 注册之前，用户仍可能已经按 Enter 或点示例。v0.04 只在这个短启动窗口保存**最后一次用户提交动作**：
+v0.05 core runtime 通过动态 import 启动。`DOMContentLoaded` 之后、core handler 注册之前，用户仍可能已经按 Enter 或点示例。v0.05 只在这个短启动窗口保存**最后一次用户提交动作**：
 
 - 不复制搜索算法；
 - 不预判专业；
@@ -60,7 +60,7 @@ v0.02 通过动态 import 启动。`DOMContentLoaded` 之后、core handler 注�
 
 ### Raw-result presentation boundary
 
-页面内相关专业、消歧后选中具体专业等动作，由 v0.02 先同步生成新的 raw result。v0.04 不依赖已经被 `innerHTML` 替换后失效的旧 `event.target`；它只检查**当前 result 是否存在具体专业结果且还没有 `[data-major-pathway-focus]`**：
+页面内相关专业、消歧后选中具体专业等动作，由 v0.02 先同步生成新的 raw result。v0.05 不依赖已经被 `innerHTML` 替换后失效的旧 `event.target`；它只检查**当前 result 是否存在具体专业结果且还没有 `[data-major-pathway-focus]`**：
 
 - raw result → humanize 一次；
 - 已 humanize result → 幂等，不重复重排；
@@ -70,13 +70,13 @@ v0.02 通过动态 import 启动。`DOMContentLoaded` 之后、core handler 注�
 
 ### Visible viewport transaction
 
-v0.02 稳定 core 仍保留历史 `smooth scrollIntoView()` 副作用，但 v0.04 不再让它决定最终可见位置：
+v0.05 core runtime 不拥有 viewport 滚动；v0.05 human shell 决定最终可见位置：
 
 - **Direct Mode**：在 raw result 阶段临时隐藏 `#result`，core 完成事实渲染后 humanize，恢复结果，等待稳定帧，再只执行一次最终 `window.scrollTo()` 到 `[data-major-pathway-focus]`；
-- **standalone 搜索 / 页面内相关专业**：不隐藏结果。v0.04 记录事务开始的 scrollY，在首个可见稳定阶段用 `behavior:auto` 取消 legacy smooth 位移，humanize 后等待稳定帧，再只提交一次最终 `window.scrollTo()` 到当前结果标题；
+- **standalone 搜索 / 页面内相关专业**：先隐藏结果，完成 humanize 后等待稳定帧，再只提交一次最终 `window.scrollTo()` 到当前结果标题；
 - **换个专业**：回到搜索 hero。
 
-因此用户看到的是 v0.04 的最终 landing policy，而不是两个滚动 owner 先后拉扯页面。
+因此用户看到的是 v0.05 的最终 landing policy，而不是两个滚动 owner 先后拉扯页面。
 
 不使用 `MutationObserver`、`setTimeout` scroll chain、第二个 `scrollIntoView()`、local/session storage 或 Android/Pad 专属业务分支。
 
@@ -135,12 +135,12 @@ SVG 保留但不再抢在读研答案之前出现。
 Source：
 
 - `tools/verify-major-path-v002.mjs`：保留 883/92/13、交叉学科、研究生路径和关系真值；
-- `tools/verify-major-path-human-v004.mjs`：活动入口、core-ready queue、raw-result presentation、viewport owner、human copy 与 handoff boundary。
+- `tools/verify-major-path-human-v005.mjs`：活动入口、core-ready queue、raw-result presentation、viewport owner、human copy 与 handoff boundary。
 
 Browser：
 
-- `tools/browser-major-path-human-v004.mjs`：PC / Pad / Android / Android compact；
-- `tools/browser-major-path-human-live-v004.mjs`：exact-head Preview / exact-main Production 的 PC / Pad / Android。
+- `tools/browser-major-path-human-v005.mjs`：PC / Pad / Android / Android compact；
+- `tools/browser-major-path-human-live-v005.mjs`：exact-head Preview / exact-main Production 的 PC / Pad / Android。
 
 必须验证：
 
