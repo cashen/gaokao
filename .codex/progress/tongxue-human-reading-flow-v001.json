@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-human-reading-flow-v001",
   "baseSha": "94d2f6523eb52821ef4408a47f76785cc4140464",
-  "headSha": "e1ead9be4b2e132eefb7034767f94ab6da1619b4",
+  "headSha": "1865e6c921dce043a30e2aee379004d37c033cdd",
   "status": "in_progress",
   "completed": [
     "live-state-reconciled",
@@ -12,12 +12,12 @@
     "implementation-first-pass",
     "local-static-contract-tests",
     "local-browser-acceptance",
-    "commit-created"
+    "commit-created",
+    "remote-branch-written",
+    "pr-created"
   ],
-  "inProgress": "push-and-pr",
+  "inProgress": "pr-ci-preview",
   "pending": [
-    "implementation",
-    "tests",
     "pr-ci-preview",
     "merge-main",
     "post-merge-production-and-data-integrity-verify"
@@ -31,7 +31,13 @@
   "preservedUserFiles": [
     "ln-rank/v3.9.35-function-regression-matrix.json"
   ],
-  "verifiedAt": "2026-08-28T00:42:00Z",
+  "pullRequest": {
+    "number": 249,
+    "url": "https://github.com/cashen/gaokao/pull/249",
+    "headSha": "1865e6c921dce043a30e2aee379004d37c033cdd",
+    "draft": true
+  },
+  "verifiedAt": "2026-08-28T06:08:36Z",
   "localEvidence": {
     "browserContract": "tongxue-human-reading-flow-browser-v001",
     "devices": ["pc-1366", "pad-820", "android-390", "android-compact-360"],
