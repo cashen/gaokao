@@ -1,0 +1,23 @@
+name: Historical unified resource graph v3972.5
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  historical-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserve historical v3972.5 evidence only
+        run: |
+          set -euo pipefail
+          node --check tools/audit-unified-resource-graph-v3972_5.mjs
+          echo 'v3972.5 is immutable historical evidence; current automatic ownership moved to v3990.0.'
+

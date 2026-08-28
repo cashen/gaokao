@@ -1,0 +1,44 @@
+{
+  "task": "ln-rank-mobile-module-navigation-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-mobile-module-navigation-v001",
+  "baseSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "headSha": "a7579c52556b3b75d042ecbc560887781bb53e50",
+  "remoteHeadSha": "a7579c52556b3b75d042ecbc560887781bb53e50",
+  "pr": 232,
+  "completed": [
+    "live-main-reconciled",
+    "mobile-overlap-root-cause",
+    "two-row-navigation-css",
+    "all-page-style-references",
+    "mobile-geometry-browser-assertions",
+    "local-static-tests",
+    "resource-contract-audits",
+    "push-branch",
+    "pr-created",
+    "pr-ci-preview",
+    "browser-acceptance"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "mergeCommitSha": "aecf8ceb275539deb24abf4a1d4c92f4e0413c80",
+  "lastFailure": "Cloud browser is desktop-only in this runtime; Android geometry is delegated to CI Chromium.",
+  "release": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "moduleNavigationStyles": "module-navigation-css-v0.05",
+    "revision": "r029-mobile-nav"
+  },
+  "productionVerification": {
+    "mainSha": "aecf8ceb275539deb24abf4a1d4c92f4e0413c80",
+    "deployWorkflow": "success",
+    "runtimeWorkflow": "success",
+    "productionOrigin": "https://gaokao.powers.org.cn",
+    "entryChecks": {
+      "211": "200 + module-navigation.v005.css",
+      "localStrength": "200 + module-navigation.v005.css"
+    },
+    "androidGeometry": "CI passed at 360px viewport for 211 and localStrength"
+  },
+  "verifiedAt": "2026-08-26T21:32:30Z"
+}

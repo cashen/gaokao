@@ -1,0 +1,11 @@
+/* V2.91RC0.rules-closure1｜家庭条件闭环样式 */
+.abc-board-closure-v291 .closure-card-v291{position:relative;}
+.abc-board-closure-v291 .closure-note-v291{margin:8px 0 0;padding:8px 10px;border-radius:12px;background:#f7e7e3;color:#7c2d26;font-size:12px;line-height:1.55;border:1px solid #edcbc4;}
+.abc-board-closure-v291 .decision-tradeoff-v2981 p:last-child b{color:#8a4d2c;}
+.abc-board-closure-v291 .candidate-lite-tags-v2983 span:nth-last-child(-n+2){background:#f4e6da;color:#8a4d2c;border-color:#ead2bf;}
+/* V2.91RC0.rules-closure2｜家庭决策闭环定版：冲突、风险和机会提示 */
+.closure-conflict-banner-v291{margin:10px 0 12px;padding:10px 12px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;font-size:13px;line-height:1.55;}
+.closure-conflict-banner-v291 p{margin:3px 0;}
+.abc-board-closure-v291 .closure-note-v291{background:#fff7ed;border-color:#fed7aa;color:#7c2d12;}
+.abc-board-closure-v291 .closure-card-v291.c .closure-note-v291{background:#f8fafc;border-color:#cbd5e1;color:#334155;}
+.abc-board-closure-v291 .candidate-lite-tags-v2983 span:contains('机会对照'){background:#e8eef2;color:#52677a;}

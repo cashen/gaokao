@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const appRel = (assets.jsEntry || []).find(x => /js\/app\.v/.test(x));
+const mainCssRel = assets.cssDist?.main || (assets.cssEntry || []).find(x=>x.includes('ln-rank-main'));
+const app = appRel ? fs.readFileSync(path.join(lr, appRel), 'utf8') : '';
+const css = mainCssRel ? fs.readFileSync(path.join(lr, mainCssRel), 'utf8') : '';
+const failures=[];
+const badLong = '当前查看：正常查看｜主要参考｜地区不限｜未限定专业方向｜全部院校｜特殊项目：默认隐藏';
+if (app.includes(badLong) || css.includes(badLong)) failures.push('worst-case long summary literal appears in active assets');
+if (/未限定专业方向/.test(app) && /当前查看：/.test(app) && /join\('｜'\)/.test(app)) failures.push('unlimited-major text remains in joined current summary');
+if (!/查看完整条件/.test(app)) failures.push('full conditions are not folded into details');
+if (!/writing-mode:\s*horizontal-tb/.test(css)) failures.push('missing horizontal writing-mode guard');
+if (!/@media \(max-width: 760px\)/.test(css)) failures.push('missing mobile media contract');
+const out={version:assets.version, assetVersion:assets.assetVersion, scenario:'Android 360px real long filter state smoke', failures, status:failures.length?'fail':'pass'};
+fs.writeFileSync(path.join(lr, `android-long-text-visual-audit.${q}.json`), JSON.stringify(out,null,2));
+console.log(JSON.stringify(out,null,2));
+if (failures.length) process.exit(1);

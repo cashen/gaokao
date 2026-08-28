@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "baseSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
   "branch": "fix/unified-visual-production-contract-v002",
-  "status": "production-retrigger-in-progress",
+  "status": "main-tree-integrity-repair-in-progress",
   "plan": [
     "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
     "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
@@ -22,7 +22,7 @@
     "merged-main-visual-release",
     "production-stale-resource-observed"
   ],
-  "inProgress": "production-contract-followup",
+  "inProgress": "main-tree-integrity-repair",
   "lastFailure": {
     "kind": "resolved-transient-runtime-regression",
     "step": "verify-ai-decision-workspace-v3990_2",
@@ -55,7 +55,11 @@
     "mergedVisualPreviewCheck": "https://github.com/cashen/gaokao/runs/98723313515",
     "formalProductionObserved": "data-runtime-state=loading; new CSS absent",
     "pagesProductionObserved": "data-runtime-state=loading; new CSS absent",
-    "rootCause": "merged visual release is in main and Cloudflare check is success, but the production-facing domains still serve the previous HTML; nested shell CSS has no explicit _headers contract"
+    "rootCause": "main merge commit 0e01dc has a 10-entry tree and omits index.html, .github/workflows, _headers and most site files; the previous merge tree was assembled incompletely, so production could not receive the visual release",
+    "mainTreeSha": "cb9a5c5057a609b1bd0a971096863d4c3e5d38cd",
+    "mainTreeEntryCount": 10,
+    "completeBaselineTreeSha": "789e9fb7b0e42c9c78eaed8ebac554b17958802b",
+    "actionsForMergedMain": 0
   },
   "scope": {
     "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],

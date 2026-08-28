@@ -1,0 +1,78 @@
+name: Assemble major-bands static score index v3972.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'tools/build-major-bands-static-v3972.mjs'
+      - 'functions/_lib/fenxi-normalizer.js'
+      - 'functions/_lib/fenxi-code-normalizer.js'
+      - 'functions/_lib/standard-major-mapper.js'
+      - 'functions/_lib/bottomline-policy.js'
+      - 'functions/_lib/special-project-policy.js'
+      - 'fenxi/data/ln-rank-2026/**'
+      - '.github/workflows/assemble-major-bands-static-v3972.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-static-score-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and audit deterministic static score index
+        run: |
+          set -euo pipefail
+          node --check tools/build-major-bands-static-v3972.mjs
+          node --experimental-default-type=module tools/build-major-bands-static-v3972.mjs | tee /tmp/major-bands-static-build.out
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const dir='ln-rank/data/major-bands-static-v3972_2';
+          const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
+          const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
+          if(manifest.version!=='major-bands-static-v3972_2') throw new Error('version');
+          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('architecture');
+          if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('record count');
+          if(!manifest.integrity.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('coverage');
+          if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('integrity');
+          if(!Array.isArray(manifest.recordSchema)||manifest.recordSchema.length<60) throw new Error('record schema');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<30) throw new Error('score buckets');
+          if(audit.indexBytes>8500000) throw new Error(`static index too large ${audit.indexBytes}`);
+          const sum=manifest.buckets.reduce((total,item)=>total+Number(item.recordCount||0),0);
+          if(sum!==11628) throw new Error(`bucket coverage ${sum}`);
+          console.log(JSON.stringify({version:manifest.version,...audit},null,2));
+          NODE
+      - name: Commit generated static index
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git add ln-rank/data/major-bands-static-v3972_2
+          if git diff --cached --quiet; then
+            echo 'major-bands static score index already current'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'assemble(major-bands): generate atomic static score index v3972.2'
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
+      - name: Upload assembly evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: major-bands-static-v3972-2
+          path: |
+            /tmp/major-bands-static-build.out
+            ln-rank/data/major-bands-static-v3972_2/audit.json
+            ln-rank/data/major-bands-static-v3972_2/manifest.json
+          if-no-files-found: error
+          retention-days: 7

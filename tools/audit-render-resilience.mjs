@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const activeSelection = (assets.jsEntry || []).find(x => x.includes('selection-pool')) || 'js/selection-pool.js';
+const failures = [];
+const read = rel => fs.readFileSync(path.join(lr, rel), 'utf8');
+const render = read('js/feature/major-pool/render.js');
+const selection = read(activeSelection);
+const index = read('js/knowledge/index.js');
+const resolver = read('js/knowledge/local-context-resolver.js');
+if (!/safeGetLocalContextPresentation/.test(index)) failures.push('knowledge index does not export safeGetLocalContextPresentation');
+if (!/export function safeGetLocalContextPresentation/.test(resolver)) failures.push('resolver missing safeGetLocalContextPresentation');
+if (/getLocalContextPresentation\(record, 'card'\)/.test(render)) failures.push('card renderer directly calls unsafe local context');
+if (!/getLocalBackgroundHint\(record\)/.test(render)) failures.push('card renderer does not use unified safe local background hint');
+if (/getLocalContextPresentation\(item,/.test(selection)) failures.push('selection page directly calls unsafe local context');
+if (!/safeGetLocalContextPresentation\(item, 'selectionItem'\)/.test(selection)) failures.push('selection item does not use safe local context');
+if (!/safeGetLocalContextPresentation\(item, 'report'\)/.test(selection)) failures.push('report builder does not use safe local context');
+const report = { version: assets.version, assetVersion: assets.assetVersion, failures, status: failures.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(lr, `render-resilience-audit.${q}.json`), JSON.stringify(report, null, 2));
+console.log(JSON.stringify(report, null, 2));
+if (failures.length) process.exit(1);

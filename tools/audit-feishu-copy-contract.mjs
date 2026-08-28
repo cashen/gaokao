@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const fn = path.join(root, 'functions', '_lib');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const files = ['feishu-report-builder.js','feishu-selection-pool-report-builder.js','feishu-selection-pool-styled-builder.js','ai-card-rules.js','ai-card-prompt.js','ai-card-output-schema.js'];
+const text = files.map(f => fs.readFileSync(path.join(fn, f), 'utf8')).join('\n');
+const forbidden = ['匹配关系','命中原因','专业热度变化参考','本校背景关联','知识库复核','本校主干方向','本校特色相关','v3.9.20.0','就业保证'];
+const riskWords = ['稳进','必录','保底','兜底','捡漏','稳赚'];
+const failures = [];
+for (const word of forbidden) if (text.includes(word)) failures.push(`forbidden Feishu copy remains: ${word}`);
+const visibleReportText = ['feishu-report-builder.js','feishu-selection-pool-report-builder.js','feishu-selection-pool-styled-builder.js'].map(f => fs.readFileSync(path.join(fn, f), 'utf8')).join('\n');
+for (const word of riskWords) if (visibleReportText.includes(word)) failures.push(`forbidden report copy remains: ${word}`);
+const advantageText = visibleReportText.replaceAll('不代表录取优势', '');
+if (advantageText.includes('录取优势')) failures.push('forbidden report copy remains: 录取优势');
+for (const word of ['2026最低投档','2025','2024','参考位置','建议再看','院校专业背景']) if (!text.includes(word)) failures.push(`required Feishu copy missing: ${word}`);
+const selectionReport = fs.readFileSync(path.join(fn, 'feishu-selection-pool-report-builder.js'), 'utf8');
+if (!/2026最低投档分[\s\S]{0,180}2026最低投档位次[\s\S]{0,260}historyText\(item\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}codeText[\s\S]{0,900}localContextItems\(item\)/.test(selectionReport)) failures.push('selection Feishu field order should follow 2026/2025/2024/hard-fields/background contract');
+const searchReport = fs.readFileSync(path.join(fn, 'feishu-report-builder.js'), 'utf8');
+if (!/2026最低投档分[\s\S]{0,180}2026最低投档位次[\s\S]{0,260}historyText\(record\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}专业代码[\s\S]{0,260}院校专业背景[\s\S]{0,260}建议再看/.test(searchReport)) failures.push('search Feishu field order should follow 2026-first report contract');
+const out = { version: assets.version, assetVersion: assets.assetVersion, forbidden, failures, status: failures.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(lr, `feishu-copy-contract-audit.${q}.json`), JSON.stringify(out, null, 2));
+console.log(JSON.stringify(out, null, 2));
+if (failures.length) process.exit(1);

@@ -1,0 +1,2 @@
+/* The source comparison text already includes its year. */
+.natural-compare-workspace .natural-compare-row>span::before{content:none!important}

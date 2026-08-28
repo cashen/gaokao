@@ -1,0 +1,41 @@
+{
+  "task": "ln-rank-android-background-navigation-v001",
+  "repository": "cashen/gaokao",
+  "branch": "agent/ln-rank-android-background-navigation-v001",
+  "baseSha": "53616bd611635ab1c184b3cceb0858a0862a1cb1",
+  "headSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "pr": 231,
+  "completed": ["live-main-reconciled", "android-route-diagnosis", "native-anchor-fallback", "canonical-background-navigation-fix", "local-static-tests", "branch-commit", "browser-acceptance", "pr-ci-preview", "merge-main"],
+  "inProgress": null,
+  "pending": [],
+  "lastFailure": "Playwright browser binary is unavailable in the local runtime; browser acceptance will run in CI/Preview.",
+  "diagnosis": {
+    "localHref": "/ln-rank/local-mainline.html",
+    "all211Href": "/ln-rank/211-mainline.html",
+    "productionBehavior": "both .html URLs return HTTP 308 to extensionless canonical URLs",
+    "mobileRisk": "selection auxiliary buttons depended on pointer ownership and location.assign; result links depended on redirected .html URLs",
+    "fix": {
+      "nativeEntrypoints": ["/ln-rank/local-mainline", "/ln-rank/211-mainline"],
+      "navigationModule": "academic-background-navigation-v0.02",
+      "dynamicFallback": "background-link-canonicalizer-v0.01",
+      "cacheRevision": "r028-android-links"
+    },
+    "localTests": [
+      "node tools/verify-ln-rank-android-background-navigation-v001.mjs",
+      "node tools/verify-unified-background-context-v001.mjs",
+      "node tools/audit-auxiliary-entry-surface.mjs",
+      "node --check active changed modules"
+    ]
+  },
+  "mergeCommitSha": "0418561a4ddd2a8a6aaccc796724fda3bba99bd1",
+  "productionVerification": {
+    "domains": ["https://gaokao.powers.org.cn", "https://gaokao-4y9.pages.dev"],
+    "canonicalEntrypoints": ["/ln-rank/local-mainline", "/ln-rank/211-mainline"],
+    "canonicalStatus": 200,
+    "legacyHtmlRedirect": 308,
+    "parameterizedScopeLinksStatus": 200,
+    "backgroundNavigationModuleStatus": 200
+  },
+  "status": "merged-production-verified",
+  "verifiedAt": "2026-08-26T16:32:00Z"
+}

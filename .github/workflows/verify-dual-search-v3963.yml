@@ -1,0 +1,160 @@
+name: Verify unified site runtime v3990.1
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  site-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check protected paths and changed source syntax
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+            git diff --name-only "$base" HEAD | tee /tmp/v3990-1-runtime-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-runtime-files.txt; then exit 1; fi
+            git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
+          fi
+          bash -n .github/scripts/install-playwright-chromium.sh
+          grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+      - name: Verify site generation and preserved domains
+        run: |
+          set -euo pipefail
+          node tools/audit-canonical-release-version-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-canonical.out
+          node tools/audit-site-runtime-generation-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-site-runtime.out
+          node tools/audit-unified-resource-graph-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-resource-graph.out
+          node tools/audit-major-bands-rank-kernel-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-major-bands.out
+          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3990-1-algorithm.out
+          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3990-1-report.out
+          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3990-1-css.out
+
+      - name: Verify current and declared-stable active generations
+        run: |
+          set -euo pipefail
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_2.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3990_2.js';
+          import { RESOURCE_EXECUTION_VERSION } from './shared/governance/resource-execution-contract.v3990_2.js';
+          const html=fs.readFileSync('ln-rank/index.html','utf8');
+          if(CURRENT_RELEASE.display!=='v3.9.90.2') throw new Error('release');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!=='v3990_2'||CURRENT_RELEASE.assetVersion!=='v3990_2') throw new Error('site generation');
+          if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('execution contract');
+          if(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion!==SITE_RUNTIME_CONTRACT.generation) throw new Error('cache generation');
+          for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}
+          for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing stable active ${rel}`);}
+          for(const dependency of SITE_RUNTIME_CONTRACT.stableDependencies){const rel=dependency.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing stable dependency ${rel}`);}
+          if(!html.includes('data-site-runtime-generation="v3990_2"')) throw new Error('selection generation');
+          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3990_2.js?v=3990_2')) throw new Error('interaction mount');
+          if(!html.includes('/ln-rank/js/app.v3990_2.js?v=3990_2')) throw new Error('selection bootstrap');
+          if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary actions');
+          if(/<a[^>]+href="\/ln-rank\/(local|211)-mainline\.html"/.test(html)) throw new Error('native auxiliary navigation');
+          console.log('current v3990_2 and declared stable active resource split passed');
+          NODE
+
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
+
+      - name: Verify no-obstruction family action geometry
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-family-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-family-http.log; exit 1; fi
+          V3970_ARTIFACT_DIR=/tmp/v3990-1-browser-family node tools/browser-family-action-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-family.out
+
+      - name: Verify preserved PC Pad Android main journey
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-main-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-main-http.log; exit 1; fi
+          V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-main node tools/browser-resource-execution-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-main.out
+
+      - name: Verify native chooser activation and tail transaction
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-interaction-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-interaction-http.log; exit 1; fi
+          V3990_2_ARTIFACT_DIR=/tmp/v3990-1-interaction-browser node tools/browser-native-chooser-activation-v3990_2-runner.mjs 2>&1 | tee /tmp/v3990-1-interaction-browser.out
+
+      - name: Verify preserved school ambiguity journey
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-school-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-school-http.log; exit 1; fi
+          V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-school node tools/browser-school-query-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-school.out
+
+      - name: Verify preserved 211 and LocalStrength journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-background-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ln-rank/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-background-http.log; exit 1; fi
+          V3968_ARTIFACT_DIR=/tmp/v3990-1-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3990-1-browser-background.out
+
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-1-site-runtime-diagnostics
+          path: /tmp/v3990-1-*
+          if-no-files-found: warn
+          retention-days: 7

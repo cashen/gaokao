@@ -1,0 +1,60 @@
+{
+  "version": "v28",
+  "generatedAt": "2026-05-05 01:19:45",
+  "totalRecords": 13145,
+  "bothCount": 8344,
+  "chunks": [
+    {
+      "id": "rank_00000_10000",
+      "file": "data/chunks/rank_00000_10000.json",
+      "minRank": 0,
+      "maxRank": 10000,
+      "recordCount": 1777,
+      "bytes": 1662633
+    },
+    {
+      "id": "rank_10000_20000",
+      "file": "data/chunks/rank_10000_20000.json",
+      "minRank": 10000,
+      "maxRank": 20000,
+      "recordCount": 1978,
+      "bytes": 1804101
+    },
+    {
+      "id": "rank_20000_30000",
+      "file": "data/chunks/rank_20000_30000.json",
+      "minRank": 20000,
+      "maxRank": 30000,
+      "recordCount": 1456,
+      "bytes": 1317770
+    },
+    {
+      "id": "rank_30000_50000",
+      "file": "data/chunks/rank_30000_50000.json",
+      "minRank": 30000,
+      "maxRank": 50000,
+      "recordCount": 2322,
+      "bytes": 2094450
+    },
+    {
+      "id": "rank_50000_80000",
+      "file": "data/chunks/rank_50000_80000.json",
+      "minRank": 50000,
+      "maxRank": 80000,
+      "recordCount": 3817,
+      "bytes": 3422106
+    },
+    {
+      "id": "rank_80000_plus",
+      "file": "data/chunks/rank_80000_plus.json",
+      "minRank": 80000,
+      "maxRank": 1000000000,
+      "recordCount": 1795,
+      "bytes": 1633011
+    }
+  ],
+  "entryFiles": {
+    "rank": "data/rank_2025_physics.json",
+    "schoolNature": "data/school_nature.json"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "version": "ln-rank-2026-manifest-v1.0.0",
+  "productVersion": "v3.9.51.0",
+  "generatedAt": "2026-07-22T01:12:12.894855+00:00",
+  "dataYear": 2026,
+  "audienceYear": 2027,
+  "totalRecords": 11628,
+  "schoolCount": 956,
+  "scoreMin": 314,
+  "scoreMax": 696,
+  "historyMatch": {
+    "unmatched": 2699,
+    "exact": 8929
+  },
+  "chunks": [
+    {
+      "id": "rank_00000_10000",
+      "file": "data/ln-rank-2026/chunks/rank_00000_10000.json",
+      "minRank": 0,
+      "maxRank": 10000,
+      "recordCount": 1487,
+      "bytes": 1944109,
+      "sha256": "ea6c7ddb4fbce39dc670f041f96911f69824f4359b3f6820a37cc8b4ab84054d",
+      "minScore": 616,
+      "maxScore": 696
+    },
+    {
+      "id": "rank_10000_20000",
+      "file": "data/ln-rank-2026/chunks/rank_10000_20000.json",
+      "minRank": 10000,
+      "maxRank": 20000,
+      "recordCount": 1749,
+      "bytes": 2244439,
+      "sha256": "5a3ee3afdde1b90395926434999966b083b24604cbfeb25cb56702ce3360ac06",
+      "minScore": 582,
+      "maxScore": 615
+    },
+    {
+      "id": "rank_20000_30000",
+      "file": "data/ln-rank-2026/chunks/rank_20000_30000.json",
+      "minRank": 20000,
+      "maxRank": 30000,
+      "recordCount": 1205,
+      "bytes": 1536899,
+      "sha256": "a824fe649a694674bce8763fd6b0f4d87790dcab364c60fd6843ccd46e9068cd",
+      "minScore": 555,
+      "maxScore": 581
+    },
+    {
+      "id": "rank_30000_50000",
+      "file": "data/ln-rank-2026/chunks/rank_30000_50000.json",
+      "minRank": 30000,
+      "maxRank": 50000,
+      "recordCount": 1926,
+      "bytes": 2439596,
+      "sha256": "51b783bffa3bbd26bc9b0cc83c02b1f02abd465c902deab366ffef9451047719",
+      "minScore": 508,
+      "maxScore": 554
+    },
+    {
+      "id": "rank_50000_80000",
+      "file": "data/ln-rank-2026/chunks/rank_50000_80000.json",
+      "minRank": 50000,
+      "maxRank": 80000,
+      "recordCount": 3466,
+      "bytes": 4364132,
+      "sha256": "8f2dcda7146e6aafa844a507cc0285aec3e9b74ab182554432c2c8a012585987",
+      "minScore": 443,
+      "maxScore": 507
+    },
+    {
+      "id": "rank_80000_plus",
+      "file": "data/ln-rank-2026/chunks/rank_80000_plus.json",
+      "minRank": 80000,
+      "maxRank": 1000000000,
+      "recordCount": 1795,
+      "bytes": 2283605,
+      "sha256": "e8a3895b78b23ea5dc91797b6da0f97672f863f1f4ee2a3ff7ed68406d241bca",
+      "minScore": 314,
+      "maxScore": 442
+    }
+  ],
+  "entryFiles": {
+    "rank": "data/rank_2026_physics.json",
+    "schoolNature": "data/school_nature.json"
+  },
+  "source": {
+    "admissionSha256": "6fc525da6faeb36b20cbd314fa1942d4ce5922c95e6857a6c9c5937ec88d572c",
+    "rankPdfUrl": "https://img.gaokaozhitongche.com/uploads/file/2026/0625/1782387966574085.pdf",
+    "rankPdfSha256": "9f27e33a06f7bcdc666eb60ddca51d8692eb318191bf95274e2641e16eda7979"
+  }
+}

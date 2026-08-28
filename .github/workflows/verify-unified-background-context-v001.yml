@@ -1,0 +1,279 @@
+name: Verify unified background context v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/resources/background/**'
+      - 'shared/resources/majors/major-path-navigation.v003.js'
+      - 'functions/_lib/academic-background-context-reader.js'
+      - 'functions/_lib/ai/**'
+      - 'aiplus/selection-workbench.v005.js'
+      - 'ln-rank/data/background-context/**'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'ln-rank/js/academic-background/background-context-direct.v001.js'
+      - 'ln-rank/css/background-context-direct.v001.css'
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/211-mainline.html'
+      - 'major-path/**'
+      - 'tools/build-background-context-index-v001.mjs'
+      - 'tools/verify-unified-background-context-v001.mjs'
+      - 'tools/browser-unified-background-context-v001.mjs'
+      - 'tools/browser-unified-background-context-live-v001.mjs'
+      - 'docs/architecture/UNIFIED-BACKGROUND-CONTEXT-STATUS.md'
+      - '.github/workflows/verify-unified-background-context-v001.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/resources/background/**'
+      - 'shared/resources/majors/major-path-navigation.v003.js'
+      - 'functions/_lib/academic-background-context-reader.js'
+      - 'functions/_lib/ai/**'
+      - 'aiplus/selection-workbench.v005.js'
+      - 'ln-rank/data/background-context/**'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'ln-rank/js/academic-background/background-context-direct.v001.js'
+      - 'ln-rank/css/background-context-direct.v001.css'
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/211-mainline.html'
+      - 'major-path/**'
+      - 'tools/build-background-context-index-v001.mjs'
+      - 'tools/verify-unified-background-context-v001.mjs'
+      - 'tools/browser-unified-background-context-v001.mjs'
+      - 'tools/browser-unified-background-context-live-v001.mjs'
+      - 'docs/architecture/UNIFIED-BACKGROUND-CONTEXT-STATUS.md'
+      - '.github/workflows/verify-unified-background-context-v001.yml'
+
+permissions:
+  contents: read
+  checks: read
+  statuses: write
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          set -euo pipefail
+          node --check shared/resources/background/academic-background-context.v001.js
+          node --check shared/resources/background/academic-background-navigation.v001.js
+          node --check shared/resources/background/academic-background-navigation.v002.js
+          node --check functions/_lib/academic-background-context-reader.js
+          node --check functions/_lib/ai/background-resource-adapter.js
+          node --check functions/_lib/ai/human-query-frame.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check major-path/app.v004.js
+          node --check major-path/background-context.v001.js
+          node --check ln-rank/js/academic-background/background-context-direct.v001.js
+          node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
+          node --check aiplus/selection-workbench.v005.js
+          node --check tools/build-background-context-index-v001.mjs
+          node --check tools/verify-unified-background-context-v001.mjs
+          node --check tools/verify-ln-rank-android-background-navigation-v001.mjs
+          node --check tools/browser-unified-background-context-v001.mjs
+          node --check tools/browser-unified-background-context-live-v001.mjs
+      - name: Rebuild derived evidence index deterministically
+        run: |
+          set -euo pipefail
+          node tools/build-background-context-index-v001.mjs
+          git diff --exit-code -- ln-rank/data/background-context/background-context-index.v001.json ln-rank/data/background-context/background-context-audit.v001.json
+      - name: Verify unified background source truth and semantics
+        run: node tools/verify-unified-background-context-v001.mjs
+      - name: Verify Android-safe background navigation
+        run: node tools/verify-ln-rank-android-background-navigation-v001.mjs
+      - name: Preserve major-path truth and human-first contracts
+        run: |
+          set -euo pipefail
+          node tools/verify-major-path-v002.mjs
+          node tools/verify-major-path-human-v004.mjs
+      - name: Preserve architecture handoff and temporary-artifact boundary
+        run: |
+          set -euo pipefail
+          node tools/audit-architecture-handoff-v3990_2.mjs
+          test ! -e .github/workflows/tmp-apply-unified-background-context-v001.yml
+          test ! -e .github/workflows/tmp-build-unified-background-context-v001.yml
+          test ! -e tools/tmp_apply_unified_background_context_v001.mjs
+          test ! -e .github/workflows/tmp-update-aiplus-human-query-frame-gate-v001.yml
+      - name: Preserve protected boundaries and release exports
+        shell: bash
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            git cat-file -e "${base}^{commit}"
+            git diff --exit-code "$base..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+          else
+            before="$PUSH_BEFORE"
+            if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then before="$(git rev-parse HEAD^1)"; fi
+            git cat-file -e "${before}^{commit}"
+            test "$(git rev-parse HEAD)" = "$PUSH_SHA"
+            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+  browser-preview:
+    if: github.event_name == 'pull_request'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Verify local PC Pad Android and compact Android
+        run: node tools/browser-unified-background-context-v001.mjs
+      - name: Resolve exact-head Cloudflare Preview
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ -z "$conclusion" ]; then
+              comments="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+              body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+              if grep -q "$short_sha" <<<"$body" && grep -q 'Deploy successful' <<<"$body"; then summary="$body"; conclusion=success; fi
+            fi
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then exit 2; fi
+            if [ "$conclusion" = success ]; then
+              grep -q "$short_sha" <<<"$summary"
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              if [ -n "$immutable_preview" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          echo "base=$immutable_preview" >> "$GITHUB_OUTPUT"
+      - name: Wait for exact-head unified background asset graph
+        env:
+          BASE: ${{ steps.preview.outputs.base }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 50); do
+            health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health?ubc=$attempt" || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            major_html="$(curl -fsSL --max-time 20 "$BASE/major-path/?ubc=$attempt" || true)"
+            major_app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v004.js?v=004_0&ubc=$attempt" || true)"
+            major_bg="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-navigation.v002.js?v=002_0&r=r028-android-links&ubc=$attempt" || true)"
+            context="$(curl -fsSL --max-time 20 "$BASE/shared/resources/background/academic-background-context.v001.js?ubc=$attempt" || true)"
+            index="$(curl -fsSL --max-time 20 "$BASE/ln-rank/data/background-context/background-context-index.v001.json?ubc=$attempt" || true)"
+            local_html="$(curl -fsSL --max-time 20 "$BASE/ln-rank/local-mainline.html?ubc=$attempt" || true)"
+            all211_html="$(curl -fsSL --max-time 20 "$BASE/ln-rank/211-mainline.html?ubc=$attempt" || true)"
+            direct="$(curl -fsSL --max-time 20 "$BASE/ln-rank/js/academic-background/background-context-direct.v001.js?v=001_0&ubc=$attempt" || true)"
+            if [ "$sha" = "$EXPECTED_SHA" ] \
+              && grep -q 'background-context.v001.css' <<<"$major_html" \
+              && grep -q 'mountMajorPathBackgroundContext' <<<"$major_app" \
+              && grep -q 'academic-background-navigation-v0.02' <<<"$major_bg" \
+              && grep -q 'academic-background-context-v0.01' <<<"$context" \
+              && grep -q 'academic-background-context-static-v0.01' <<<"$index" \
+              && grep -q 'background-context-direct.v001.js' <<<"$local_html" \
+              && grep -q 'background-context-direct.v001.js' <<<"$all211_html" \
+              && grep -q 'academic-background-direct-v0.01' <<<"$direct"; then exit 0; fi
+            sleep 8
+          done
+          echo "Unified background Preview never reached exact head $EXPECTED_SHA" >&2
+          exit 2
+      - name: Verify exact-head Preview cross-product and AIPLuS journeys
+        env:
+          BASE_URL: ${{ steps.preview.outputs.base }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tools/browser-unified-background-context-live-v001.mjs
+
+  browser-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EXPECTED_SHA: ${{ github.sha }}
+      BASE_URL: https://gaokao-4y9.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Wait for coherent exact-main unified background assets
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 65); do
+            health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE_URL/api/ai/health?ubc_prod=$attempt" || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            major="$(curl -fsSL --max-time 20 "$BASE_URL/major-path/app.v004.js?v=004_0&ubc_prod=$attempt" || true)"
+            direct="$(curl -fsSL --max-time 20 "$BASE_URL/ln-rank/js/academic-background/background-context-direct.v001.js?v=001_0&ubc_prod=$attempt" || true)"
+            index="$(curl -fsSL --max-time 20 "$BASE_URL/ln-rank/data/background-context/background-context-index.v001.json?ubc_prod=$attempt" || true)"
+            if [ "$sha" = "$EXPECTED_SHA" ] \
+              && grep -q 'mountMajorPathBackgroundContext' <<<"$major" \
+              && grep -q 'academic-background-direct-v0.01' <<<"$direct" \
+              && grep -q 'academic-background-context-static-v0.01' <<<"$index"; then exit 0; fi
+            sleep 10
+          done
+          echo "Unified background Production never reached exact main $EXPECTED_SHA" >&2
+          exit 2
+      - name: Verify exact-main Production cross-product and AIPLuS journeys
+        run: node tools/browser-unified-background-context-live-v001.mjs
+
+  publish-production-status:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [source-contract, browser-production]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish durable Production status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          SOURCE_RESULT: ${{ needs.source-contract.result }}
+          BROWSER_RESULT: ${{ needs.browser-production.result }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          state=failure
+          description='unified background context Production verification failed'
+          if [ "$SOURCE_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
+            state=success
+            description='unified school-major background context Production verified'
+          fi
+          payload="$(jq -n --arg state "$state" --arg context 'production/unified-background-context-v0.01' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl -fsSL --max-time 25 -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GH_REPOSITORY}/statuses/${SHA}" \
+            -d "$payload"
+          test "$state" = success

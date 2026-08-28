@@ -1,0 +1,53 @@
+{
+  "version": "V2.9.4.6",
+  "generated_at": "2026-05-06T22:21:23",
+  "input_counts": {
+    "admission_entry_major_index": 13145,
+    "entries_entering_confusable_candidate_pool": 5721,
+    "schools_with_confusable_candidates": 855
+  },
+  "output_counts": {
+    "groups": 13,
+    "members": 412,
+    "detected_pairs": 2752,
+    "front_display_pairs": 2557,
+    "record_index_items": 2425,
+    "school_index_items": 440,
+    "close_score_rank_pairs": 1424
+  },
+  "risk_counts": {
+    "high": 731,
+    "medium_high": 1645,
+    "medium": 376
+  },
+  "group_counts": {
+    "CONF_INFO_COMPUTE_MIS": 691,
+    "CONF_BIGDATA": 36,
+    "CONF_EE_AUTO_GRID": 1191,
+    "CONF_OPTOMETRY": 3,
+    "CONF_DIGITAL_MEDIA": 11,
+    "CONF_CIVIL_ARCH_MGMT": 247,
+    "CONF_BIO_MEDICAL_ENGINEERING": 94,
+    "CONF_NETWORK": 9,
+    "CONF_AI_MANUFACTURING_ROBOT": 150,
+    "CONF_STOMATOLOGY": 4,
+    "CONF_CHEM_MATERIAL": 305,
+    "CONF_MEDICAL_IMAGE_TECH": 11
+  },
+  "score_band_counts": {
+    "620+": 289,
+    "550-589": 556,
+    "590-619": 608,
+    "500-549": 489,
+    "450-499": 516,
+    "367-449": 294
+  },
+  "manual_confirmed_count": 1,
+  "manual_excluded_count": 0,
+  "known_limitations": [
+    "本科目录只能说明官方口径，不能完全代表学校实际培养方案。",
+    "大类/试验班分流规则无法从投档数据直接得出，仍需查招生章程。",
+    "方向班、校企合作、校区、体检、外语要求等如原始备注不完整，仍可能漏判。",
+    "易混提醒不是专业好坏排序，只是提示家长不要按名字误判。"
+  ]
+}

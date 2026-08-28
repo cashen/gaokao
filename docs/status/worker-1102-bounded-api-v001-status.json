@@ -1,0 +1,54 @@
+{
+  "task": "worker-1102-bounded-api-v001",
+  "status": "final-head-ci-pending",
+  "baseMainSha": "c81926a3596f8d3f1040d0afc15f5b445ff38ed7",
+  "branch": "fix/worker-1102-bounded-api-v001",
+  "release": "v3.9.90.2",
+  "generation": "v3990_2",
+  "revision": "r034-worker-1102-bounded-api",
+  "problem": "有效 ln-rank 专业历史与学校专业 API 请求在正式站和 Pages 触发 Cloudflare Worker error code 1102/HTTP 503。",
+  "rootCause": [
+    "school-majors 将 context.request 传给 school-query-provider，丢失 context.env.ASSETS；provider 随后在 Worker 内使用公共 origin fetch。",
+    "canonical schoolEntityId 的完整查询因此出现可复现的 Cloudflare error code 1102/HTTP 503；major-history 同时复测为 200，未把瞬态历史观测误报为本次代码根因。"
+  ],
+  "acceptance": [
+    "电气工程专业历史有效查询保持 200；",
+    "canonical schoolEntityId school-majors resolveOnly 和完整查询使用绑定 ASSETS，不再因公共 origin 回源触发 1102；",
+    "来源真正不可用时仍返回明确的 source_api_unavailable 等价状态，不猜测数据；",
+    "版本、变更日志、状态、断点、资源 manifest 和 release revision 一致；",
+    "PR 检查、精确 Preview、Production、正式站、Pages、manifest 和关键交互全部复核后才合并。"
+  ],
+  "nonScope": ["阳光高考招生计划全量采集"],
+  "tests": [
+    "node tools/verify-worker-resource-boundary-v001.mjs",
+    "node tools/verify-ai-workspace-v3990_2.mjs",
+    "node tools/verify-ln-rank-school-entry-tongxue-v001.mjs",
+    "node tools/verify-ln-rank-unified-card-context-v001.mjs",
+    "node tools/verify-ln-rank-major-all-v001.mjs",
+    "node tools/verify-ln-rank-filter-state-v003.mjs",
+    "node tools/verify-module-navigation-v001.mjs",
+    "node tools/verify-resource-consistency-v3990_2.mjs",
+    "node tools/audit-unified-release-surface-v001.mjs",
+    "node tools/audit-site-runtime-generation-v3990_2.mjs",
+    "node tools/audit-unified-resource-graph-v3990_2.mjs",
+    "node --check changed JavaScript modules"
+  ],
+  "pullRequest": {
+    "number": 242,
+    "url": "https://github.com/cashen/gaokao/pull/242",
+    "remoteHeadSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "draft": false,
+    "checks": "28/28 PR-triggered workflows successful for prior exact HEAD; final handoff commit pending"
+  },
+  "preview": {
+    "url": "https://3026fdf2.gaokao-4y9.pages.dev",
+    "exactSha": "516404e0b254c5fd769036e3cea8c16e245181e6",
+    "health": "deployment.commitSha exact; branch fix/worker-1102-bounded-api-v001",
+    "api": "school resolve-only 200; school full 200; major-history electric 200",
+    "workerStress": "50 mixed requests; cloudflare1102 0",
+    "browser": "major-path human-first Preview PC/Pad/Android passed"
+  },
+  "production": null,
+  "merge": null,
+  "verifiedAt": "2026-08-27T21:37:05Z"
+}

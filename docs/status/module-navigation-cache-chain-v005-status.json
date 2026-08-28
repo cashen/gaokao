@@ -1,0 +1,39 @@
+{
+  "task": "module-navigation-cache-chain-v005",
+  "repository": "cashen/gaokao",
+  "branch": "agent/module-navigation-cache-chain-v005",
+  "baseSha": "15bd2d1f56f1a6e9b088ef243066837e02c59ead",
+  "pr": 220,
+  "headSha": "85bd41e752f2ed527710f5a8e2bf53975237ec46",
+  "mergeSha": "fe68a873901bfb4575a390bec9a3c2d506bcbef9",
+  "completed": [
+    "NC5-01-remote-state-confirmed",
+    "NC5-02-cache-chain-upgrade",
+    "NC5-03-pr-created",
+    "NC5-03-contract-preview-multidevice",
+    "NC5-04-merge-production-closeout"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "evidence": {
+    "latestMain": "15bd2d1f56f1a6e9b088ef243066837e02c59ead",
+    "openPRs": [],
+    "production": "Verified directly after merge: /, /ln-rank/, /tongxue/ body module-navigation-v0.02; one global header/nav and zero visible extra bars; /major-path/ has no global shell and exactly one visible standalone bar at top.",
+    "preview": "main deployment 46e23dfc.gaokao-4y9.pages.dev",
+    "pr220": "Draft PR created with exact base/head; checks pending",
+    "mainAfterMerge": "fe68a873901bfb4575a390bec9a3c2d506bcbef9",
+    "productionScripts": "Home loaded family-home.v3990_2.js?v=3990_2-nav003",
+    "cloudflare": "main Cloudflare Pages deployment fe68a87 successful; Preview e70653ce.gaokao-4y9.pages.dev"
+  },
+  "boundary": "navigation cache identity only; major-bands independent",
+  "fixedTongxueResources": [
+    "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
+    "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001"
+  ],
+  "verifiedAt": "2026-08-26T02:48:19.352Z",
+  "validation": {
+    "readyHeadChecks": "21 success, 0 failure, 0 pending on exact head 85bd41e752f2ed527710f5a8e2bf53975237ec46",
+    "mainChecks": "25 success, 0 failure, 0 pending on fe68a873901bfb4575a390bec9a3c2d506bcbef9",
+    "productionDom": "passed on PC-width browser surface; shell pages single-layer, shell-less page single standalone"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "task": "tongxue-major-single-scope-v001",
+  "repository": "cashen/gaokao",
+  "branch": "main",
+  "baseSha": "a762e96cd4b46e4d5c827f324cc11c0fd6cce13a",
+  "pr": 205,
+  "mergeCommitSha": "cda041f659650c255be08aace0cf3ebae0ecc149",
+  "remoteHead": "cda041f659650c255be08aace0cf3ebae0ecc149",
+  "completed": [
+    "TX-00-plan-written",
+    "TX-01-entry-copy-and-scope-ui",
+    "TX-02-major-intent-adapter",
+    "TX-03-single-major-query",
+    "TX-04-multi-major-fail-closed",
+    "TX-05-scope-copy-and-accessibility",
+    "TX-06-regression-and-multiterminal-tests",
+    "TX-07-ci-preview-production-merge"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "lastFailure": null,
+  "parentPerspective": {
+    "surface": "/tongxue",
+    "scopeModes": [
+      "school",
+      "major"
+    ],
+    "majorMode": "single-major-only",
+    "majorSourceOfTruth": "shared/resources/majors/major-intent-resolver.v001.js",
+    "noMultiMajorQuery": true,
+    "requiredDevices": [
+      "pc",
+      "pad",
+      "android"
+    ]
+  },
+  "checkpointNote": "PR #205 was merged with expected head 9b3181eeed875bacecfeea659596b03c282d67c5 as merge commit cda041f659650c255be08aace0cf3ebae0ecc149. Main content verification confirms the dual-scope /tongxue entry, canonical single-major adapter, and controller integration are on main. Main Cloudflare deployment, production API health, production release, canonical release, unified site runtime, production resource graph, and UEC checks all succeeded. One unrelated major-bands fanout workflow failed before creating a job on the same push; it is outside this PR's changed path and did not block the merge or the verified production chain.",
+  "latestGreenCiHead": "cda041f659650c255be08aace0cf3ebae0ecc149",
+  "verifiedAt": "2026-08-25T03:25:00Z"
+}

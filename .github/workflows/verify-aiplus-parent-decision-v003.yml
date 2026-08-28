@@ -1,0 +1,310 @@
+name: Verify AIPLuS parent decision v0.03
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'aiplus/index.html'
+      - 'functions/_lib/ai/**'
+      - 'functions/_lib/kb/**'
+      - 'functions/api/ai/**'
+      - 'shared/ai/aiplus-product-contract.v002.js'
+      - 'shared/ai/aiplus-product-contract.v003.js'
+      - 'tools/verify-aiplus-parent-semantics-v003.mjs'
+      - 'tools/verify-aiplus-aek-v001.mjs'
+      - 'tools/verify-aiplus-aek-journeys-v001.mjs'
+      - 'tools/verify-aiplus-aek-human-language-v001.mjs'
+      - 'tools/verify-aiplus-human-intent-matrix-v001.mjs'
+      - 'tools/verify-aiplus-routing-grid-v001.mjs'
+      - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
+      - 'tools/verify-aiplus-major-topic-grid-v001.mjs'
+      - 'tools/verify-ai-major-region-history-v3992_3.mjs'
+      - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
+      - 'docs/architecture/START-HERE.md'
+      - 'docs/architecture/AIPLUS-AEK-STATUS.md'
+      - 'docs/skills/aiplus-authoritative-education-knowledge/SKILL.md'
+      - '.github/workflows/verify-aiplus-parent-decision-v003.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'aiplus/index.html'
+      - 'functions/_lib/ai/**'
+      - 'functions/_lib/kb/**'
+      - 'functions/api/ai/**'
+      - 'shared/ai/aiplus-product-contract.v002.js'
+      - 'shared/ai/aiplus-product-contract.v003.js'
+      - 'tools/verify-aiplus-parent-semantics-v003.mjs'
+      - 'tools/verify-aiplus-aek-v001.mjs'
+      - 'tools/verify-aiplus-aek-journeys-v001.mjs'
+      - 'tools/verify-aiplus-aek-human-language-v001.mjs'
+      - 'tools/verify-aiplus-human-intent-matrix-v001.mjs'
+      - 'tools/verify-aiplus-routing-grid-v001.mjs'
+      - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
+      - 'tools/verify-aiplus-major-topic-grid-v001.mjs'
+      - 'tools/verify-ai-major-region-history-v3992_3.mjs'
+      - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
+      - 'docs/architecture/START-HERE.md'
+      - 'docs/architecture/AIPLUS-AEK-STATUS.md'
+      - 'docs/skills/aiplus-authoritative-education-knowledge/SKILL.md'
+      - '.github/workflows/verify-aiplus-parent-decision-v003.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce protected and ownership boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
+            git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/aiplus-v003-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/aiplus-v003-files.txt; then
+              echo 'Protected path touched by AIPLuS decision v0.03.' >&2
+              exit 1
+            fi
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q "AIPLUS_PRODUCT_VERSION='v0.02'" shared/ai/aiplus-product-contract.v002.js
+          grep -q "export \* from './aiplus-product-contract.v002.js'" shared/ai/aiplus-product-contract.v003.js
+          grep -q 'AIPLuS 产品版 · v0.02' aiplus/index.html
+          grep -q '决策语义 v0.03' aiplus/index.html
+          grep -q 'data-ai-advisor-generation="ai-human-advisor-agent-v0.02"' aiplus/index.html
+          grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' aiplus/index.html
+          grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
+          grep -q "AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6'" functions/_lib/ai/agent-task-kernel.js
+          grep -q "AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.04'" functions/_lib/ai/human-query-frame.js
+          grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
+          grep -q 'rememberedScoreAvailable' functions/_lib/ai/evidence-plan.js
+          grep -q "'school_major'" functions/_lib/ai/claim-evidence.js
+          grep -q "'major_national'" functions/_lib/ai/claim-evidence.js
+          grep -q 'searchResultIsSource:false' functions/_lib/ai/official-web-evidence.js
+          grep -q 'runMajorKnowledgeEvidence' functions/_lib/ai/official-web-evidence.js
+          grep -q 'webFallbackCount<2' functions/_lib/ai/decision-research-runtime.js
+          grep -q 'factScopeSafe' functions/_lib/ai/decision-research-runtime.js
+          grep -q "AI_EDUCATION_KNOWLEDGE_RUNTIME_VERSION='ai-education-knowledge-runtime-v0.02'" functions/_lib/ai/education-knowledge-runtime.js
+          grep -q 'unknown_is_valid_never_promote_by_llm' functions/_lib/ai/education-knowledge-center.js
+          test ! -e functions/_lib/ai/data/parent-decision.json
+          test ! -e functions/_lib/ai/data/official-web-cache.json
+          test ! -e .github/workflows/tmp-aek-canonical-complete.yml
+          test ! -e tools/tmp-aek-fix-graduate-index.mjs
+          test ! -e tools/tmp-aek-canonical-complete.mjs
+          test ! -e .github/workflows/tmp-aiplus-human-query-patch.yml
+          test ! -e tools/tmp-aiplus-human-query-patch.mjs
+          test ! -e tools/tmp-aiplus-human-topic-patch.mjs
+          test ! -e tools/tmp-aiplus-score-window-fix.mjs
+          test ! -e tools/tmp-aiplus-routing-diagnostic.mjs
+      - name: Syntax check v0.03 + AEK + human query graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check shared/ai/aiplus-product-contract.v003.js
+          node --check functions/_lib/ai/parent-semantic-frame.js
+          node --check functions/_lib/ai/human-query-frame.js
+          node --check functions/_lib/ai/evidence-plan.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/official-web-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/education-knowledge-center.js
+          node --check functions/_lib/ai/education-knowledge-runtime.js
+          node --check functions/_lib/ai/knowledge-language.js
+          node --check functions/_lib/kb/catalog-accessor.js
+          node --check functions/_lib/kb/graduate-catalog-2022.js
+          node --check functions/_lib/kb/vocational-catalog-governance.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/api/ai/health.js
+          node --check functions/api/ai/major-history.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          node --check tools/verify-aiplus-aek-v001.mjs
+          node --check tools/verify-aiplus-aek-journeys-v001.mjs
+          node --check tools/verify-aiplus-aek-human-language-v001.mjs
+          node --check tools/verify-aiplus-human-intent-matrix-v001.mjs
+          node --check tools/verify-aiplus-routing-grid-v001.mjs
+          node --check tools/verify-aiplus-school-topic-grid-v001.mjs
+          node --check tools/verify-aiplus-major-topic-grid-v001.mjs
+          node --check tools/verify-ai-major-region-history-v3992_3.mjs
+          node --check tools/fixtures/aiplus-parent-query-catalog-v003.mjs
+      - name: Verify AEK, human routing matrices and preserved AIPLuS contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/verify-aiplus-aek-human-language-v001.mjs
+          node tools/verify-aiplus-routing-grid-v001.mjs
+          node tools/verify-aiplus-school-topic-grid-v001.mjs
+          node tools/verify-aiplus-major-topic-grid-v001.mjs
+          node tools/verify-aiplus-human-intent-matrix-v001.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-ai-workspace-v3990_2.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-site-runtime-generation-v3990_2.mjs
+
+  preview-contract:
+    if: github.event_name == 'pull_request'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Resolve exact-SHA Cloudflare Preview
+        id: preview
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expected = process.env.EXPECTED_SHA;
+            const deadline = Date.now() + 18 * 60 * 1000;
+            while (Date.now() < deadline) {
+              const checks = await github.paginate(github.rest.checks.listForRef, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: expected,
+                per_page: 100,
+              });
+              const cf = checks.find(check => check.name === 'Cloudflare Pages');
+              if (cf?.status === 'completed' && cf.conclusion === 'success') {
+                const text = `${cf.output?.summary || ''}\n${cf.output?.text || ''}\n${cf.details_url || ''}`;
+                const matches = [...text.matchAll(/https:\/\/([a-z0-9-]+)\.gaokao-4y9\.pages\.dev\/?/gi)].map(match => match[0]);
+                if (matches.length) {
+                  core.setOutput('url', matches[0]);
+                  core.setOutput('check_id', String(cf.id));
+                  return;
+                }
+              }
+              await new Promise(resolve => setTimeout(resolve, 15000));
+            }
+            core.setFailed(`No successful exact-SHA Cloudflare Preview found for ${expected}`);
+      - name: Verify exact-SHA Preview boundaries
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Checking ${PREVIEW_URL} for ${EXPECTED_SHA}"
+          ready=''
+          for attempt in $(seq 1 36); do
+            if curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${PREVIEW_URL}/api/ai/health?candidate=${EXPECTED_SHA}&readiness=${attempt}" -o /tmp/aiplus-health.json; then
+              actual="$(node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));process.stdout.write(String(p.deployment?.commitSha||p.commitSha||p.commit||''));")"
+              if [ "$actual" != "$EXPECTED_SHA" ]; then
+                echo "Immutable Preview returned unexpected deployment SHA: ${actual}" >&2
+                exit 1
+              fi
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          test "$ready" = 1
+          curl -fsSL --retry 10 --retry-all-errors --retry-delay 3 --max-time 30 -H 'Cache-Control: no-cache' "${PREVIEW_URL}/aiplus/" -o /tmp/aiplus.html
+          grep -q 'AIPLuS 产品版 · v0.02' /tmp/aiplus.html
+          grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' /tmp/aiplus.html
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const health=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));
+          const expected=process.env.EXPECTED_SHA;
+          if(health?.ok!==true) throw new Error('Preview AI health ok=false');
+          if(health?.apiVersion!=='ai-health-api-v0.02') throw new Error(`Unexpected health apiVersion: ${health?.apiVersion}`);
+          if(health?.deployment?.commitSha!==expected) throw new Error(`Preview deployment SHA mismatch: ${health?.deployment?.commitSha}`);
+          if(health?.workspace?.productVersion!=='v0.02') throw new Error(`Unexpected AIPLuS product version: ${health?.workspace?.productVersion}`);
+          if(health?.workspace?.decisionSemanticMode!=='bounded-evidence-plan-v0.03') throw new Error(`Unexpected decision semantic mode: ${health?.workspace?.decisionSemanticMode}`);
+          if(health?.workspace?.agentKernelVersion!=='ai-human-advisor-kernel-v3992_6') throw new Error(`Unexpected agent kernel: ${health?.workspace?.agentKernelVersion}`);
+          if(health?.evidence?.searchResultIsFact!==false) throw new Error('Search-result-is-fact boundary regressed');
+          NODE
+      - name: Verify exact-SHA human semantic journeys
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          post_turn() {
+            local input="$1"
+            local workspace="$2"
+            local output="$3"
+            jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}' > /tmp/aek-payload.json
+            curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 --max-time 120 \
+              -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
+              -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&aek_qa=$(date +%s%N)" \
+              --data-binary @/tmp/aek-payload.json -o "$output"
+            jq -e '.ok==true and .pendingConfirmation==false and .pendingDeterministicTool==false' "$output" >/dev/null
+            printf 'Preview answer: %s -> ' "$input"
+            jq -c '{task:.command.agentTask,scoreUsage:.command.scoreUsage,schoolNames:.command.schoolNames,scoreConstraint:.command.scoreConstraint,commitView,knowledge:{ok:.result.knowledge.ok,answerStatus:.result.knowledge.answerStatus,resolutionClass:.result.knowledge.resolutionClass,canonicalId:.result.knowledge.canonical.id,officialCode:.result.knowledge.canonical.officialCode,liveRequired:.result.knowledge.liveRequired,liveVerified:.result.knowledge.liveVerified,boundary:.result.knowledge.boundary},assistant:([.blocks[]?|select(.type=="assistant_message")][0].text // "")}' "$output"
+          }
+          post_route() {
+            local input="$1"
+            local workspace="$2"
+            local output="$3"
+            jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}' > /tmp/route-payload.json
+            curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 --max-time 120 \
+              -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
+              -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&route_qa=$(date +%s%N)" \
+              --data-binary @/tmp/route-payload.json -o "$output"
+            jq -e '.ok==true and .pendingConfirmation==false' "$output" >/dev/null
+            printf 'Preview route: %s -> ' "$input"
+            jq -c '{task:.command.agentTask,score:.command.score,scoreUsage:.command.scoreUsage,scoreConstraint:.command.scoreConstraint,majorKeywords:.command.majorKeywords,regionKeys:.command.regionKeys,pendingDeterministicTool,toolRequest:{kind:.toolRequest.kind,url:.toolRequest.url}}' "$output"
+          }
+
+          empty_workspace='{}'
+          remembered_school_workspace="$(jq -nc '{examContext:{score:580},activeView:{score:580,regionKeys:["ln"],majorKeywords:["机械"],schoolNames:["沈阳化工大学"],bottomLineMode:"all"},agentContext:{currentTask:"school_research",focus:{school:"沈阳化工大学",schools:["沈阳化工大学"],sourceText:"沈阳化工大学怎么样"}}}')"
+          remembered_major_workspace="$(jq -nc '{examContext:{score:580},activeView:{score:580,regionKeys:["ln"],majorKeywords:["测控技术与仪器"],schoolNames:[],bottomLineMode:"all"},agentContext:{currentTask:"major_region_history",focus:{major:"测控技术与仪器",majors:["测控技术与仪器"],sourceText:"测控技术与仪器多少分"}}}')"
+
+          post_turn '材料成型及控制工程是什么' "$empty_workspace" /tmp/aek-major.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.ok==true and .result.knowledge.answerStatus=="answered" and .result.knowledge.canonical.officialCode=="080203" and .result.knowledge.liveRequired==false and ((([.blocks[]|select(.type=="assistant_message")][0].text // "")|length)>20)' /tmp/aek-major.json >/dev/null
+
+          post_turn '电子信息是什么' "$empty_workspace" /tmp/aek-cross-level.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="ambiguous" and .result.knowledge.canonical==null and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("电子信息专业主要|该专业主要学习")) == false)' /tmp/aek-cross-level.json >/dev/null
+
+          post_turn '材料加工与工业控制是什么' "$empty_workspace" /tmp/aek-unknown.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="source_specific_or_compound" and .result.knowledge.canonical==null and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("材料加工与工业控制专业主要|该专业主要学习")) == false)' /tmp/aek-unknown.json >/dev/null
+
+          post_turn '辽宁省高校专项计划是什么意思' "$remembered_school_workspace" /tmp/aek-firewall.json
+          jq -e '.command.agentTask=="knowledge_explain" and .command.scoreUsage=="remembered" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="special:辽宁省高校专项" and .result.knowledge.answerStatus=="answered"' /tmp/aek-firewall.json >/dev/null
+
+          post_turn '介绍下高校专项计划' "$remembered_school_workspace" /tmp/aek-human-special.json
+          jq -e '.command.agentTask=="knowledge_explain" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="special:高校专项" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("沈阳化工大学")) == false)' /tmp/aek-human-special.json >/dev/null
+
+          post_turn '什么是特控线' "$remembered_major_workspace" /tmp/aek-human-cutoff.json
+          jq -e '.command.agentTask=="knowledge_explain" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="score:特控线" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("测控技术与仪器")) == false)' /tmp/aek-human-cutoff.json >/dev/null
+
+          post_turn '介绍下电气工程及自动化 专业' "$empty_workspace" /tmp/aek-human-major.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.canonical.officialCode=="080601" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "")|length)>20)' /tmp/aek-human-major.json >/dev/null
+
+          post_route '500-600 省内所有会计专业' "$empty_workspace" /tmp/score-window-route.json
+          jq -e '.command.agentTask=="major_region_history" and .command.score==null and .command.scoreConstraint.kind=="range" and .command.scoreConstraint.min==500 and .command.scoreConstraint.max==600 and .command.scoreUsage=="suspended" and .pendingDeterministicTool==true and .toolRequest.kind=="major_history" and (.toolRequest.url|contains("minScore=500")) and (.toolRequest.url|contains("maxScore=600"))' /tmp/score-window-route.json >/dev/null
+
+          curl -fsSL --retry 3 --retry-all-errors --retry-delay 2 --max-time 60 -H 'Cache-Control: no-cache' \
+            "${PREVIEW_URL}/api/ai/major-history?major=%E4%BC%9A%E8%AE%A1&region=ln&minScore=500&maxScore=600&offset=0&limit=100&candidate=${EXPECTED_SHA}" \
+            -o /tmp/score-window-api.json
+          jq -e '.ok==true and .scoreRange.kind=="range" and .scoreRange.min==500 and .scoreRange.max==600 and ([.records[]?.score2026|select(.<500 or .>600)]|length)==0 and ((.summary.minScore==null) or (.summary.minScore>=500)) and ((.summary.maxScore==null) or (.summary.maxScore<=600))' /tmp/score-window-api.json >/dev/null
+
+          post_turn '今年辽宁高校专项有什么要求' "$empty_workspace" /tmp/aek-current.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.liveRequired==true and ((.result.knowledge.liveVerified==true and ([.result.knowledge.sources[]?.sourceUrl|select(type=="string")|contains("jyt.ln.gov.cn")]|any)) or (.result.knowledge.liveVerified==false and .result.knowledge.answerStatus=="needs_fact" and (.result.knowledge.boundary|contains("fail-closed"))))' /tmp/aek-current.json >/dev/null

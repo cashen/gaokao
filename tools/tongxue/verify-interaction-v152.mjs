@@ -1,0 +1,21 @@
+import{readFile}from'node:fs/promises';
+const [page,core,entry,copy,region]=await Promise.all([
+ readFile('tongxue/index.html','utf8'),
+ readFile('tongxue/app/tongxue-performance-v112.js','utf8'),
+ readFile('tongxue/app/tongxue-performance-v152.js','utf8'),
+ readFile('tongxue/app/tongxue-copy-v152.js','utf8'),
+ readFile('tongxue/app/tongxue-region-ui-v152.js','utf8')
+]);
+const failures=[],check=(label,passed)=>{if(!passed)failures.push(label);};
+check('原生按钮',page.includes('<button id="queryButton" class="btn" type="button" disabled>看同学怎么说</button>'));
+check('鼠标点击查询',core.includes("queryButton.addEventListener('click',()=>querySchool())"));
+check('输入框回车查询',core.includes("if(event.key==='Enter'&&!queryButton.disabled){event.preventDefault();querySchool();}"));
+check('候选回车优先确认',core.includes("if(event.key==='Enter'&&activeSuggestion>=0){event.preventDefault();chooseSuggestion(suggestions[activeSuggestion]);return;}"));
+check('中文输入法保护',core.includes('if(event.isComposing||inputComposing)return;')&&core.includes("schoolInput.addEventListener('compositionstart'")&&core.includes("schoolInput.addEventListener('compositionend'"));
+check('按钮键盘原生行为',page.includes('type="button"')&&!page.includes('role="button"'));
+check('地域输入回车',region.includes("if(event.key==='Enter')")&&region.includes('renderCurrentRegion(input,box,result)'));
+check('地域按钮点击',region.includes("button.addEventListener('click'"));
+check('动态按钮回归',copy.includes("if(text==='查看学校体验'||text==='看看同学怎么说')button.textContent='看同学怎么说'"));
+check('文案层先于核心',entry.indexOf('installTongxueCopyV152();')<entry.indexOf("await import('./tongxue-performance-v112.js?v=152')"));
+check('查询逻辑未复制',!copy.includes('querySchool(')&&!region.includes('fetchExperience('));
+console.log('TONGXUE_INTERACTION_V152_RESULTS '+JSON.stringify({failures}));if(failures.length)process.exitCode=1;

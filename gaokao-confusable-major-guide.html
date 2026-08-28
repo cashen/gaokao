@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>高考易混专业辨析｜家长复核版</title>
+<meta name="description" content="给家长和考生看的高考易混专业辨析：先看专业到底是什么，再看孩子是否能接受，最后再讨论是否放入志愿方案。" />
+<meta name="theme-color" content="#155E75" />
+<style>
+
+:root{
+  color-scheme:light;
+  --ln-bg:#F6F8F7;
+  --ln-bg-soft:#EEF4F3;
+  --ln-surface:#FFFFFF;
+  --ln-surface-soft:#F9FAF8;
+  --ln-text:#172033;
+  --ln-text-strong:#111827;
+  --ln-muted:#667085;
+  --ln-muted-2:#8A94A6;
+  --ln-border:#DDE5E1;
+  --ln-primary:#155E75;
+  --ln-primary-deep:#0F4A5C;
+  --ln-primary-soft:#E8F3F5;
+  --ln-action:#C65F25;
+  --ln-action-soft:#FFF4EA;
+  --ln-ok:#3D806E;
+  --ln-ok-soft:#EEF8F3;
+  --ln-warn:#B7791F;
+  --ln-warn-soft:#FFF7E8;
+  --ln-risk:#A75B4A;
+  --ln-risk-soft:#FEF2F2;
+  --ln-blue:#315F82;
+  --ln-blue-soft:#EDF3F8;
+  --ln-shadow:0 18px 48px rgba(23,32,51,.10);
+  --ln-radius-xl:26px;
+  --ln-radius-lg:20px;
+  --ln-radius-md:16px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 12% 6%, rgba(21,94,117,.10), transparent 32%),
+    radial-gradient(circle at 90% 10%, rgba(198,95,37,.075), transparent 28%),
+    linear-gradient(180deg,#F8FAF9 0%,#EEF4F3 100%);
+  color:var(--ln-text);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font:inherit}
+.app{height:100%;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  height:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px max(16px,env(safe-area-inset-left)) 10px max(16px,env(safe-area-inset-left));
+  border-bottom:1px solid rgba(221,229,225,.86);
+  background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:10;
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{width:36px;height:36px;border-radius:14px;background:linear-gradient(135deg,var(--ln-primary),var(--ln-ok));box-shadow:0 10px 24px rgba(21,94,117,.20)}
+.brand-title{font-size:15px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ln-text-strong)}
+.brand-sub{font-size:12px;color:var(--ln-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.nav-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.btn{
+  border:1px solid var(--ln-border);background:#fff;color:var(--ln-text);border-radius:14px;padding:9px 12px;
+  font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(23,32,51,.04);
+}
+.btn:hover{border-color:rgba(21,94,117,.32);color:var(--ln-primary)}
+.btn.primary{background:var(--ln-primary);color:#fff;border-color:var(--ln-primary)}
+.btn.ghost{background:rgba(255,255,255,.74)}
+.progress-wrap{height:4px;background:#E3EAE7;position:relative;flex:0 0 auto}
+.progress{height:4px;background:linear-gradient(90deg,var(--ln-primary),var(--ln-ok),var(--ln-action));width:0%;transition:width .25s ease}
+.stage{position:relative;flex:1 1 auto;min-height:0;overflow:hidden}
+.slides{height:100%;display:flex;transition:transform .32s cubic-bezier(.22,.61,.36,1);will-change:transform}
+.slide{height:100%;width:100vw;flex:0 0 100vw;padding:24px 34px 30px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.slide-inner{
+  width:min(1120px,100%);height:min(680px,100%);
+  background:rgba(255,255,255,.94);border:1px solid rgba(221,229,225,.96);box-shadow:var(--ln-shadow);
+  border-radius:var(--ln-radius-xl);padding:32px 36px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.slide-inner::after{
+  content:"";position:absolute;right:-140px;bottom:-150px;width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(21,94,117,.075),transparent 68%);pointer-events:none;
+}
+.slide-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px;position:relative;z-index:1}
+.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+.badge{
+  display:inline-flex;align-items:center;border-radius:999px;padding:5px 10px;font-size:12px;line-height:18px;font-weight:950;white-space:nowrap;
+  border:1px solid transparent;
+}
+.b-blue{background:var(--ln-primary-soft);color:var(--ln-primary);border-color:#D1E7EA}
+.b-green{background:var(--ln-ok-soft);color:var(--ln-ok);border-color:#D7EEE3}
+.b-amber{background:var(--ln-action-soft);color:var(--ln-action);border-color:#F7DCC8}
+.b-red{background:var(--ln-risk-soft);color:var(--ln-risk);border-color:#F4D7D1}
+.b-violet,.b-slate{background:var(--ln-blue-soft);color:var(--ln-blue);border-color:#D8E4EC}
+.slide-no{font-size:13px;color:var(--ln-muted-2);font-weight:950;white-space:nowrap}
+h1,h2,h3,p{margin:0}
+.title-xl{font-size:54px;line-height:1.05;font-weight:950;letter-spacing:-.045em;color:var(--ln-text-strong)}
+.title{font-size:40px;line-height:1.12;font-weight:950;letter-spacing:-.035em;color:var(--ln-text-strong)}
+.subtitle{margin-top:14px;font-size:20px;line-height:1.65;color:#344054;font-weight:650;max-width:920px}
+.lead{font-size:25px;line-height:1.45;font-weight:900;color:#1F2937}
+.body{font-size:17px;line-height:1.75;color:#475467}
+.muted{color:var(--ln-muted)}
+.content{position:relative;z-index:1;flex:1 1 auto;min-height:0;overflow:auto;padding-right:4px}
+.content::-webkit-scrollbar{width:8px}.content::-webkit-scrollbar-thumb{background:#CBD5D1;border-radius:999px}.content::-webkit-scrollbar-track{background:transparent}
+.grid{display:grid;gap:16px}.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}
+.card{background:#fff;border:1px solid var(--ln-border);border-radius:20px;padding:18px;box-shadow:0 10px 24px rgba(23,32,51,.055)}
+.card.soft-blue{background:var(--ln-primary-soft);border-color:#CFE5E8}.card.soft-green{background:var(--ln-ok-soft);border-color:#D2EADD}.card.soft-amber{background:var(--ln-action-soft);border-color:#F0D8C7}.card.soft-red{background:var(--ln-risk-soft);border-color:#EECFC8}.card.soft-violet,.card.soft-slate{background:var(--ln-blue-soft);border-color:#D7E2EB}
+.card-title{font-size:19px;font-weight:950;line-height:1.3;margin-bottom:8px;color:var(--ln-text-strong)}.card-text{font-size:15px;line-height:1.65;color:#475467}.big-card-title{font-size:24px;font-weight:950;margin-bottom:8px;line-height:1.25;color:var(--ln-text-strong)}
+.quote{border-left:6px solid var(--ln-action);background:var(--ln-action-soft);border-radius:18px;padding:18px 20px;font-size:24px;line-height:1.45;font-weight:950;color:#7A3F15}
+.formula{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:16px 0}.pill{border-radius:999px;background:#fff;border:1px solid var(--ln-border);padding:12px 16px;font-weight:950;box-shadow:0 8px 18px rgba(23,32,51,.05)}.arrow{font-size:26px;color:var(--ln-muted-2);font-weight:900}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px}.compare .option{border-radius:22px;padding:22px;border:1px solid var(--ln-border);background:#fff;box-shadow:0 10px 24px rgba(23,32,51,.06)}.option.tech{border-color:#CFE5E8;background:var(--ln-primary-soft)}.option.biz{border-color:#F0D8C7;background:var(--ln-action-soft)}.option.med{border-color:#EECFC8;background:var(--ln-risk-soft)}.option.art{border-color:#D7E2EB;background:var(--ln-blue-soft)}.option.eng{border-color:#D2EADD;background:var(--ln-ok-soft)}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-weight:950;letter-spacing:-.02em}.code-line{font-size:20px;margin:8px 0;color:var(--ln-text-strong)}.plain-label{font-size:16px;color:#475467;line-height:1.6}
+.rule-list{display:grid;gap:12px}.rule{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--ln-border);border-radius:18px;padding:14px}.rule-num{width:30px;height:30px;border-radius:12px;background:var(--ln-primary);color:#fff;display:grid;place-items:center;font-weight:950;flex:0 0 auto}.rule-text{font-size:16px;line-height:1.55;color:#344054}.rule-text b{color:var(--ln-text-strong)}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.step{position:relative;background:#fff;border:1px solid var(--ln-border);border-radius:20px;padding:18px}.step::before{content:attr(data-step);display:inline-grid;place-items:center;width:34px;height:34px;border-radius:14px;background:var(--ln-primary-soft);color:var(--ln-primary);font-weight:950;margin-bottom:10px}.step-title{font-weight:950;margin-bottom:6px}.step-text{font-size:14px;color:var(--ln-muted);line-height:1.55}
+.chips{display:flex;gap:10px;flex-wrap:wrap}.chip{display:inline-flex;border-radius:999px;background:var(--ln-surface-soft);border:1px solid var(--ln-border);padding:8px 12px;font-size:14px;font-weight:900;color:#344054}.chip.hot{background:var(--ln-action-soft);border-color:#F0D8C7;color:var(--ln-action)}.chip.risk{background:var(--ln-risk-soft);border-color:#EECFC8;color:var(--ln-risk)}.chip.ok{background:var(--ln-ok-soft);border-color:#D2EADD;color:var(--ln-ok)}.chip.info{background:var(--ln-primary-soft);border-color:#CFE5E8;color:var(--ln-primary)}
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:center}.hero-words{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.hero-words span{font-size:20px;font-weight:950;padding:12px 16px;border-radius:18px;background:#fff;border:1px solid var(--ln-border);box-shadow:0 8px 20px rgba(23,32,51,.05)}
+.warning-line{background:var(--ln-warn-soft);border:1px solid #F2DDB9;border-left:6px solid var(--ln-warn);border-radius:18px;padding:16px 18px;font-weight:900;color:#7C4A03;line-height:1.55}.danger-line{background:var(--ln-risk-soft);border:1px solid #EECFC8;border-left:6px solid var(--ln-risk);border-radius:18px;padding:16px 18px;font-weight:900;color:#7A2E24;line-height:1.55}.ok-line{background:var(--ln-ok-soft);border:1px solid #D2EADD;border-left:6px solid var(--ln-ok);border-radius:18px;padding:16px 18px;font-weight:900;color:#245A45;line-height:1.55}.info-line{background:var(--ln-primary-soft);border:1px solid #CFE5E8;border-left:6px solid var(--ln-primary);border-radius:18px;padding:16px 18px;font-weight:900;color:var(--ln-primary-deep);line-height:1.55}
+.ask-list{columns:2;column-gap:18px}.ask-item{break-inside:avoid;background:#fff;border:1px solid var(--ln-border);border-radius:16px;padding:12px 14px;margin-bottom:10px;font-size:15px;line-height:1.45;font-weight:850;color:#344054}
+.overlay{position:fixed;inset:0;background:rgba(23,32,51,.52);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}.overlay.show{display:flex}.panel{background:#fff;border-radius:26px;box-shadow:0 22px 80px rgba(23,32,51,.24);width:min(980px,100%);max-height:min(760px,86vh);overflow:auto;padding:26px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.toc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.toc-item{border:1px solid var(--ln-border);border-radius:16px;background:var(--ln-surface-soft);padding:12px;text-align:left;cursor:pointer}.toc-item:hover{border-color:#A9CDD3;background:var(--ln-primary-soft)}.toc-num{font-size:12px;color:var(--ln-muted);font-weight:950}.toc-title{font-size:14px;font-weight:900;color:var(--ln-text-strong);margin-top:4px;line-height:1.35}
+.copy-box{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}.copy-box textarea{position:absolute;left:-9999px}
+.hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ln-text);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s;z-index:99}.hint.show{opacity:1;bottom:28px}
+@media (max-width:800px){
+  .topbar{height:56px;padding:8px 10px}.brand-mark{display:none}.brand-title{font-size:13px}.brand-sub{display:none}.btn{padding:8px 9px;font-size:12px;border-radius:12px}.nav-actions{gap:5px}.nav-actions .hide-mobile{display:none}
+  .slide{padding:10px}.slide-inner{height:calc(100vh - 82px - var(--safe-bottom));border-radius:20px;padding:20px 16px}.slide-head{margin-bottom:10px}.title-xl{font-size:34px}.title{font-size:27px}.subtitle{font-size:16px;line-height:1.55}.lead{font-size:20px}.body{font-size:15px}.grid-2,.grid-3,.grid-4,.split,.compare,.timeline{grid-template-columns:1fr}.content{padding-right:2px}.card{padding:14px;border-radius:18px}.card-title{font-size:17px}.big-card-title{font-size:20px}.quote{font-size:19px;padding:14px}.code-line{font-size:17px}.ask-list{columns:1}.toc-grid{grid-template-columns:1fr}.panel{padding:20px}.hero-words span{font-size:16px;padding:10px 12px;border-radius:15px}.badge{font-size:11px;padding:4px 8px}.slide-no{font-size:12px}.formula{gap:8px}.arrow{transform:rotate(90deg);font-size:20px}.pill{width:100%;text-align:center}
+}
+@media print{
+  html,body{height:auto;overflow:auto;background:#fff}.topbar,.progress-wrap,.hint,.overlay{display:none!important}.app{height:auto}.stage{overflow:visible}.slides{display:block!important;transform:none!important;height:auto}.slide{page-break-after:always;width:auto;height:auto;display:block;padding:0}.slide-inner{box-shadow:none;width:100%;height:auto;min-height:720px;border-radius:0}.content{overflow:visible}
+}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div style="min-width:0">
+        <div class="brand-title">名字像，不代表专业一样</div>
+        <div class="brand-sub">给家长和考生看的易混专业辨析</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="btn ghost hide-mobile" id="tocBtn" type="button">目录</button>
+      <button class="btn" id="prevBtn" type="button">上一页</button>
+      <button class="btn primary" id="nextBtn" type="button">下一页</button>
+    </div>
+  </header>
+  <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  <main class="stage" id="stage">
+    <div class="slides" id="slides">
+<section class="slide" data-title="封面"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">易混专业</span><span class="badge b-blue">专业辨析</span><span class="badge b-green">给家长和考生</span></div><h1 class="title-xl">名字像，<br/>不代表专业一样</h1><p class="subtitle">专业选择，不是先看名字热不热，而是先看它到底是什么。</p></div><div class="slide-no">01 / 24</div></div>
+<div class="content split">
+<div>
+<div class="quote">不先问“好不好”，先问“是不是看错了”。</div>
+<div class="hero-words"><span>大数据</span><span>智能</span><span>医学</span><span>信息</span><span>电气</span><span>金融</span></div>
+</div>
+<div class="card soft-blue"><div class="big-card-title">这堂课解决什么？</div><p class="body">让家长从“看专业名”升级到“看路径”：招生入口、本科代码、门类、专业类、孩子适配、家庭成本。</p></div>
+</div>
+</div></section><section class="slide" data-title="为什么家长会看错专业"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-red">痛点</span><span class="badge b-slate">不是不会看分数</span></div><h2 class="title">很多家长不是不会看分数，<br/>而是看错了专业本质</h2></div><div class="slide-no">02 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card soft-amber"><div class="card-title">名字越来越像营销词</div><p class="card-text">大数据、智能、数字、新媒体、未来技术、智慧工程……听起来都很热。</p></div>
+<div class="card soft-blue"><div class="card-title">招生名称不等于专业本体</div><p class="card-text">大类、试验班、方向、中外合作、校企合作，都可能混在招生名称里。</p></div>
+<div class="card soft-green"><div class="card-title">家长容易跳到职业想象</div><p class="card-text">看到医学就想医生，看到电气就想电网，看到大数据就想程序员。</p></div>
+<div class="warning-line" style="grid-column:1/-1">名字越新潮，越要回到本科代码、门类和专业大类。</div>
+</div>
+</div></section><section class="slide" data-title="真实场景：480分两个大数据"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">真实选择题</span><span class="badge b-blue">同校近分</span></div><h2 class="title">480 分，两个“大数据”，<br/>你怎么选？</h2></div><div class="slide-no">03 / 24</div></div>
+<div class="content split">
+<div class="card soft-slate"><div class="big-card-title">辽宁物理类 · 普通家庭 · 480 分左右</div><p class="body">看到营口理工学院两个专业：<br/><b>数据科学与大数据技术</b><br/><b>大数据管理与应用</b></p></div>
+<div class="rule-list">
+<div class="rule"><div class="rule-num">?</div><div class="rule-text">它们都是“大数据专业”吗？</div></div>
+<div class="rule"><div class="rule-num">?</div><div class="rule-text">差几分，是不是就选更低的？</div></div>
+<div class="rule"><div class="rule-num">?</div><div class="rule-text">孩子进去后学的是一回事吗？</div></div>
+</div>
+</div>
+</div></section><section class="slide" data-title="两个大数据不是一个方向"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">先给结论</span><span class="badge b-red">分数接近≠专业接近</span></div><h2 class="title">它们不是同一个方向</h2></div><div class="slide-no">04 / 24</div></div>
+<div class="content">
+<div class="compare">
+<div class="option tech"><div class="big-card-title">数据科学与大数据技术</div><div class="code-line code">080910T｜工学｜计算机类</div><p class="plain-label">更偏技术、代码、数据处理、计算机底座。</p><div class="chips" style="margin-top:14px"><span class="chip info">技术路线</span><span class="chip info">代码接受度</span><span class="chip info">数学逻辑</span></div></div>
+<div class="option biz"><div class="big-card-title">大数据管理与应用</div><div class="code-line code">120108T｜管理学｜管理科学与工程类</div><p class="plain-label">更偏管理、业务分析、信息系统和数据应用。</p><div class="chips" style="margin-top:14px"><span class="chip hot">管理应用</span><span class="chip hot">业务分析</span><span class="chip hot">数据工具</span></div></div>
+</div>
+<div class="quote" style="margin-top:18px">分数接近，不代表专业接近。</div>
+</div>
+</div></section><section class="slide" data-title="分数和代码的分工"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-green">看清专业</span></div><h2 class="title">分数帮你看范围，<br/>代码帮你看本质</h2></div><div class="slide-no">05 / 24</div></div>
+<div class="content">
+<div class="formula"><div class="pill">最低分 / 位次</div><div class="arrow">→</div><div class="pill">候选范围</div><div class="arrow">｜</div><div class="pill">本科代码 / 专业类</div><div class="arrow">→</div><div class="pill">专业本质</div></div>
+<div class="grid grid-3" style="margin-top:22px">
+<div class="card soft-blue"><div class="card-title">看分数</div><p class="card-text">判断是否进入候选范围。</p></div>
+<div class="card soft-green"><div class="card-title">看代码</div><p class="card-text">判断它属于哪个门类、哪个专业类。</p></div>
+<div class="card soft-amber"><div class="card-title">看备注</div><p class="card-text">判断大类、方向、合作办学、收费、校区等属性。</p></div>
+</div>
+<div class="ok-line" style="margin-top:18px">进入范围只是第一步；入学后主要学什么，才是关键。</div>
+</div>
+</div></section><section class="slide" data-title="易混专业六种类型"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-violet">定义</span></div><h2 class="title">易混，不只是名字像</h2></div><div class="slide-no">06 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card"><div class="card-title">1. 名字相似</div><p class="card-text">医学影像学 vs 医学影像技术。</p></div>
+<div class="card"><div class="card-title">2. 热门词相同</div><p class="card-text">都带“大数据”“智能”“数字”。</p></div>
+<div class="card"><div class="card-title">3. 目标路径相似</div><p class="card-text">都被家长想象成医生、电网、计算机。</p></div>
+<div class="card"><div class="card-title">4. 门类不同</div><p class="card-text">工学、管理学、理学、医学、文学可能完全不同。</p></div>
+<div class="card"><div class="card-title">5. 专业类不同</div><p class="card-text">同属工学，也可能是电气类、自动化类、机械类。</p></div>
+<div class="card"><div class="card-title">6. 招生入口不同</div><p class="card-text">大类、试验班不等于最终毕业专业。</p></div>
+</div>
+</div></section><section class="slide" data-title="不用背代码"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-blue">方法</span><span class="badge b-green">简单动作</span></div><h2 class="title">不用背代码，只做两个判断</h2></div><div class="slide-no">07 / 24</div></div>
+<div class="content split">
+<div class="timeline">
+<div class="step" data-step="1"><div class="step-title">看前两位</div><div class="step-text">判断门类是否一样。</div></div>
+<div class="step" data-step="2"><div class="step-title">看前四位</div><div class="step-text">判断专业大类是否一样。</div></div>
+<div class="step" data-step="3"><div class="step-title">看名称</div><div class="step-text">判断方向词、热门词。</div></div>
+<div class="step" data-step="4"><div class="step-title">看备注</div><div class="step-text">判断大类、方向、合作、收费。</div></div>
+</div>
+<div class="card soft-blue"><div class="big-card-title">示例</div><p class="body"><span class="code">080910T</span>：08 开头，工学；0809，计算机类。<br/><span class="code">120108T</span>：12 开头，管理学；1201，管理科学与工程类。</p></div>
+<div class="info-line">代码不是让家长背的，是让家长校准名字的。</div>
+</div>
+</div></section><section class="slide" data-title="大数据案例深挖"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 1</span><span class="badge b-blue">大数据</span></div><h2 class="title">都叫“大数据”，<br/>底座可能完全不同</h2></div><div class="slide-no">08 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-blue"><div class="card-title">技术路线</div><p class="body"><b>数据科学与大数据技术</b><br/>更接近计算机类大数据，技术属性更强。</p><div class="chips"><span class="chip info">编程</span><span class="chip info">数据库</span><span class="chip info">算法基础</span><span class="chip info">数据处理</span></div></div>
+<div class="card soft-amber"><div class="card-title">管理应用路线</div><p class="body"><b>大数据管理与应用</b><br/>属于管理学，偏管理、业务分析和数据应用。</p><div class="chips"><span class="chip hot">业务理解</span><span class="chip hot">管理分析</span><span class="chip hot">数据工具</span><span class="chip hot">信息系统</span></div></div>
+<div class="ok-line" style="grid-column:1/-1">孩子能接受代码和数学，优先理解技术路线；孩子排斥深度代码，可以看管理应用路线，但不能当纯计算机。</div>
+</div>
+</div></section><section class="slide" data-title="480分怎么理解"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-blue">分数现场</span><span class="badge b-amber">不要只看低几分</span></div><h2 class="title">分数差几分，<br/>不是唯一判断</h2></div><div class="slide-no">09 / 24</div></div>
+<div class="content">
+<div class="compare">
+<div class="option tech"><div class="big-card-title">数据科学与大数据技术</div><p class="code-line code">479 / 67042</p><p class="plain-label">480 分只高 1 分，压线附近。</p></div>
+<div class="option biz"><div class="big-card-title">大数据管理与应用</div><p class="code-line code">476 / 68589</p><p class="plain-label">480 分高 4 分，相对宽一点。</p></div>
+</div>
+<div class="warning-line" style="margin-top:18px">低 3 分，不代表更适合；高 3 分，也不代表一定更好。一个偏技术，一个偏管理。</div>
+</div>
+</div></section><section class="slide" data-title="医学类高风险易混"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-red">高风险</span><span class="badge b-amber">医学类</span></div><h2 class="title">带“医学”，<br/>不一定是医生路径</h2></div><div class="slide-no">10 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-red"><div class="card-title">容易混的名称</div><div class="rule-list"><div class="rule"><div class="rule-num">1</div><div class="rule-text">医学影像学 ≠ 医学影像技术</div></div><div class="rule"><div class="rule-num">2</div><div class="rule-text">口腔医学 ≠ 口腔医学技术</div></div><div class="rule"><div class="rule-num">3</div><div class="rule-text">眼视光医学 ≠ 眼视光学</div></div></div></div>
+<div class="card soft-slate"><div class="card-title">怎么判断</div><p class="body">医学相关专业，要看它是不是临床医学类、口腔医学类，还是医学技术类。</p><div class="danger-line" style="margin-top:14px">医学技术类不是不好，而是路径不同。</div></div>
+</div>
+</div></section><section class="slide" data-title="医学类怎么问"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-red">问法升级</span></div><h2 class="title">不要问“是不是医学”，<br/>要问“是不是医生路径”</h2></div><div class="slide-no">11 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-red"><div class="card-title">错误问法</div><p class="lead">这个专业带医学，是不是以后当医生？</p></div>
+<div class="card soft-green"><div class="card-title">正确问法</div><p class="body">它属于临床医学类、口腔医学类，还是医学技术类？是否涉及医生培养路径？是否需要长期深造和资格路径？</p></div>
+<div class="quote" style="grid-column:1/-1">名字里有医学，不等于未来就是医生。</div>
+</div>
+</div></section><section class="slide" data-title="信息和计算机易混"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 2</span><span class="badge b-blue">信息 / 计算机</span></div><h2 class="title">带“信息”，<br/>不一定是计算机</h2></div><div class="slide-no">12 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card soft-blue"><div class="card-title">计算机科学与技术</div><p class="card-text">工学 / 计算机类</p></div>
+<div class="card soft-slate"><div class="card-title">信息与计算科学</div><p class="card-text">理学 / 数学类，不是传统计算机类。</p></div>
+<div class="card soft-amber"><div class="card-title">信息管理与信息系统</div><p class="card-text">管理学 / 管理科学与工程类。</p></div>
+<div class="card"><div class="card-title">电子信息工程</div><p class="card-text">工学 / 电子信息类。</p></div>
+<div class="card"><div class="card-title">网络与新媒体</div><p class="card-text">文学 / 新闻传播学类。</p></div>
+<div class="info-line">想按代码路线理解，先看是不是 0809 计算机类。</div>
+</div>
+</div></section><section class="slide" data-title="计算机能力适配"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-green">学生视角</span><span class="badge b-blue">能力适配</span></div><h2 class="title">想学计算机，<br/>先问孩子能不能接受这种学习方式</h2></div><div class="slide-no">13 / 24</div></div>
+<div class="content split">
+<div class="chips"><span class="chip info">代码</span><span class="chip info">数学逻辑</span><span class="chip info">调试</span><span class="chip info">项目</span><span class="chip info">数据库</span><span class="chip info">算法基础</span><span class="chip info">长期自学</span></div>
+<div class="card soft-green"><div class="big-card-title">看清专业</div><p class="lead">热门专业，也要看孩子学不学得动。</p></div>
+</div>
+</div></section><section class="slide" data-title="电气与自动化"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 3</span><span class="badge b-green">电气 / 自动化</span></div><h2 class="title">冲着电网看，<br/>不能把自动化直接当电气</h2></div><div class="slide-no">14 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-green"><div class="card-title">更接近电气类口径</div><p class="body">电气工程及其自动化<br/>智能电网信息工程<br/>电气工程与智能控制</p></div>
+<div class="card soft-slate"><div class="card-title">不能直接等同电气</div><p class="body">自动化：自动化类<br/>测控技术与仪器：仪器类<br/>电子信息工程：电子信息类</p></div>
+<div class="warning-line" style="grid-column:1/-1">如果按电力系统、电网方向理解，要优先看是否属于电气类，以及学校行业背景。这不代表一定进电网，只是方向更接近。</div>
+</div>
+</div></section><section class="slide" data-title="智能类易混"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 4</span><span class="badge b-violet">智能词</span></div><h2 class="title">带“智能”，<br/>不一定是人工智能</h2></div><div class="slide-no">15 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card soft-blue"><div class="card-title">智能科学与技术</div><p class="card-text">更靠近计算机/智能技术路线。</p></div>
+<div class="card soft-green"><div class="card-title">智能制造工程</div><p class="card-text">底座常是机械类。</p></div>
+<div class="card soft-slate"><div class="card-title">机器人工程</div><p class="card-text">常靠近自动化类。</p></div>
+<div class="card"><div class="card-title">智能建造</div><p class="card-text">底座是土木、建造数字化。</p></div>
+<div class="card"><div class="card-title">智慧农业</div><p class="card-text">仍是农业相关底座。</p></div>
+<div class="quote">热门词只是包装，专业类才是底座。</div>
+</div>
+</div></section><section class="slide" data-title="数字媒体与新媒体"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 5</span><span class="badge b-violet">数字媒体</span></div><h2 class="title">数字媒体技术、数字媒体艺术、网络与新媒体，<br/>不是一回事</h2></div><div class="slide-no">16 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card soft-blue"><div class="card-title">数字媒体技术</div><p class="card-text">工学 / 计算机类，偏技术实现。</p></div>
+<div class="card soft-violet"><div class="card-title">数字媒体艺术</div><p class="card-text">艺术学 / 设计学类，偏设计创作。</p></div>
+<div class="card soft-amber"><div class="card-title">网络与新媒体</div><p class="card-text">文学 / 新闻传播学类，偏传播和内容。</p></div>
+<div class="info-line" style="grid-column:1/-1">都像互联网方向，但门类和学习方式不同。</div>
+</div>
+</div></section><section class="slide" data-title="工程类易混"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">案例 6</span><span class="badge b-slate">工程</span></div><h2 class="title">都带“工程”，<br/>一个可能是技术，一个可能是管理</h2></div><div class="slide-no">17 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-green"><div class="card-title">工程技术方向</div><p class="body">土木工程：工学 / 土木类<br/>建筑学：工学 / 建筑类<br/>智能建造：工学 / 土木类</p></div>
+<div class="card soft-amber"><div class="card-title">工程管理方向</div><p class="body">工程管理：管理学 / 管理科学与工程类。</p></div>
+<div class="warning-line" style="grid-column:1/-1">工程管理不是土木工程本体，它更偏工程项目管理。</div>
+</div>
+</div></section><section class="slide" data-title="招生入口误区"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-red">常见误区</span><span class="badge b-blue">招生入口</span></div><h2 class="title">招生名称，<br/>不一定是最终毕业专业</h2></div><div class="slide-no">18 / 24</div></div>
+<div class="content split">
+<div class="chips"><span class="chip hot">计算机类</span><span class="chip hot">电子信息类</span><span class="chip hot">工科试验班</span><span class="chip hot">经济管理试验班</span><span class="chip hot">机械类</span><span class="chip hot">自动化类</span></div>
+<div class="card soft-amber"><div class="big-card-title">这类名称可能是招生入口</div><p class="body">入校后还要按学校规则分流。报进去，不等于最终就读你以为的那个专业。</p></div>
+</div>
+</div></section><section class="slide" data-title="括号和合作办学"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-red">普通家庭必看</span><span class="badge b-amber">备注属性</span></div><h2 class="title">括号里的内容，<br/>往往决定真实风险</h2></div><div class="slide-no">19 / 24</div></div>
+<div class="content grid grid-3">
+<div class="card soft-red"><div class="card-title">中外合作 / 高收费</div><p class="card-text">成本、培养方案、转专业政策可能不同。</p></div>
+<div class="card soft-amber"><div class="card-title">方向 / 实验班</div><p class="card-text">方向词不一定是本科目录专业名。</p></div>
+<div class="card soft-slate"><div class="card-title">校区 / 单科 / 外语要求</div><p class="card-text">这些备注会影响真实选择。</p></div>
+<div class="danger-line" style="grid-column:1/-1">普通家庭不是不能选高收费，而是不能没看清就误选。</div>
+</div>
+</div></section><section class="slide" data-title="研究生参考边界"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-slate">边界</span><span class="badge b-blue">研究生参考</span></div><h2 class="title">研究生参考是方向地图，<br/>不是本科实力证明</h2></div><div class="slide-no">20 / 24</div></div>
+<div class="content grid grid-2">
+<div class="card soft-blue"><div class="card-title">可以帮助理解</div><p class="body">未来可能的升学方向、专业靠近的学科领域。</p></div>
+<div class="card soft-red"><div class="card-title">不能直接证明</div><p class="body">本科一定强、就业一定好、这个学校这个专业一定值得报。</p></div>
+<div class="info-line" style="grid-column:1/-1">研究生参考只能辅助理解，不能替代本科专业判断。</div>
+</div>
+</div></section><section class="slide" data-title="普通家庭判断框架"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-green">普通家庭</span><span class="badge b-amber">路径判断</span></div><h2 class="title">普通家庭怕的不是专业普通，<br/>而是方向看错</h2></div><div class="slide-no">21 / 24</div></div>
+<div class="content grid grid-2">
+<div class="rule-list"><div class="rule"><div class="rule-num">1</div><div class="rule-text">孩子能不能学</div></div><div class="rule"><div class="rule-num">2</div><div class="rule-text">家庭能不能承受</div></div><div class="rule"><div class="rule-num">3</div><div class="rule-text">路径是否清楚</div></div><div class="rule"><div class="rule-num">4</div><div class="rule-text">是否需要长期深造</div></div><div class="rule"><div class="rule-num">5</div><div class="rule-text">有没有误把 A 当 B</div></div></div>
+<div class="quote">适合普通家庭的选择，不是概念最热，而是方向清楚、成本可控、孩子能坚持。</div>
+</div>
+</div></section><section class="slide" data-title="后段选择也不能乱填"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-amber">后段选择</span><span class="badge b-red">底线意识</span></div><h2 class="title">后段选择不是随便填一个低分专业</h2></div><div class="slide-no">22 / 24</div></div>
+<div class="content grid grid-4">
+<div class="card soft-green"><div class="card-title">能接受</div><p class="card-text">孩子不至于完全排斥。</p></div>
+<div class="card soft-blue"><div class="card-title">能读下去</div><p class="card-text">学习方式和能力基本匹配。</p></div>
+<div class="card soft-amber"><div class="card-title">成本可承受</div><p class="card-text">学费、校区、合作办学看清楚。</p></div>
+<div class="card soft-red"><div class="card-title">不严重误解</div><p class="card-text">不是把 A 专业当成 B 路径。</p></div>
+<div class="quote" style="grid-column:1/-1">后段选择也要能读下去。</div>
+</div>
+</div></section><section class="slide" data-title="家长10问"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-blue">可复制</span><span class="badge b-green">家长 10 问</span></div><h2 class="title">看到一个陌生专业，<br/>先问这 10 个问题</h2></div><div class="slide-no">23 / 24</div></div>
+<div class="content">
+<div class="ask-list" id="askList">
+<div class="ask-item">1. 这是招生入口，还是最终本科专业？</div>
+<div class="ask-item">2. 本科代码前两位是什么？</div>
+<div class="ask-item">3. 它属于哪个门类？</div>
+<div class="ask-item">4. 前四位属于哪个专业类？</div>
+<div class="ask-item">5. 有没有大类、试验班、方向、合作办学？</div>
+<div class="ask-item">6. 名字里的热门词是不是专业底座？</div>
+<div class="ask-item">7. 孩子能不能接受它的学习方式？</div>
+<div class="ask-item">8. 家庭能不能承担成本？</div>
+<div class="ask-item">9. 是否强依赖读研或资格路径？</div>
+<div class="ask-item">10. 需要查招生章程和培养方案吗？</div>
+</div>
+<div class="copy-box"><button class="btn primary" id="copyQuestionsBtn">复制这 10 问</button><span class="muted">适合家庭讨论或做专业复核清单</span><textarea id="questionText">1. 这是招生入口，还是最终本科专业？
+2. 本科代码前两位是什么？
+3. 它属于哪个门类？
+4. 前四位属于哪个专业类？
+5. 有没有大类、试验班、方向、合作办学？
+6. 名字里的热门词是不是专业底座？
+7. 孩子能不能接受它的学习方式？
+8. 家庭能不能承担成本？
+9. 是否强依赖读研或资格路径？
+10. 需要查招生章程和培养方案吗？</textarea></div>
+</div>
+</div></section><section class="slide" data-title="结尾"><div class="slide-inner">
+<div class="slide-head"><div><div class="kicker"><span class="badge b-green">结尾</span><span class="badge b-amber">看清专业</span></div><h2 class="title-xl">不先问好不好，<br/>先问是不是看错了</h2></div><div class="slide-no">24 / 24</div></div>
+<div class="content split">
+<div><p class="subtitle">专业选择不是追名字，而是识别路径。先看它到底是什么，再看孩子是否适合，最后才讨论值不值得报。</p><div class="quote" style="margin-top:22px">进入范围只是入口，能接受才是底线。</div></div>
+<div class="card soft-slate"><div class="big-card-title">最后提醒</div><p class="body">看懂专业名之后，下一步不是立刻决定，而是查招生章程、培养方案、分流规则、学费、校区、转专业政策。</p></div>
+</div>
+</div></section>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="tocOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <h3 class="big-card-title">目录</h3>
+      <button class="btn primary" id="closeTocBtn" type="button">关闭</button>
+    </div>
+    <div class="toc-grid" id="tocGrid"></div>
+  </div>
+</div>
+<div class="hint" id="hint">已复制</div>
+<script>
+
+(function(){
+  const slidesEl = document.getElementById('slides');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progress = document.getElementById('progress');
+  const nextBtn = document.getElementById('nextBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const tocBtn = document.getElementById('tocBtn');
+  const closeTocBtn = document.getElementById('closeTocBtn');
+  const tocOverlay = document.getElementById('tocOverlay');
+  const tocGrid = document.getElementById('tocGrid');
+  const hint = document.getElementById('hint');
+  let index = 0;
+
+  function clamp(n){ return Math.max(0, Math.min(slides.length - 1, n)); }
+  function show(i, pushHash=true){
+    index = clamp(i);
+    slidesEl.style.transform = `translateX(${-index * 100}vw)`;
+    progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+    prevBtn.disabled = index === 0;
+    nextBtn.textContent = index === slides.length - 1 ? '结束' : '下一页';
+    document.title = `${String(index + 1).padStart(2,'0')}｜${slides[index].dataset.title || '专业辨析'}｜高考易混专业`;
+    if(pushHash) history.replaceState(null, '', `#${index + 1}`);
+  }
+  function next(){ show(index + 1); }
+  function prev(){ show(index - 1); }
+  function hintText(text){
+    if(!hint) return;
+    hint.textContent = text;
+    hint.classList.add('show');
+    clearTimeout(window.__hintTimer);
+    window.__hintTimer = setTimeout(() => hint.classList.remove('show'), 1300);
+  }
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+
+  function buildToc(){
+    tocGrid.innerHTML = '';
+    slides.forEach((s,i) => {
+      const item = document.createElement('button');
+      item.className = 'toc-item';
+      item.innerHTML = `<div class="toc-num">${String(i + 1).padStart(2,'0')}</div><div class="toc-title">${s.dataset.title || '专业辨析'}</div>`;
+      item.addEventListener('click', () => { show(i); closeToc(); });
+      tocGrid.appendChild(item);
+    });
+  }
+  function openToc(){ tocOverlay.classList.add('show'); }
+  function closeToc(){ tocOverlay.classList.remove('show'); }
+  tocBtn.addEventListener('click', openToc);
+  closeTocBtn.addEventListener('click', closeToc);
+  tocOverlay.addEventListener('click', e => { if(e.target === tocOverlay) closeToc(); });
+
+  document.addEventListener('keydown', e => {
+    if(e.target && ['INPUT','TEXTAREA','SELECT','BUTTON'].includes(e.target.tagName)) return;
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if(e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if(e.key === 'Home') { e.preventDefault(); show(0); }
+    if(e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    if(e.key === 'Escape') closeToc();
+  });
+
+  let sx = 0, sy = 0;
+  document.getElementById('stage').addEventListener('touchstart', e => {
+    if(e.touches[0]) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+  }, {passive:true});
+  document.getElementById('stage').addEventListener('touchend', e => {
+    if(!e.changedTouches[0]) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.2) { dx < 0 ? next() : prev(); }
+  }, {passive:true});
+
+  const copyBtn = document.getElementById('copyQuestionsBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', async () => {
+      const text = document.getElementById('questionText').value;
+      try {
+        await navigator.clipboard.writeText(text);
+        hintText('家长 10 问已复制');
+      } catch(e) {
+        const ta = document.getElementById('questionText');
+        ta.style.position = 'fixed';
+        ta.style.left = '10px';
+        ta.select();
+        document.execCommand('copy');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        hintText('已复制');
+      }
+    });
+  }
+
+  buildToc();
+  const hash = parseInt(location.hash.replace('#',''), 10);
+  show(Number.isFinite(hash) ? hash - 1 : 0, false);
+})();
+
+</script>
+</body>
+</html>

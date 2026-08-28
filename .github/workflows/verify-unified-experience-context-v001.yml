@@ -1,0 +1,283 @@
+name: Verify Unified Experience Context v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/resources/experience/**'
+      - 'shared/decision-context/**'
+      - 'functions/_lib/student-voice-source.js'
+      - 'functions/_lib/tongxue-summary-base-v112.js'
+      - 'functions/api/tongxue-summary.js'
+      - 'tongxue/**'
+      - 'shared/resources/majors/**'
+      - 'shared/resources/graduate/**'
+      - 'ln-rank/**'
+      - 'major-path/**'
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-unified-experience-context-v001.mjs'
+      - 'tools/verify-decision-context-v001.mjs'
+      - 'tools/browser-cross-module-journey-v001.mjs'
+      - 'tools/verify-aiplus-student-voice-v001.mjs'
+      - 'tools/verify-student-voice-source-health-v001.mjs'
+      - 'tools/verify-student-voice-navigation-v001.mjs'
+      - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
+      - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/audit-tongxue-major-pathway-v001.mjs'
+      - '.github/workflows/verify-unified-experience-context-v001.yml'
+      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/resources/experience/**'
+      - 'shared/decision-context/**'
+      - 'functions/_lib/student-voice-source.js'
+      - 'functions/_lib/tongxue-summary-base-v112.js'
+      - 'functions/api/tongxue-summary.js'
+      - 'tongxue/**'
+      - 'shared/resources/majors/**'
+      - 'shared/resources/graduate/**'
+      - 'ln-rank/**'
+      - 'major-path/**'
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-unified-experience-context-v001.mjs'
+      - 'tools/verify-decision-context-v001.mjs'
+      - 'tools/browser-cross-module-journey-v001.mjs'
+      - 'tools/verify-aiplus-student-voice-v001.mjs'
+      - 'tools/verify-student-voice-source-health-v001.mjs'
+      - 'tools/verify-student-voice-navigation-v001.mjs'
+      - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
+      - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/audit-tongxue-major-pathway-v001.mjs'
+      - '.github/workflows/verify-unified-experience-context-v001.yml'
+      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+  statuses: write
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          set -euo pipefail
+          node --check shared/resources/experience/student-voice-contract.v001.js
+          node --check shared/decision-context/decision-context.v001.js
+          node --check shared/decision-context/decision-actions.v001.js
+          node --check tools/verify-decision-context-v001.mjs
+          node --check shared/resources/experience/student-voice-source-registry.v001.js
+          node --check functions/_lib/student-voice-source.js
+          node --check functions/_lib/tongxue-summary-base-v112.js
+          node --check functions/api/tongxue-summary.js
+          node --check functions/_lib/ai/student-voice-tool-adapter.js
+          node --check tools/verify-unified-experience-context-v001.mjs
+          node --check tools/verify-aiplus-student-voice-v001.mjs
+          node --check tools/verify-student-voice-source-health-v001.mjs
+          node --check tools/verify-student-voice-navigation-v001.mjs
+          node --check tools/verify-tongxue-uec-cache-identity-v001.mjs
+          node --check tools/browser-tongxue-major-direct-v001.mjs
+          node --check tools/audit-tongxue-major-pathway-v001.mjs
+          node --check shared/resources/majors/undergrad-graduate-pathway-view.v001.js
+          node --check shared/resources/majors/major-path-navigation.v003.js
+          node --check tongxue/app/tongxue-runtime-controller-v159.js
+          node --check tongxue/app/tongxue-runtime-result-view-v159.js
+          node --check major-path/app.v004.js
+      - name: Readonly decision context contract
+        run: node tools/verify-decision-context-v001.mjs
+      - name: UEC deterministic contract
+        run: node tools/verify-unified-experience-context-v001.mjs
+      - name: AIPLuS Student Voice contract
+        run: node tools/verify-aiplus-student-voice-v001.mjs
+      - name: Student Voice source health contract
+        run: node tools/verify-student-voice-source-health-v001.mjs
+      - name: Student Voice cross-product navigation contract
+        run: node tools/verify-student-voice-navigation-v001.mjs
+      - name: Tongxue immutable cache identity
+        run: node tools/verify-tongxue-uec-cache-identity-v001.mjs
+      - name: Architecture handoff remains valid
+        run: node tools/audit-architecture-handoff-v3990_2.mjs
+      - name: Tongxue major pathway and footer source contract
+        run: node tools/audit-tongxue-major-pathway-v001.mjs
+      - name: Preserve protected boundaries and release exports
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            git cat-file -e "${base}^{commit}"
+            git diff --exit-code "$base..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+          else
+            before="$PUSH_BEFORE"
+            if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then before="$(git rev-parse HEAD^1)"; fi
+            git cat-file -e "${before}^{commit}"
+            test "$(git rev-parse HEAD)" = "$PUSH_SHA"
+            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+  browser-preview:
+    if: github.event_name == 'pull_request'
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Resolve exact-head Cloudflare Preview
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ -z "$conclusion" ]; then
+              comments="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+              body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+              if grep -q "$short_sha" <<<"$body" && grep -q 'Deploy successful' <<<"$body"; then summary="$body"; conclusion=success; fi
+            fi
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then exit 2; fi
+            if [ "$conclusion" = success ]; then
+              grep -q "$short_sha" <<<"$summary"
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              if [ -n "$immutable_preview" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          echo "base=$immutable_preview" >> "$GITHUB_OUTPUT"
+      - name: Wait for exact-head Tongxue runtime graph
+        env:
+          BASE: ${{ steps.preview.outputs.base }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 50); do
+            health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health?uec_preview=$attempt" || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_preview=$attempt" || true)"
+            controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_preview=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_preview=$attempt" || true)"
+            if [ "$sha" = "$EXPECTED_SHA" ] \
+              && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
+              && grep -q 'performMajorExperienceQuery' <<<"$controller" \
+              && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
+              && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
+            sleep 8
+          done
+          echo "Tongxue Preview never reached exact head $EXPECTED_SHA with current UEC cache identities" >&2
+          exit 2
+      - name: Verify exact-head Preview PC Pad Android and compact Android
+        env:
+          V3965_BASE_URL: ${{ steps.preview.outputs.base }}
+        run: |
+          node tools/browser-tongxue-major-direct-v001.mjs
+          node tools/browser-cross-module-journey-v001.mjs
+
+  browser-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      EXPECTED_SHA: ${{ github.sha }}
+      BASE: https://gaokao-4y9.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Wait for exact-main Tongxue runtime graph
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 65); do
+            health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health?uec_prod=$attempt" || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_prod=$attempt" || true)"
+            controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_prod=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_prod=$attempt" || true)"
+            if [ "$sha" = "$EXPECTED_SHA" ] \
+              && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
+              && grep -q 'performMajorExperienceQuery' <<<"$controller" \
+              && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
+              && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
+            sleep 10
+          done
+          echo "Tongxue Production never reached exact main $EXPECTED_SHA with current UEC cache identities" >&2
+          exit 2
+      - name: Verify exact-main Production PC Pad Android and compact Android
+        env:
+          V3965_BASE_URL: https://gaokao-4y9.pages.dev
+        run: |
+          node tools/browser-tongxue-major-direct-v001.mjs
+          node tools/browser-cross-module-journey-v001.mjs
+
+  publish-production-status:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [contract, browser-production]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish durable Production status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          CONTRACT_RESULT: ${{ needs.contract.result }}
+          BROWSER_RESULT: ${{ needs.browser-production.result }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          state=failure
+          description='Unified Experience Context Production verification failed'
+          if [ "$CONTRACT_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
+            state=success
+            description='Unified Experience Context Production verified'
+          fi
+          payload="$(jq -n --arg state "$state" --arg context 'production/unified-experience-context-v0.01' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl -fsSL --max-time 25 -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GH_REPOSITORY}/statuses/${SHA}" \
+            -d "$payload"
+          test "$state" = success

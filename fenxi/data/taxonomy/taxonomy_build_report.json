@@ -1,0 +1,1337 @@
+{
+  "version": "major_taxonomy_v1_1",
+  "source": "V2.8 data/chunks/*.json",
+  "generatedAt": "2026-05-05 02:50:15",
+  "recordCount": 13145,
+  "rawMajorCount": 3003,
+  "cleanMajorCount": 850,
+  "matchedUndergradCatalogReferenceCount": 292,
+  "mappedPrimaryDisciplineCount": 292,
+  "unresolvedCount": 558,
+  "confidenceCounts": {
+    "high": 60,
+    "medium": 172,
+    "low": 618
+  },
+  "methodCounts": {
+    "exact": 81,
+    "experimental-class": 42,
+    "category": 23,
+    "supplement": 78,
+    "regex": 59,
+    "unresolved": 558,
+    "category-supplement": 9
+  },
+  "coverageByCleanMajor": {
+    "matchedRatio": 0.3435,
+    "primaryMappedRatio": 0.3435
+  },
+  "topUnresolved": [
+    {
+      "cleanMajor": "康复治疗学",
+      "recordCount": 58,
+      "rawExamples": [
+        "康复治疗学",
+        "康复治疗学(中澳联合培养)",
+        "康复治疗学(中外合作办学)",
+        "康复治疗学(中澳学分互认联合培养项目)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "中药学",
+      "recordCount": 47,
+      "rawExamples": [
+        "中药学(时珍国药班)",
+        "中药学",
+        "中药学(日语强化班)(辽宁省高校专项计划)",
+        "中药学(英才学院)",
+        "中药学(英才学院,4加3)",
+        "中药学(临床中药学方向)",
+        "中药学(日语强化班)",
+        "中药学(AI创新实验班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "医学影像技术",
+      "recordCount": 39,
+      "rawExamples": [
+        "医学影像技术",
+        "医学影像技术(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "生物医学工程",
+      "recordCount": 38,
+      "rawExamples": [
+        "生物医学工程(学制七年本硕连读)",
+        "生物医学工程(含振声创新班)",
+        "生物医学工程",
+        "生物医学工程(医疗科创卓越班)",
+        "生物医学工程(试验班)",
+        "生物医学工程(辽宁省高校专项计划)",
+        "生物医学工程(临床工程)",
+        "生物医学工程(医学电子方向)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "电子信息科学与技术",
+      "recordCount": 38,
+      "rawExamples": [
+        "电子信息科学与技术",
+        "电子信息科学与技术(师范类)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "食品质量与安全",
+      "recordCount": 38,
+      "rawExamples": [
+        "食品质量与安全",
+        "食品质量与安全(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "教育技术学",
+      "recordCount": 36,
+      "rawExamples": [
+        "教育技术学(双学位)",
+        "教育技术学(智能教育)(师范类)",
+        "教育技术学(智能教育创新班)",
+        "教育技术学",
+        "教育技术学(师范、智能教育卓越创新班)",
+        "教育技术学(师范)",
+        "教育技术学(师范类)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "工程力学",
+      "recordCount": 35,
+      "rawExamples": [
+        "工程力学(拔尖学生培养计划)",
+        "工程力学(钱伟长拔尖创新班)",
+        "工程力学(钱伟长班)",
+        "工程力学",
+        "工程力学(中外合作办学)",
+        "工程力学(创新班)",
+        "工程力学(力学工科基础拔尖计划班)",
+        "工程力学(力学实验班)",
+        "工程力学(国家拔尖计划)",
+        "工程力学(试验班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "园林",
+      "recordCount": 33,
+      "rawExamples": [
+        "园林",
+        "园林(国家卓越农林人才计划)",
+        "园林(含教育部卓越农林人才计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "生物制药",
+      "recordCount": 32,
+      "rawExamples": [
+        "生物制药",
+        "生物制药(拔尖创新班)",
+        "生物制药(生命基地班)",
+        "生物制药(辽宁省高校专项计划)",
+        "生物制药(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "金融科技",
+      "recordCount": 32,
+      "rawExamples": [
+        "金融科技(北航计算机联培项目)",
+        "金融科技",
+        "金融科技(中外合作办学)",
+        "金融科技(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "道路桥梁与渡河工程",
+      "recordCount": 27,
+      "rawExamples": [
+        "道路桥梁与渡河工程",
+        "道路桥梁与渡河工程(国际工程班)",
+        "道路桥梁与渡河工程(茅以升班)",
+        "道路桥梁与渡河工程(智慧道路卓越班)",
+        "道路桥梁与渡河工程(国际本科学术互认课程)",
+        "道路桥梁与渡河工程(国际本科学术互认课程项目)",
+        "道路桥梁与渡河工程(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "少数民族预科班",
+      "recordCount": 26,
+      "rawExamples": [
+        "少数民族预科班"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "中西医临床医学",
+      "recordCount": 26,
+      "rawExamples": [
+        "中西医临床医学(华佗班)",
+        "中西医临床医学",
+        "中西医临床医学(岐黄班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "能源化学工程",
+      "recordCount": 25,
+      "rawExamples": [
+        "能源化学工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "针灸推拿学",
+      "recordCount": 24,
+      "rawExamples": [
+        "针灸推拿学",
+        "针灸推拿学(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "环境科学",
+      "recordCount": 23,
+      "rawExamples": [
+        "环境科学",
+        "环境科学(中外合作办学)",
+        "环境科学(智慧环境卓越创新班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "食品科学与工程类",
+      "recordCount": 22,
+      "rawExamples": [
+        "食品科学与工程类(食品科学与工程、食品质量与安全、葡萄与葡萄酒工程、食品营养与健康)",
+        "食品科学与工程类(食品科学与工程、食品营养与健康)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全、食品营养与健康)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全、粮食工程、乳品工程、食品营养与健康)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全、生物工程、食品营养与健康)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全、酿酒工程)",
+        "食品科学与工程类(食品科学与工程、食品质量与安全、粮食工程)",
+        "食品科学与工程类(食品科学与工程、粮食工程、食品营养与健康、食品质量与安全)",
+        "食品科学与工程类(粮食工程、食品质量与安全、食品科学与工程)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "国际商务",
+      "recordCount": 22,
+      "rawExamples": [
+        "国际商务(涉外法商人才培养实验班)",
+        "国际商务(中外合作办学)",
+        "国际商务",
+        "国际商务(全英文教学)",
+        "国际商务(中外合作办学)(亚澳商学院)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "能源动力类",
+      "recordCount": 21,
+      "rawExamples": [
+        "能源动力类(能源类)(能源与动力工程、新能源科学与工程、建筑环境与能源应用工程)",
+        "能源动力类(能源、环境专业)(能源与动力工程、新能源科学与工程、环境工程、环境科学)",
+        "能源动力类(能源与动力工程、新能源科学与工程、储能科学与工程)",
+        "能源动力类(能源与动力工程、新能源科学与工程、储能科学与工程、核工程与核技术)",
+        "能源动力类(新能源)(新能源科学与工程、新能源材料与器件)",
+        "能源动力类(储能科学与工程、能源与动力工程)",
+        "能源动力类(建筑环境与能源应用工程、能源与动力工程)",
+        "能源动力类(新能源科学与工程、储能科学与工程)",
+        "能源动力类(能源与动力工程、轮机工程)",
+        "能源动力类(电气与智慧能源新工科实验班)(电气工程及其自动化、能源与动力工程、能源与环境系统工程、新能源科学与工程、储能科学与工程)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "环境科学与工程类",
+      "recordCount": 21,
+      "rawExamples": [
+        "环境科学与工程类(应用气象学、生态学、资源环境科学、环境工程)",
+        "环境科学与工程类(环境科学、环境工程)",
+        "环境科学与工程类(新工科拔尖班)(环境科学、环境工程)",
+        "环境科学与工程类(环境工程、环境科学)",
+        "环境科学与工程类(能源方向)(建筑环境与能源应用工程、能源与环境系统工程)",
+        "环境科学与工程类(环境工程、环境科学、化学)",
+        "环境科学与工程类(环境科学、环境工程、能源化学工程、应用化学)",
+        "环境科学与工程类(环境工程、环境科学、农业资源与环境、生态学)",
+        "环境科学与工程类(环境工程、环境科学、资源循环科学与工程、水文与水资源工程)",
+        "环境科学与工程类(环境工程、环境科学、环境生态工程)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "供应链管理",
+      "recordCount": 21,
+      "rawExamples": [
+        "供应链管理",
+        "供应链管理(数字电商供应链方向)",
+        "供应链管理(智能制造供应链方向)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "健康服务与管理",
+      "recordCount": 21,
+      "rawExamples": [
+        "健康服务与管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "金融数学",
+      "recordCount": 20,
+      "rawExamples": [
+        "金融数学",
+        "金融数学(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "建筑电气与智能化",
+      "recordCount": 20,
+      "rawExamples": [
+        "建筑电气与智能化",
+        "建筑电气与智能化(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "飞行器制造工程",
+      "recordCount": 19,
+      "rawExamples": [
+        "飞行器制造工程",
+        "飞行器制造工程(航空维修工程与技术)",
+        "飞行器制造工程(飞机结构维修)",
+        "飞行器制造工程(辽宁省高校专项计划)",
+        "飞行器制造工程(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "新能源汽车工程",
+      "recordCount": 18,
+      "rawExamples": [
+        "新能源汽车工程",
+        "新能源汽车工程(按职教师资培养)(师范)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "环境生态工程",
+      "recordCount": 18,
+      "rawExamples": [
+        "环境生态工程",
+        "环境生态工程(中外合作办学)",
+        "环境生态工程(城市生态环境修复)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "应急技术与管理",
+      "recordCount": 18,
+      "rawExamples": [
+        "应急技术与管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "基础医学",
+      "recordCount": 17,
+      "rawExamples": [
+        "基础医学",
+        "基础医学(八年制本博连读)",
+        "基础医学(本博连读)",
+        "基础医学(朱宪彝班)",
+        "基础医学(伍连德班)",
+        "基础医学(伍连德班，基础方向)",
+        "基础医学(伍连德班，药学方向)",
+        "基础医学(伍连德班，预防方向)",
+        "基础医学(其震班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智能医学工程",
+      "recordCount": 17,
+      "rawExamples": [
+        "智能医学工程",
+        "智能医学工程(中外合作办学)",
+        "智能医学工程(中澳联合培养)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "轨道交通信号与控制",
+      "recordCount": 17,
+      "rawExamples": [
+        "轨道交通信号与控制",
+        "轨道交通信号与控制(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智慧农业",
+      "recordCount": 17,
+      "rawExamples": [
+        "智慧农业",
+        "智慧农业(拔尖创新班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "勘查技术与工程",
+      "recordCount": 17,
+      "rawExamples": [
+        "勘查技术与工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "土地资源管理",
+      "recordCount": 17,
+      "rawExamples": [
+        "土地资源管理",
+        "土地资源管理(土地资源与整治)",
+        "土地资源管理(评估与规划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "城市地下空间工程",
+      "recordCount": 17,
+      "rawExamples": [
+        "城市地下空间工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "汽车服务工程",
+      "recordCount": 17,
+      "rawExamples": [
+        "汽车服务工程",
+        "汽车服务工程(中外合作办学)",
+        "汽车服务工程(智能网联汽车)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "药物制剂",
+      "recordCount": 17,
+      "rawExamples": [
+        "药物制剂",
+        "药物制剂(中外合作办学)",
+        "药物制剂(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "焊接技术与工程",
+      "recordCount": 17,
+      "rawExamples": [
+        "焊接技术与工程",
+        "焊接技术与工程(辽宁省高校专项计划)",
+        "焊接技术与工程(智能焊接技术)",
+        "焊接技术与工程(英才班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "航空航天类",
+      "recordCount": 16,
+      "rawExamples": [
+        "航空航天类(航空航天工程)",
+        "航空航天类(飞行器设计与工程、工程力学)",
+        "航空航天类(长空创新班)(飞行器设计与工程、飞行器环境与生命保障工程、飞行器动力工程、飞行器制造工程、航空航天工程、飞行器控制与信息工程)",
+        "航空航天类(飞行器设计与工程、飞行器环境与生命保障工程、飞行器动力工程、飞行器制造工程、航空航天工程、飞行器控制与信息工程)",
+        "航空航天类(飞行器设计与工程、飞行器动力工程、工程力学)",
+        "航空航天类(飞行器设计与工程、飞行器动力工程、工程力学、土木工程)",
+        "航空航天类(航空航天工程、飞行器控制与信息工程)",
+        "航空航天类(航空航天工程、飞行器动力工程、材料科学与工程)",
+        "航空航天类(智慧三航拔尖班)(飞行器设计与工程、计算机科学与技术)",
+        "航空航天类(智慧三航本研衔接班)(飞行器设计与工程、计算机科学与技术)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "虚拟现实技术",
+      "recordCount": 16,
+      "rawExamples": [
+        "虚拟现实技术",
+        "虚拟现实技术(中外合作办学)",
+        "虚拟现实技术(泰豪)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "农业资源与环境",
+      "recordCount": 16,
+      "rawExamples": [
+        "农业资源与环境",
+        "农业资源与环境(含教育部卓越农林人才计划)",
+        "农业资源与环境(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "海洋科学",
+      "recordCount": 15,
+      "rawExamples": [
+        "海洋科学",
+        "海洋科学(蓝梦拔尖人才实验班)",
+        "海洋科学(民族班,只招少数民族考生)",
+        "海洋科学(中外合作办学)",
+        "海洋科学(厦门大学马来西亚分校招生专业)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "食品营养与健康",
+      "recordCount": 15,
+      "rawExamples": [
+        "食品营养与健康"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "信息工程",
+      "recordCount": 14,
+      "rawExamples": [
+        "信息工程",
+        "信息工程(创新班)",
+        "信息工程(就读地点泰安)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "电气工程与智能控制",
+      "recordCount": 14,
+      "rawExamples": [
+        "电气工程与智能控制"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "助产学",
+      "recordCount": 14,
+      "rawExamples": [
+        "助产学",
+        "助产学(湛江校区)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "跨境电子商务",
+      "recordCount": 14,
+      "rawExamples": [
+        "跨境电子商务"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "核工程与核技术",
+      "recordCount": 13,
+      "rawExamples": [
+        "核工程与核技术",
+        "核工程与核技术(兴海领军)",
+        "核工程与核技术(含卓越工程师班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "精神医学",
+      "recordCount": 13,
+      "rawExamples": [
+        "精神医学",
+        "精神医学(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "医学信息工程",
+      "recordCount": 13,
+      "rawExamples": [
+        "医学信息工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "卫生检验与检疫",
+      "recordCount": 13,
+      "rawExamples": [
+        "卫生检验与检疫"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "朝鲜语",
+      "recordCount": 13,
+      "rawExamples": [
+        "朝鲜语",
+        "朝鲜语(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "水利类",
+      "recordCount": 12,
+      "rawExamples": [
+        "水利类(农业水利工程、水利水电工程、能源与动力工程、农业建筑环境与能源工程、土木工程)",
+        "水利类(水利水电工程、水文与水资源工程)",
+        "水利类(大禹强化班)(水文与水资源工程、水利水电工程、港口航道与海岸工程)",
+        "水利类(大禹直升班)(水文与水资源工程、水利水电工程、港口航道与海岸工程)",
+        "水利类(水利水电工程、水文与水资源工程、农业水利工程、能源与动力工程)",
+        "水利类(水利水电工程、水文与水资源工程、道路桥梁与渡河工程)",
+        "水利类(水利水电工程、港口航道与海岸工程、水文与水资源工程)",
+        "水利类(水利水电工程、水文与水资源工程、农业水利工程)",
+        "水利类(水利水电工程、水文与水资源工程、农业水利工程、土木工程、工程管理)",
+        "水利类(水利水电工程、港口航道与海岸工程、智慧水利)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "生物信息学",
+      "recordCount": 12,
+      "rawExamples": [
+        "生物信息学",
+        "生物信息学(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "儿科学",
+      "recordCount": 12,
+      "rawExamples": [
+        "儿科学",
+        "儿科学(5+3一体化)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "农业机械化及其自动化",
+      "recordCount": 12,
+      "rawExamples": [
+        "农业机械化及其自动化(拔尖人才培养班)",
+        "农业机械化及其自动化"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "植物生产类",
+      "recordCount": 12,
+      "rawExamples": [
+        "植物生产类(农学、植物保护、农业资源与环境)",
+        "植物生产类(卓越班)(农学、植物保护、园艺)",
+        "植物生产类(农学、园艺、植物保护)",
+        "植物生产类(1)(农学、种子科学与工程)",
+        "植物生产类(2)(园艺、设施农业科学与工程)",
+        "植物生产类(农学、园艺)",
+        "植物生产类(农学类)(农学、种子科学与工程)",
+        "植物生产类(农学、园艺、植物保护、种子科学与工程、设施农业科学与工程)",
+        "植物生产类(园艺、设施农业科学与工程)",
+        "植物生产类(植物保护、菌物科学与工程)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "林学",
+      "recordCount": 12,
+      "rawExamples": [
+        "林学",
+        "林学(陶铸实验班)",
+        "林学(中外合作办学)",
+        "林学(卓越人才培养实验班)",
+        "林学(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "冶金工程",
+      "recordCount": 12,
+      "rawExamples": [
+        "冶金工程",
+        "冶金工程(有色金属新材料现代产业学院)",
+        "冶金工程(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "功能材料",
+      "recordCount": 11,
+      "rawExamples": [
+        "功能材料",
+        "功能材料(辽宁省高校专项计划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "水文与水资源工程",
+      "recordCount": 11,
+      "rawExamples": [
+        "水文与水资源工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "数据计算及应用",
+      "recordCount": 11,
+      "rawExamples": [
+        "数据计算及应用"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "农业水利工程",
+      "recordCount": 11,
+      "rawExamples": [
+        "农业水利工程",
+        "农业水利工程(拔尖创新班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "会展经济与管理",
+      "recordCount": 11,
+      "rawExamples": [
+        "会展经济与管理",
+        "会展经济与管理(中外合作办学)",
+        "会展经济与管理(双语班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "环境科学与工程",
+      "recordCount": 11,
+      "rawExamples": [
+        "环境科学与工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "海洋技术",
+      "recordCount": 10,
+      "rawExamples": [
+        "海洋技术"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "中医骨伤科学",
+      "recordCount": 10,
+      "rawExamples": [
+        "中医骨伤科学"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "眼视光医学",
+      "recordCount": 10,
+      "rawExamples": [
+        "眼视光医学",
+        "眼视光医学(5+3一体化)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智能车辆工程",
+      "recordCount": 10,
+      "rawExamples": [
+        "智能车辆工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智慧交通",
+      "recordCount": 10,
+      "rawExamples": [
+        "智慧交通"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "质量管理工程",
+      "recordCount": 10,
+      "rawExamples": [
+        "质量管理工程",
+        "质量管理工程(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "种子科学与工程",
+      "recordCount": 10,
+      "rawExamples": [
+        "种子科学与工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "口腔医学技术",
+      "recordCount": 10,
+      "rawExamples": [
+        "口腔医学技术"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "科学教育",
+      "recordCount": 10,
+      "rawExamples": [
+        "科学教育(师范)",
+        "科学教育(师范类)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "互联网金融",
+      "recordCount": 10,
+      "rawExamples": [
+        "互联网金融"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智能感知工程",
+      "recordCount": 9,
+      "rawExamples": [
+        "智能感知工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "地理科学类",
+      "recordCount": 9,
+      "rawExamples": [
+        "地理科学类(地理信息科学、土地资源管理)",
+        "地理科学类(地理信息科学、土地资源管理、土地科学与技术)",
+        "地理科学类(地理科学、地理信息科学)",
+        "地理科学类(含基地班)(自然地理与资源环境、人文地理与城乡规划、地理信息科学)",
+        "地理科学类(自然地理与资源环境、人文地理与城乡规划、地理信息科学)",
+        "地理科学类(地理信息科学、人文地理与城乡规划)",
+        "地理科学类(地理信息科学、自然地理与资源环境、人文地理与城乡规划)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "大气科学",
+      "recordCount": 9,
+      "rawExamples": [
+        "大气科学",
+        "大气科学(含基地班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "精算学",
+      "recordCount": 9,
+      "rawExamples": [
+        "精算学",
+        "精算学(选拔进入双学士学位项目或实验班)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "农林经济管理",
+      "recordCount": 9,
+      "rawExamples": [
+        "农林经济管理(梁希实验班)",
+        "农林经济管理(中外合作办学)",
+        "农林经济管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "财政学类",
+      "recordCount": 9,
+      "rawExamples": [
+        "财政学类(财政学、税收学)",
+        "财政学类(财政学、税收学)(辽宁省高校专项计划)",
+        "财政学类(财政学、税收学、国际税收)",
+        "财政学类(财政学、金融学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "应急管理",
+      "recordCount": 9,
+      "rawExamples": [
+        "应急管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "药事管理",
+      "recordCount": 9,
+      "rawExamples": [
+        "药事管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "中药制药",
+      "recordCount": 9,
+      "rawExamples": [
+        "中药制药"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "草业科学",
+      "recordCount": 9,
+      "rawExamples": [
+        "草业科学(梁希实验班)",
+        "草业科学",
+        "草业科学(含创新实验班30人)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "经济与金融",
+      "recordCount": 9,
+      "rawExamples": [
+        "经济与金融"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "设施农业科学与工程",
+      "recordCount": 8,
+      "rawExamples": [
+        "设施农业科学与工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "应用气象学",
+      "recordCount": 8,
+      "rawExamples": [
+        "应用气象学(智慧气象创新班)",
+        "应用气象学",
+        "应用气象学(机场气象预报、航空公司气象分析)",
+        "应用气象学(航空气象)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "智慧水利",
+      "recordCount": 8,
+      "rawExamples": [
+        "智慧水利"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "知识产权",
+      "recordCount": 8,
+      "rawExamples": [
+        "知识产权"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "运动康复",
+      "recordCount": 8,
+      "rawExamples": [
+        "运动康复",
+        "运动康复(中外合作办学)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "边防军人子女预科班",
+      "recordCount": 8,
+      "rawExamples": [
+        "边防军人子女预科班"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "眼视光学",
+      "recordCount": 8,
+      "rawExamples": [
+        "眼视光学"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "中药资源与开发",
+      "recordCount": 8,
+      "rawExamples": [
+        "中药资源与开发"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "养老服务管理",
+      "recordCount": 8,
+      "rawExamples": [
+        "养老服务管理"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "新能源汽车工程技术",
+      "recordCount": 8,
+      "rawExamples": [
+        "新能源汽车工程技术"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "海洋资源与环境",
+      "recordCount": 7,
+      "rawExamples": [
+        "海洋资源与环境",
+        "海洋资源与环境(民族班，只招少数民族考生)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "林学类",
+      "recordCount": 7,
+      "rawExamples": [
+        "林学类(梁希实验班)(林学、森林保护)",
+        "林学类(成栋实验班)(林学、森林保护)",
+        "林学类(拔尖人才成栋班)(林学、森林保护)",
+        "林学类(林学、森林保护)",
+        "林学类(林学、智慧林业、经济林)",
+        "林学类(林学、森林保护、智慧林业、经济林)"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    },
+    {
+      "cleanMajor": "无人驾驶航空器系统工程",
+      "recordCount": 7,
+      "rawExamples": [
+        "无人驾驶航空器系统工程"
+      ],
+      "reason": "未能高置信匹配本科专业目录与一级学科，需要人工复核。",
+      "suggestedPrimaryDisciplines": [],
+      "confidence": "low",
+      "reviewAction": "人工确认"
+    }
+  ],
+  "notes": [
+    "本科专业与研究生一级学科不是官方一一对应关系；本表为高报理解口径参考。",
+    "专业类招生不能等同于单一一级学科，需查看学校分流规则。",
+    "low/unresolved 项建议人工复核后再接入前端强展示。"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "task": "tongxue-startup-cache-buster-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "0e379eb5029fb5ed6d1765092cd53224b050df97",
+  "branch": "agent/tongxue-startup-cache-buster-v001",
+  "pr": 209,
+  "completed": [
+    "CB-01-production-stale-cache-confirmed",
+    "CB-02-bump-tongxue-runtime-cache-identity",
+    "CB-03-ci-preview-verification",
+    "CB-04-merge-main-and-final-verify"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "headSha": "412b8560e6af623d4d5e0577798357d0b0fdb4b0",
+  "mergeSha": "5ff65f5294dc4bf8b3c05bfc3bfb25713743d4f8",
+  "lastFailure": null,
+  "productionVerification": {
+    "mainSha": "5ff65f5294dc4bf8b3c05bfc3bfb25713743d4f8",
+    "surface": "https://gaokao.powers.org.cn/tongxue/",
+    "htmlCacheIdentity": "159-startup001",
+    "indexStatusPreparing": true,
+    "controller": {
+      "url": "/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001",
+      "http": 200,
+      "bytes": 43843,
+      "cfCacheStatus": "HIT",
+      "markers": ["setTongxueIndexStatus", "beginCatalogLoad", "pendingSubmit"]
+    },
+    "searchView": {
+      "url": "/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001",
+      "http": 200,
+      "bytes": 13263,
+      "cfCacheStatus": "MISS",
+      "markers": ["setTongxueIndexStatus", "createTongxueSearchView"]
+    },
+    "fixedIdentityNoRandomQueryRequired": true
+  },
+  "independentGateNote": {
+    "productionResourceGraphWorkflow": {
+      "run": 32819092504,
+      "result": "Tongxue/resource graph/static/pagination checks passed; unrelated major-bands distinct-50 stress sample returned HTTP 503 and the workflow remained red after retry."
+    },
+    "majorBandsWorkflow": {
+      "runs": [32819091211, 32819259219],
+      "result": "Push-triggered workflow failed before creating jobs; it was not modified by PR #209."
+    }
+  },
+  "checkpointNote": "This final status is the recovery source. PR #209 is merged to main. If interrupted later, reconcile main SHA, PR #209 merge state, this file, production fixed identities and current CI before any retry. Do not treat the independent major-bands stress gate as a Tongxue cache-buster failure.",
+  "verifiedAt": "2026-08-25T07:03:00Z"
+}

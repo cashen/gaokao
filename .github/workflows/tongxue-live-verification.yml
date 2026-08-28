@@ -1,0 +1,197 @@
+name: Tongxue v1.5.9 live verification
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'index.html'
+      - 'tongxue.html'
+      - 'tongxue/**'
+      - 'shared/resources/schools/**'
+      - 'shared/resources/geo/**'
+      - 'shared/resources/release/**'
+      - 'shared/resources/background/**'
+      - 'shared/resources/experience/student-voice-*.js'
+      - 'shared/governance/**'
+      - 'shared/ui/**'
+      - 'functions/api/tongxue-*.js'
+      - 'functions/_lib/tongxue-*.js'
+      - 'functions/_lib/student-voice-source.js'
+      - 'tools/tongxue/**'
+      - 'tools/browser-tongxue-runtime-v159.mjs'
+      - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/browser-tongxue-major-scope-v001.mjs'
+      - 'tools/browser-tongxue-summary-evidence-v002.mjs'
+      - 'tools/verify-student-voice-evidence-layer-v002.mjs'
+      - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
+      - 'tools/verify-tongxue-startup-status-v001.mjs'
+      - 'tools/verify-ln-rank-school-entry-tongxue-v001.mjs'
+      - 'tools/audit-school-query-v3970.mjs'
+      - 'tools/build-school-admission-directory-v3969.mjs'
+      - 'tools/schools/**'
+      - '_headers'
+      - '.github/workflows/tongxue-live-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare diagnostics directory
+        run: mkdir -p /tmp/tongxue-live-artifact
+
+      - name: Syntax and single-runtime ownership contract
+        run: |
+          set -euo pipefail
+          for file in \
+            functions/api/tongxue-summary.js \
+            functions/api/tongxue-school-portrait.js \
+            functions/_lib/tongxue-school-portrait-core.js \
+            functions/_lib/tongxue-school-portrait-base-v120.js \
+            functions/_lib/tongxue-summary-base-v112.js \
+            functions/_lib/student-voice-source.js \
+            shared/resources/experience/student-voice-contract.v001.js \
+            shared/resources/experience/student-voice-source-registry.v001.js \
+            shared/resources/experience/student-voice-evidence-selector.v001.js \
+            shared/resources/schools/*.js \
+            tongxue/data/*.js \
+            tongxue/app/*.js \
+            tongxue/portrait/*.js \
+            tongxue/share/*.js \
+            tools/tongxue/*.mjs \
+            tools/audit-school-query-v3970.mjs \
+            tools/build-school-admission-directory-v3969.mjs \
+            tools/browser-tongxue-runtime-v159.mjs \
+            tools/browser-tongxue-major-direct-v001.mjs \
+            tools/browser-tongxue-major-scope-v001.mjs \
+            tools/browser-tongxue-summary-evidence-v002.mjs \
+            tools/verify-student-voice-evidence-layer-v002.mjs \
+            tools/verify-tongxue-uec-cache-identity-v001.mjs; do
+            node --check "$file"
+          done
+          node tools/verify-tongxue-startup-status-v001.mjs
+          python3 -m py_compile \
+            tools/schools/school_resource_bundle.py \
+            tools/schools/school_resource_artifact_compat.py \
+            tools/schools/build-school-profile-center-v3957.py \
+            tools/tongxue/build-moe-2026-school-index.py \
+            tools/tongxue/build-school-region-index-v150.py
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_2.js';
+          if(CURRENT_RELEASE.display!=='v3.9.90.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.90.2') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation||SITE_RUNTIME_CONTRACT.generation!=='v3990_2') throw new Error('site generation mismatch');
+          if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
+          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue stable package mismatch');
+          if(!SITE_RUNTIME_CONTRACT.stableDependencies.includes('/tongxue/app/tongxue-runtime-v159-r3968.js')) throw new Error('Tongxue runtime must be declared as a stable dependency');
+          const html=fs.readFileSync('tongxue/index.html','utf8');
+          if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active Tongxue wrapper missing');
+          if(!html.includes('tongxue-runtime-result-view-v159.js?v=159-flow004')) throw new Error('student evidence human-copy result-view cache identity missing');
+          const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
+          for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']) if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
+          const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
+          for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']) if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
+          for(const rel of ['tongxue/app/tongxue-runtime-v159-r3968.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
+            const source=fs.readFileSync(rel,'utf8');
+            if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
+          }
+          if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
+          console.log('Tongxue stable v159 package under current site generation v3990_2 and release v3.9.90.2 passed');
+          NODE
+          node tools/verify-tongxue-uec-cache-identity-v001.mjs
+          node tools/verify-ln-rank-school-entry-tongxue-v001.mjs
+
+      - name: Verify student voice summary evidence pipeline
+        run: |
+          set -euo pipefail
+          node tools/verify-student-voice-evidence-layer-v002.mjs | tee /tmp/tongxue-live-artifact/student-evidence-selector.out
+          node tools/tongxue/verify-student-voice-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/student-evidence-source.out
+
+      - name: Verify school resolver and unified query contracts
+        run: |
+          set -euo pipefail
+          tests=(
+            tools/tongxue/verify-directory.mjs
+            tools/tongxue/verify-school-entities-v130.mjs
+            tools/tongxue/verify-school-initials-v141.mjs
+            tools/tongxue/verify-school-input-fluency-v141.mjs
+            tools/tongxue/verify-school-region-v150.mjs
+            tools/tongxue/verify-school-name-resolver.mjs
+            tools/audit-school-query-v3970.mjs
+          )
+          for test_file in "${tests[@]}"; do
+            name="$(basename "$test_file" .mjs)"
+            echo "=== $test_file ===" | tee "/tmp/tongxue-live-artifact/${name}.out"
+            node "$test_file" 2>&1 | tee -a "/tmp/tongxue-live-artifact/${name}.out"
+          done
+
+      - name: Verify live student voice service remains callable
+        env:
+          STUDENT_VOICE_LIVE_SCHOOLS: 沈阳建筑大学,辽宁科技大学
+        run: |
+          set -euo pipefail
+          node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/student-voice-live-regression.out
+
+      - name: Rebuild all official school resources and admission overlay once
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check xlrd==2.0.1
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
+            --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
+            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
+            --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
+            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
+          test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
+          python tools/schools/school_resource_bundle.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls | tee /tmp/tongxue-live-artifact/school-bundle.out
+          python tools/schools/school_resource_artifact_compat.py | tee /tmp/tongxue-live-artifact/school-compat.out
+          node tools/tongxue/build-school-initial-index-v141.mjs | tee /tmp/tongxue-live-artifact/initial-v141.out
+          node tools/tongxue/build-school-initial-index-v150.mjs | tee /tmp/tongxue-live-artifact/initial-v150.out
+          node tools/build-school-admission-directory-v3969.mjs | tee /tmp/tongxue-live-artifact/admission-directory-v3969.out
+          git diff --exit-code -- \
+            shared/resources/schools/school-profile-data.20260617-v3957.js \
+            tongxue/data/school-name-index.generated.json \
+            tongxue/data/school-search-index.20260617.json \
+            tongxue/data/school-search-index.20260617-v150.json \
+            shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json
+
+      - name: Install Chromium journey runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify school, region, history, major and summary evidence journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/tongxue-v159-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3965_ARTIFACT_DIR=/tmp/tongxue-live-artifact/browser node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/tongxue-live-artifact/browser-result.json
+          node tools/browser-tongxue-major-direct-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-direct-result.json
+          node tools/browser-tongxue-major-scope-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-scope-result.json
+          node tools/browser-tongxue-summary-evidence-v002.mjs | tee /tmp/tongxue-live-artifact/browser-summary-evidence-result.json
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-v159-v3990-1-live-results
+          path: /tmp/tongxue-live-artifact
+          if-no-files-found: warn
+          retention-days: 3

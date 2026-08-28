@@ -1,0 +1,28 @@
+// V2.9.7.6 child intent UI: shows intent chips and auto-mapped professional directions.
+(function(){
+  function tr(){return window.LN_CHILD_INTENT_TRANSLATOR_V2976||window.LN_CHILD_INTENT_TRANSLATOR_V2975;}
+  function esc(v){return tr()?.esc?.(v)||String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
+  function genderOrder(intents){
+    const g=(window.LN_STUDENT_PROFILE_RULES_V2975?.readState?.().gender)||'unspecified';
+    const female=['want_medical','pharmacy','animal_life','teacher_exam','law_expression','stable','computer_ai','electric_energy','electronic_chip','mechanical_instrument','city_development','unclear'];
+    const male=['computer_ai','electric_energy','electronic_chip','mechanical_instrument','want_medical','pharmacy','animal_life','city_development','stable','teacher_exam','law_expression','unclear'];
+    const order=g==='female'?female:g==='male'?male:[];
+    return order.length?intents.slice().sort((a,b)=>(order.indexOf(a.id)<0?99:order.indexOf(a.id))-(order.indexOf(b.id)<0?99:order.indexOf(b.id))):intents;
+  }
+  function renderInline(){
+    if(!tr())return '';
+    const sum=tr().summary(), state=tr().readState();
+    const cards=genderOrder(tr().intents).map(i=>{const on=state.selectedIntentIds.includes(i.id); return `<button type="button" class="intent-chip-v2975 ${on?'active':''}" data-child-intent-id="${esc(i.id)}"><b>${esc(i.short)}</b><span>${esc(i.label)}</span></button>`;}).join('');
+    const trans=tr().translate();
+    const detail=trans.messages.slice(0,2).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>暂未整理孩子想法，系统会先按家庭底线和综合规则推荐。</li>';
+    const conflicts=(window.LN_INTENT_CONFLICT_RULES_V2976||window.LN_INTENT_CONFLICT_RULES_V2975)?.detect?.()||[];
+    const conflictHtml=conflicts.length?`<div class="intent-conflict-v2975">${conflicts.map(c=>esc(c.message)).join(' ')}</div>`:'';
+    const auto=(window.LN_CHILD_INTENT_INTEREST_MAP_V2976?.mappedFromSelected?.()||[]);
+    const autoHtml=auto.length?`<div class="intent-auto-map-v2976"><b>自动带入专业方向：</b>${auto.map(x=>`<span class="auto-interest-chip-v2976">${esc(x.label)}</span>`).join('')}<br/>相关方向会在 B「看专业」中软加权，其他合理备选仍会保留。</div>`:'';
+    return `<div class="child-intent-panel-v2975"><div class="intent-head-v2975"><div><b>${esc(sum.title)}</b><span>这不是专业测评，只是帮助家庭把孩子想法说清楚。下面只是家庭常问入口，孩子可以任选，不按性别限制。</span></div><em>最多选 3 个</em></div><div class="intent-grid-v2975">${cards}</div><div class="intent-translate-v2975"><b>系统理解</b><ul>${detail}</ul>${autoHtml}${conflictHtml}</div></div>`;
+  }
+  function bind(root){(root||document).querySelectorAll('[data-child-intent-id]').forEach(btn=>{if(btn.dataset.boundIntentV2976)return; btn.dataset.boundIntentV2976='1'; btn.addEventListener('click',ev=>{ev.preventDefault(); const res=tr()?.toggle?.(btn.dataset.childIntentId); if(res&&res.ok===false){toast('建议最多选择 3 个最主要的想法。'); return;} refresh();});});}
+  function toast(msg){const host=document.getElementById('childInterestBoxV2955')||document.body; const el=document.createElement('div'); el.className='child-interest-toast-v296'; el.textContent=msg; host.prepend(el); setTimeout(()=>el.remove(),2600);}
+  function refresh(){window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.(); if(window.LN_DRAWER_V296?.isOpen?.())window.LN_CHILD_INTEREST_UI_V296?.renderDrawerBody?.(); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-intent-change',level:'soft',delay:180});}
+  const api={renderInline,bind,refresh,ready:true}; window.LN_CHILD_INTENT_UI_V2976=api; window.LN_CHILD_INTENT_UI_V2975=api;
+})();

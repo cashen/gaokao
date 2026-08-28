@@ -1,0 +1,1213 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>辽宁省内高校第四轮学科评估 C 类及以上整理版</title>
+<style>
+:root{
+  --bg:#f6f7fb; --paper:#ffffff; --ink:#172033; --muted:#657083; --line:#e6e9f2;
+  --a:#9b1c31; --a-bg:#fff0f3; --b:#0f5f78; --b-bg:#edfaff; --c:#6b5d10; --c-bg:#fff9db;
+  --accent:#2457c5; --accent2:#16a085; --shadow:0 18px 45px rgba(28,39,67,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#eef3ff 0%,var(--bg) 280px);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.65}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 72px}
+.hero{background:linear-gradient(135deg,#10213f,#2457c5);border-radius:28px;color:#fff;padding:34px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-80px;top:-90px;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.11)}
+.kicker{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);font-size:14px;margin-bottom:14px}
+h1{margin:0;font-size:34px;line-height:1.2;letter-spacing:-.5px}
+.subtitle{max-width:780px;color:rgba(255,255,255,.82);margin:14px 0 0;font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px}
+.stat b{display:block;font-size:28px;line-height:1.1}
+.stat span{font-size:13px;color:rgba(255,255,255,.78)}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:24px;margin-top:22px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 12px;font-size:22px}
+.note{background:#fffaf0;border:1px solid #ffe3aa;border-radius:18px;padding:16px 18px;color:#614500}
+.toolbar{position:sticky;top:0;z-index:20;background:rgba(246,247,251,.92);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;padding:12px;margin:18px 0;display:flex;gap:10px;align-items:center;box-shadow:0 10px 28px rgba(28,39,67,.06)}
+.toolbar input,.toolbar select{height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 12px;font-size:15px;outline:none}
+.toolbar input{flex:1;min-width:180px}
+.toolbar button{height:42px;border:0;border-radius:12px;background:var(--accent);color:#fff;padding:0 14px;font-size:15px;cursor:pointer}
+.quick-nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick-nav a{padding:7px 11px;background:#f2f5ff;border:1px solid #dfe7ff;border-radius:999px;color:#244172;font-size:14px}
+table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#fff}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:#f7f9ff;color:#4b5870;font-size:13px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#fafcff}
+.num{text-align:right;color:#667085;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;border-radius:999px;font-weight:800;font-size:13px;padding:0 10px}
+.rating-a{background:var(--a-bg);color:var(--a);border:1px solid #ffd3dc}
+.rating-b{background:var(--b-bg);color:var(--b);border:1px solid #cdeef7}
+.rating-c{background:var(--c-bg);color:var(--c);border:1px solid #efe3a3}
+.school-card{background:var(--paper);border:1px solid var(--line);border-radius:24px;margin:18px 0;padding:22px;box-shadow:var(--shadow);scroll-margin-top:90px}
+.school-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px}
+.school-rank{font-size:13px;color:var(--muted);font-weight:700}
+.school-card h2{font-size:25px;margin:2px 0 6px}
+.school-meta{margin:0;color:var(--muted)}
+.backtop{font-size:13px;color:#667085;background:#f5f7fb;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.levels{display:grid;grid-template-columns:1fr;gap:14px}
+.level{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}
+.level h3{margin:0 0 10px;font-size:16px}
+.level-a h3{color:var(--a)} .level-b h3{color:var(--b)} .level-c h3{color:var(--c)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:7px 10px;font-size:14px;line-height:1.2}
+.chip b{font-size:12px}
+.muted{color:#98a2b3}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-mini{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+.card-mini h3{margin:0 0 10px;font-size:17px}
+.card-mini ul,.field-box ul{margin:8px 0 0 20px;padding:0}
+.card-mini li,.field-box li{margin:5px 0}
+.field-box{border:1px solid var(--line);border-radius:16px;background:#fff;margin:10px 0;overflow:hidden}
+.field-box summary{cursor:pointer;padding:14px 16px;font-weight:800;display:flex;justify-content:space-between;gap:12px}
+.field-box summary span{font-weight:500;color:var(--muted)}
+.field-box ul{padding:0 18px 16px 38px}
+.footer{margin-top:26px;color:#667085;font-size:13px;text-align:center}
+.hidden{display:none!important}
+@media (max-width:860px){
+  .stats,.grid2{grid-template-columns:1fr 1fr}
+  h1{font-size:28px}
+  .hero{padding:26px}
+  .toolbar{position:static;flex-wrap:wrap}
+  .toolbar input,.toolbar select,.toolbar button{width:100%}
+  table{font-size:14px}
+  th:nth-child(5),td:nth-child(5){display:none}
+}
+@media (max-width:560px){
+  .stats,.grid2{grid-template-columns:1fr}
+  .wrap{padding:16px 12px 48px}
+  .hero,.panel,.school-card{border-radius:18px}
+  .school-head{flex-direction:column}
+  h1{font-size:24px}
+}
+@media print{
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .hero{box-shadow:none;border-radius:0;background:#fff;color:#111;border-bottom:2px solid #111}
+  .subtitle,.stat span{color:#333}
+  .stat{border:1px solid #ccc;color:#111;background:#fff}
+  .toolbar,.backtop,.quick-nav{display:none}
+  .panel,.school-card{box-shadow:none;border-color:#ccc;break-inside:avoid;page-break-inside:avoid}
+  a{color:#111;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+  <header class="hero">
+    <div class="kicker">辽宁省内高校 · 教育部第四轮学科评估</div>
+    <h1>辽宁省内高校 C 类及以上学科评估整理版</h1>
+    <p class="subtitle">把原始宽表改成适合家长阅读、打印、手机查看的 HTML 报告。这里的“学科”是一级学科，不完全等同于本科招生专业。</p>
+    <div class="stats">
+      <div class="stat"><b>32</b><span>入选高校</span></div>
+      <div class="stat"><b>251</b><span>学校-学科记录</span></div>
+      <div class="stat"><b>15</b><span>A类学科</span></div>
+      <div class="stat"><b>236</b><span>B/C类学科</span></div>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2>怎么读这张表</h2>
+    <div class="note">
+      <strong>核心用法：</strong>学科评估回答的是“这个学校在这个方向有没有学科底子”，不能直接替代录取分数、招生计划和就业质量报告。真正填志愿时，要结合辽宁近三年投档位次、当年招生人数、专业就业出口一起判断。
+    </div>
+    <div class="quick-nav">
+      <a href="#overview">总览表</a>
+      <a href="#field-index">按方向索引</a>
+      <a href="#detail">学校明细</a>
+      <a href="#advice">家长快速结论</a>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <input id="searchInput" type="search" placeholder="搜索学校或学科，例如：电气、计算机、临床、东北大学" />
+    <select id="ratingFilter" aria-label="按最高评级筛选">
+      <option value="all">全部最高评级</option>
+      <option value="A">最高评级 A类</option>
+      <option value="B">最高评级 B类</option>
+      <option value="C">最高评级 C类</option>
+    </select>
+    <button onclick="window.print()">打印 / 另存 PDF</button>
+  </div>
+
+  <section class="panel" id="overview">
+    <h2>一、辽宁省内高校学科实力总览</h2>
+    <table id="summaryTable">
+      <thead><tr><th>序号</th><th>学校</th><th>学科数</th><th>最高评级</th><th>主要强势方向</th></tr></thead>
+      <tbody>
+    <tr data-school="大连理工大学" data-top="A">
+      <td class="num">1</td>
+      <td><a href="#school-1">大连理工大学</a></td>
+      <td class="num">31</td>
+      <td><span class="badge rating-a">A</span></td>
+      <td>化学工程与技术、机械工程、力学、土木工程、工商管理</td>
+    </tr>
+    <tr data-school="东北大学" data-top="A">
+      <td class="num">2</td>
+      <td><a href="#school-2">东北大学</a></td>
+      <td class="num">26</td>
+      <td><span class="badge rating-a">A</span></td>
+      <td>控制科学与工程、材料科学与工程、计算机科学与技术、软件工程</td>
+    </tr>
+    <tr data-school="辽宁大学" data-top="B">
+      <td class="num">3</td>
+      <td><a href="#school-3">辽宁大学</a></td>
+      <td class="num">21</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>工商管理、应用经济学、法学、马克思主义理论、理论经济学</td>
+    </tr>
+    <tr data-school="辽宁师范大学" data-top="B">
+      <td class="num">4</td>
+      <td><a href="#school-4">辽宁师范大学</a></td>
+      <td class="num">18</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>教育学、心理学、体育学、马克思主义理论、地理学</td>
+    </tr>
+    <tr data-school="大连海事大学" data-top="B">
+      <td class="num">5</td>
+      <td><a href="#school-5">大连海事大学</a></td>
+      <td class="num">14</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>交通运输工程、计算机科学与技术、船舶与海洋工程、环境科学与工程、法学</td>
+    </tr>
+    <tr data-school="沈阳师范大学" data-top="B">
+      <td class="num">6</td>
+      <td><a href="#school-6">沈阳师范大学</a></td>
+      <td class="num">14</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>教育学</td>
+    </tr>
+    <tr data-school="沈阳农业大学" data-top="B">
+      <td class="num">7</td>
+      <td><a href="#school-7">沈阳农业大学</a></td>
+      <td class="num">10</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>园艺学、作物学、农业资源与环境、食品科学与工程、植物保护</td>
+    </tr>
+    <tr data-school="沈阳航空航天大学" data-top="B">
+      <td class="num">8</td>
+      <td><a href="#school-8">沈阳航空航天大学</a></td>
+      <td class="num">9</td>
+      <td><span class="badge rating-b">B-</span></td>
+      <td>计算机科学与技术、航空宇航科学与技术</td>
+    </tr>
+    <tr data-school="辽宁工程技术大学" data-top="B">
+      <td class="num">9</td>
+      <td><a href="#school-9">辽宁工程技术大学</a></td>
+      <td class="num">9</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>安全科学与工程、测绘科学与技术、矿业工程</td>
+    </tr>
+    <tr data-school="中国医科大学" data-top="B">
+      <td class="num">10</td>
+      <td><a href="#school-10">中国医科大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>临床医学、基础医学、口腔医学、公共卫生与预防医学、药学</td>
+    </tr>
+    <tr data-school="东北财经大学" data-top="A">
+      <td class="num">11</td>
+      <td><a href="#school-11">东北财经大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-a">A</span></td>
+      <td>应用经济学、统计学、工商管理</td>
+    </tr>
+    <tr data-school="大连医科大学" data-top="B">
+      <td class="num">12</td>
+      <td><a href="#school-12">大连医科大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>中西医结合、基础医学、临床医学、生物学</td>
+    </tr>
+    <tr data-school="大连工业大学" data-top="B">
+      <td class="num">13</td>
+      <td><a href="#school-13">大连工业大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>食品科学与工程、轻工技术与工程</td>
+    </tr>
+    <tr data-school="沈阳建筑大学" data-top="B">
+      <td class="num">14</td>
+      <td><a href="#school-14">沈阳建筑大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>土木工程、机械工程、建筑学、城乡规划学、风景园林学</td>
+    </tr>
+    <tr data-school="辽宁科技大学" data-top="B">
+      <td class="num">15</td>
+      <td><a href="#school-15">辽宁科技大学</a></td>
+      <td class="num">7</td>
+      <td><span class="badge rating-b">B-</span></td>
+      <td>化学工程与技术</td>
+    </tr>
+    <tr data-school="大连交通大学" data-top="B">
+      <td class="num">16</td>
+      <td><a href="#school-16">大连交通大学</a></td>
+      <td class="num">6</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>机械工程</td>
+    </tr>
+    <tr data-school="沈阳工业大学" data-top="B">
+      <td class="num">17</td>
+      <td><a href="#school-17">沈阳工业大学</a></td>
+      <td class="num">6</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>电气工程、仪器科学与技术、机械工程、材料科学与工程</td>
+    </tr>
+    <tr data-school="渤海大学" data-top="C">
+      <td class="num">18</td>
+      <td><a href="#school-18">渤海大学</a></td>
+      <td class="num">6</td>
+      <td><span class="badge rating-c">C</span></td>
+      <td>控制科学与工程、食品科学与工程、教育学、马克思主义理论、中国语言文学</td>
+    </tr>
+    <tr data-school="辽宁石油化工大学" data-top="B">
+      <td class="num">19</td>
+      <td><a href="#school-19">辽宁石油化工大学</a></td>
+      <td class="num">5</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>化学工程与技术</td>
+    </tr>
+    <tr data-school="辽宁中医药大学" data-top="B">
+      <td class="num">20</td>
+      <td><a href="#school-20">辽宁中医药大学</a></td>
+      <td class="num">4</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>中西医结合、中医学、药学、中药学</td>
+    </tr>
+    <tr data-school="沈阳理工大学" data-top="C">
+      <td class="num">21</td>
+      <td><a href="#school-21">沈阳理工大学</a></td>
+      <td class="num">4</td>
+      <td><span class="badge rating-c">C+</span></td>
+      <td>机械工程、材料科学与工程、计算机科学与技术、工商管理</td>
+    </tr>
+    <tr data-school="沈阳化工大学" data-top="B">
+      <td class="num">22</td>
+      <td><a href="#school-22">沈阳化工大学</a></td>
+      <td class="num">4</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>化学工程与技术</td>
+    </tr>
+    <tr data-school="大连大学" data-top="B">
+      <td class="num">23</td>
+      <td><a href="#school-23">大连大学</a></td>
+      <td class="num">3</td>
+      <td><span class="badge rating-b">B-</span></td>
+      <td>软件工程</td>
+    </tr>
+    <tr data-school="鲁迅美术学院" data-top="B">
+      <td class="num">24</td>
+      <td><a href="#school-24">鲁迅美术学院</a></td>
+      <td class="num">3</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>美术学、设计学</td>
+    </tr>
+    <tr data-school="锦州医科大学" data-top="C">
+      <td class="num">25</td>
+      <td><a href="#school-25">锦州医科大学</a></td>
+      <td class="num">3</td>
+      <td><span class="badge rating-c">C</span></td>
+      <td>临床医学、基础医学、生物学</td>
+    </tr>
+    <tr data-school="沈阳大学" data-top="C">
+      <td class="num">26</td>
+      <td><a href="#school-26">沈阳大学</a></td>
+      <td class="num">3</td>
+      <td><span class="badge rating-c">C</span></td>
+      <td>环境科学与工程、材料科学与工程、工商管理</td>
+    </tr>
+    <tr data-school="大连海洋大学" data-top="B">
+      <td class="num">27</td>
+      <td><a href="#school-27">大连海洋大学</a></td>
+      <td class="num">2</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>水产</td>
+    </tr>
+    <tr data-school="沈阳音乐学院" data-top="B">
+      <td class="num">28</td>
+      <td><a href="#school-28">沈阳音乐学院</a></td>
+      <td class="num">2</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>音乐与舞蹈学</td>
+    </tr>
+    <tr data-school="沈阳药科大学" data-top="A">
+      <td class="num">29</td>
+      <td><a href="#school-29">沈阳药科大学</a></td>
+      <td class="num">2</td>
+      <td><span class="badge rating-a">A</span></td>
+      <td>药学</td>
+    </tr>
+    <tr data-school="辽宁工业大学" data-top="C">
+      <td class="num">30</td>
+      <td><a href="#school-30">辽宁工业大学</a></td>
+      <td class="num">2</td>
+      <td><span class="badge rating-c">C+</span></td>
+      <td>控制科学与工程、管理科学与工程</td>
+    </tr>
+    <tr data-school="沈阳体育学院" data-top="B">
+      <td class="num">31</td>
+      <td><a href="#school-31">沈阳体育学院</a></td>
+      <td class="num">1</td>
+      <td><span class="badge rating-b">B+</span></td>
+      <td>体育学</td>
+    </tr>
+    <tr data-school="大连外国语大学" data-top="B">
+      <td class="num">32</td>
+      <td><a href="#school-32">大连外国语大学</a></td>
+      <td class="num">1</td>
+      <td><span class="badge rating-b">B</span></td>
+      <td>外国语言文学</td>
+    </tr></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="field-index">
+    <h2>二、按报考方向快速索引</h2>
+    <p class="muted">点开可看哪些学校在该方向有评估记录。</p>
+    <details class="field-box"><summary>电气工程 <span>4 所学校</span></summary><ul><li><strong>大连理工大学</strong>：电气工程（B-）</li><li><strong>东北大学</strong>：电气工程（C+）</li><li><strong>辽宁工程技术大学</strong>：电气工程（C）</li><li><strong>沈阳工业大学</strong>：电气工程（B+）</li></ul></details><details class="field-box"><summary>计算机 / 软件 / 控制 <span>16 所学校</span></summary><ul><li><strong>大连理工大学</strong>：控制科学与工程（B+）；计算机科学与技术（B+）；软件工程（B+）</li><li><strong>东北大学</strong>：控制科学与工程（A）；计算机科学与技术（A-）；软件工程（A-）</li><li><strong>辽宁师范大学</strong>：计算机科学与技术（C+）</li><li><strong>大连海事大学</strong>：计算机科学与技术（B）；控制科学与工程（B-）；软件工程（C）</li><li><strong>沈阳航空航天大学</strong>：计算机科学与技术（B-）；控制科学与工程（C-）</li><li><strong>辽宁工程技术大学</strong>：软件工程（C）</li><li><strong>大连工业大学</strong>：控制科学与工程（C）</li><li><strong>沈阳建筑大学</strong>：计算机科学与技术（C+）</li><li><strong>辽宁科技大学</strong>：软件工程（C+）；控制科学与工程（C）</li><li><strong>大连交通大学</strong>：软件工程（C）</li><li><strong>渤海大学</strong>：控制科学与工程（C）</li><li><strong>辽宁石油化工大学</strong>：控制科学与工程（C+）</li><li><strong>沈阳理工大学</strong>：计算机科学与技术（C-）</li><li><strong>沈阳化工大学</strong>：控制科学与工程（C-）</li><li><strong>大连大学</strong>：软件工程（B-）；计算机科学与技术（C）</li><li><strong>辽宁工业大学</strong>：控制科学与工程（C+）</li></ul></details><details class="field-box"><summary>临床 / 口腔 / 护理 / 药学 <span>5 所学校</span></summary><ul><li><strong>中国医科大学</strong>：临床医学（B+）；口腔医学（B）；药学（B）；护理学（B-）</li><li><strong>大连医科大学</strong>：中西医结合（B+）；临床医学（B）；口腔医学（C+）；药学（C+）；护理学（C）</li><li><strong>辽宁中医药大学</strong>：中西医结合（B+）；中医学（B）；药学（B-）；中药学（B-）</li><li><strong>锦州医科大学</strong>：临床医学（C）</li><li><strong>沈阳药科大学</strong>：药学（A）；中药学（B）</li></ul></details><details class="field-box"><summary>师范 / 教育 / 心理 <span>7 所学校</span></summary><ul><li><strong>大连理工大学</strong>：数学（B+）；化学（B）；物理学（B）</li><li><strong>东北大学</strong>：化学（B）；物理学（B-）；数学（C+）</li><li><strong>辽宁大学</strong>：中国语言文学（B-）；化学（C+）；物理学（C）；数学（C-）</li><li><strong>辽宁师范大学</strong>：教育学（B）；心理学（B）；中国语言文学（C+）；数学（C+）；物理学（C+）；化学（C+）</li><li><strong>沈阳师范大学</strong>：教育学（B）；中国语言文学（C+）；数学（C-）</li><li><strong>渤海大学</strong>：教育学（C）；中国语言文学（C-）；数学（C-）</li><li><strong>大连大学</strong>：化学（C-）</li></ul></details><details class="field-box"><summary>交通 / 海事 / 船舶 / 航空 <span>5 所学校</span></summary><ul><li><strong>大连理工大学</strong>：船舶与海洋工程（C+）；交通运输工程（C）</li><li><strong>大连海事大学</strong>：交通运输工程（B+）；船舶与海洋工程（B）</li><li><strong>沈阳航空航天大学</strong>：航空宇航科学与技术（B-）</li><li><strong>大连交通大学</strong>：交通运输工程（C）</li><li><strong>大连海洋大学</strong>：水产（B）；海洋科学（C）</li></ul></details><details class="field-box"><summary>财经 / 法学 / 管理 <span>13 所学校</span></summary><ul><li><strong>大连理工大学</strong>：工商管理（A-）；管理科学与工程（A-）；应用经济学（B）</li><li><strong>东北大学</strong>：管理科学与工程（B+）；工商管理（B）</li><li><strong>辽宁大学</strong>：工商管理（B+）；应用经济学（B+）；法学（B+）；理论经济学（B）；统计学（B-）</li><li><strong>大连海事大学</strong>：法学（B）；管理科学与工程（B-）；工商管理（C-）</li><li><strong>沈阳师范大学</strong>：法学（C）</li><li><strong>沈阳航空航天大学</strong>：工商管理（C）</li><li><strong>辽宁工程技术大学</strong>：管理科学与工程（C+）</li><li><strong>东北财经大学</strong>：应用经济学（A）；统计学（A-）；工商管理（A-）；管理科学与工程（B+）；理论经济学（B）；法学（C）</li><li><strong>辽宁科技大学</strong>：工商管理（C-）</li><li><strong>沈阳工业大学</strong>：管理科学与工程（C+）</li><li><strong>沈阳理工大学</strong>：工商管理（C-）</li><li><strong>沈阳大学</strong>：工商管理（C-）</li><li><strong>辽宁工业大学</strong>：管理科学与工程（C-）</li></ul></details>
+  </section>
+
+  <section class="panel" id="advice">
+    <h2>三、家长快速结论</h2>
+    <div class="grid2">
+      <div class="card-mini">
+        <h3>省内工科优先看</h3>
+        <ul>
+          <li>大连理工大学：化工、机械、土木、计算机、软件等底子强。</li>
+          <li>东北大学：自动化、计算机、软件、材料很突出。</li>
+          <li>沈阳工业大学：电气工程 B+，对普通家庭很有参考价值。</li>
+          <li>大连海事大学：交通运输、海事、船舶方向有行业属性。</li>
+        </ul>
+      </div>
+      <div class="card-mini">
+        <h3>医学药学优先看</h3>
+        <ul>
+          <li>中国医科大学：临床、基础、口腔、预防、药学、护理都有基础。</li>
+          <li>大连医科大学：临床、基础医学、中西医结合较强。</li>
+          <li>沈阳药科大学：药学 A，是省内药学最突出的学校。</li>
+          <li>辽宁中医药大学：中医学、中西医结合更对口。</li>
+        </ul>
+      </div>
+      <div class="card-mini">
+        <h3>财经法学优先看</h3>
+        <ul>
+          <li>东北财经大学：应用经济学 A，统计学 A-，工商管理 A-。</li>
+          <li>辽宁大学：应用经济学、法学、工商管理、马理论为 B+。</li>
+          <li>提醒：普通家庭选择金融经济类，必须看学校层次和真实就业出口。</li>
+        </ul>
+      </div>
+      <div class="card-mini">
+        <h3>需要谨慎的方向</h3>
+        <ul>
+          <li>土木：学科不等于行业景气，当前就业周期要谨慎。</li>
+          <li>生化环材：普通家庭要警惕深造压力和本科就业不稳。</li>
+          <li>新闻传播、外语、小语种：受行业收缩和 AI 冲击影响，需降低预期。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="detail">
+    <div class="panel"><h2>四、分学校明细</h2><p class="muted">每所学校按 A类、B类、C类分开展示，适合复制、打印和家长阅读。</p></div>
+    
+    <section class="school-card" id="school-1" data-school="大连理工大学" data-top="A" data-keywords="大连理工大学 A 化学工程与技术A 机械工程A 力学A- 土木工程A- 工商管理A- 环境科学与工程A- 管理科学与工程A- 信息与通信工程B+ 动力工程及工程热物理B+ 控制科学与工程B+ 数学B+ 材料科学与工程B+ 水利工程B+ 计算机科学与技术B+ 软件工程B+ 仪器科学与技术B 公共管理B 化学B 城乡规划学B 应用经济学B 建筑学B 物理学B 哲学B- 生物医学工程B- 电子科学与技术B- 电气工程B- 光学工程C+ 生物学C+ 船舶与海洋工程C+ 交通运输工程C 安全科学与工程C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#1</div>
+          <h2>大连理工大学</h2>
+          <p class="school-meta">学科数 <strong>31</strong> 个 · 最高评级 <span class="badge rating-a">A</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="chip rating-a"><span class="subject">化学工程与技术</span><b>A</b></span><span class="chip rating-a"><span class="subject">机械工程</span><b>A</b></span><span class="chip rating-a"><span class="subject">力学</span><b>A-</b></span><span class="chip rating-a"><span class="subject">土木工程</span><b>A-</b></span><span class="chip rating-a"><span class="subject">工商管理</span><b>A-</b></span><span class="chip rating-a"><span class="subject">环境科学与工程</span><b>A-</b></span><span class="chip rating-a"><span class="subject">管理科学与工程</span><b>A-</b></span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">信息与通信工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">动力工程及工程热物理</span><b>B+</b></span><span class="chip rating-b"><span class="subject">控制科学与工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">数学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">材料科学与工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">水利工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">计算机科学与技术</span><b>B+</b></span><span class="chip rating-b"><span class="subject">软件工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">仪器科学与技术</span><b>B</b></span><span class="chip rating-b"><span class="subject">公共管理</span><b>B</b></span><span class="chip rating-b"><span class="subject">化学</span><b>B</b></span><span class="chip rating-b"><span class="subject">城乡规划学</span><b>B</b></span><span class="chip rating-b"><span class="subject">应用经济学</span><b>B</b></span><span class="chip rating-b"><span class="subject">建筑学</span><b>B</b></span><span class="chip rating-b"><span class="subject">物理学</span><b>B</b></span><span class="chip rating-b"><span class="subject">哲学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">生物医学工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">电子科学与技术</span><b>B-</b></span><span class="chip rating-b"><span class="subject">电气工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">光学工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">船舶与海洋工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">交通运输工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">安全科学与工程</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-2" data-school="东北大学" data-top="A" data-keywords="东北大学 A 控制科学与工程A 材料科学与工程A- 计算机科学与技术A- 软件工程A- 公共管理B+ 冶金工程B+ 机械工程B+ 矿业工程B+ 管理科学与工程B+ 信息与通信工程B 化学B 哲学B 工商管理B 动力工程及工程热物理B- 土木工程B- 安全科学与工程B- 物理学B- 生物医学工程B- 数学C+ 环境科学与工程C+ 电气工程C+ 力学C 测绘科学与技术C 生物学C 化学工程与技术C- 地质资源与地质工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#2</div>
+          <h2>东北大学</h2>
+          <p class="school-meta">学科数 <strong>26</strong> 个 · 最高评级 <span class="badge rating-a">A</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="chip rating-a"><span class="subject">控制科学与工程</span><b>A</b></span><span class="chip rating-a"><span class="subject">材料科学与工程</span><b>A-</b></span><span class="chip rating-a"><span class="subject">计算机科学与技术</span><b>A-</b></span><span class="chip rating-a"><span class="subject">软件工程</span><b>A-</b></span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">公共管理</span><b>B+</b></span><span class="chip rating-b"><span class="subject">冶金工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">机械工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">矿业工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">管理科学与工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">信息与通信工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">化学</span><b>B</b></span><span class="chip rating-b"><span class="subject">哲学</span><b>B</b></span><span class="chip rating-b"><span class="subject">工商管理</span><b>B</b></span><span class="chip rating-b"><span class="subject">动力工程及工程热物理</span><b>B-</b></span><span class="chip rating-b"><span class="subject">土木工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">安全科学与工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">物理学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">生物医学工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">数学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">环境科学与工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">电气工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">力学</span><b>C</b></span><span class="chip rating-c"><span class="subject">测绘科学与技术</span><b>C</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C</b></span><span class="chip rating-c"><span class="subject">化学工程与技术</span><b>C-</b></span><span class="chip rating-c"><span class="subject">地质资源与地质工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-3" data-school="辽宁大学" data-top="B" data-keywords="辽宁大学 B+ 工商管理B+ 应用经济学B+ 法学B+ 马克思主义理论B+ 理论经济学B 中国语言文学B- 公共管理B- 哲学B- 统计学B- 化学C+ 新闻传播学C+ 外国语言文学C 戏剧与影视学C 政治学C 物理学C 生态学C 世界史C- 中国史C- 图书情报与档案管理C- 数学C- 生物学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#3</div>
+          <h2>辽宁大学</h2>
+          <p class="school-meta">学科数 <strong>21</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">工商管理</span><b>B+</b></span><span class="chip rating-b"><span class="subject">应用经济学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">法学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">马克思主义理论</span><b>B+</b></span><span class="chip rating-b"><span class="subject">理论经济学</span><b>B</b></span><span class="chip rating-b"><span class="subject">中国语言文学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">公共管理</span><b>B-</b></span><span class="chip rating-b"><span class="subject">哲学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">统计学</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">化学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">新闻传播学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">外国语言文学</span><b>C</b></span><span class="chip rating-c"><span class="subject">戏剧与影视学</span><b>C</b></span><span class="chip rating-c"><span class="subject">政治学</span><b>C</b></span><span class="chip rating-c"><span class="subject">物理学</span><b>C</b></span><span class="chip rating-c"><span class="subject">生态学</span><b>C</b></span><span class="chip rating-c"><span class="subject">世界史</span><b>C-</b></span><span class="chip rating-c"><span class="subject">中国史</span><b>C-</b></span><span class="chip rating-c"><span class="subject">图书情报与档案管理</span><b>C-</b></span><span class="chip rating-c"><span class="subject">数学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-4" data-school="辽宁师范大学" data-top="B" data-keywords="辽宁师范大学 B 教育学B 心理学B 体育学B- 马克思主义理论B- 地理学B- 中国语言文学C+ 外国语言文学C+ 数学C+ 物理学C+ 化学C+ 计算机科学与技术C+ 中国史C 生物学C 政治学C- 生态学C- 美术学C- 音乐与舞蹈学C- 公共管理C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#4</div>
+          <h2>辽宁师范大学</h2>
+          <p class="school-meta">学科数 <strong>18</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">教育学</span><b>B</b></span><span class="chip rating-b"><span class="subject">心理学</span><b>B</b></span><span class="chip rating-b"><span class="subject">体育学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">马克思主义理论</span><b>B-</b></span><span class="chip rating-b"><span class="subject">地理学</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">中国语言文学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">外国语言文学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">数学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">物理学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">化学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">计算机科学与技术</span><b>C+</b></span><span class="chip rating-c"><span class="subject">中国史</span><b>C</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C</b></span><span class="chip rating-c"><span class="subject">政治学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">生态学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">美术学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">音乐与舞蹈学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">公共管理</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-5" data-school="大连海事大学" data-top="B" data-keywords="大连海事大学 B+ 交通运输工程B+ 计算机科学与技术B 船舶与海洋工程B 环境科学与工程B 法学B 马克思主义理论B 信息与通信工程B- 控制科学与工程B- 管理科学与工程B- 外国语言文学C 软件工程C 工商管理C- 机械工程C- 土木工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#5</div>
+          <h2>大连海事大学</h2>
+          <p class="school-meta">学科数 <strong>14</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">交通运输工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">计算机科学与技术</span><b>B</b></span><span class="chip rating-b"><span class="subject">船舶与海洋工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">环境科学与工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">法学</span><b>B</b></span><span class="chip rating-b"><span class="subject">马克思主义理论</span><b>B</b></span><span class="chip rating-b"><span class="subject">信息与通信工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">控制科学与工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">管理科学与工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">外国语言文学</span><b>C</b></span><span class="chip rating-c"><span class="subject">软件工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">工商管理</span><b>C-</b></span><span class="chip rating-c"><span class="subject">机械工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">土木工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-6" data-school="沈阳师范大学" data-top="B" data-keywords="沈阳师范大学 B 教育学B 中国语言文学C+ 美术学C+ 法学C 生态学C 公共管理C 音乐与舞蹈学C 哲学C- 化学工程与技术C- 体育学C- 社会学C- 马克思主义理论C- 数学C- 生物学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#6</div>
+          <h2>沈阳师范大学</h2>
+          <p class="school-meta">学科数 <strong>14</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">教育学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">中国语言文学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">美术学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">法学</span><b>C</b></span><span class="chip rating-c"><span class="subject">生态学</span><b>C</b></span><span class="chip rating-c"><span class="subject">公共管理</span><b>C</b></span><span class="chip rating-c"><span class="subject">音乐与舞蹈学</span><b>C</b></span><span class="chip rating-c"><span class="subject">哲学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">化学工程与技术</span><b>C-</b></span><span class="chip rating-c"><span class="subject">体育学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">社会学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">马克思主义理论</span><b>C-</b></span><span class="chip rating-c"><span class="subject">数学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-7" data-school="沈阳农业大学" data-top="B" data-keywords="沈阳农业大学 B+ 园艺学B+ 作物学B 农业资源与环境B 食品科学与工程B 植物保护B- 农业工程B- 农林经济管理B- 兽医学C+ 风景园林学C 林学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#7</div>
+          <h2>沈阳农业大学</h2>
+          <p class="school-meta">学科数 <strong>10</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">园艺学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">作物学</span><b>B</b></span><span class="chip rating-b"><span class="subject">农业资源与环境</span><b>B</b></span><span class="chip rating-b"><span class="subject">食品科学与工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">植物保护</span><b>B-</b></span><span class="chip rating-b"><span class="subject">农业工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">农林经济管理</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">兽医学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">风景园林学</span><b>C</b></span><span class="chip rating-c"><span class="subject">林学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-8" data-school="沈阳航空航天大学" data-top="B" data-keywords="沈阳航空航天大学 B- 计算机科学与技术B- 航空宇航科学与技术B- 机械工程C 动力工程及工程热物理C 安全科学与工程C 工商管理C 设计学C 信息与通信工程C- 控制科学与工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#8</div>
+          <h2>沈阳航空航天大学</h2>
+          <p class="school-meta">学科数 <strong>9</strong> 个 · 最高评级 <span class="badge rating-b">B-</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">计算机科学与技术</span><b>B-</b></span><span class="chip rating-b"><span class="subject">航空宇航科学与技术</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">机械工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">动力工程及工程热物理</span><b>C</b></span><span class="chip rating-c"><span class="subject">安全科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">工商管理</span><b>C</b></span><span class="chip rating-c"><span class="subject">设计学</span><b>C</b></span><span class="chip rating-c"><span class="subject">信息与通信工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-9" data-school="辽宁工程技术大学" data-top="B" data-keywords="辽宁工程技术大学 B 安全科学与工程B 测绘科学与技术B- 矿业工程B- 力学C+ 机械工程C+ 土木工程C+ 管理科学与工程C+ 电气工程C 软件工程C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#9</div>
+          <h2>辽宁工程技术大学</h2>
+          <p class="school-meta">学科数 <strong>9</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">安全科学与工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">测绘科学与技术</span><b>B-</b></span><span class="chip rating-b"><span class="subject">矿业工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">力学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">机械工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">土木工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">管理科学与工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">电气工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">软件工程</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-10" data-school="中国医科大学" data-top="B" data-keywords="中国医科大学 B+ 临床医学B+ 基础医学B 口腔医学B 公共卫生与预防医学B 药学B 生物学B 护理学B-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#10</div>
+          <h2>中国医科大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">临床医学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">基础医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">口腔医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">公共卫生与预防医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">药学</span><b>B</b></span><span class="chip rating-b"><span class="subject">生物学</span><b>B</b></span><span class="chip rating-b"><span class="subject">护理学</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-11" data-school="东北财经大学" data-top="A" data-keywords="东北财经大学 A 应用经济学A 统计学A- 工商管理A- 管理科学与工程B+ 公共管理B 理论经济学B 法学C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#11</div>
+          <h2>东北财经大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-a">A</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="chip rating-a"><span class="subject">应用经济学</span><b>A</b></span><span class="chip rating-a"><span class="subject">统计学</span><b>A-</b></span><span class="chip rating-a"><span class="subject">工商管理</span><b>A-</b></span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">管理科学与工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">公共管理</span><b>B</b></span><span class="chip rating-b"><span class="subject">理论经济学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">法学</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-12" data-school="大连医科大学" data-top="B" data-keywords="大连医科大学 B+ 中西医结合B+ 基础医学B 临床医学B 生物学B 口腔医学C+ 药学C+ 护理学C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#12</div>
+          <h2>大连医科大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">中西医结合</span><b>B+</b></span><span class="chip rating-b"><span class="subject">基础医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">临床医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">生物学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">口腔医学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">药学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">护理学</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-13" data-school="大连工业大学" data-top="B" data-keywords="大连工业大学 B+ 食品科学与工程B+ 轻工技术与工程B 设计学C+ 控制科学与工程C 纺织科学与工程C 光学工程C- 化学工程与技术C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#13</div>
+          <h2>大连工业大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">食品科学与工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">轻工技术与工程</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">设计学</span><b>C+</b></span><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">纺织科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">光学工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">化学工程与技术</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-14" data-school="沈阳建筑大学" data-top="B" data-keywords="沈阳建筑大学 B+ 土木工程B+ 机械工程B 建筑学B 城乡规划学B 风景园林学B- 计算机科学与技术C+ 材料科学与工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#14</div>
+          <h2>沈阳建筑大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">土木工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">机械工程</span><b>B</b></span><span class="chip rating-b"><span class="subject">建筑学</span><b>B</b></span><span class="chip rating-b"><span class="subject">城乡规划学</span><b>B</b></span><span class="chip rating-b"><span class="subject">风景园林学</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">计算机科学与技术</span><b>C+</b></span><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-15" data-school="辽宁科技大学" data-top="B" data-keywords="辽宁科技大学 B- 化学工程与技术B- 软件工程C+ 机械工程C 控制科学与工程C 材料科学与工程C- 冶金工程C- 工商管理C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#15</div>
+          <h2>辽宁科技大学</h2>
+          <p class="school-meta">学科数 <strong>7</strong> 个 · 最高评级 <span class="badge rating-b">B-</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">化学工程与技术</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">软件工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">机械工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">冶金工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">工商管理</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-16" data-school="大连交通大学" data-top="B" data-keywords="大连交通大学 B 机械工程B 材料科学与工程C+ 交通运输工程C 软件工程C 力学C- 环境科学与工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#16</div>
+          <h2>大连交通大学</h2>
+          <p class="school-meta">学科数 <strong>6</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">机械工程</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">交通运输工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">软件工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">力学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">环境科学与工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-17" data-school="沈阳工业大学" data-top="B" data-keywords="沈阳工业大学 B+ 电气工程B+ 仪器科学与技术B 机械工程B- 材料科学与工程B- 化学工程与技术C+ 管理科学与工程C+">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#17</div>
+          <h2>沈阳工业大学</h2>
+          <p class="school-meta">学科数 <strong>6</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">电气工程</span><b>B+</b></span><span class="chip rating-b"><span class="subject">仪器科学与技术</span><b>B</b></span><span class="chip rating-b"><span class="subject">机械工程</span><b>B-</b></span><span class="chip rating-b"><span class="subject">材料科学与工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">化学工程与技术</span><b>C+</b></span><span class="chip rating-c"><span class="subject">管理科学与工程</span><b>C+</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-18" data-school="渤海大学" data-top="C" data-keywords="渤海大学 C 控制科学与工程C 食品科学与工程C 教育学C 马克思主义理论C 中国语言文学C- 数学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#18</div>
+          <h2>渤海大学</h2>
+          <p class="school-meta">学科数 <strong>6</strong> 个 · 最高评级 <span class="badge rating-c">C</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">食品科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">教育学</span><b>C</b></span><span class="chip rating-c"><span class="subject">马克思主义理论</span><b>C</b></span><span class="chip rating-c"><span class="subject">中国语言文学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">数学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-19" data-school="辽宁石油化工大学" data-top="B" data-keywords="辽宁石油化工大学 B 化学工程与技术B 控制科学与工程C+ 动力工程及工程热物理C- 安全科学与工程C- 马克思主义理论C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#19</div>
+          <h2>辽宁石油化工大学</h2>
+          <p class="school-meta">学科数 <strong>5</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">化学工程与技术</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">动力工程及工程热物理</span><b>C-</b></span><span class="chip rating-c"><span class="subject">安全科学与工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">马克思主义理论</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-20" data-school="辽宁中医药大学" data-top="B" data-keywords="辽宁中医药大学 B+ 中西医结合B+ 中医学B 药学B- 中药学B-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#20</div>
+          <h2>辽宁中医药大学</h2>
+          <p class="school-meta">学科数 <strong>4</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">中西医结合</span><b>B+</b></span><span class="chip rating-b"><span class="subject">中医学</span><b>B</b></span><span class="chip rating-b"><span class="subject">药学</span><b>B-</b></span><span class="chip rating-b"><span class="subject">中药学</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-21" data-school="沈阳理工大学" data-top="C" data-keywords="沈阳理工大学 C+ 机械工程C+ 材料科学与工程C- 计算机科学与技术C- 工商管理C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#21</div>
+          <h2>沈阳理工大学</h2>
+          <p class="school-meta">学科数 <strong>4</strong> 个 · 最高评级 <span class="badge rating-c">C+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">机械工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">计算机科学与技术</span><b>C-</b></span><span class="chip rating-c"><span class="subject">工商管理</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-22" data-school="沈阳化工大学" data-top="B" data-keywords="沈阳化工大学 B 化学工程与技术B 材料科学与工程C- 动力工程及工程热物理C- 控制科学与工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#22</div>
+          <h2>沈阳化工大学</h2>
+          <p class="school-meta">学科数 <strong>4</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">化学工程与技术</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">动力工程及工程热物理</span><b>C-</b></span><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-23" data-school="大连大学" data-top="B" data-keywords="大连大学 B- 软件工程B- 计算机科学与技术C 化学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#23</div>
+          <h2>大连大学</h2>
+          <p class="school-meta">学科数 <strong>3</strong> 个 · 最高评级 <span class="badge rating-b">B-</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">软件工程</span><b>B-</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">计算机科学与技术</span><b>C</b></span><span class="chip rating-c"><span class="subject">化学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-24" data-school="鲁迅美术学院" data-top="B" data-keywords="鲁迅美术学院 B+ 美术学B+ 设计学B 艺术学理论C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#24</div>
+          <h2>鲁迅美术学院</h2>
+          <p class="school-meta">学科数 <strong>3</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">美术学</span><b>B+</b></span><span class="chip rating-b"><span class="subject">设计学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">艺术学理论</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-25" data-school="锦州医科大学" data-top="C" data-keywords="锦州医科大学 C 临床医学C 基础医学C- 生物学C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#25</div>
+          <h2>锦州医科大学</h2>
+          <p class="school-meta">学科数 <strong>3</strong> 个 · 最高评级 <span class="badge rating-c">C</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">临床医学</span><b>C</b></span><span class="chip rating-c"><span class="subject">基础医学</span><b>C-</b></span><span class="chip rating-c"><span class="subject">生物学</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-26" data-school="沈阳大学" data-top="C" data-keywords="沈阳大学 C 环境科学与工程C 材料科学与工程C- 工商管理C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#26</div>
+          <h2>沈阳大学</h2>
+          <p class="school-meta">学科数 <strong>3</strong> 个 · 最高评级 <span class="badge rating-c">C</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">环境科学与工程</span><b>C</b></span><span class="chip rating-c"><span class="subject">材料科学与工程</span><b>C-</b></span><span class="chip rating-c"><span class="subject">工商管理</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-27" data-school="大连海洋大学" data-top="B" data-keywords="大连海洋大学 B 水产B 海洋科学C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#27</div>
+          <h2>大连海洋大学</h2>
+          <p class="school-meta">学科数 <strong>2</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">水产</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">海洋科学</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-28" data-school="沈阳音乐学院" data-top="B" data-keywords="沈阳音乐学院 B+ 音乐与舞蹈学B+ 艺术学理论C">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#28</div>
+          <h2>沈阳音乐学院</h2>
+          <p class="school-meta">学科数 <strong>2</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">音乐与舞蹈学</span><b>B+</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">艺术学理论</span><b>C</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-29" data-school="沈阳药科大学" data-top="A" data-keywords="沈阳药科大学 A 药学A 中药学B">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#29</div>
+          <h2>沈阳药科大学</h2>
+          <p class="school-meta">学科数 <strong>2</strong> 个 · 最高评级 <span class="badge rating-a">A</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="chip rating-a"><span class="subject">药学</span><b>A</b></span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">中药学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-30" data-school="辽宁工业大学" data-top="C" data-keywords="辽宁工业大学 C+ 控制科学与工程C+ 管理科学与工程C-">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#30</div>
+          <h2>辽宁工业大学</h2>
+          <p class="school-meta">学科数 <strong>2</strong> 个 · 最高评级 <span class="badge rating-c">C+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="chip rating-c"><span class="subject">控制科学与工程</span><b>C+</b></span><span class="chip rating-c"><span class="subject">管理科学与工程</span><b>C-</b></span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-31" data-school="沈阳体育学院" data-top="B" data-keywords="沈阳体育学院 B+ 体育学B+">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#31</div>
+          <h2>沈阳体育学院</h2>
+          <p class="school-meta">学科数 <strong>1</strong> 个 · 最高评级 <span class="badge rating-b">B+</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">体育学</span><b>B+</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="school-card" id="school-32" data-school="大连外国语大学" data-top="B" data-keywords="大连外国语大学 B 外国语言文学B">
+      <div class="school-head">
+        <div>
+          <div class="school-rank">#32</div>
+          <h2>大连外国语大学</h2>
+          <p class="school-meta">学科数 <strong>1</strong> 个 · 最高评级 <span class="badge rating-b">B</span></p>
+        </div>
+        <a class="backtop" href="#top">回到顶部</a>
+      </div>
+      <div class="levels">
+        <div class="level level-a">
+          <h3>A类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+        <div class="level level-b">
+          <h3>B类学科</h3>
+          <div class="chips"><span class="chip rating-b"><span class="subject">外国语言文学</span><b>B</b></span></div>
+        </div>
+        <div class="level level-c">
+          <h3>C类学科</h3>
+          <div class="chips"><span class="muted">—</span></div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <div class="footer">整理口径：辽宁省内高校 · 第四轮学科评估 · C类及以上。</div>
+</div>
+<script>
+const searchInput = document.getElementById('searchInput');
+const ratingFilter = document.getElementById('ratingFilter');
+function applyFilter() {
+  const q = (searchInput.value || '').trim().toLowerCase();
+  const rf = ratingFilter.value;
+  const cards = document.querySelectorAll('.school-card');
+  const rows = document.querySelectorAll('#summaryTable tbody tr');
+  function show(el) {
+    const top = el.dataset.top || '';
+    const text = (el.dataset.keywords || el.textContent || '').toLowerCase();
+    const qOk = !q || text.includes(q);
+    const rOk = rf === 'all' || top === rf;
+    el.classList.toggle('hidden', !(qOk && rOk));
+  }
+  cards.forEach(show);
+  rows.forEach(show);
+}
+searchInput.addEventListener('input', applyFilter);
+ratingFilter.addEventListener('change', applyFilter);
+</script>
+</body>
+</html>
