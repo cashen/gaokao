@@ -84,7 +84,7 @@ async function verifyDirectScoreJourney(page,name){
       back:document.querySelector('.back-home')?.innerText||''
     };
   });
-  assert(state.version==='major-path-v0.05'&&state.core==='major-path-v0.02'&&state.human==='major-path-human-v0.05',`${name}: v0.04/core version boundary wrong`);
+  assert(state.version==='major-path-v0.05'&&state.core==='major-path-core-v0.05'&&state.human==='major-path-human-v0.05',`${name}: v0.05/core version boundary wrong`);
   assert(state.direct,`${name}: direct mode missing`);
   assert(state.focusTop>=state.topbar-2&&state.focusTop<=state.topbar+36,`${name}: direct landing not pinned to pathway focus (${state.focusTop}/${state.topbar})`);
   assert(state.headTop<state.focusTop-30,`${name}: direct landing still starts at result header`);
@@ -196,4 +196,4 @@ try{
     await context.close();
   }
 } finally { await browser.close(); }
-console.log(JSON.stringify({ok:true,version:'major-path-human-browser-v0.04',devices:evidence},null,2));
+console.log(JSON.stringify({ok:true,version:'major-path-human-browser-v0.05',devices:evidence},null,2));
