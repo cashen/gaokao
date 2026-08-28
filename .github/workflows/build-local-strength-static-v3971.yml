@@ -38,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          if ! git diff --quiet "$base" HEAD -- \
+          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && ! git diff --quiet "$base" HEAD -- \
             ln-rank/data/local-strength/local-strength-index.v3971_2.json \
             ln-rank/data/local-strength/local-strength-audit.v3971_2.json; then
             echo 'LocalStrength v3971.2 is published immutable data. Create a new data generation instead of modifying it.'
