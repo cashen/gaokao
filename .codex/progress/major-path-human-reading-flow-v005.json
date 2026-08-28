@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "63ae73ba25c68bb3f423b7d6f841cc2dcaed82c3",
+  "headSha": "acb4c50545e30227e07118c9c8d5ef020dce32f9",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -36,7 +36,12 @@
     "merge-main",
     "post-merge-production"
   ],
-  "lastFailure": null,
+  "lastFailure": {
+    "stage": "source-contract",
+    "runId": 33151147801,
+    "reason": "workflow/test still matched v004 asset query after entrypoint moved to v005",
+    "resolvedBy": "acb4c50545e30227e07118c9c8d5ef020dce32f9"
+  },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T07:30:00Z"
+  "verifiedAt": "2026-08-28T07:38:00Z"
 }
