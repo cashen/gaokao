@@ -104,7 +104,7 @@ try {
       assert.match(await page.locator('#resultTitle').textContent(), /电气工程及其自动化/);
       const resultText = await page.locator('#result').textContent();
       assert.match(resultText, /不同学校的学生/);
-      assert.match(resultText, /大学生怎么说/);
+      assert.match(resultText, /跨学校专业体验/);
       assert.doesNotMatch(resultText, /provenance|AI总结/);
       assert.doesNotMatch(resultText, /eo\.srgaoxiao\.cn|抓取日期：/);
       assert.equal(await page.locator('[data-major-pathway="080601"]').count(), 1, `${testCase.name}: pathway surface missing`);
@@ -150,7 +150,7 @@ function documentSafe(value) {
 console.log(JSON.stringify({
   ok:true,
   contract:'tongxue-major-direct-browser-v0.01',
-  scenario:'沈阳建筑大学 → 电气工程及其自动化 → 大学生怎么说',
+  scenario:'沈阳建筑大学 → 电气工程及其自动化 → 跨学校专业体验',
   returnTo:expectedReturnTo,
   devices:evidence
 }, null, 2));
