@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
   "branch": "fix/unified-visual-responsive-v001",
-  "status": "implementation-complete-local-verification-pending",
+  "status": "pr-ci-pending",
   "plan": [
     "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
     "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
@@ -20,9 +20,14 @@
     "resource-contract-registration",
     "release-changelog-sync"
   ],
-  "inProgress": "local-verification",
+  "inProgress": "pr-ci",
+  "lastFailure": {
+    "kind": "contract",
+    "step": "aiplus-cache-transaction",
+    "message": "新增共享 CSS 初次被 AIPLuS 核心缓存审计识别为 v3990_3，未加入 v=002_4&scroll=002_1&fdw=003_0 原子事务；已修正并由本地 audit-aiplus-v002-ui.mjs 复核通过。"
+  },
   "pending": [
-    "local-static-tests",
+    "local-static-tests-passed",
     "remote-branch-and-pr",
     "pr-ci-and-ready",
     "preview-exact-sha-and-browser",

@@ -1,6 +1,6 @@
 {
   "task": "unified-visual-responsive-v001",
-  "status": "implementation-complete-local-verification-pending",
+  "status": "pr-ci-pending",
   "repository": "cashen/gaokao",
   "baseSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
   "branch": "fix/unified-visual-responsive-v001",
@@ -36,6 +36,11 @@
     "major-path/index.html",
     "changelog.html"
   ],
-  "next": "运行本地验证并根据失败结果修复；网络中断后从该文件的 inProgress/pending 继续。",
+  "lastFailure": {
+    "kind": "contract",
+    "step": "aiplus-cache-transaction",
+    "message": "新增共享 CSS 初次被 AIPLuS 核心缓存审计识别为 v3990_3，未加入 v=002_4&scroll=002_1&fdw=003_0 原子事务；已修正并由本地 audit-aiplus-v002-ui.mjs 复核通过。"
+  },
+  "next": "等待 PR Actions；若网络中断，先复核 PR Actions 和 Preview SHA，再从 inProgress/pending 继续。",
   "preservation": "原工作树未触碰；独立工作树承担本任务。"
 }

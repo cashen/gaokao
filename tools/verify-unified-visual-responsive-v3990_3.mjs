@@ -28,7 +28,10 @@ for (const page of pages) {
   const html = read(page);
   assert.match(html, /data-site-runtime-generation="v3990_2"/, `${page}: active generation`);
   assert.match(html, /data-ui-visual-responsive="unified-v001"/, `${page}: visual marker`);
-  assert.match(html, /unified-visual-responsive\.v3990_3\.css\?v=3990_3&r=r037-unified-visual-responsive/, `${page}: shared responsive stylesheet`);
+  const expectedAsset = page === 'aiplus/index.html'
+    ? 'unified-visual-responsive.v3990_3.css?v=002_4&scroll=002_1&fdw=003_0'
+    : 'unified-visual-responsive.v3990_3.css?v=3990_3&r=r037-unified-visual-responsive';
+  assert.match(html, new RegExp(expectedAsset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${page}: shared responsive stylesheet`);
 }
 
 const release = read('shared/resources/release/current-release.js');
