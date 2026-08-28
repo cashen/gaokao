@@ -1,0 +1,44 @@
+{
+  "task": "tongxue-human-reading-flow-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/tongxue-human-reading-flow-v001",
+  "baseSha": "94d2f6523eb52821ef4408a47f76785cc4140464",
+  "headSha": "e1ead9be4b2e132eefb7034767f94ab6da1619b4",
+  "status": "in_progress",
+  "completed": [
+    "live-state-reconciled",
+    "branch-created",
+    "plan-and-audit-doc",
+    "implementation-first-pass",
+    "local-static-contract-tests",
+    "local-browser-acceptance",
+    "commit-created"
+  ],
+  "inProgress": "push-and-pr",
+  "pending": [
+    "implementation",
+    "tests",
+    "pr-ci-preview",
+    "merge-main",
+    "post-merge-production-and-data-integrity-verify"
+  ],
+  "lastFailure": null,
+  "releaseBaseline": {
+    "site": "v3.9.90.2",
+    "generation": "v3990_2",
+    "mainSha": "94d2f6523eb52821ef4408a47f76785cc4140464"
+  },
+  "preservedUserFiles": [
+    "ln-rank/v3.9.35-function-regression-matrix.json"
+  ],
+  "verifiedAt": "2026-08-28T00:42:00Z",
+  "localEvidence": {
+    "browserContract": "tongxue-human-reading-flow-browser-v001",
+    "devices": ["pc-1366", "pad-820", "android-390", "android-compact-360"],
+    "routes": ["manual-school", "direct-school-with-dc", "direct-major-with-dc", "tongxue-to-major-path-return"],
+    "horizontalOverflow": 0,
+    "resultViewIdentity": "159-flow004&r=r040-human-reading-flow",
+    "staticContracts": "pass",
+    "diffCheck": "pass"
+  }
+}

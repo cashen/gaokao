@@ -11,7 +11,7 @@ const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=
 const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001';
 const CONTROLLER_CACHE_IDENTITY = `${CONTROLLER_IDENTITY}&r=r036-major-history-rank-lazy`;
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
-const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004';
+const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&r=r040-human-reading-flow';
 
 const importMapMatch = html.match(/<script type="importmap">([^<]+)<\/script>/);
 assert.ok(importMapMatch, 'Tongxue import map missing');
@@ -27,7 +27,7 @@ assert.ok(controller.includes("state.voiceScope = 'major'"), 'controller lost ma
 assert.ok(controller.includes('performMajorExperienceQuery'), 'controller lost major direct-query owner');
 assert.ok(resultView.includes("data-student-voice-scope=\"major\""), 'result view lost major voice rendering');
 assert.ok(resultView.includes("PAGE_VERSION = 'v1.5.9-uec01-evidence02'"), 'result view evidence capability marker missing');
-assert.ok(resultView.includes('大家主要在说什么'), 'result view human summary heading missing');
+assert.ok(resultView.includes('先看这两件事'), 'result view human summary heading missing');
 assert.ok(resultView.includes('这些概括从哪来？'), 'result view human evidence explanation missing');
 assert.ok(!resultView.includes('AI总结'), 'result view must not expose AI implementation label');
 assert.ok(!resultView.includes('provenance'), 'result view must not expose provenance jargon');

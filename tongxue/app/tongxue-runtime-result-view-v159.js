@@ -8,7 +8,7 @@ import {
   dedupeReviews,
   summaryGroups
 } from './tongxue-runtime-utils-v159.js?v=159';
-import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0';
+import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0&r=r040-human-reading-flow';
 import { summarizeDecisionContext } from '../../shared/decision-context/decision-context.v001.js';
 
 const PAGE_VERSION = 'v1.5.9-uec01-evidence02';
@@ -64,7 +64,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const evidenceExplanation = studentEvidence.length
       ? `<div class="review-intro" data-summary-evidence-explanation><strong>这些概括从哪来？</strong>下面列出本次参考的 ${studentEvidence.length} 条学生留言，尽量覆盖不同话题、具体细节和较新的内容。每个人经历不同，最好结合原留言一起看。</div><div class="section-heading">几条有代表性的学生留言</div><div class="review-grid" data-student-evidence-grid>${evidenceCards}</div>`
       : '<div class="review-intro" data-summary-evidence-empty><strong>这些概括从哪来？</strong>这次有可用的概括，但暂时没拿到能对应展示的原留言。这里不补写。</div>';
-    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">大家怎么说</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}<div class="divider"></div><div class="section-heading">大家主要在说什么</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整概括</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容整理自学生公开留言，只代表部分评论者在特定时间、专业和校区的个人经历，不是学校官方结论，也不参与录取或推荐排序。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(meta, data, source, data.evidence)}</article>`);
+    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">学校公开体验</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}<div class="divider"></div><div class="section-heading">先看这两件事</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整概括</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容整理自学生公开留言，只代表部分评论者在特定时间、专业和校区的个人经历，不是学校官方结论，也不参与录取或推荐排序。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(meta, data, source, data.evidence)}</article>`);
     searchView.focusResult();
   }
 
@@ -110,10 +110,18 @@ export function createTongxueResultView(ui, state, searchView) {
 
   function majorSourceIntroShell(major = {}) {
     const code = String(major.code || '').trim();
-    return `<section class="major-source-intro" data-major-source-intro="${attr(code)}" aria-label="专业解读">
+    return `<section class="major-source-intro" data-major-source-intro="${attr(code)}" aria-label="专业资料">
       <div class="section-heading">先看懂这个专业</div>
       <div class="state-card loading"><strong>正在读取专业解读</strong><p>先把“是什么、学什么、做什么、就业方向”看清楚，再看大学生的个人体验。</p></div>
-    </section>${buildUndergradGraduatePathwayView({ major, returnTo:'/tongxue/' })}`;
+    </section>${buildUndergradGraduatePathwayView({
+      major,
+      returnTo: state.returnTo || state.decisionContext?.returnTo || '/tongxue/',
+      context: state.decisionContext?.school ? 'school' : 'score',
+      sourceKey: state.decisionContext?.candidateIds?.[0] || '',
+      sourceMajor: state.currentMajorName || major.name || '',
+      school: state.decisionContext?.school || '',
+      decisionContext: state.decisionContext
+    })}`;
   }
 
   function mountMajorSourceIntro(major = {}) {
@@ -164,7 +172,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const more = active.pagination?.hasMore && active.mode === 'major_reviews'
       ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些学生留言</button></div>' : '';
     const topicText = active.topic && active.topic !== 'general' ? topicLabel(active.topic) : '这个专业实际读起来怎么样';
-    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">大学生怎么说</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div>${majorSourceIntroShell(major)}<div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
+    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">跨学校专业体验</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div>${majorSourceIntroShell(major)}<div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
     searchView.focusResult();
     mountMajorSourceIntro(major);
   }

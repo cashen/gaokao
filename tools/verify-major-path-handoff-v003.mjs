@@ -77,20 +77,21 @@ assert.match(bootstrap, /mountMajorPathHandoff/);
 assert.match(bootstrap, /major-path-handoff\.v003\.js\?v=003_0/);
 
 const majorPathIndex = read('major-path/index.html');
-assert.match(majorPathIndex, /data-major-path-version="major-path-v0\.02"/);
+assert.match(majorPathIndex, /data-major-path-version="major-path-v0\.04"/);
 assert.match(majorPathIndex, /data-major-path-handoff-version="major-path-handoff-v0\.03"/);
-assert.match(majorPathIndex, /\/major-path\/app\.v003\.js\?v=003_0/);
-assert.match(majorPathIndex, /\/major-path\/major-path-direct\.v003\.css\?v=003_0/);
+assert.match(majorPathIndex, /\/major-path\/app\.v004\.js\?v=004_0/);
+assert.match(majorPathIndex, /\/major-path\/major-path-human\.v004\.css\?v=004_0/);
 
-const direct = read('major-path/app.v003.js');
-assert.match(direct, /major-path-direct-v0\.03/);
+const direct = read('major-path/app.v004.js');
+assert.match(direct, /major-path-direct/);
 assert.match(direct, /history\.back\(\)/);
-assert.match(direct, /sourceBoundaryText/);
+assert.match(direct, /directContextForMajor/);
+assert.match(direct, /majorPathSourceBoundary/);
 assert.doesNotMatch(direct, /localStorage|sessionStorage|indexedDB|MutationObserver/);
 
 console.log(JSON.stringify({
   ok: true,
-  version: 'major-path-handoff-source-v0.03',
+  version: 'major-path-handoff-source-v0.04',
   positive: ['120103 工程管理', '080201 机械工程（中外合作办学）'],
   failClosed: ['计算机类', '工科试验班', 'cross-origin returnTo']
 }, null, 2));

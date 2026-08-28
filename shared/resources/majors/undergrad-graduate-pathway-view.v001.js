@@ -35,7 +35,15 @@ function fieldList(fields = []) {
   return `<div class="major-pathway-fields"><strong>可继续查看的专业学位领域</strong><ul class="major-pathway-list">${fields.map(field => `<li><span class="major-pathway-code">${html(field.code)}</span><span>${html(field.name)}</span>${field.note || field.futureRule ? `<small>${html(field.note || field.futureRule)}</small>` : ''}</li>`).join('')}</ul></div>`;
 }
 
-export function buildUndergradGraduatePathwayView({ major = {}, returnTo = '/tongxue/' } = {}) {
+export function buildUndergradGraduatePathwayView({
+  major = {},
+  returnTo = '/tongxue/',
+  context = 'score',
+  sourceKey = '',
+  sourceMajor = '',
+  school = '',
+  decisionContext = null
+} = {}) {
   const pathway = buildUndergradGraduatePathway(major);
   const undergraduate = pathway.undergraduate;
   const majorCode = text(undergraduate.code).toUpperCase();
@@ -43,8 +51,13 @@ export function buildUndergradGraduatePathwayView({ major = {}, returnTo = '/ton
   const href = buildMajorPathHref({
     majorCode,
     canonicalName: undergraduate.name,
+    context,
+    sourceKey,
+    sourceMajor,
+    school,
     sourceSurface: 'tongxue',
-    returnTo
+    returnTo,
+    decisionContext
   });
   const academic = entryList(pathway.academic, '当前没有可核验的学术学位方向。');
   const professional = entryList(pathway.professional, '当前没有可核验的专业学位方向。');
