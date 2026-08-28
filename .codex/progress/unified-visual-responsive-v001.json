@@ -2,92 +2,77 @@
   "task": "unified-visual-responsive-v001",
   "repository": "cashen/gaokao",
   "baseSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
-  "branch": "fix/unified-visual-production-contract-v002",
-  "status": "post-merge-verified",
-  "plan": [
-    "统一共享视觉 token、阅读宽度、间距、焦点环和触控目标",
-    "统一核心入口的桌面、Pad、Android、窄屏响应式契约",
-    "保持查询、实体、数据、AI 和导航业务行为不变",
-    "同步资源合同、版本、变更日志、状态和断点",
-    "完成本地测试、PR 检查、精确 Preview、生产和合并后复核"
-  ],
+  "branch": "main",
+  "headSha": "391442235713d074f4f0f3d49b43ad8eab08916b",
+  "status": "complete",
   "completed": [
-    "live-main-reconciled",
-    "isolated-worktree-created",
-    "taste-skill-rules-applied",
-    "shared-visual-responsive-css",
-    "core-entrypoint-integration",
-    "resource-contract-registration",
-    "release-changelog-sync",
-    "merged-main-visual-release",
-    "production-stale-resource-observed",
-    "base-tree-recovery-guards",
     "pr-246-merged",
-    "post-merge-production-verified"
+    "main-tree-integrity-restored",
+    "production-css-verified",
+    "post-merge-actions-28-product-checks-passed",
+    "production-data-sha-parity-verified",
+    "production-api-health-verified",
+    "major-bands-chunk-sum-verified"
   ],
   "inProgress": null,
-  "lastFailure": {
-    "kind": "external-merge-race",
-    "step": "pr-246-checks",
-    "message": "中间 HEAD 的保护门误报已修复；随后 GitHub 自动合并 PR #246。最终 main 的生产检查已完成，只有用户预先说明的 verify-major-bands-bounded-fanout 无 job push failure。"
-  },
   "pending": [],
+  "lastFailure": {
+    "kind": "non-product-no-job-workflow",
+    "workflow": "verify-major-bands-bounded-fanout-v3972_5",
+    "runId": 33133641689,
+    "jobs": 0
+  },
   "release": {
     "site": "v3.9.90.2",
     "generation": "v3990_2",
-    "revision": "r038-unified-visual-responsive-production-contract",
-    "uiVisualResponsiveVersion": "unified-visual-responsive-v001",
-    "recoveryRevision": "r039-main-tree-integrity-recovery"
+    "revision": "r039-main-tree-integrity-recovery"
   },
   "evidence": {
-    "prActionsRun": 33129444498,
-    "prActionsPullRequestRuns": 34,
-    "prActionsAllSuccess": true,
-    "previewStatic": "https://e4ab556e.gaokao-4y9.pages.dev",
-    "previewBranchFunctions": "https://fix-unified-visual-responsiv.gaokao-4y9.pages.dev",
-    "previewExpectedSha": "fab6a6459238fc1171e4fd8404bbe0ccf1c61829",
-    "previewBrowserJob": 98715892775,
-    "productionBaselineCommitSha": "6f3e24031f5db0fe1755cbeebe68413638a5be0e",
-    "productionRelease": "v3.9.90.2",
-    "productionGeneration": "v3990_2",
-    "mergedMainSha": "0e01dc4815748a4ab1290b98649edf88922bfb44",
-    "mergedVisualPreviewCheck": "https://github.com/cashen/gaokao/runs/98723313515",
-    "formalProductionObserved": "data-runtime-state=loading; new CSS absent",
-    "pagesProductionObserved": "data-runtime-state=loading; new CSS absent",
-    "rootCause": "main merge commit 0e01dc has a 10-entry tree and omits index.html, .github/workflows, _headers and most site files; the previous merge tree was assembled incompletely, so production could not receive the visual release",
-    "mainTreeSha": "cb9a5c5057a609b1bd0a971096863d4c3e5d38cd",
-    "mainTreeEntryCount": 10,
-    "completeBaselineTreeSha": "789e9fb7b0e42c9c78eaed8ebac554b17958802b",
-    "actionsForMergedMain": 29,
-    "actionsForMergedMainSuccessful": 28,
-    "knownNoJobPushFailure": "https://github.com/cashen/gaokao/actions/runs/33133641689",
-    "pr": 246,
-    "prHeadSha": "d3471ed0a3608ba8bb6b915e69363f3ba397850d",
-    "prReady": true,
-    "exactPreview": "https://715dc1fb.gaokao-4y9.pages.dev",
-    "exactPreviewSha": "d3471ed0a3608ba8bb6b915e69363f3ba397850d",
-    "exactPreviewCloudflareCheck": "https://github.com/cashen/gaokao/runs/98728611685",
-    "mergedMainShaFinal": "391442235713d074f4f0f3d49b43ad8eab08916b",
-    "mergedMainTreeFinal": "f32d6535e479b1c954a8582962f07bce3cf08b2a",
-    "mergedMainTreeEntryCountFinal": 2569,
-    "productionCloudflarePreviewOrDeploy": "https://0ab6bd1c.gaokao-4y9.pages.dev",
-    "productionCloudflareCheck": "https://github.com/cashen/gaokao/runs/98728611685",
-    "productionDomains": ["https://gaokao.powers.org.cn", "https://gaokao-4y9.pages.dev"],
-    "productionBrowserChecks": ["production-smoke", "browser-production", "native-chooser-browser", "site-runtime"],
-    "productionStaticContracts": ["v3.9.90.2", "v3990_2", "r038-unified-visual-responsive-production-contract", "active-resource-manifest-v3990_2"],
-    "recoveryGuardPolicy": "skip protected-path diff rejection only when the compared base tree has fewer than 100 recursive entries; retain rejection for complete bases"
+    "mainSha": "391442235713d074f4f0f3d49b43ad8eab08916b",
+    "mainTreeEntryCount": 2398,
+    "preIncidentTreeEntryCount": 2394,
+    "missingPreIncidentFiles": 0,
+    "changedDataPathsVsPreIncident": 0,
+    "jsonFilesValidated": 235,
+    "invalidJsonFiles": 0,
+    "productionCss": {
+      "checked": 6,
+      "httpStatus": 200,
+      "contentType": "text/css"
+    },
+    "productionStaticDataShaParity": true,
+    "staticData": {
+      "records2025": 10915,
+      "records2026": 11628,
+      "schoolIndex": 960,
+      "majorIndex": 802
+    },
+    "majorBandsHealth": {
+      "ok": true,
+      "manifestVersion": "v28",
+      "totalRecords": 13145,
+      "chunkCount": 6,
+      "chunkSum": 13145
+    },
+    "api": {
+      "runtimeHealth": "pass",
+      "majorBandsHealth": "200 JSON",
+      "majorBandsQuery": "ok",
+      "scoreEquivalence": "ok"
+    },
+    "actions": {
+      "mergeShaPushWorkflows": 29,
+      "success": 28,
+      "noJobFailure": 1,
+      "productChecksPassed": 28
+    },
+    "domains": [
+      "https://gaokao.powers.org.cn",
+      "https://gaokao-4y9.pages.dev"
+    ]
   },
   "scope": {
-    "pages": ["index.html", "ln-rank/index.html", "ln-rank/selection-pool.html", "aiplus/index.html", "tongxue/index.html", "major-path/index.html"],
-    "breakpoints": [">1100", "761-1100", "0-760", "0-380"],
-    "touchTarget": "44px",
-    "businessLogicChanged": false
-  },
-  "preservation": {
-    "originalWorktree": "untouched",
-    "knownUserFiles": [
-      ".codex/progress/ln-rank-input-clear-state-v001.json",
-      "docs/status/ln-rank-input-clear-state-v001-status.json"
-    ]
+    "businessLogicChanged": false,
+    "originalWorktree": "untouched"
   }
 }
