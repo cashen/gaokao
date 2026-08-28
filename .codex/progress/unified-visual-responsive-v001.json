@@ -20,7 +20,7 @@
     "resource-contract-registration",
     "release-changelog-sync"
   ],
-  "inProgress": "ready-after-final-head-checks",
+  "inProgress": "final-head-ci",
   "lastFailure": {
     "kind": "resolved-transient-runtime-regression",
     "step": "verify-ai-decision-workspace-v3990_2",

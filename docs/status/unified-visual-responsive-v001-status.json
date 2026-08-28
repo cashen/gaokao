@@ -41,6 +41,6 @@
     "step": "verify-ai-decision-workspace-v3990_2",
     "message": "前一轮 AI 浏览器回归因上游 /api/major-bands?region=shenyang&band=steady 与 /api/ai/turn 短时 503 两次超时；当前 HEAD fab6a6459238fc1171e4fd8404bbe0ccf1c61829 重跑成功，未放宽断言。"
   },
-  "next": "在最终 HEAD 检查通过后标记 Ready；随后再次确认精确 Preview、生产资源与正式站，合并 main，并完成合并后复核。",
+  "next": "最终 HEAD 需要重新跑完整 PR Actions；之后复核精确 Preview、生产资源与正式站，合并 main，并完成合并后复核。",
   "preservation": "原工作树未触碰；独立工作树承担本任务。"
 }
