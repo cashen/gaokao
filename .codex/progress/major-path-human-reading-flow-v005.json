@@ -4,7 +4,7 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "751da0a08026f9db8d3751383eb67ac1b4e8d35b",
+  "headSha": "a640708c2235564dab5163f9de75915f12a353b4",
   "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
@@ -27,7 +27,7 @@
     "v0.05-workflow-written",
     "v0.05-status-docs-written"
   ],
-  "inProgress": "source-contract-tests",
+  "inProgress": "source-and-browser-tests",
   "pending": [
     "source-contract-tests",
     "browser-local-tests",
@@ -37,11 +37,11 @@
     "post-merge-production"
   ],
   "lastFailure": {
-    "stage": "human-first-source-test",
-    "runId": 33151920306,
-    "reason": "human-first test retained old escaped app.v002 dynamic-import assertion",
-    "resolvedBy": "751da0a08026f9db8d3751383eb67ac1b4e8d35b"
+    "stage": "browser-local",
+    "runId": 33152049612,
+    "reason": "removing core scroll calls left two dangling els.result.; Chromium reported SyntaxError and result stayed empty",
+    "resolvedBy": "a640708c2235564dab5163f9de75915f12a353b4"
   },
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T09:10:00Z"
+  "verifiedAt": "2026-08-28T10:05:00Z"
 }
