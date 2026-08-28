@@ -13,12 +13,12 @@ const human = read('major-path/app.v005.js');
 const core = read('major-path/app-core.v005.js');
 const humanCss = read('major-path/major-path-human.v005.css');
 
-assert.match(index, /data-major-path-version="major-path-v0\.04"/);
-assert.match(index, /data-major-path-core-version="major-path-v0\.02"/);
+assert.match(index, /data-major-path-version="major-path-v0\.05"/);
+assert.match(index, /data-major-path-core-version="major-path-core-v0\.05"/);
 assert.match(index, /data-major-path-handoff-version="major-path-handoff-v0\.03"/);
-assert.match(index, /data-major-path-human-version="major-path-human-v0\.04"/);
-assert.match(index, /\/major-path\/app\.v004\.js\?v=005_0/);
-assert.match(index, /\/major-path\/major-path-human\.v004\.css\?v=005_0/);
+assert.match(index, /data-major-path-human-version="major-path-human-v0\.05"/);
+assert.match(index, /\/major-path\/app\.v005\.js\?v=005_0/);
+assert.match(index, /\/major-path\/major-path-human\.v005\.css\?v=005_0/);
 assert.doesNotMatch(index, /\/major-path\/app\.v003\.js\?v=003_0/);
 assert.doesNotMatch(index, /\/major-path\/major-path-direct\.v003\.css\?v=003_0/);
 assert.match(index, /查一个本科专业，看看它属于哪里，以后读研可以往哪些方向了解/);
@@ -26,8 +26,8 @@ assert.match(index, /看这个专业/);
 assert.match(index, /关于“相关专业”和读研方向，再说明一句/);
 assert.doesNotMatch(index, /关系图不是“平替排行榜”|本科目录硬关系|研究生升学导航|跨专业类升学交叉|不补造“1400专业类”/);
 
-assert.match(human, /major-path-human-v0\.04/);
-assert.match(human, /major-path-viewport-v0\.04/);
+assert.match(human, /major-path-human-v0\.05/);
+assert.match(human, /major-path-viewport-v0\.05/);
 assert.match(human, /await import\('\.\/app\.v002\.js\?v=002_0'\)/);
 assert.doesNotMatch(human, /app\.v003\.js/);
 assert.match(human, /本科到读研，先看这条线/);
