@@ -1,0 +1,41 @@
+name: Verify main tree integrity
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-tree-integrity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tree-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout the exact reviewed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Reject sparse or incomplete deployable trees
+        env:
+          TREE_GUARD_MODE: ${{ github.event_name == 'pull_request' && 'pull-request' || 'main' }}
+          TREE_GUARD_BASE: ${{ github.event.pull_request.base.sha || '' }}
+          TREE_GUARD_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          node tools/verify-main-tree-integrity-v001.mjs
+          "$TREE_GUARD_MODE"
+          "$TREE_GUARD_BASE"
+          "$TREE_GUARD_HEAD"
