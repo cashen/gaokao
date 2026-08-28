@@ -81,7 +81,7 @@ jobs:
           ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app-core.v005.js
           ! grep -Eq 'localStorage|sessionStorage|indexedDB|MutationObserver|scrollIntoView\s*\(' major-path/app.v005.js
           ! grep -Eq 'location\.assign\s*\(' ln-rank/js/workspace/major-path-handoff.v003.js
-      - name: Preserve v0.02 full professional truth audit
+      - name: Preserve full professional truth audit v0.05
         run: node tools/verify-major-path-v002.mjs
       - name: Verify human-first presentation and handoff boundary v0.05
         run: node tools/verify-major-path-human-v005.mjs
