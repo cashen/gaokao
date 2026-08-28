@@ -4,8 +4,8 @@
   "baseBranch": "main",
   "baseSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
   "branch": "fix/major-path-human-reading-flow-v005",
-  "headSha": "5d4e7a90463ddebf6be578037b3076fc34b97a64",
-  "pr": null,
+  "headSha": "51ee3bc226c4e675c678e52b29f86f3a573ec833",
+  "pr": 250,
   "release": {
     "site": "gaokao.powers.org.cn",
     "generation": "v3990_2",
@@ -15,11 +15,13 @@
     "live-state-reconciled",
     "branch-created",
     "source-audit",
-    "taste-review-read"
+    "taste-review-read",
+    "recovery-checkpoint-written",
+    "plan-written",
+    "draft-pr-created"
   ],
-  "inProgress": "write-plan-and-create-draft-pr",
+  "inProgress": "implement-v0.05",
   "pending": [
-    "implement-v0.05",
     "source-contract-tests",
     "browser-local-tests",
     "preview-tests",
@@ -29,5 +31,5 @@
   ],
   "lastFailure": null,
   "recovery": "On resume, re-read this file, branch ref, PR head, and workflow runs. If head changed, continue from the first incomplete item; do not repeat a successful write or test at the same SHA.",
-  "verifiedAt": "2026-08-28T00:00:00Z"
+  "verifiedAt": "2026-08-28T07:17:13Z"
 }
