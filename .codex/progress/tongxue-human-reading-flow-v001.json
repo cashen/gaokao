@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-human-reading-flow-v001",
   "baseSha": "94d2f6523eb52821ef4408a47f76785cc4140464",
-  "headSha": "1865e6c921dce043a30e2aee379004d37c033cdd",
+  "headSha": "fcf75e90e0b59fe749d9e1f32b9add74f6f18aa0",
   "status": "in_progress",
   "completed": [
     "live-state-reconciled",
@@ -14,7 +14,9 @@
     "local-browser-acceptance",
     "commit-created",
     "remote-branch-written",
-    "pr-created"
+    "pr-created",
+    "ci-failure-diagnosed",
+    "ci-failure-fixed-locally"
   ],
   "inProgress": "pr-ci-preview",
   "pending": [
@@ -22,7 +24,14 @@
     "merge-main",
     "post-merge-production-and-data-integrity-verify"
   ],
-  "lastFailure": null,
+  "lastFailure": {
+    "runId": 33146988537,
+    "jobId": 98770089178,
+    "step": "Verify Android-safe background navigation",
+    "cause": "stale test assertion expected r028-android-links while major-path/index.html now uses r040-human-reading-flow",
+    "localResolution": "updated tools/verify-ln-rank-android-background-navigation-v001.mjs and reran the contract successfully",
+    "needsRemoteVerification": true
+  },
   "releaseBaseline": {
     "site": "v3.9.90.2",
     "generation": "v3990_2",
@@ -34,10 +43,10 @@
   "pullRequest": {
     "number": 249,
     "url": "https://github.com/cashen/gaokao/pull/249",
-    "headSha": "1865e6c921dce043a30e2aee379004d37c033cdd",
+    "headSha": "fcf75e90e0b59fe749d9e1f32b9add74f6f18aa0",
     "draft": true
   },
-  "verifiedAt": "2026-08-28T06:08:36Z",
+  "verifiedAt": "2026-08-28T06:09:32Z",
   "localEvidence": {
     "browserContract": "tongxue-human-reading-flow-browser-v001",
     "devices": ["pc-1366", "pad-820", "android-390", "android-compact-360"],
