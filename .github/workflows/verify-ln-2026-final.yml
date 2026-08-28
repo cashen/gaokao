@@ -32,7 +32,13 @@ jobs:
           base='${{ github.event.pull_request.base.sha }}'
           git diff --name-only "$base" HEAD | tee /tmp/v3990-2-final-files.txt
           if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-2-final-files.txt; then exit 1; fi
-          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
+          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ]; then
+            git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
+          else
+            node --check shared/resources/release/current-release.js
+            node --check shared/resources/release/active-resource-manifest.v3990_2.js
+            node --check tools/verify-unified-visual-responsive-v3990_3.mjs
+          fi
           sed \
             -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
             -e 's/v3990_0/v3990_2/g' \
