@@ -5,9 +5,9 @@ import { createEntityAwareResolver } from '../shared/resources/schools/school-id
 import { resolveUnifiedSchoolQuery, acceptedAdmissionSchoolNames } from '../shared/resources/schools/school-query-engine.v3969_0.js';
 import { SCHOOL_QUERY_CONTRACT_VERSION, SCHOOL_QUERY_POLICY, SCHOOL_QUERY_STATUSES } from '../shared/resources/schools/school-query-contract.v3969_0.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
-import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3990_2.js';
-import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3990_2.js';
-import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3990_2.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3990_3.js';
+import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3990_3.js';
+import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3990_3.js';
 
 const json = rel => JSON.parse(fs.readFileSync(rel, 'utf8'));
 const directoryPayload = json('tongxue/data/school-search-index.20260617-v150.json');
@@ -15,13 +15,13 @@ const admissionDirectory = json('shared/resources/schools/liaoning-2026-admissio
 const baseResolver = createSchoolNameResolver(extractSchoolRecords(directoryPayload));
 const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.90.2');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.90.2');
-assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3990_2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.90.3');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.90.3');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3990_3');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
 assert.equal(CURRENT_RELEASE.schoolQueryVersion, SCHOOL_QUERY_CONTRACT_VERSION);
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3990_2');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3990_3');
 assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-contract.v3969_0.js'));
 assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-engine.v3969_0.js'));
 assert.equal(RESOURCE_EXECUTION_REGISTRY.schoolQuery.owner, '/shared/resources/schools/school-query-contract.v3969_0.js');
