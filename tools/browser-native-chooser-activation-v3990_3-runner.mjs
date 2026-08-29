@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const sourcePath = new URL('./browser-native-chooser-activation-v3990_2.mjs', import.meta.url);
-const generatedPath = new URL('./.browser-native-chooser-activation-v3990_2.generated.mjs', import.meta.url);
+const sourcePath = new URL('./browser-native-chooser-activation-v3990_3.mjs', import.meta.url);
+const generatedPath = new URL('./.browser-native-chooser-activation-v3990_3.generated.mjs', import.meta.url);
 let source = fs.readFileSync(sourcePath, 'utf8');
 source = source.replace(
   "  assert.equal(result.immediate.publishedPhase, 'ready');\n  assert.equal(result.afterFocus.phase, 'native-chooser-stabilizing');",
