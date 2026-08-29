@@ -10,7 +10,7 @@ assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePoi
 assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePointer:false,maxTouchPoints:2}),true);
 assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePointer:false,maxTouchPoints:0}),false);
 assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:false,coarsePointer:true,maxTouchPoints:5}),false);
-const app=fs.readFileSync('aiplus/app.v3990_2.js','utf8'),html=fs.readFileSync('aiplus/index.html','utf8'),render=fs.readFileSync('aiplus/render.v3992_0.js','utf8');
+const app=fs.readFileSync('aiplus/app.v3990_3.js','utf8'),html=fs.readFileSync('aiplus/index.html','utf8'),render=fs.readFileSync('aiplus/render.v3992_0.js','utf8');
 const scrollImport="from '/aiplus/conversation-scroll.v002.js?v=002_4&fdw=003_0'";
 assert.equal(app.split(scrollImport).length-1,1,'scroll policy must remain imported exactly once by the single app owner with the FDW cache transaction');
 assert.ok(app.includes('await alignCompletedTurnToQuestion(committedTurnId,sequence)'),'successful completion does not use the unified anchor path');
@@ -19,7 +19,7 @@ assert.ok(app.includes('shouldBlurComposerOnCompletion'),'touch keyboard boundar
 assert.ok(!app.includes("render();restoreViewportTransaction(viewport);updateNewAnswerNotice();els.input.value='';return"),'legacy successful restore/notice path still active');
 assert.ok(!app.includes('scrollIntoView('),'a second element scroll owner is forbidden');
 assert.ok(html.includes('data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02"'),'HTML scroll contract identity missing');
-assert.ok(html.includes('/aiplus/app.v3990_2.js?v=002_4&scroll=002_1&fdw=003_0'),'app cache key must keep the scroll subtransaction and additive FDW transaction on one entry');
+assert.ok(html.includes('/aiplus/app.v3990_3.js?v=002_4&scroll=002_1&fdw=003_0'),'app cache key must keep the scroll subtransaction and additive FDW transaction on one entry');
 assert.equal((html.match(/data-conversation-scroll-contract=/g)||[]).length,1,'HTML must expose exactly one conversation scroll contract owner');
 assert.ok(render.includes("const user=node('div','user-line');user.append(node('div','user-bubble',turn.userText||''))"),'stable completed-turn question anchor missing');
 console.log(JSON.stringify({ok:true,contract:mod.AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,checks:['single-scroll-owner-policy','success-question-anchor','running-composer-retention','success-composer-clear','touch-keyboard-blur','failure-stop-retain','topbar-safe-offset','clamped-scroll-target','fdw-cache-subtransaction']},null,2));

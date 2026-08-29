@@ -25,7 +25,7 @@ import {normalizeProjectScope,ANSWER_STATUSES,EXPERIENCE_TOPIC_LABELS} from '../
 export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v0.04';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
-const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_2','ai-workspace-contract-v3991_0','ai-workspace-contract-v3992_0',AI_WORKSPACE_CONTRACT_VERSION]);
+const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_3','ai-workspace-contract-v3991_0','ai-workspace-contract-v3992_0',AI_WORKSPACE_CONTRACT_VERSION]);
 
 function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}

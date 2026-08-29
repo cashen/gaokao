@@ -2,7 +2,7 @@
 import { runAiProvider } from './provider-router.js';
 import { BROAD_MAJOR_TERMS, MAJOR_LANGUAGE_TERMS, normalizeMajorLanguage } from './major-language-resolver.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
-import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
+import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_3.js';
 import {
   AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
   validateAgentTask, taskExecutionPolicy

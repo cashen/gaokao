@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const read=file=>fs.readFileSync(file,'utf8');
-const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_2.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_2.css'),agent=read('aiplus/agent.v3992_0.css'),feedbackLog=read('aiplus/feedback-log.v004.js'),feedbackUi=read('aiplus/feedback-log-ui.v004.js'),selectionWorkbench=read('aiplus/selection-workbench.v005.js'),decisionFocusCss=read('aiplus/decision-focus.v006.css'),decisionFocus=read('shared/ai/decision-focus.v006_1.js'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
+const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_3.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_3.css'),agent=read('aiplus/agent.v3992_0.css'),feedbackLog=read('aiplus/feedback-log.v004.js'),feedbackUi=read('aiplus/feedback-log-ui.v004.js'),selectionWorkbench=read('aiplus/selection-workbench.v005.js'),decisionFocusCss=read('aiplus/decision-focus.v006.css'),decisionFocus=read('shared/ai/decision-focus.v006_1.js'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
 
 assert.match(html,/data-ai-plus="family-advisor"/);
 assert.match(html,/data-ai-plus-assets="aiplus-assets-v002_4"/);
@@ -19,7 +19,7 @@ const feedbackUiAsset='/aiplus/feedback-log-ui.v004.js?v=004_0';
 const selectionCssAsset='/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0';
 const selectionJsAsset='/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0';
 const decisionFocusCssAsset='/aiplus/decision-focus.v006.css?v=006_0&fdw=003_0';
-const decisionFocusAppAsset='/aiplus/app.v3990_2.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0';
+const decisionFocusAppAsset='/aiplus/app.v3990_3.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0';
 assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
 assert.equal(entryAssets.filter(value=>value===feedbackCssAsset).length,1,'AIPLuS feedback Log CSS must have one additive entry owner');
 assert.equal(entryAssets.filter(value=>value===feedbackUiAsset).length,1,'AIPLuS feedback Log UI must have one additive entry owner');
@@ -43,7 +43,7 @@ assert.ok(coreEntryUrls.every(url=>url.searchParams.get('scroll')==='002_1'),`mi
 assert.ok(coreEntryUrls.every(url=>url.searchParams.get('fdw')==='003_0'),`mixed FDW cache transaction: ${coreEntryAssets.join(', ')}`);
 assert.ok(coreEntryUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='scroll'||key==='fdw'||key==='focus')),`unexpected core entry cache key: ${coreEntryAssets.join(', ')}`);
 assert.equal(coreEntryUrls.filter(url=>url.searchParams.has('focus')).length,1,'only the canonical app edge may carry the Decision Focus cache key');
-assert.equal(coreEntryUrls.find(url=>url.searchParams.has('focus'))?.pathname,'/aiplus/app.v3990_2.js','Decision Focus cache key must terminate at the canonical app entry');
+assert.equal(coreEntryUrls.find(url=>url.searchParams.has('focus'))?.pathname,'/aiplus/app.v3990_3.js','Decision Focus cache key must terminate at the canonical app entry');
 assert.equal(coreEntryUrls.find(url=>url.searchParams.has('focus'))?.searchParams.get('focus'),'006_0','Decision Focus app cache transaction drift');
 const normalizedCoreSearch=coreEntryUrls.map(value=>{const url=new URL(value.href);url.searchParams.delete('focus');return url.search;});
 assert.equal(new Set(normalizedCoreSearch).size,1,`core entry cache transaction excluding additive focus key must remain atomic: ${coreEntryAssets.join(', ')}`);
@@ -150,6 +150,6 @@ assert.match(workflow,/\$\{PREVIEW_BASE\}\/api\/ai\/school-official/);
 assert.match(workflow,/\$\{PREVIEW_BASE\}\/api\/ai\/school-history/);
 assert.match(workflow,/\$\{PREVIEW_BASE\}\/api\/ai\/turn/);
 assert.match(workflow,/\$\{PREVIEW_BASE\}\/api\/ai\/model-probe/);
-assert.doesNotMatch(workflow,/data-ai-plus="school-official-qa"|"apiVersion":"ai-health-api-v3990_2"|"semanticMode":"command-active-view-history-v3990_2"/);
+assert.doesNotMatch(workflow,/data-ai-plus="school-official-qa"|"apiVersion":"ai-health-api-v3990_3"|"semanticMode":"command-active-view-history-v3990_3"/);
 
 console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','fdw-cache-subtransaction','decision-focus-cache-subtransaction','additive-geometry-cache-owner','additive-feedback-log-owner','additive-selection-workbench-owner','additive-decision-focus-owner','feedback-log-local-only','selection-workbench-single-pool-owner','selection-workbench-exact-record-binding','decision-focus-pure-projection','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-static-functions-coherent-graph-owner']},null,2));

@@ -1,7 +1,7 @@
-import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_2.js';
+import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_3.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 
-export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
+export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_3';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
 const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_1/manifest.json';
 const MANIFEST_TTL_MS = 5 * 60 * 1000;

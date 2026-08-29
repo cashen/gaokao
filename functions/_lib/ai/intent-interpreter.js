@@ -1,7 +1,7 @@
-import { AI_INTENT_TYPES } from '../../../shared/ai/ai-workspace-contract.v3990_2.js';
+import { AI_INTENT_TYPES } from '../../../shared/ai/ai-workspace-contract.v3990_3.js';
 import { runAiProvider } from './provider-router.js';
 
-export const AI_INTENT_INTERPRETER_VERSION = 'ai-intent-interpreter-v3990_2';
+export const AI_INTENT_INTERPRETER_VERSION = 'ai-intent-interpreter-v3990_3';
 
 const REGION_PHRASES = Object.freeze([
   ['东北三省', ['ln', 'jilin', 'heilongjiang']], ['东北', ['ln', 'jilin', 'heilongjiang']],

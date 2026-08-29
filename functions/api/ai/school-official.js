@@ -1,7 +1,7 @@
 import {loadOfficialSchoolEvidence,schoolOfficialTopic,schoolOfficialTopicLabel,AI_SCHOOL_OFFICIAL_SOURCE_VERSION} from '../../_lib/ai/school-official-source.js';
 
-export const AI_SCHOOL_OFFICIAL_API_VERSION='ai-school-official-api-v3990_2';
-export const AI_SCHOOL_OFFICIAL_EDGE_CACHE_VERSION='ai-school-official-edge-cache-v3990_2';
+export const AI_SCHOOL_OFFICIAL_API_VERSION='ai-school-official-api-v3990_3';
+export const AI_SCHOOL_OFFICIAL_EDGE_CACHE_VERSION='ai-school-official-edge-cache-v3990_3';
 
 const EDGE_CACHE_TTL_SECONDS=24*60*60;
 const MODULE_CACHE_LIMIT=96;
@@ -14,7 +14,7 @@ function normalizedSchool(value=''){return clean(value,120).normalize('NFKC').re
 function cacheIdentity(school,question){return`${normalizedSchool(school)}|${schoolOfficialTopic(question)}`;}
 function moduleGet(key){const entry=MODULE_CACHE.get(key);if(!entry)return null;if(entry.expiresAt<=Date.now()){MODULE_CACHE.delete(key);return null;}MODULE_CACHE.delete(key);MODULE_CACHE.set(key,entry);return entry.payload;}
 function modulePut(key,payload){MODULE_CACHE.delete(key);MODULE_CACHE.set(key,{payload,expiresAt:Date.now()+EDGE_CACHE_TTL_SECONDS*1000});while(MODULE_CACHE.size>MODULE_CACHE_LIMIT)MODULE_CACHE.delete(MODULE_CACHE.keys().next().value);}
-function edgeCacheRequest(url,school,question){const key=new URL('/__ai-school-official-cache/v3990_2',url.origin);key.searchParams.set('school',normalizedSchool(school));key.searchParams.set('topic',schoolOfficialTopic(question));return new Request(key.toString(),{method:'GET'});}
+function edgeCacheRequest(url,school,question){const key=new URL('/__ai-school-official-cache/v3990_3',url.origin);key.searchParams.set('school',normalizedSchool(school));key.searchParams.set('topic',schoolOfficialTopic(question));return new Request(key.toString(),{method:'GET'});}
 async function edgeRead(cache,key){if(!cache)return null;try{const response=await cache.match(key);if(!response?.ok)return null;const payload=await response.json();return payload?.ok&&payload?.sourceAvailable!==false&&payload?.sourceVersion===AI_SCHOOL_OFFICIAL_SOURCE_VERSION?payload:null;}catch{return null;}}
 async function edgeWrite(cache,key,payload){if(!cache)return;try{const stored=new Response(JSON.stringify(payload),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':`public, max-age=${EDGE_CACHE_TTL_SECONDS}`}});await cache.put(key,stored);}catch{}}
 async function loadOnce(key,school,question){if(INFLIGHT.has(key))return INFLIGHT.get(key);const pending=loadOfficialSchoolEvidence({school,question}).finally(()=>INFLIGHT.delete(key));INFLIGHT.set(key,pending);return pending;}

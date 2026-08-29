@@ -66,7 +66,7 @@ try {
     await page.goto(`${baseUrl}/ln-rank/211-mainline.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.dataset.all211Runtime === 'ready');
     const navigation = testCase.viewport.width <= 767 ? await verifyMobileModuleNavigation(page, `${testCase.name}:211`) : null;
-    assert.equal(await page.getAttribute('body', 'data-release'), 'v3.9.90.2', `${testCase.name}: release`);
+    assert.equal(await page.getAttribute('body', 'data-release'), 'v3.9.90.3', `${testCase.name}: release`);
     assert.equal(await page.locator('#scoreBands [data-band]').count(), 8, `${testCase.name}: score bands`);
     assert.equal((await page.locator('#scoreBands [data-band]').first().innerText()).includes(index.scoreBands[0].label), true, `${testCase.name}: first band label`);
     assert.equal((await page.locator('#scoreBands [data-band]').last().innerText()).includes(index.scoreBands.at(-1).label), true, `${testCase.name}: last band label`);
@@ -139,4 +139,4 @@ try {
 }
 
 fs.writeFileSync(path.join(artifactDir, 'result.json'), JSON.stringify({ ok: true, cases: results, meta: index.meta, scoreBands: index.scoreBands }, null, 2));
-console.log(JSON.stringify({ ok: true, release: 'v3.9.90.2', package: 'all-211-static-v3972_0', cases: results, meta: index.meta, scoreBands: index.scoreBands }, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.90.3', package: 'all-211-static-v3972_0', cases: results, meta: index.meta, scoreBands: index.scoreBands }, null, 2));

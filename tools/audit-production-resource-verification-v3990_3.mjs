@@ -185,10 +185,10 @@ containsAll(majorBandsApi, [
   'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
   'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
   'allBandsEffectivePageLimit: input.pageLimit',
-  "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_2'",
-  "MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_2'",
-  "MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION = 'major-bands-requested-band-page-score-hints-v3990_2'",
-  "MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_2'",
+  "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_3'",
+  "MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_3'",
+  "MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION = 'major-bands-requested-band-page-score-hints-v3990_3'",
+  "MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_3'",
   'selectRequestedBandPageBucketsByScoreHints',
   'requestedBandOrderPageBucketHintStatus',
   'requestedBandOrderPageScoreHints',
@@ -202,8 +202,8 @@ containsAll(majorBandsApi, [
 
 const staticProvider = read('functions/_lib/major-bands-static-provider.js');
 containsAll(staticProvider, [
-  "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_2'",
-  "MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_2'",
+  "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_3'",
+  "MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_3'",
   'readTopLevelArrayScalars',
   'allowedIds.has(String(scalarValues.get(idIndex)',
   'majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)',

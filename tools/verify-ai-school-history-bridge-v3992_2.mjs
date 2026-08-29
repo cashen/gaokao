@@ -26,7 +26,7 @@ const SCHOOL_SHARD_RE=/^\/data\/zy2026\/chunks\/school-\d{2}\.json$/;
 const read=path=>fs.readFileSync(path,'utf8');
 const tool=read('functions/_lib/ai/tool-registry.js');
 const orchestrator=read('functions/_lib/ai/turn-orchestrator.js');
-const app=read('aiplus/app.v3990_2.js');
+const app=read('aiplus/app.v3990_3.js');
 const factBridge=read('shared/ai/ai-workspace-contract.v3992_0.js');
 const provider=read('functions/_lib/school-query-provider.v3969.js');
 const manifestLoader=read('functions/_lib/ln-rank-manifest.js');
@@ -56,7 +56,7 @@ assert.ok(orchestrator.includes('return{...fallback,semanticFrame:null')&&!orche
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/ai/school-history?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024')&&app.includes('compactSchoolHistoryFactPayload'),'browser fact bridge budget/compaction drift');
 assert.ok(app.includes('beginViewportTransaction')&&!app.includes('restoreViewportIntent'),'single viewport owner drift');
-assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_4"')&&html.includes('/aiplus/app.v3990_2.js?v=002_4'),'AIPLuS asset identity drift');
+assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_4"')&&html.includes('/aiplus/app.v3990_3.js?v=002_4'),'AIPLuS asset identity drift');
 assert.ok(app.includes('Number(payload?.error_code)===1102')&&app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
 assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000')&&app.includes('SCHOOL_HISTORY_SESSION_CACHE_MAX_ENTRIES=4'),'browser school-history cache bounds drift');
 assert.ok(app.includes('schoolHistorySessionCache.get(tool.url)')&&app.includes('putSchoolHistorySessionCache(tool,entry);return entry'),'browser session cache owner drift');
