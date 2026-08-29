@@ -6,7 +6,7 @@ const runtime = read('ln-rank/js/local-strength/local-strength-app.v3971_2.js');
 const styles = read('ln-rank/css/local-strength.v3971_2.css');
 const scorePositionStyles = read('ln-rank/css/local-strength-score-position.v3972_3.css');
 const release = read('shared/resources/release/current-release.js');
-const siteRuntime = read('shared/resources/release/site-runtime-contract.v3990_2.js');
+const siteRuntime = read('shared/resources/release/site-runtime-contract.v3990_3.js');
 const index = JSON.parse(read('ln-rank/data/local-strength/local-strength-index.v3971_2.json'));
 const rankMap = JSON.parse(read('fenxi/data/rank_2026_physics.json'));
 const audit = JSON.parse(read('ln-rank/data/local-strength/local-strength-audit.v3971_2.json'));
@@ -36,10 +36,10 @@ assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(2'), 'android 
 assert(!/\.ls-chip-row[^}]*overflow-x\s*:\s*(auto|scroll)/.test(styles), 'score bands must not horizontally scroll');
 assert(scorePositionStyles.includes('.ls-score-position-groups'), 'score position styles');
 assert(scorePositionStyles.includes('grid-template-columns:repeat(2'), 'mobile position grid');
-assert(release.includes("display: 'v3.9.90.2'"), 'current public release display');
-assert(release.includes("assetVersion: 'v3990_2'"), 'current site generation');
-assert(release.includes("assetReleaseVersion: 'v3.9.90.2'"), 'current release lineage');
-assert(release.includes("siteRuntimeGeneration: 'v3990_2'"), 'current site runtime generation');
+assert(release.includes("display: 'v3.9.90.3'"), 'current public release display');
+assert(release.includes("assetVersion: 'v3990_3'"), 'current site generation');
+assert(release.includes("assetReleaseVersion: 'v3.9.90.3'"), 'current release lineage');
+assert(release.includes("siteRuntimeGeneration: 'v3990_3'"), 'current site runtime generation');
 assert(release.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'stable static data version');
 assert(release.includes("localStrengthArchitecture: 'build-time-static-index'"), 'stable static architecture');
 assert(siteRuntime.includes("localStrengthRuntime: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3972_3'"), 'stable LocalStrength entrypoint declaration');
@@ -63,8 +63,8 @@ assert(audit.assertions.sortedDescending, 'audit order');
 assert(fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size < 800000, 'browser index size');
 
 console.log(JSON.stringify({
-  release: 'v3.9.90.2',
-  siteGeneration: 'v3990_2',
+  release: 'v3.9.90.3',
+  siteGeneration: 'v3990_3',
   pageLineage: 'v3.9.71.2',
   stablePackage: 'local-strength-static-v3971_2',
   scorePosition: 'local-strength-score-position-v3972_3',
