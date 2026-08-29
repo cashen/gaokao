@@ -4,17 +4,22 @@
   "baseBranch": "main",
   "baseSha": "bdcb83cc27722e5d1b74d68c204f775ec524c5b3",
   "branch": "feat/unified-min-score-navigation-v001",
-  "status": "plan-committed-awaiting-draft-pr",
+  "pr": 251,
+  "prUrl": "https://github.com/cashen/gaokao/pull/251",
+  "headSha": "0b14c9fe0ffd9546e426d8df4537c0472673d788",
+  "status": "draft-plan-committed",
   "completed": [
     "live-state-reconciled",
     "required-repository-skills-read",
     "latest-main-verified",
     "isolated-branch-created",
-    "detailed-plan-authored"
-  ],
-  "inProgress": "commit-plan-and-checkpoint",
-  "pending": [
+    "detailed-plan-authored",
+    "plan-commit-created",
     "draft-pr-created",
+    "recovery-protocol-recorded"
+  ],
+  "inProgress": "route-and-api-contract-audit",
+  "pending": [
     "route-and-api-contract-audit",
     "shared-navigation-contract",
     "major-path-integration",
@@ -33,6 +38,6 @@
     "generation": "v3990_2",
     "asset": "3990_2"
   },
-  "recovery": "On resume, read this checkpoint, re-read the PR head and latest main, compare the first incomplete phase, and continue from that phase. Never repeat a successful write at the same SHA. If main or PR head changed, remote state wins.",
-  "verifiedAt": "2026-08-29T00:00:00Z"
+  "recovery": "On resume, read this checkpoint, re-read PR 251 metadata, branch head, latest main and workflow runs. If main or PR head changed, remote state wins. Continue from the first pending phase and never repeat a successful write/test at the same SHA.",
+  "verifiedAt": "2026-08-29T23:00:00Z"
 }
