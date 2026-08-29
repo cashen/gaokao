@@ -188,7 +188,7 @@ try {
     assert.equal(await major.page.locator('.hero').isVisible(), false, `${testCase.name}: direct major hero visible`);
     await major.page.goto(`${baseUrl}${pathwayUrl.pathname}${pathwayUrl.search}`, { waitUntil:'domcontentloaded', timeout:60000 });
     try {
-      await major.page.waitForFunction(() => document.body.dataset.majorPathDirect === 'major-path-human-v0.04', null, { timeout:20000 });
+      await major.page.waitForFunction(() => document.body.dataset.majorPathDirect === 'major-path-human-v0.05', null, { timeout:20000 });
     } catch (error) {
       const diagnostic = await major.page.evaluate(() => ({
         url:location.href,
