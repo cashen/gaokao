@@ -26,7 +26,7 @@ assert.doesNotMatch(css, /h-screen/);
 
 for (const page of pages) {
   const html = read(page);
-  assert.match(html, /data-site-runtime-generation="v3990_2"/, `${page}: active generation`);
+  assert.match(html, /data-site-runtime-generation="v3990_3"/, `${page}: active generation`);
   assert.match(html, /data-ui-visual-responsive="unified-v001"/, `${page}: visual marker`);
   const expectedAsset = page === 'aiplus/index.html'
     ? 'unified-visual-responsive.v3990_3.css?v=002_4&scroll=002_1&fdw=003_0'
@@ -39,15 +39,15 @@ assert.match(release, /uiVisualResponsiveVersion: 'unified-visual-responsive-v00
 assert.match(release, /uiVisualResponsiveRevision: 'r038-unified-visual-responsive-production-contract'/);
 assert.match(release, /unifiedVisualResponsiveStyles: '\/shared\/ui\/shell\/unified-visual-responsive\.v3990_3\.css'/);
 
-const registry = read('shared/ui/ui-resource-registry.v3990_2.js');
+const registry = read('shared/ui/ui-resource-registry.v3990_3.js');
 assert.match(registry, /unifiedVisualResponsiveCss: stable\('\/shared\/ui\/shell\/unified-visual-responsive\.v3990_3\.css'\)/);
 assert.match(registry, /'unified-visual-responsive'/);
 
-const runtime = read('shared/resources/release/site-runtime-contract.v3990_2.js');
+const runtime = read('shared/resources/release/site-runtime-contract.v3990_3.js');
 assert.match(runtime, /unified-visual-responsive\.v3990_3\.css/);
-const cache = read('shared/resources/release/runtime-cache-contract.v3990_2.js');
+const cache = read('shared/resources/release/runtime-cache-contract.v3990_3.js');
 assert.match(cache, /unified-visual-responsive\.v3990_3\.css/);
-const manifest = read('shared/resources/release/active-resource-manifest.v3990_2.js');
+const manifest = read('shared/resources/release/active-resource-manifest.v3990_3.js');
 assert.match(manifest, /uiVisualResponsive/);
 const headers = read('_headers');
 assert.match(headers, /\/shared\/ui\/shell\/unified-visual-responsive\.v3990_3\.css\n\s+Content-Type: text\/css; charset=utf-8\n\s+Cache-Control: public, max-age=31536000, immutable/);

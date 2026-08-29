@@ -7,27 +7,27 @@ on:
     paths:
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
-      - 'functions/_lib/major-bands-rank-*.v3990_2.js'
+      - 'functions/_lib/major-bands-rank-*.v3990_3.js'
       - 'functions/_lib/major-bands-query-execution-cache.v3990_1.js'
       - 'functions/_lib/major-bands-all-bands-page-cache.v3990_1.js'
-      - 'functions/_lib/major-bands-result-order.v3990_2.js'
-      - 'functions/_lib/major-bands-response-transport.v3990_2.js'
-      - 'functions/_lib/major-filter.v3990_2.js'
+      - 'functions/_lib/major-bands-result-order.v3990_3.js'
+      - 'functions/_lib/major-bands-response-transport.v3990_3.js'
+      - 'functions/_lib/major-filter.v3990_3.js'
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
-      - 'shared/resources/release/runtime-cache-contract.v3990_2.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
+      - 'shared/resources/release/runtime-cache-contract.v3990_3.js'
       - 'shared/resources/resource-registry.js'
-      - 'shared/resources/geo/china-region-catalog.v3990_2.js'
-      - 'shared/governance/resource-execution-contract.v3990_2.js'
-      - 'shared/governance/production-resource-verification-contract.v3990_2.js'
-      - 'ln-rank/site-active-generation.v3990_2.json'
-      - 'ln-rank/js/app-runtime.v3990_2.js'
-      - 'ln-rank/js/self-check.v3990_2.js'
-      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js'
-      - 'tools/audit-major-bands-rank-kernel-v3990_2.mjs'
-      - 'tools/build-major-bands-rank-index-v3990_2.mjs'
-      - 'tools/verify-major-bands-preview-concurrency-v3990_2.mjs'
-      - 'tools/verify-major-bands-preview-concurrency-paced-v3990_2.mjs'
+      - 'shared/resources/geo/china-region-catalog.v3990_3.js'
+      - 'shared/governance/resource-execution-contract.v3990_3.js'
+      - 'shared/governance/production-resource-verification-contract.v3990_3.js'
+      - 'ln-rank/site-active-generation.v3990_3.json'
+      - 'ln-rank/js/app-runtime.v3990_3.js'
+      - 'ln-rank/js/self-check.v3990_3.js'
+      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_3.js'
+      - 'tools/audit-major-bands-rank-kernel-v3990_3.mjs'
+      - 'tools/build-major-bands-rank-index-v3990_3.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-v3990_3.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-paced-v3990_3.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
       - 'docs/plans/major-bands-bounded-fanout-gate-recovery-v001.md'
       - 'docs/status/major-bands-bounded-fanout-gate-recovery-v001-status.json'
@@ -84,30 +84,30 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           for file in \
             functions/api/major-bands.js \
             functions/_lib/major-bands-static-provider.js \
-            functions/_lib/major-bands-rank-index.v3990_2.js \
-            functions/_lib/major-bands-rank-bucket-loader.v3990_2.js \
+            functions/_lib/major-bands-rank-index.v3990_3.js \
+            functions/_lib/major-bands-rank-bucket-loader.v3990_3.js \
             functions/_lib/major-bands-query-execution-cache.v3990_1.js \
             functions/_lib/major-bands-all-bands-page-cache.v3990_1.js \
-            functions/_lib/major-bands-rank-query-kernel.v3990_2.js \
-            functions/_lib/major-bands-result-order.v3990_2.js \
-            functions/_lib/major-bands-response-transport.v3990_2.js \
-            functions/_lib/major-filter.v3990_2.js \
-            ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js \
-            tools/audit-major-bands-rank-kernel-v3990_2.mjs \
-            tools/build-major-bands-rank-index-v3990_2.mjs \
-            tools/verify-major-bands-preview-concurrency-v3990_2.mjs \
-            tools/verify-major-bands-preview-concurrency-paced-v3990_2.mjs; do
+            functions/_lib/major-bands-rank-query-kernel.v3990_3.js \
+            functions/_lib/major-bands-result-order.v3990_3.js \
+            functions/_lib/major-bands-response-transport.v3990_3.js \
+            functions/_lib/major-filter.v3990_3.js \
+            ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_3.js \
+            tools/audit-major-bands-rank-kernel-v3990_3.mjs \
+            tools/build-major-bands-rank-index-v3990_3.mjs \
+            tools/verify-major-bands-preview-concurrency-v3990_3.mjs \
+            tools/verify-major-bands-preview-concurrency-paced-v3990_3.mjs; do
             node --check "$file"
           done
-          grep -q "majorBandsQueryKernelVersion: 'major-bands-rank-query-kernel-v3990_2'" shared/resources/release/current-release.js
-          grep -q "majorBandsPaginationVersion: 'stable-full-id-snapshot-v3990_2'" shared/resources/release/current-release.js
+          grep -q "majorBandsQueryKernelVersion: 'major-bands-rank-query-kernel-v3990_3'" shared/resources/release/current-release.js
+          grep -q "majorBandsPaginationVersion: 'stable-full-id-snapshot-v3990_3'" shared/resources/release/current-release.js
           grep -q "majorBandsStableWorkerVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
-          grep -q "majorBandsRankTruthEqualsRecall: true" shared/resources/release/site-runtime-contract.v3990_2.js
-          grep -q "majorBandsStrictNextOffset: true" shared/resources/release/site-runtime-contract.v3990_2.js
-          grep -q "majorBandsHighBoundaryReturnsEmpty200: true" shared/resources/release/site-runtime-contract.v3990_2.js
-          grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_2.js
-          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_2.js
-          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_2.js
+          grep -q "majorBandsRankTruthEqualsRecall: true" shared/resources/release/site-runtime-contract.v3990_3.js
+          grep -q "majorBandsStrictNextOffset: true" shared/resources/release/site-runtime-contract.v3990_3.js
+          grep -q "majorBandsHighBoundaryReturnsEmpty200: true" shared/resources/release/site-runtime-contract.v3990_3.js
+          grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_3.js
+          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_3.js
+          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_3.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "wrangler@4.121.0" .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml
@@ -119,9 +119,9 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
             grep -q 'queue: max' "$workflow"
           done
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_1.js
-          grep -q "requestedBand && canonicalPosition.bandKey !== requestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_2.js
-          grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_2.js
-          grep -q "major-bands-pagination-snapshot-guard-v3990_2" ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js
+          grep -q "requestedBand && canonicalPosition.bandKey !== requestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_3.js
+          grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_3.js
+          grep -q "major-bands-pagination-snapshot-guard-v3990_3" ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_3.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|maxCandidates|selected\.buckets\.length > 12" functions/api/major-bands.js; then
             echo 'retired self-fanout or candidate cap returned'
             exit 1
@@ -131,29 +131,29 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
         shell: bash
         run: |
           set -euo pipefail
-          node tools/build-major-bands-rank-index-v3990_2.mjs
-          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_2.js
-          MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/major-bands-rank-kernel-v3990_2.json \
-            node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_2.mjs
+          node tools/build-major-bands-rank-index-v3990_3.mjs
+          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_3.js
+          MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/major-bands-rank-kernel-v3990_3.json \
+            node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_3.mjs
 
           for base in audit-major-bands-query-execution-cache audit-major-bands-request-band-scope verify-production-pagination-snapshot-guard; do
             src="tools/${base}-v3990_0.mjs"
-            tmp="tools/.${base}-v3990_2.generated.mjs"
-            sed -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' "$src" > "$tmp"
+            tmp="tools/.${base}-v3990_3.generated.mjs"
+            sed -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' "$src" > "$tmp"
             node --check "$tmp"
             if [ "$base" != 'verify-production-pagination-snapshot-guard' ]; then node "$tmp"; fi
             rm -f "$tmp"
           done
 
           sed \
-            -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
-            -e 's/v3990_0/v3990_2/g' \
-            -e 's/3990_0/3990_2/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_2.py
-          python3 /tmp/verify-final-release-v3990_2.py
+            -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
+            -e 's/v3990_0/v3990_3/g' \
+            -e 's/3990_0/3990_3/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
+          python3 /tmp/verify-final-release-v3990_3.py
 
       - name: Upload source audit evidence
         if: always()
@@ -162,7 +162,7 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           name: major-bands-rank-source-v3990-1
           path: |
             /tmp/v3990-1-changed-files.txt
-            /tmp/major-bands-rank-kernel-v3990_2.json
+            /tmp/major-bands-rank-kernel-v3990_3.json
           if-no-files-found: warn
           retention-days: 7
 
@@ -189,10 +189,10 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           ready=0
           for attempt in $(seq 1 60); do
             body="$(curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
-            if grep -q 'major-bands-query-execution-cache-single-heavy-v3990_2' <<<"$body" \
-              && grep -q 'major-bands-rank-bucket-loader-bounded-all-band-v3990_2' <<<"$body" \
-              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_2"' <<<"$body" \
-              && grep -q '"queryMemoryMode":"requested-band-lightweight-order-current-page-v3990_2"' <<<"$body" \
+            if grep -q 'major-bands-query-execution-cache-single-heavy-v3990_3' <<<"$body" \
+              && grep -q 'major-bands-rank-bucket-loader-bounded-all-band-v3990_3' <<<"$body" \
+              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_3"' <<<"$body" \
+              && grep -q '"queryMemoryMode":"requested-band-lightweight-order-current-page-v3990_3"' <<<"$body" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$body"; then
               ready=1
               break
@@ -207,12 +207,12 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
           PRODUCTION_RESOURCE_ATTEMPTS: '1'
           PRODUCTION_RESOURCE_WAIT_MS: '0'
-          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-local-pagination-snapshot-v3990_2.json
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-local-pagination-snapshot-v3990_3.json
         shell: bash
         run: |
           set -euo pipefail
-          tmp=tools/.verify-production-pagination-snapshot-guard-v3990_2.generated.mjs
-          sed -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > "$tmp"
+          tmp=tools/.verify-production-pagination-snapshot-guard-v3990_3.generated.mjs
+          sed -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > "$tmp"
           node "$tmp"
           rm -f "$tmp"
       - name: Verify real local concurrency levels
@@ -224,8 +224,8 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           P95_LIMIT_MS: '7000'
           P99_LIMIT_MS: '12000'
           HARD_LIMIT_MS: '20000'
-          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/major-bands-local-concurrency-v3990_2.json
-        run: node tools/verify-major-bands-preview-concurrency-v3990_2.mjs
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/major-bands-local-concurrency-v3990_3.json
+        run: node tools/verify-major-bands-preview-concurrency-v3990_3.mjs
       - name: Stop local Pages Worker
         if: always()
         run: |
@@ -236,8 +236,8 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
         with:
           name: major-bands-local-concurrency-v3990-1
           path: |
-            /tmp/major-bands-local-concurrency-v3990_2.json
-            /tmp/major-bands-local-pagination-snapshot-v3990_2.json
+            /tmp/major-bands-local-concurrency-v3990_3.json
+            /tmp/major-bands-local-pagination-snapshot-v3990_3.json
             /tmp/v3990-1-wrangler.log
           if-no-files-found: warn
           retention-days: 7
@@ -294,14 +294,14 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${EXPECTED_SHA}-${attempt}" || true)"
             all_body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&deploy=${EXPECTED_SHA}-${attempt}" || true)"
-            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_2"' <<<"$body" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_2"' <<<"$body" \
-              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_2"' <<<"$body" \
-              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_2"' <<<"$body" \
+            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_3"' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_3"' <<<"$body" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_3"' <<<"$body" \
+              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_3"' <<<"$body" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$body" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
               && grep -q '"bucketWorkerCount":0' <<<"$body" \
-              && grep -q '"allBandsSharedProjectionVersion":"major-bands-all-bands-shared-projection-v3990_2"' <<<"$all_body" \
+              && grep -q '"allBandsSharedProjectionVersion":"major-bands-all-bands-shared-projection-v3990_3"' <<<"$all_body" \
               && grep -q '"allBandsPhysicalAssetPasses":1' <<<"$all_body"; then
               ready=1
               break
@@ -316,12 +316,12 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
           PRODUCTION_RESOURCE_ATTEMPTS: '3'
           PRODUCTION_RESOURCE_WAIT_MS: '5000'
-          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-preview-pagination-snapshot-v3990_2.json
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-preview-pagination-snapshot-v3990_3.json
         shell: bash
         run: |
           set -euo pipefail
-          tmp=tools/.verify-production-pagination-snapshot-guard-v3990_2.generated.mjs
-          sed -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > "$tmp"
+          tmp=tools/.verify-production-pagination-snapshot-guard-v3990_3.generated.mjs
+          sed -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > "$tmp"
           node "$tmp"
           rm -f "$tmp"
       - name: Verify Preview real concurrency and paced exhaustive pagination
@@ -334,15 +334,15 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
           HARD_LIMIT_MS: '25000'
           POST_CONCURRENCY_RECOVERY_MS: '2000'
           PAGINATION_PACE_MS: '120'
-          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/major-bands-preview-concurrency-v3990_2.json
-        run: node tools/verify-major-bands-preview-concurrency-paced-v3990_2.mjs
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/major-bands-preview-concurrency-v3990_3.json
+        run: node tools/verify-major-bands-preview-concurrency-paced-v3990_3.mjs
       - name: Upload Preview concurrency evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: major-bands-preview-concurrency-v3990-1
           path: |
-            /tmp/major-bands-preview-concurrency-v3990_2.json
-            /tmp/major-bands-preview-pagination-snapshot-v3990_2.json
+            /tmp/major-bands-preview-concurrency-v3990_3.json
+            /tmp/major-bands-preview-pagination-snapshot-v3990_3.json
           if-no-files-found: warn
           retention-days: 7

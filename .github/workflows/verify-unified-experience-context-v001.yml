@@ -112,7 +112,7 @@ jobs:
       - name: Tongxue immutable cache identity
         run: node tools/verify-tongxue-uec-cache-identity-v001.mjs
       - name: Architecture handoff remains valid
-        run: node tools/audit-architecture-handoff-v3990_2.mjs
+        run: node tools/audit-architecture-handoff-v3990_3.mjs
       - name: Tongxue major pathway and footer source contract
         run: node tools/audit-tongxue-major-pathway-v001.mjs
       - name: Preserve protected boundaries and release exports

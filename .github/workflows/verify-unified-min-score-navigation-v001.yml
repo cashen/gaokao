@@ -1,0 +1,71 @@
+name: Verify unified minimum-score navigation v001
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'major-path/**'
+      - 'tongxue/**'
+      - 'ln-rank/**'
+      - 'shared/resources/admissions/**'
+      - 'shared/resources/majors/undergrad-graduate-pathway-view.v001.js'
+      - 'shared/resources/schools/school-resource-center.js'
+      - 'shared/ui/components/min-score-entry.v001.css'
+      - 'tools/verify-unified-min-score-navigation-v001.mjs'
+      - 'tools/browser-unified-min-score-navigation-v001.mjs'
+      - '.github/workflows/verify-unified-min-score-navigation-v001.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'major-path/**'
+      - 'tongxue/**'
+      - 'ln-rank/**'
+      - 'shared/resources/admissions/**'
+      - 'shared/resources/majors/undergrad-graduate-pathway-view.v001.js'
+      - 'shared/resources/schools/school-resource-center.js'
+      - 'shared/ui/components/min-score-entry.v001.css'
+      - 'tools/verify-unified-min-score-navigation-v001.mjs'
+      - 'tools/browser-unified-min-score-navigation-v001.mjs'
+      - '.github/workflows/verify-unified-min-score-navigation-v001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify navigation contracts and syntax
+        run: |
+          set -euo pipefail
+          node --check shared/resources/admissions/min-score-navigation.v001.js
+          node --check shared/resources/schools/school-resource-center.js
+          node --check shared/resources/majors/undergrad-graduate-pathway-view.v001.js
+          node --check major-path/app.v005.js
+          node --check tongxue/app/tongxue-runtime-result-view-v159.js
+          node --check ln-rank/js/feature/major-all/major-all-mode.v001.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js
+          node tools/verify-unified-min-score-navigation-v001.mjs
+          git diff --check
+
+  browser-journeys:
+    runs-on: ubuntu-latest
+    needs: static-contract
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Verify browser journeys
+        run: node tools/browser-unified-min-score-navigation-v001.mjs

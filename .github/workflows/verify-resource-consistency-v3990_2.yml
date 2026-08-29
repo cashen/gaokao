@@ -1,4 +1,4 @@
-name: Verify resource consistency v3990_2
+name: Verify resource consistency v3990_3
 
 on:
   pull_request:
@@ -6,16 +6,16 @@ on:
     paths:
       - 'shared/resources/**'
       - 'shared/governance/**'
-      - 'ln-rank/site-active-generation.v3990_2.json'
+      - 'ln-rank/site-active-generation.v3990_3.json'
       - 'ln-rank/kb/major-understanding/**'
-      - 'aiplus/app.v3990_2.js'
+      - 'aiplus/app.v3990_3.js'
       - 'aiplus/index.html'
       - 'index.html'
       - 'ln-rank/index.html'
       - 'ln-rank/selection-pool.html'
       - 'docs/architecture/**'
-      - 'tools/verify-resource-consistency-v3990_2.mjs'
-      - '.github/workflows/verify-resource-consistency-v3990_2.yml'
+      - 'tools/verify-resource-consistency-v3990_3.mjs'
+      - '.github/workflows/verify-resource-consistency-v3990_3.yml'
   workflow_dispatch:
 
 permissions:
@@ -38,20 +38,20 @@ jobs:
 
       - name: Check changed JavaScript syntax
         run: |
-          node --check shared/resources/release/active-resource-manifest.v3990_2.js
+          node --check shared/resources/release/active-resource-manifest.v3990_3.js
           node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/site-runtime-contract.v3990_2.js
-          node --check shared/resources/release/runtime-cache-contract.v3990_2.js
+          node --check shared/resources/release/site-runtime-contract.v3990_3.js
+          node --check shared/resources/release/runtime-cache-contract.v3990_3.js
           node --check shared/resources/resource-registry.js
-          node --check shared/governance/resource-execution-contract.v3990_2.js
-          node --check tools/verify-resource-consistency-v3990_2.mjs
+          node --check shared/governance/resource-execution-contract.v3990_3.js
+          node --check tools/verify-resource-consistency-v3990_3.mjs
 
       - name: Verify resource graph and site release identity
-        run: node tools/verify-resource-consistency-v3990_2.mjs
+        run: node tools/verify-resource-consistency-v3990_3.mjs
 
       - name: Run architecture and source audits
         run: |
-          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
           node tools/audit-human-copy-v001.mjs
           node tools/verify-major-source-profile-v001.mjs
           node tools/verify-tongxue-major-source-intro-v001.mjs

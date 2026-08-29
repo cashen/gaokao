@@ -85,7 +85,7 @@ jobs:
           if(index.scoreBands.reduce((sum,item)=>sum+item.admissionRecordCount,0)!==index.records.length) throw new Error('band coverage');
           if(fs.statSync(file).size>3500000) throw new Error('browser index too large');
           const release=fs.readFileSync('shared/resources/release/current-release.js','utf8');
-          if(!release.includes("display: 'v3.9.90.2'")) throw new Error('site release display');
+          if(!release.includes("display: 'v3.9.90.3'")) throw new Error('site release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
           const page=fs.readFileSync('ln-rank/211-mainline.html','utf8');
           if(!page.includes('data-release="v3.9.90.0"')) throw new Error('211 stable page release');
@@ -96,7 +96,7 @@ jobs:
           const fetcher=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
           if(!health.includes("maximumProbeChunks: 1")||!health.includes("fullDatasetScan: false")) throw new Error('bounded health probe contract');
           if(!fetcher.includes('Large admission chunks are deliberately request-scoped')) throw new Error('request-scoped chunk contract');
-          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size,siteRelease:'v3.9.90.2',pageRelease:'v3.9.90.0',package:index.version},null,2));
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size,siteRelease:'v3.9.90.3',pageRelease:'v3.9.90.0',package:index.version},null,2));
           NODE
       - name: Upload assembly evidence
         if: always()

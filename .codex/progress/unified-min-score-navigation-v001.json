@@ -6,8 +6,8 @@
   "branch": "feat/unified-min-score-navigation-v001",
   "pr": 251,
   "prUrl": "https://github.com/cashen/gaokao/pull/251",
-  "headSha": "0b14c9fe0ffd9546e426d8df4537c0472673d788",
-  "status": "draft-plan-committed",
+  "headSha": "1dbd8b15cd4ababa77ba9ce29cd71cf4b9081b35",
+  "status": "implementation-committed",
   "completed": [
     "live-state-reconciled",
     "required-repository-skills-read",
@@ -16,18 +16,19 @@
     "detailed-plan-authored",
     "plan-commit-created",
     "draft-pr-created",
-    "recovery-protocol-recorded"
-  ],
-  "inProgress": "route-and-api-contract-audit",
-  "pending": [
+    "recovery-protocol-recorded",
     "route-and-api-contract-audit",
     "shared-navigation-contract",
     "major-path-integration",
     "tongxue-school-integration",
     "tongxue-major-integration",
     "ln-rank-context-polish",
-    "responsive-browser-tests",
-    "release-v3990_3",
+    "friendly-no-record-state-added",
+    "release-v3990_3-local-audit",
+    "implementation-committed"
+  ],
+  "inProgress": "responsive-browser-tests",
+  "pending": [
     "exact-head-preview",
     "ready-same-sha",
     "merge-main",
@@ -37,6 +38,11 @@
     "publicVersion": "v3.9.90.2",
     "generation": "v3990_2",
     "asset": "3990_2"
+  },
+  "targetRelease": {
+    "publicVersion": "v3.9.90.3",
+    "generation": "v3990_3",
+    "asset": "3990_3"
   },
   "recovery": "On resume, read this checkpoint, re-read PR 251 metadata, branch head, latest main and workflow runs. If main or PR head changed, remote state wins. Continue from the first pending phase and never repeat a successful write/test at the same SHA.",
   "verifiedAt": "2026-08-29T23:00:00Z"

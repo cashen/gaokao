@@ -48,16 +48,16 @@ UI 中可以使用“查最低分”，结果页必须说明“2026 辽宁物理
 
 ### 3.2 统一导航契约
 
-新增一个共享的最低分导航契约/纯构建模块，具体路径以当前共享资源结构和 release manifest 审计结果为准，候选路径：
+新增一个共享的最低分导航契约/纯构建模块：
 
-`shared/resources/admissions/admission-navigation.v001.js`
+`shared/resources/admissions/min-score-navigation.v001.js`
 
 逻辑接口至少覆盖：
 
 - `buildMajorMinScoreHref()`
 - `buildSchoolMinScoreHref()`
-- `buildAdmissionEntryModel()`
-- `sanitizeAdmissionReturnTarget()`
+- `buildMinScoreEntryModel()`
+- `sanitizeMinScoreReturnTarget()`
 
 该模块只生成链接和用户可见入口模型，不发起网络请求，不拥有业务数据。
 
@@ -88,6 +88,16 @@ UI 中可以使用“查最低分”，结果页必须说明“2026 辽宁物理
 - `/ln-rank/`
 
 外部 `returnTo` 必须被拒绝并回退到安全默认路径。
+
+### 3.5 无辽宁记录时的产品语义
+
+“查不到最低分记录”不能直接等同于“没有招生”或“学校/专业不存在”。统一空状态必须告诉用户：
+
+- 当前筛选条件下没有可核验的辽宁最低投档分记录；
+- 可能是该专业/学校在 2026 年辽宁物理类没有对应投档记录，也可能是地区、学校、专业关键词或项目条件过窄；
+- 下一步可以减少关键词、清空方向或放宽筛选后重查。
+
+专业入口和学校入口使用同一视觉组件；专业无记录与学校无记录分别使用具体标题，避免制造确定性判断。
 
 ## 4. 用户路径与目标行为
 
@@ -231,6 +241,7 @@ UI 中可以使用“查最低分”，结果页必须说明“2026 辽宁物理
 - 专业 URL 不得误用 school-all。
 - 学校 URL 不得误用 major-all。
 - 入口不得在页面内部重复调用最低分 API。
+- 无记录状态必须同时覆盖专业和学校，并包含友好的原因边界和可执行的放宽筛选建议。
 - 人类文案审计必须通过。
 - 架构 handoff 审计必须通过。
 - main tree integrity 审计必须通过。

@@ -10,6 +10,7 @@ import {
 } from './tongxue-runtime-utils-v159.js?v=159';
 import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0&r=r040-human-reading-flow';
 import { summarizeDecisionContext } from '../../shared/decision-context/decision-context.v001.js';
+import { buildMinScoreEntryModel } from '../../shared/resources/admissions/min-score-navigation.v001.js';
 
 const PAGE_VERSION = 'v1.5.9-uec01-evidence02';
 const PATHWAY_VIEW_VERSION = UNDERGRAD_GRADUATE_PATHWAY_VIEW_META.version;
@@ -22,6 +23,20 @@ const TOPIC_LABELS = Object.freeze({
 });
 
 export function createTongxueResultView(ui, state, searchView) {
+  function minScoreEntry({ kind, school = '', entityId = '', major = {}, returnTo = '/tongxue/' } = {}) {
+    const model = buildMinScoreEntryModel({
+      kind,
+      school,
+      entityId,
+      majorCode: major.code || '',
+      majorName: major.name || '',
+      returnTo,
+      sourceSurface: `tongxue-${kind}`
+    });
+    if (!model.href) return '';
+    return `<section class="min-score-entry" data-min-score-entry="${attr(kind)}"><p class="min-score-entry__eyebrow">继续查辽宁最低分</p><p class="min-score-entry__description">${html(model.description)}</p><a class="min-score-entry__link" href="${attr(model.href)}">${html(model.label)}</a></section>`;
+  }
+
   function renderResult(data, school, resolution) {
     if (['major_reviews','topic_reviews'].includes(data.mode)) renderReviews(data, school, resolution);
     else if (['topic_no_content','topic_not_found_within_budget'].includes(data.mode)) renderTopicState(data, school, resolution);
@@ -64,7 +79,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const evidenceExplanation = studentEvidence.length
       ? `<div class="review-intro" data-summary-evidence-explanation><strong>这些概括从哪来？</strong>下面列出本次参考的 ${studentEvidence.length} 条学生留言，尽量覆盖不同话题、具体细节和较新的内容。每个人经历不同，最好结合原留言一起看。</div><div class="section-heading">几条有代表性的学生留言</div><div class="review-grid" data-student-evidence-grid>${evidenceCards}</div>`
       : '<div class="review-intro" data-summary-evidence-empty><strong>这些概括从哪来？</strong>这次有可用的概括，但暂时没拿到能对应展示的原留言。这里不补写。</div>';
-    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">学校公开体验</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}<div class="divider"></div><div class="section-heading">先看这两件事</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整概括</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容整理自学生公开留言，只代表部分评论者在特定时间、专业和校区的个人经历，不是学校官方结论，也不参与录取或推荐排序。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(meta, data, source, data.evidence)}</article>`);
+    searchView.commit('success', `<article class="result-shell"${entityData(actual)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(actual)}</h2><span class="badge">学校公开体验</span></div><div class="meta">${metaChips(meta, data, resolution, actual)}${entityChips(actual)}${evidenceChips(data.evidence)}</div>${entityNote(actual)}${minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="divider"></div><div class="section-heading">先看这两件事</div><div class="summary-grid">${cards}</div><details class="raw-summary"><summary>查看完整概括</summary><div class="raw-summary-text">${html(tidySummary(data.summary))}</div></details><div class="divider"></div>${evidenceExplanation}<div class="source-note">内容整理自学生公开留言，只代表部分评论者在特定时间、专业和校区的个人经历，不是学校官方结论，也不参与录取或推荐排序。</div><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(meta, data, source, data.evidence)}</article>`);
     searchView.focusResult();
   }
 
@@ -104,7 +119,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const intro = active.mode === 'topic_reviews'
       ? `<div class="review-intro"><strong>先看相关留言</strong>${html(topicLabel(active.topic))}：${html(sampleSentence(active.evidence, active.reviews.length))}</div>`
       : '<div class="review-intro"><strong>先看学生怎么说</strong>现有留言还不够支持一段稳妥的概括，下面直接列出原留言。</div>';
-    searchView.commit('success', `<article class="result-shell"${entityData(active.school)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(active.school)}</h2><span class="badge review">大学生怎么说</span></div><div class="meta">${metaChips(active.schoolMeta, data, active.resolution, active.school)}${entityChips(active.school)}${evidenceChips(active.evidence)}</div>${entityNote(active.school)}<div class="divider"></div>${intro}<div class="section-heading">${html(active.mode === 'topic_reviews' ? '与这个问题直接相关的学生留言' : '学生留言')}</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些是学生个人经历，不是学校官方事实。来源站的认证标记只说明账号状态，不参与排序或推荐；不同学生的感受可能相反。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(active.schoolMeta, data, active.source, active.evidence)}</article>`);
+    searchView.commit('success', `<article class="result-shell"${entityData(active.school)}><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(active.school)}</h2><span class="badge review">大学生怎么说</span></div><div class="meta">${metaChips(active.schoolMeta, data, active.resolution, active.school)}${entityChips(active.school)}${evidenceChips(active.evidence)}</div>${entityNote(active.school)}${minScoreEntry({ kind:'school', school:active.school, entityId:active.entityId || active.resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="divider"></div>${intro}<div class="section-heading">${html(active.mode === 'topic_reviews' ? '与这个问题直接相关的学生留言' : '学生留言')}</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些是学生个人经历，不是学校官方事实。来源站的认证标记只说明账号状态，不参与排序或推荐；不同学生的感受可能相反。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看更多留言 →</a>${technical(active.schoolMeta, data, active.source, active.evidence)}</article>`);
     searchView.focusResult();
   }
 
@@ -212,7 +227,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const major = data.major || { code:state.currentMajorCode || '', name:actual };
     const shell = isMajor ? `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}">${majorSourceIntroShell(major)}<div class="divider"></div>` : '';
     const close = isMajor ? '</article>' : '';
-    searchView.commit('empty', `${shell}<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
+    searchView.commit('empty', `${shell}<div class="state-card notice" data-student-voice-scope="${attr(isMajor ? 'major' : 'school')}"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div>${isMajor ? '' : minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a></div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
     searchView.focusResult();
     if (isMajor) mountMajorSourceIntro(major);
   }
@@ -229,7 +244,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const major = data.major || { code:state.currentMajorCode || '', name:actual };
     const shell = isMajor ? `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}">${majorSourceIntroShell(major)}<div class="divider"></div>` : '';
     const close = isMajor ? '</article>' : '';
-    searchView.commit('empty', `${shell}<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后再试</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
+    searchView.commit('empty', `${shell}<div class="state-card notice"><h2 id="resultTitle" tabindex="-1">${html(title)}</h2><p>${html(body)}</p><div class="state-meta">${isMajor && major.code ? `<span class="meta-chip resolve">${html(major.name)} · ${html(major.code)}</span>` : `${resolutionChip(resolution, actual)}${stateMeta(data.schoolMeta || {})}`}${evidenceChips(data.evidence)}</div>${isMajor ? '' : minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>稍后再试</button>'}</div>${technical(data.schoolMeta || {}, data, source, data.evidence, major)}</div>${close}`);
     searchView.focusResult();
     if (isMajor) mountMajorSourceIntro(major);
   }
@@ -245,7 +260,7 @@ export function createTongxueResultView(ui, state, searchView) {
       ? '来源站暂时没有这所学校的独立记录。'
       : (isMajor ? '专业名称已经确认，但学生评价来源现在连接不稳定或没有对应记录。' : '学校名称已经确认，但学生评价来源现在连接不稳定。');
     if (code === 'school_major_source_binding_unavailable') message = '当前专业留言没有学校身份信息，所以不能把不同学校的留言当成这所学校的专业体验。';
-    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时看不了大学生评价</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div><div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
+    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时看不了大学生评价</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div>${isMajor ? '' : minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
     searchView.focusResult();
   }
 

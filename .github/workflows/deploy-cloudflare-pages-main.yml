@@ -9,14 +9,14 @@ on:
     paths:
       - '.github/workflows/deploy-cloudflare-pages-main.yml'
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/cloudflare-git-deployment.v3990_2.json'
-      - 'shared/governance/production-resource-verification-contract.v3990_2.js'
-      - 'tools/audit-canonical-release-version-v3990_2.mjs'
-      - 'tools/audit-cloudflare-git-production-v3990_2.mjs'
-      - 'tools/audit-production-resource-verification-v3990_2.mjs'
-      - 'tools/audit-site-runtime-generation-v3990_2.mjs'
+      - 'shared/resources/release/cloudflare-git-deployment.v3990_3.json'
+      - 'shared/governance/production-resource-verification-contract.v3990_3.js'
+      - 'tools/audit-canonical-release-version-v3990_3.mjs'
+      - 'tools/audit-cloudflare-git-production-v3990_3.mjs'
+      - 'tools/audit-production-resource-verification-v3990_3.mjs'
+      - 'tools/audit-site-runtime-generation-v3990_3.mjs'
       - 'tools/verify-cloudflare-git-production-v3990_0.mjs'
-      - 'tools/verify-production-resource-graph-v3990_2.mjs'
+      - 'tools/verify-production-resource-graph-v3990_3.mjs'
       - 'tools/verify-production-baseline-v3971.mjs'
       - 'functions/api/major-bands.js'
       - 'functions/api/major-bands-health.js'
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify deployable v3.9.90.2 source and production contracts
+      - name: Verify deployable v3.9.90.3 source and production contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -55,11 +55,11 @@ jobs:
           test "$(git rev-parse HEAD)" = "$expected_sha"
           test -f 404.html
           grep -q '页面不存在' 404.html
-          grep -q "display: 'v3.9.90.2'" shared/resources/release/current-release.js
-          grep -q "siteRuntimeGeneration: 'v3990_2'" shared/resources/release/current-release.js
-          grep -q "sharedResourceGraphVersion: 'site-resource-graph-v3990_2'" shared/resources/release/current-release.js
-          grep -q 'cloudflare-pages-git-production-identity-v3990_2' shared/resources/release/cloudflare-git-deployment.v3990_2.json
-          grep -q 'exact-github-sha-check-plus-immutable-preview-and-production-artifact-equivalence' shared/resources/release/cloudflare-git-deployment.v3990_2.json
+          grep -q "display: 'v3.9.90.3'" shared/resources/release/current-release.js
+          grep -q "siteRuntimeGeneration: 'v3990_3'" shared/resources/release/current-release.js
+          grep -q "sharedResourceGraphVersion: 'site-resource-graph-v3990_3'" shared/resources/release/current-release.js
+          grep -q 'cloudflare-pages-git-production-identity-v3990_3' shared/resources/release/cloudflare-git-deployment.v3990_3.json
+          grep -q 'exact-github-sha-check-plus-immutable-preview-and-production-artifact-equivalence' shared/resources/release/cloudflare-git-deployment.v3990_3.json
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           test ! -e functions/api/local-strength.js
@@ -68,31 +68,31 @@ jobs:
             functions/api/major-bands.js \
             functions/api/major-bands-health.js \
             functions/_lib/major-bands-static-provider.js \
-            functions/_lib/major-bands-rank-bucket-loader.v3990_2.js \
-            functions/_lib/major-bands-rank-query-kernel.v3990_2.js \
+            functions/_lib/major-bands-rank-bucket-loader.v3990_3.js \
+            functions/_lib/major-bands-rank-query-kernel.v3990_3.js \
             functions/_lib/major-bands-query-execution-cache.v3990_1.js \
-            tools/audit-canonical-release-version-v3990_2.mjs \
-            tools/audit-cloudflare-git-production-v3990_2.mjs \
-            tools/audit-production-resource-verification-v3990_2.mjs \
-            tools/audit-site-runtime-generation-v3990_2.mjs \
+            tools/audit-canonical-release-version-v3990_3.mjs \
+            tools/audit-cloudflare-git-production-v3990_3.mjs \
+            tools/audit-production-resource-verification-v3990_3.mjs \
+            tools/audit-site-runtime-generation-v3990_3.mjs \
             tools/verify-cloudflare-git-production-v3990_0.mjs \
-            tools/verify-production-resource-graph-v3990_2.mjs \
+            tools/verify-production-resource-graph-v3990_3.mjs \
             tools/verify-production-baseline-v3971.mjs; do
             node --check "$file"
           done
-          node tools/audit-canonical-release-version-v3990_2.mjs
-          node tools/audit-site-runtime-generation-v3990_2.mjs
-          node tools/audit-production-resource-verification-v3990_2.mjs
-          node tools/audit-cloudflare-git-production-v3990_2.mjs
+          node tools/audit-canonical-release-version-v3990_3.mjs
+          node tools/audit-site-runtime-generation-v3990_3.mjs
+          node tools/audit-production-resource-verification-v3990_3.mjs
+          node tools/audit-cloudflare-git-production-v3990_3.mjs
 
-          # Keep one maintained exact-SHA verifier algorithm. The v3990_2 release
+          # Keep one maintained exact-SHA verifier algorithm. The v3990_3 release
           # maps only its release/generation marker strings at execution time.
           sed \
-            -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
-            -e 's/v3990_0/v3990_2/g' \
-            -e 's/3990_0/3990_2/g' \
-            tools/verify-cloudflare-git-production-v3990_0.mjs > /tmp/verify-cloudflare-git-production-v3990_2.mjs
-          node --check /tmp/verify-cloudflare-git-production-v3990_2.mjs
+            -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
+            -e 's/v3990_0/v3990_3/g' \
+            -e 's/3990_0/3990_3/g' \
+            tools/verify-cloudflare-git-production-v3990_0.mjs > /tmp/verify-cloudflare-git-production-v3990_3.mjs
+          node --check /tmp/verify-cloudflare-git-production-v3990_3.mjs
 
   deploy-production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -105,7 +105,7 @@ jobs:
       CUSTOM_BASE: https://gaokao.powers.org.cn
       RELEASE_SHA: ${{ github.sha }}
       VERIFY_MAJOR_BANDS: 'true'
-      EXPECTED_RELEASE: v3.9.90.2
+      EXPECTED_RELEASE: v3.9.90.3
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,11 +125,11 @@ jobs:
         run: |
           set -euo pipefail
           sed \
-            -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
-            -e 's/v3990_0/v3990_2/g' \
-            -e 's/3990_0/3990_2/g' \
-            tools/verify-cloudflare-git-production-v3990_0.mjs > /tmp/verify-cloudflare-git-production-v3990_2.mjs
-          node --check /tmp/verify-cloudflare-git-production-v3990_2.mjs
+            -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
+            -e 's/v3990_0/v3990_3/g' \
+            -e 's/3990_0/3990_3/g' \
+            tools/verify-cloudflare-git-production-v3990_0.mjs > /tmp/verify-cloudflare-git-production-v3990_3.mjs
+          node --check /tmp/verify-cloudflare-git-production-v3990_3.mjs
       - name: Wait for exact Cloudflare Git production deployment
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -138,16 +138,16 @@ jobs:
           CLOUDFLARE_GIT_DEPLOYMENT_EVIDENCE: /tmp/cloudflare-pages-v3990-1-git-deployment.json
         run: |
           set -euo pipefail
-          node /tmp/verify-cloudflare-git-production-v3990_2.mjs \
+          node /tmp/verify-cloudflare-git-production-v3990_3.mjs \
             2>&1 | tee /tmp/cloudflare-pages-v3990-1-git-deployment.out
-      - name: Verify exact v3.9.90.2 production resource graph and API baseline
+      - name: Verify exact v3.9.90.3 production resource graph and API baseline
         env:
           PRODUCTION_RESOURCE_ATTEMPTS: '45'
           PRODUCTION_RESOURCE_WAIT_MS: '10000'
           PRODUCTION_RESOURCE_EVIDENCE: /tmp/cloudflare-pages-v3990-1-resource-graph.json
         run: |
           set -euo pipefail
-          node tools/verify-production-resource-graph-v3990_2.mjs \
+          node tools/verify-production-resource-graph-v3990_3.mjs \
             2>&1 | tee /tmp/cloudflare-pages-v3990-1-production.out
           PRODUCTION_VERIFY_ATTEMPTS='1' \
           PRODUCTION_VERIFY_WAIT_MS='0' \

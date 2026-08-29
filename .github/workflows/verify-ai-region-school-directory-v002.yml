@@ -8,7 +8,7 @@ on:
       - 'functions/_lib/ai/**'
       - 'functions/api/ai/major-history.js'
       - 'tools/verify-ai-region-school-directory-v002.mjs'
-      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_3.mjs'
       - 'tools/verify-ai-major-region-history-v3992_3.mjs'
       - 'tongxue/data/school-name-resolver-v150.js'
       - 'tongxue/data/school-search-index.20260617-v150.json'
@@ -19,7 +19,7 @@ on:
       - 'functions/_lib/ai/**'
       - 'functions/api/ai/major-history.js'
       - 'tools/verify-ai-region-school-directory-v002.mjs'
-      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_3.mjs'
       - 'tools/verify-ai-major-region-history-v3992_3.mjs'
       - 'tongxue/data/school-name-resolver-v150.js'
       - 'tongxue/data/school-search-index.20260617-v150.json'
@@ -68,13 +68,13 @@ jobs:
           node --check functions/api/ai/major-history.js
           node --check tools/verify-ai-region-school-directory-v002.mjs
           node tools/verify-ai-region-school-directory-v002.mjs
-          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_3.mjs
           node tools/verify-ai-major-region-history-v3992_3.mjs
-          node tools/verify-ai-workspace-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_3.mjs
           node tools/verify-aiplus-v002-contract.mjs
           node tools/audit-aiplus-v002-ui.mjs
-          node tools/audit-architecture-handoff-v3990_2.mjs
-          node tools/audit-site-runtime-generation-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
+          node tools/audit-site-runtime-generation-v3990_3.mjs
 
   preview-contract:
     if: github.event_name == 'pull_request'

@@ -1,4 +1,4 @@
-name: Verify Tongxue release identity v3990_2
+name: Verify Tongxue release identity v3990_3
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - 'tongxue/app/**'
       - 'shared/resources/release/**'
       - 'tools/verify-tongxue-release-identity-v002.mjs'
-      - '.github/workflows/verify-tongxue-release-identity-v3990_2.yml'
+      - '.github/workflows/verify-tongxue-release-identity-v3990_3.yml'
   workflow_dispatch:
 
 permissions:
@@ -32,11 +32,11 @@ jobs:
           set -euo pipefail
           node --check tools/verify-tongxue-release-identity-v002.mjs
           node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/site-runtime-contract.v3990_2.js
+          node --check shared/resources/release/site-runtime-contract.v3990_3.js
           node --check tongxue/app/tongxue-runtime-v159-r3968.js
           node --check tongxue/app/tongxue-runtime-controller-v159.js
           node tools/verify-tongxue-release-identity-v002.mjs
-          node tools/audit-canonical-release-version-v3990_2.mjs
+          node tools/audit-canonical-release-version-v3990_3.mjs
 
       - name: Check protected paths and diff
         run: |

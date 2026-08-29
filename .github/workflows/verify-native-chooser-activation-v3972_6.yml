@@ -36,18 +36,18 @@ jobs:
             git diff --name-only "$base" HEAD | tee /tmp/v3990-1-native-files.txt
             if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-native-files.txt; then exit 1; fi
           fi
-          node --check shared/ui/interaction/interaction-transaction.v3990_2.js
+          node --check shared/ui/interaction/interaction-transaction.v3990_3.js
           node --check ln-rank/js/navigation/background-link-canonicalizer.v001.js
           node --check shared/resources/background/academic-background-navigation.v002.js
-          node --check tools/browser-native-chooser-activation-v3990_2.mjs
-          node --check tools/browser-native-chooser-activation-v3990_2-runner.mjs
-          node --check tools/browser-resource-execution-v3990_2.mjs
-          node --check tools/browser-family-action-v3990_2.mjs
-          node --check tools/browser-school-query-v3990_2.mjs
-          grep -q "interaction-transaction-v3990_2" shared/ui/interaction/interaction-transaction.v3990_2.js
-          grep -q "nativeChooserActivationVersion: 'native-chooser-activation-integrity-v3990_2'" shared/resources/release/current-release.js
-          grep -q "nativeChooserActivation: '/shared/ui/interaction/interaction-transaction.v3990_2.js'" shared/resources/release/site-runtime-contract.v3990_2.js
-          if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_2.js; then exit 1; fi
+          node --check tools/browser-native-chooser-activation-v3990_3.mjs
+          node --check tools/browser-native-chooser-activation-v3990_3-runner.mjs
+          node --check tools/browser-resource-execution-v3990_3.mjs
+          node --check tools/browser-family-action-v3990_3.mjs
+          node --check tools/browser-school-query-v3990_3.mjs
+          grep -q "interaction-transaction-v3990_3" shared/ui/interaction/interaction-transaction.v3990_3.js
+          grep -q "nativeChooserActivationVersion: 'native-chooser-activation-integrity-v3990_3'" shared/resources/release/current-release.js
+          grep -q "nativeChooserActivation: '/shared/ui/interaction/interaction-transaction.v3990_3.js'" shared/resources/release/site-runtime-contract.v3990_3.js
+          if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_3.js; then exit 1; fi
 
       - name: Install verified Chromium journey runner
         run: bash .github/scripts/install-playwright-chromium.sh
@@ -64,8 +64,8 @@ jobs:
             sleep 0.25
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-native-http.log; exit 1; fi
-          V3990_2_ARTIFACT_DIR=/tmp/v3990-1-native-browser \
-            node tools/browser-native-chooser-activation-v3990_2-runner.mjs 2>&1 | tee /tmp/v3990-1-native-browser.out
+          V3990_3_ARTIFACT_DIR=/tmp/v3990-1-native-browser \
+            node tools/browser-native-chooser-activation-v3990_3-runner.mjs 2>&1 | tee /tmp/v3990-1-native-browser.out
 
       - name: Verify preserved PC Pad Android main journey
         run: |
@@ -80,7 +80,7 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-main-http.log; exit 1; fi
           V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-main \
-            node tools/browser-resource-execution-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-main.out
+            node tools/browser-resource-execution-v3990_3.mjs 2>&1 | tee /tmp/v3990-1-browser-main.out
 
       - name: Verify family action geometry
         run: |
@@ -95,7 +95,7 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-family-http.log; exit 1; fi
           V3970_ARTIFACT_DIR=/tmp/v3990-1-browser-family \
-            node tools/browser-family-action-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-family.out
+            node tools/browser-family-action-v3990_3.mjs 2>&1 | tee /tmp/v3990-1-browser-family.out
 
       - name: Verify school ambiguity and mode switching
         run: |
@@ -110,7 +110,7 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-school-http.log; exit 1; fi
           V3969_ARTIFACT_DIR=/tmp/v3990-1-browser-school \
-            node tools/browser-school-query-v3990_2.mjs 2>&1 | tee /tmp/v3990-1-browser-school.out
+            node tools/browser-school-query-v3990_3.mjs 2>&1 | tee /tmp/v3990-1-browser-school.out
 
       - name: Verify preserved 211 and LocalStrength journeys
         run: |

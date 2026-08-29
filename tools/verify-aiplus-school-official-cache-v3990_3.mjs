@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const source=fs.readFileSync('functions/api/ai/school-official.js','utf8');
+assert.ok(source.includes("AI_SCHOOL_OFFICIAL_EDGE_CACHE_VERSION='ai-school-official-edge-cache-v3990_3'"));
+assert.ok(source.includes('const EDGE_CACHE_TTL_SECONDS=24*60*60'));
+assert.ok(source.includes('const MODULE_CACHE_LIMIT=96'));
+assert.ok(source.includes('const INFLIGHT=new Map()'));
+assert.ok(source.includes("globalThis.caches?.default||null"));
+assert.ok(source.includes("key.searchParams.set('topic',schoolOfficialTopic(question))"));
+assert.ok(source.includes("x-ai-school-official-cache"));
+assert.ok(source.includes('payload?.sourceAvailable!==false'));
+assert.ok(source.includes('payload?.sourceVersion===AI_SCHOOL_OFFICIAL_SOURCE_VERSION'));
+assert.ok(source.includes('sourceAvailable:false'));
+assert.ok(source.includes("coverage:'official_source_unavailable'"));
+assert.ok(source.includes("'miss-unavailable'"));
+assert.ok(source.includes('不把第三方读取失败升级为整轮 AI 失败'));
+assert.ok(source.includes('不让模型补写')||source.includes('不会用模型补写'));
+assert.equal(source.includes("return json({ok:false,code:'official_source_unavailable'"),false);
+assert.equal(source.includes('runAiProvider'),false);
+assert.equal(source.includes('env.AI'),false);
+console.log(JSON.stringify({ok:true,version:'ai-school-official-edge-cache-v3990_3',checks:['24h-edge-cache','bounded-module-cache','inflight-dedupe','topic-keyed-public-facts','success-only-cache','source-unavailable-is-structured-result','model-isolation','fail-closed']},null,2));

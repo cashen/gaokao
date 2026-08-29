@@ -29,13 +29,13 @@ jobs:
           node-version: '22'
 
       - name: Verify handoff and ownership boundaries
-        run: node tools/audit-architecture-handoff-v3990_2.mjs
+        run: node tools/audit-architecture-handoff-v3990_3.mjs
 
       - name: Re-run current site runtime ownership audit
-        run: node tools/audit-site-runtime-generation-v3990_2.mjs
+        run: node tools/audit-site-runtime-generation-v3990_3.mjs
 
       - name: Re-run AIPLuS product/UI ownership audit
         run: node tools/audit-aiplus-v002-ui.mjs
 
       - name: Re-run Cloudflare production ownership audit
-        run: node tools/audit-cloudflare-git-production-v3990_2.mjs
+        run: node tools/audit-cloudflare-git-production-v3990_3.mjs
