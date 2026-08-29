@@ -6,8 +6,8 @@
   "branch": "feat/unified-min-score-navigation-v001",
   "pr": 251,
   "prUrl": "https://github.com/cashen/gaokao/pull/251",
-  "headSha": "1dbd8b15cd4ababa77ba9ce29cd71cf4b9081b35",
-  "status": "implementation-committed",
+  "headSha": "03f3995e34385ed180567413704003fa587e0dc2",
+  "status": "remote-implementation-synced",
   "completed": [
     "live-state-reconciled",
     "required-repository-skills-read",
@@ -25,7 +25,8 @@
     "ln-rank-context-polish",
     "friendly-no-record-state-added",
     "release-v3990_3-local-audit",
-    "implementation-committed"
+    "implementation-committed",
+    "remote-implementation-synced"
   ],
   "inProgress": "responsive-browser-tests",
   "pending": [
