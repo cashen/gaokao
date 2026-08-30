@@ -65,6 +65,29 @@ function isNativeChooser(control) {
   return ['date', 'datetime-local', 'month', 'time', 'week', 'color', 'file'].includes(String(control.type || '').toLowerCase());
 }
 
+function isNativeLink(action) {
+  return typeof globalThis.HTMLAnchorElement === 'function'
+    && action instanceof globalThis.HTMLAnchorElement
+    && action.hasAttribute('href');
+}
+
+function nativeLinkTarget(action) {
+  return String(action.getAttribute('href') || action.href || '').trim();
+}
+
+function emitNativeLinkAcceptance(action) {
+  const target = nativeLinkTarget(action);
+  let destination;
+  try { destination = new URL(target, location.href); } catch { return; }
+  if (!target || destination.origin !== location.origin) return;
+  state.acceptedNavigations += 1;
+  emit('gaokao:navigation-accepted', {
+    sequence: state.sequence,
+    target: `${destination.pathname}${destination.search}${destination.hash}`,
+    activation: 'native-link'
+  });
+}
+
 function emit(name, detail) {
   document.dispatchEvent(new CustomEvent(name, {
     detail: Object.freeze({ version: VERSION, generation: GENERATION, ...detail })
@@ -334,7 +357,7 @@ function rememberPhysicalStart(event, family) {
     return;
   }
   const action = closestElement(target, NAVIGATION_SELECTOR);
-  if (!action) return;
+  if (!action || isNativeLink(action)) return;
   if (state.phase !== 'ready') {
     state.pointerAction = null;
     blockNavigation(event, action, `navigation-start-during-${state.phase}`);
@@ -351,13 +374,17 @@ function rememberPhysicalStart(event, family) {
 
 function guardPhysicalEnd(event) {
   const action = closestElement(event.target, NAVIGATION_SELECTOR);
-  if (!action) return;
+  if (!action || isNativeLink(action)) return;
   if (state.phase !== 'ready') blockNavigation(event, action, `navigation-end-during-${state.phase}`);
 }
 
 function activateNavigation(event) {
   const action = closestElement(event.target, NAVIGATION_SELECTOR);
   if (!action) return;
+  if (isNativeLink(action)) {
+    emitNativeLinkAcceptance(action);
+    return;
+  }
   event.preventDefault();
   if (state.phase !== 'ready') {
     blockNavigation(event, action, `navigation-click-during-${state.phase}`);
