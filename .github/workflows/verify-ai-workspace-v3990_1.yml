@@ -1,4 +1,4 @@
-name: Verify AI decision workspace v3990_2
+name: Verify AI decision workspace v3990_3
 
 on:
   pull_request:
@@ -7,45 +7,45 @@ on:
     paths:
       - 'aiplus/**'
       - 'shared/ai/**'
-      - 'shared/resources/geo/china-region-catalog.v3990_2.js'
+      - 'shared/resources/geo/china-region-catalog.v3990_3.js'
       - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
       - 'data/zy2026/**'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
-      - 'functions/_lib/major-filter.v3990_2.js'
+      - 'functions/_lib/major-filter.v3990_3.js'
       - '.github/scripts/install-playwright-chromium.sh'
-      - 'tools/verify-ai-workspace-v3990_2.mjs'
-      - 'tools/verify-aiplus-school-official-v3990_2.mjs'
-      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
-      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-workspace-v3990_3.mjs'
+      - 'tools/verify-aiplus-school-official-v3990_3.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_3.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_3.mjs'
       - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
       - 'tools/verify-aiplus-v002-contract.mjs'
       - 'tools/audit-aiplus-v002-ui.mjs'
       - 'tools/browser-aiplus-v002-mocked.mjs'
-      - 'tools/browser-ai-workspace-v3990_2.mjs'
-      - '.github/workflows/verify-ai-workspace-v3990_2.yml'
+      - 'tools/browser-ai-workspace-v3990_3.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_3.yml'
   push:
     branches: [main]
     paths:
       - 'aiplus/**'
       - 'shared/ai/**'
-      - 'shared/resources/geo/china-region-catalog.v3990_2.js'
+      - 'shared/resources/geo/china-region-catalog.v3990_3.js'
       - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
       - 'data/zy2026/**'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
-      - 'functions/_lib/major-filter.v3990_2.js'
+      - 'functions/_lib/major-filter.v3990_3.js'
       - '.github/scripts/install-playwright-chromium.sh'
-      - 'tools/verify-ai-workspace-v3990_2.mjs'
-      - 'tools/verify-aiplus-school-official-v3990_2.mjs'
-      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
-      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-workspace-v3990_3.mjs'
+      - 'tools/verify-aiplus-school-official-v3990_3.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_3.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_3.mjs'
       - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
       - 'tools/verify-aiplus-v002-contract.mjs'
       - 'tools/audit-aiplus-v002-ui.mjs'
       - 'tools/browser-aiplus-v002-mocked.mjs'
-      - 'tools/browser-ai-workspace-v3990_2.mjs'
-      - '.github/workflows/verify-ai-workspace-v3990_2.yml'
+      - 'tools/browser-ai-workspace-v3990_3.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_3.yml'
   workflow_dispatch:
 
 permissions:
@@ -84,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f /tmp/ai-files.txt
-          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_2\.js$|shared/resources/schools/liaoning-2026-admission-school-directory\.v3969_0\.json$|data/zy2026/|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_2\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/verify-aiplus-school-official-cache-v3990_2\.mjs$|tools/verify-aiplus-human-dialog-v3990_2\.mjs$|tools/verify-ai-school-history-bridge-v3992_2\.mjs$|tools/verify-aiplus-v002-contract\.mjs$|tools/audit-aiplus-v002-ui\.mjs$|tools/browser-aiplus-v002-mocked\.mjs$|tools/browser-ai-workspace-v3990_2\.mjs$)' /tmp/ai-files.txt; then
+          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_3\.js$|shared/resources/schools/liaoning-2026-admission-school-directory\.v3969_0\.json$|data/zy2026/|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_3\.js$|tools/verify-aiplus-school-official-v3990_3\.mjs$|tools/verify-aiplus-school-official-cache-v3990_3\.mjs$|tools/verify-aiplus-human-dialog-v3990_3\.mjs$|tools/verify-ai-school-history-bridge-v3992_2\.mjs$|tools/verify-aiplus-v002-contract\.mjs$|tools/audit-aiplus-v002-ui\.mjs$|tools/browser-aiplus-v002-mocked\.mjs$|tools/browser-ai-workspace-v3990_3\.mjs$)' /tmp/ai-files.txt; then
             echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
           else
             echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
@@ -94,10 +94,10 @@ jobs:
         run: |
           set -euo pipefail
           bash -n .github/scripts/install-playwright-chromium.sh
-          grep -q "display: 'v3.9.90.2'" shared/resources/release/current-release.js
-          grep -q "siteRuntimeGeneration: 'v3990_2'" shared/resources/release/current-release.js
-          grep -q 'data-release="v3.9.90.2"' aiplus/index.html
-          grep -q 'data-site-runtime-generation="v3990_2"' aiplus/index.html
+          grep -q "display: 'v3.9.90.3'" shared/resources/release/current-release.js
+          grep -q "siteRuntimeGeneration: 'v3990_3'" shared/resources/release/current-release.js
+          grep -q 'data-release="v3.9.90.3"' aiplus/index.html
+          grep -q 'data-site-runtime-generation="v3990_3"' aiplus/index.html
           grep -q 'data-ai-plus="family-advisor"' aiplus/index.html
           grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
           grep -q 'AIPLuS 产品版 · v0.02' aiplus/index.html
@@ -110,7 +110,7 @@ jobs:
       - name: Syntax check AI semantic runtime
         run: |
           set -euo pipefail
-          node --check shared/ai/ai-workspace-contract.v3990_2.js
+          node --check shared/ai/ai-workspace-contract.v3990_3.js
           node --check shared/ai/ai-workspace-contract.v3992_0.js
           node --check shared/ai/aiplus-product-contract.v002.js
           node --check functions/_lib/ai/provider-router.js
@@ -134,24 +134,24 @@ jobs:
           node --check functions/api/ai/model-probe.js
           node --check functions/api/ai/school-official.js
           node --check functions/api/ai/school-history.js
-          node --check aiplus/app.v3990_2.js
+          node --check aiplus/app.v3990_3.js
           node --check aiplus/render.v3992_0.js
           node --check aiplus/turn-runtime.v002.js
-          node --check tools/verify-ai-workspace-v3990_2.mjs
-          node --check tools/verify-aiplus-school-official-v3990_2.mjs
-          node --check tools/verify-aiplus-school-official-cache-v3990_2.mjs
-          node --check tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node --check tools/verify-ai-workspace-v3990_3.mjs
+          node --check tools/verify-aiplus-school-official-v3990_3.mjs
+          node --check tools/verify-aiplus-school-official-cache-v3990_3.mjs
+          node --check tools/verify-aiplus-human-dialog-v3990_3.mjs
           node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
           node --check tools/verify-aiplus-v002-contract.mjs
           node --check tools/audit-aiplus-v002-ui.mjs
           node --check tools/browser-aiplus-v002-mocked.mjs
-          node --check tools/browser-ai-workspace-v3990_2.mjs
+          node --check tools/browser-ai-workspace-v3990_3.mjs
       - name: Run deterministic semantic workspace gates
         run: |
           set -euo pipefail
-          node tools/verify-ai-workspace-v3990_2.mjs
-          node tools/verify-aiplus-human-dialog-v3990_2.mjs
-          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_3.mjs
+          node tools/verify-aiplus-human-dialog-v3990_3.mjs
+          node tools/verify-aiplus-school-official-v3990_3.mjs
           node tools/verify-aiplus-v002-contract.mjs
           node tools/audit-aiplus-v002-ui.mjs
 
@@ -308,7 +308,7 @@ jobs:
 
           immutable_page="$(request_get immutable-aiplus-page "${IMMUTABLE_PREVIEW}/aiplus/?candidate=${EXPECTED_SHA}-static")"
           require_text immutable-aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$immutable_page"
-          require_text immutable-aiplus-page 'data-site-runtime-generation="v3990_2"' "$immutable_page"
+          require_text immutable-aiplus-page 'data-site-runtime-generation="v3990_3"' "$immutable_page"
           require_text immutable-aiplus-page 'data-ai-plus="family-advisor"' "$immutable_page"
           immutable_index="$(request_get immutable-school-index "${IMMUTABLE_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-static")"
           branch_index="$(request_get branch-school-index "${BRANCH_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-branch")"
@@ -321,7 +321,7 @@ jobs:
 
           page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
           require_text aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$page"
-          require_text aiplus-page 'data-site-runtime-generation="v3990_2"' "$page"
+          require_text aiplus-page 'data-site-runtime-generation="v3990_3"' "$page"
           require_text aiplus-page 'data-ai-plus="family-advisor"' "$page"
           legacy_headers="$(mktemp)"
           legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
@@ -401,17 +401,17 @@ jobs:
         env:
           AI_PREVIEW_BASE: ${{ needs.preview-smoke.outputs.preview_base }}
           AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          AI_ARTIFACT_DIR: /tmp/ai-workspace-browser-v3990_2
-        run: node tools/browser-ai-workspace-v3990_2.mjs
+          AI_ARTIFACT_DIR: /tmp/ai-workspace-browser-v3990_3
+        run: node tools/browser-ai-workspace-v3990_3.mjs
       - name: Verify AIPLuS v0.02 mocked parent journeys on four viewports
         run: node tools/browser-aiplus-v002-mocked.mjs
       - name: Upload AI browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ai-workspace-browser-v3990_2
+          name: ai-workspace-browser-v3990_3
           path: |
-            /tmp/ai-workspace-browser-v3990_2
+            /tmp/ai-workspace-browser-v3990_3
             /tmp/aiplus-v002-browser
           if-no-files-found: warn
           retention-days: 7
@@ -452,8 +452,8 @@ jobs:
             if grep -q 'data-ai-workspace="ai-workspace-v3992_1"' <<<"$page" \
               && grep -q 'data-ai-plus="family-advisor"' <<<"$page" \
               && grep -q '"apiVersion":"ai-health-api-v0.02"' <<<"$health" \
-              && grep -q '"release":"v3.9.90.2"' <<<"$health" \
-              && grep -q '"siteRuntimeGeneration":"v3990_2"' <<<"$health" \
+              && grep -q '"release":"v3.9.90.3"' <<<"$health" \
+              && grep -q '"siteRuntimeGeneration":"v3990_3"' <<<"$health" \
               && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
               && grep -q '"rankEnd":14235' <<<"$rank" \
               && jq -e '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and (.records | length) == 65 and .source.sameTruthSet == true' >/dev/null <<<"$school_history"; then

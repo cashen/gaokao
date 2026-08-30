@@ -1,7 +1,7 @@
 export const AI_SCHOOL_OFFICIAL_SOURCE_VERSION='ai-school-official-source-v3990_3';
 export const AI_SCHOOL_OFFICIAL_ORIGIN='https://gaokao.chsi.com.cn';
 export const AI_SCHOOL_OFFICIAL_READER_ORIGIN='https://r.jina.ai';
-export const AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION='chsi-only-reader-v3990_2';
+export const AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION='chsi-only-reader-v3990_3';
 
 const TOPIC_LABELS=Object.freeze({profile:'学校简介',charter:'招生章程',admission_rule:'录取规则',living:'食宿条件',fees:'收费项目',contact:'联系办法',scholarship:'奖学金设置',departments:'院系设置',major_intro:'专业介绍',faq:'答考生问',employment:'毕业生就业',health:'体检要求'});
 const TOPIC_NAV_LABELS=Object.freeze({profile:['学校简介','院校简介'],charter:['招生章程'],admission_rule:['录取规则'],living:['食宿条件','住宿条件'],fees:['收费项目','收费标准'],contact:['联系办法','联系方式'],scholarship:['奖学金设置','奖助学金'],departments:['院系设置'],major_intro:['专业介绍'],faq:['答考生问'],employment:['毕业生就业','就业情况'],health:['体检要求']});

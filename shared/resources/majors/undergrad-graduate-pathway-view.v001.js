@@ -1,6 +1,7 @@
 import { buildUndergradGraduatePathway } from './undergrad-graduate-pathway.v001.js';
 import { GRADUATE_CATALOG_SOURCES } from '../graduate/graduate-catalog-2022.v001.js';
 import { buildMajorPathHref } from './major-path-navigation.v003.js';
+import { buildMajorMinScoreHref } from '../admissions/min-score-navigation.v001.js';
 
 export const UNDERGRAD_GRADUATE_PATHWAY_VIEW_META = Object.freeze({
   version: 'undergrad-graduate-pathway-view-v001',
@@ -59,6 +60,12 @@ export function buildUndergradGraduatePathwayView({
     returnTo,
     decisionContext
   });
+  const minScoreHref = buildMajorMinScoreHref({
+    majorCode,
+    majorName: undergraduate.name,
+    returnTo,
+    sourceSurface: 'undergrad-graduate-pathway'
+  });
   const academic = entryList(pathway.academic, '当前没有可核验的学术学位方向。');
   const professional = entryList(pathway.professional, '当前没有可核验的专业学位方向。');
   const source = GRADUATE_CATALOG_SOURCES.catalog2022;
@@ -76,6 +83,11 @@ export function buildUndergradGraduatePathwayView({
     ${fieldList(pathway.professionalFields)}
     <p class="major-pathway-boundary">${html(pathway.note)} ${html(pathway.boundary)}</p>
     <div class="major-pathway-sources"><span>目录依据：</span><a href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">${html(source.title)}</a><span>·</span><a href="${attr(admissions.url)}" target="_blank" rel="noopener noreferrer">${html(admissions.title)}</a></div>
+    <div class="min-score-entry" data-min-score-entry="major">
+      <p class="min-score-entry__eyebrow">想知道辽宁哪些学校有这个专业？</p>
+      <p class="min-score-entry__description">查看 2026 辽宁物理类投档记录、最低投档分和对应位次。</p>
+      ${minScoreHref ? `<a class="min-score-entry__link" href="${attr(minScoreHref)}">查这个专业在辽宁各校的最低分</a>` : ''}
+    </div>
     ${href ? `<a class="link" data-major-pathway-full-link href="${attr(href)}">查看完整专业升学地图 ↗</a>` : ''}
   </section>`;
 }

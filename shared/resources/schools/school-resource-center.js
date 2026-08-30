@@ -122,10 +122,12 @@ export function buildTongxueSchoolHref({ school, entityId = '' } = {}) {
   return `/tongxue/?${params.toString()}`;
 }
 
-export function buildSchoolAllHref({ school, majorKeyword = '', score = '' } = {}) {
+export function buildSchoolAllHref({ school, entityId = '', majorKeyword = '', score = '' } = {}) {
   const name = String(school || '').trim();
   if (!name) return '';
-  const params = new URLSearchParams({ mode: 'school-all', school: name });
+  const entity = canonicalSchoolEntity(name, entityId);
+  const params = new URLSearchParams({ mode: 'school-all', school: entity?.displayName || name });
+  if (entity?.entityId) params.set('schoolEntity', entity.entityId);
   const major = String(majorKeyword || '').trim();
   if (major) params.set('majorKeyword', major);
   const scoreText = String(score || '').replace(/[^0-9]/g, '');

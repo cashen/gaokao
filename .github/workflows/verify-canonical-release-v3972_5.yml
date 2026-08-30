@@ -30,17 +30,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_2.mjs
-          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_2.mjs
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_3.mjs
+          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_3.mjs
 
           # Preserve the complete historical Python acceptance surface without
           # creating a second maintained copy. Only current-generation identity
           # markers are mapped; declared stable business-resource versions remain unchanged.
           sed \
-            -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
-            -e 's/v3990_0/v3990_2/g' \
-            -e 's/3990_0/3990_2/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_2.py
-          python3 /tmp/verify-final-release-v3990_2.py
+            -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
+            -e 's/v3990_0/v3990_3/g' \
+            -e 's/3990_0/3990_3/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
+          python3 /tmp/verify-final-release-v3990_3.py

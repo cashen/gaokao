@@ -15,7 +15,7 @@ on:
       - 'tools/browser-aiplus-feedback-log-v004.mjs'
       - 'tools/browser-aiplus-feedback-log-preview-v004.mjs'
       - 'tools/audit-aiplus-v002-ui.mjs'
-      - 'tools/audit-architecture-handoff-v3990_2.mjs'
+      - 'tools/audit-architecture-handoff-v3990_3.mjs'
       - 'docs/architecture/START-HERE.md'
       - 'docs/architecture/AIPLUS-FEEDBACK-LOG-STATUS.md'
       - '.github/workflows/verify-aiplus-feedback-log-v004.yml'
@@ -51,14 +51,14 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-aiplus-family-decision-workbench-v003.mjs
-          node tools/verify-ai-workspace-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_3.mjs
           node tools/verify-aiplus-parent-semantics-v003.mjs
-          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_3.mjs
           node tools/verify-aiplus-aek-v001.mjs
           node tools/verify-aiplus-aek-journeys-v001.mjs
           node tools/verify-ai-major-region-history-v3992_3.mjs
           node tools/audit-aiplus-v002-ui.mjs
-          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
       - name: Protected boundaries
         env:
           PUSH_BEFORE: ${{ github.event.before }}
@@ -169,7 +169,7 @@ jobs:
             if grep -Fq 'data-ai-feedback-log="aiplus-feedback-log-v0.04"' <<<"$page" \
               && grep -Fq 'data-ai-family-decision="aiplus-family-decision-v0.03"' <<<"$page" \
               && grep -Fq "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -Fq '"release":"v3.9.90.2"' <<<"$health"; then
+              && grep -Fq '"release":"v3.9.90.3"' <<<"$health"; then
               ready=1
               break
             fi

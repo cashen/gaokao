@@ -10,18 +10,18 @@
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:860px;margin:auto;padding:26px 20px 44px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center}.brand{color:var(--primary);font-weight:850;font-size:18px}.back{color:var(--primary);font-size:13px;font-weight:800;text-decoration:none}.hero{padding:48px 0 28px}.hero h1{margin:0 0 10px;font-size:38px;line-height:1.2}.hero p{margin:0;color:var(--muted);line-height:1.8}.release{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 14px 38px rgba(20,40,50,.07)}.release h2{margin:0;font-size:23px}.release p{margin:12px 0 0;line-height:1.8;color:#344750}.release-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.badge{display:inline-flex;border-radius:999px;padding:5px 9px;background:var(--soft);color:var(--primary);font-size:11px;font-weight:850}.module-list{display:grid;gap:10px;margin:20px 0 0;padding:0;list-style:none}.module-list li{display:flex;justify-content:space-between;gap:16px;padding:12px 14px;border:1px solid var(--border);border-radius:13px;background:#fbfcfc}.module-list span:first-child{font-weight:800}.module-list span:last-child{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;text-align:right}.module-link{display:inline-flex;margin-top:18px;color:var(--primary);font-weight:800;text-underline-offset:3px}@media(max-width:640px){.wrap{padding:18px 14px 30px}.hero{padding:34px 0 22px}.hero h1{font-size:31px}.release{padding:19px 18px}.module-list li{display:block}.module-list span:last-child{display:block;margin-top:4px;text-align:left}}
 </style>
 </head>
-<body data-release="v3.9.90.2" data-site-runtime-generation="v3990_2" data-release-surface="release-log">
+<body data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-release-surface="release-log">
 <div class="wrap">
   <div class="topbar"><div class="brand">辽宁高考家庭决策工作台</div><a class="back" href="/">返回首页</a></div>
   <header class="hero"><h1>全站更新记录</h1><p>这里记录全站发布版本，以及各模块仍在独立维护的能力版本。</p></header>
   <main>
     <article class="release">
       <span class="badge">当前全站发布</span>
-      <h2>v3.9.90.2</h2>
+      <h2>v3.9.90.3</h2>
       <p>统一全站发布版本、运行时 generation、资源查询版本与 footer 更新入口。模块能力版本继续按各自合同维护，不与全站发布版本混用。</p>
-      <div class="release-meta"><span class="badge">运行时 v3990_2</span><span class="badge">资源查询 3990_2</span><span class="badge">ln-rank 入口 r029</span></div>
-      <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_2-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
-      <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.2 / v3990_2。</p>
+      <div class="release-meta"><span class="badge">运行时 v3990_3</span><span class="badge">资源查询 3990_3</span><span class="badge">ln-rank 入口 r029</span></div>
+      <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_3-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
+      <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.3 / v3990_3。</p>
       <p>本次 r036：继续收敛专业历史入口的 Worker 冷路径。未提供 candidateScore 时不再静态加载三年位次表，只有需要分数换算时才延迟加载 rank-table provider；叠加 r035 的 manifest 解析边界，避免正式站冷实例触发 error code 1102/HTTP 503。能力版本为 major-history-resource-boundary-v002、major-history-rank-lookup-lazy-v001，缓存修订为 r036-major-history-rank-lazy。</p>
       <p>本次 r037：新增统一视觉与响应式样式合同。共享层统一阅读宽度、间距节奏、焦点环、44px 触控目标、长文本换行和横向溢出保护；核心入口按桌面、Pad、Android 和窄屏断点收敛布局，不改变查询、实体、数据或 AI 行为。能力版本为 unified-visual-responsive-v001，样式修订为 r037-unified-visual-responsive。</p>
       <p>本次 r038：补齐统一响应式样式在 Cloudflare Pages 嵌套目录下的资源发布合同。为带版本号的 shell CSS 明确声明 CSS MIME 类型与 immutable 缓存，避免正式站部署后出现资源类型或缓存不一致；能力版本保持 unified-visual-responsive-v001，样式修订为 r038-unified-visual-responsive-production-contract。</p>
@@ -40,6 +40,6 @@
   </main>
   <footer class="site-release-footer" data-release-footer>当前发布：<span data-current-release></span> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a></footer>
 </div>
-<script type="module" src="/shared/resources/release/release-footer.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy"></script>
+<script type="module" src="/shared/resources/release/release-footer.v3990_3.js?v=3990_3&r=r036-major-history-rank-lazy"></script>
 </body>
 </html>

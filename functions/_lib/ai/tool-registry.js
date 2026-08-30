@@ -18,11 +18,11 @@ import { STANDARD_MAJOR_CATALOG_2026_FULL } from '../kb/standard-major-catalog-2
 import { createMajorIntentResolver } from '../../../shared/resources/majors/major-intent-resolver.v001.js';
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v0.02';
-export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_2';
+export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_3';
 export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_9';
 export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_4';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
-export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_2';
+export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_3';
 export const AI_SCHOOL_EXPERIENCE_ADAPTER_VERSION='ai-school-experience-browser-bridge-v0.02';
 export const AI_DETERMINISTIC_TOOL_BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v0.02';
 

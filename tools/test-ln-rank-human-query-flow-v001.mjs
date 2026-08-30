@@ -10,7 +10,7 @@ const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3
 const api = read('functions/api/school-majors.js');
 const engine = read('shared/resources/schools/school-query-engine.v3969_0.js');
 const release = read('shared/resources/release/current-release.js');
-const contract = read('shared/resources/release/site-runtime-contract.v3990_2.js');
+const contract = read('shared/resources/release/site-runtime-contract.v3990_3.js');
 const nav = read('shared/ui/navigation/module-navigation.v004.js');
 
 const checks = [

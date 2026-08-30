@@ -5,7 +5,7 @@ import {
 } from '../_lib/rank-table-provider.js';
 import { getLiaoningPhysicsConfig } from '../../shared/resources/exam/liaoning-physics.js';
 
-const CONTRACT_VERSION = 'score-equivalence-v3990_2';
+const CONTRACT_VERSION = 'score-equivalence-v3990_3';
 const SOURCE_YEAR = 2026;
 const TARGET_YEARS = Object.freeze([2025, 2024]);
 const REGION = 'ln';

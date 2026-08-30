@@ -7,8 +7,8 @@ on:
     paths:
       - 'ln-rank/**'
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/active-resource-manifest.v3990_2.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
       - 'tools/test-ln-rank-human-query-flow-v001.mjs'
       - 'tools/verify-ln-rank-unified-card-context-v001.mjs'
       - 'tools/audit-three-card-entries-v001.mjs'
@@ -18,8 +18,8 @@ on:
     paths:
       - 'ln-rank/**'
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/active-resource-manifest.v3990_2.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
       - 'tools/test-ln-rank-human-query-flow-v001.mjs'
       - 'tools/verify-ln-rank-unified-card-context-v001.mjs'
       - 'tools/audit-three-card-entries-v001.mjs'
@@ -49,8 +49,8 @@ jobs:
           node --check ln-rank/js/feature/major-all/major-all-mode.v001.js
           node --check ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js
           node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js
-          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js
-          node --check ln-rank/js/app-runtime.v3990_2.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js
+          node --check ln-rank/js/app-runtime.v3990_3.js
           node --check tools/test-ln-rank-human-query-flow-v001.mjs
       - name: Verify input source and history restoration contract
         run: node tools/test-ln-rank-human-query-flow-v001.mjs

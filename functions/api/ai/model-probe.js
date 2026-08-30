@@ -1,7 +1,7 @@
 import { runAiProvider, aiProviderConfig } from '../../_lib/ai/provider-router.js';
 import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js';
 
-export const AI_MODEL_PROBE_VERSION = 'ai-model-probe-v3990_2';
+export const AI_MODEL_PROBE_VERSION = 'ai-model-probe-v3990_3';
 
 function json(payload,status=200){ return new Response(JSON.stringify(payload),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}}); }
 

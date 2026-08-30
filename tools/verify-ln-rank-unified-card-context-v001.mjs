@@ -7,9 +7,9 @@ const bandsApi = read('functions/api/major-bands.js');
 const schoolView = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js');
 const handoff = read('ln-rank/js/workspace/major-path-handoff.v003.js');
 const presenter = read('ln-rank/js/workspace/family-card-presenter.v3967_0.js');
-const runtime = read('ln-rank/js/app-runtime.v3990_2.js');
+const runtime = read('ln-rank/js/app-runtime.v3990_3.js');
 const release = read('shared/resources/release/current-release.js');
-const manifest = read('shared/resources/release/active-resource-manifest.v3990_2.js');
+const manifest = read('shared/resources/release/active-resource-manifest.v3990_3.js');
 const workspaceCss = read('ln-rank/css/ln-rank-workspace.v3967_0.css');
 
 assert.match(schoolApi, /resolveMajorDomainQuery/);

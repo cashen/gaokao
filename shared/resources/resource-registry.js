@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2&r=r036-major-history-rank-lazy';
-import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_2.js?v=3990_2&r=r036-major-history-rank-lazy';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3990_3&r=r037-unified-min-score-navigation';
+import { ACTIVE_RESOURCE_MANIFEST } from './release/active-resource-manifest.v3990_3.js?v=3990_3&r=r037-unified-min-score-navigation';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
@@ -7,7 +7,7 @@ import {
   UI_STABLE_RESOURCE_REGISTRY,
   UI_COMPONENT_REGISTRY,
   UI_CSS_RESOURCE_GRAPH
-} from '../ui/ui-resource-registry.v3990_2.js?v=3990_2';
+} from '../ui/ui-resource-registry.v3990_3.js?v=3990_3';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;
@@ -20,6 +20,13 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   aiplusTransitive: ACTIVE_RESOURCE_MANIFEST.aiplus,
   majorSourceProfile: ACTIVE_RESOURCE_MANIFEST.majorSourceProfile,
   schoolDirectory: ACTIVE_RESOURCE_MANIFEST.schoolDirectory,
+  minScoreNavigation: Object.freeze({
+    id: CURRENT_RELEASE.minScoreNavigationVersion,
+    module: CURRENT_RELEASE.resourceOwners.minScoreNavigation,
+    cssOwner: CURRENT_RELEASE.resourceOwners.minScoreEntryStyles,
+    policy: 'navigation-only-canonical-ln-rank-owner-no-network-no-duplicate-query-owner',
+    consumers: Object.freeze(['major-path', 'tongxue'])
+  }),
   release: Object.freeze({
     id: 'current-release',
     module: CURRENT_RELEASE.resourceOwners.release,

@@ -97,7 +97,7 @@ async function verifyDevice(browser,device){
   const state=await page.evaluate(()=>{
     const root=document.documentElement,panel=document.querySelector('#historyPanel'),grid=document.querySelector('.decision-focus-grid');
     const text=document.querySelector('#decisionBookContent')?.textContent||'',next=document.querySelector('.decision-focus-next')?.textContent||'';
-    const app=[...document.scripts].find(script=>script.src.includes('/aiplus/app.v3990_2.js'))?.src||'';
+    const app=[...document.scripts].find(script=>script.src.includes('/aiplus/app.v3990_3.js'))?.src||'';
     const css=[...document.styleSheets].map(sheet=>sheet.href||'').find(href=>href.includes('decision-focus.v006.css'))||'';
     return{marker:document.body.dataset.aiDecisionFocus||'',text,next,overflow:root.scrollWidth-root.clientWidth,panelOverflow:panel?panel.scrollWidth-panel.clientWidth:0,columns:grid?getComputedStyle(grid).gridTemplateColumns:'',app,css};
   });

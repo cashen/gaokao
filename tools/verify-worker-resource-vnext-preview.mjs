@@ -103,7 +103,7 @@ function validateSchool(result) {
 function validateMajorBands(result) {
   validateBase(result);
   const source = result.payload?.source || {};
-  assert.equal(source.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_2', `${result.label}: major-bands query kernel`);
+  assert.equal(source.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_3', `${result.label}: major-bands query kernel`);
   assert.equal(source.architecture, 'single-worker-rank-window-over-immutable-static-buckets', `${result.label}: major-bands architecture`);
   assert.equal(Number(source.totalRecords), 11628, `${result.label}: major-bands truth count`);
   assert.equal(source.publicHttpSelfFanout, false, `${result.label}: public HTTP self-fanout must remain disabled`);

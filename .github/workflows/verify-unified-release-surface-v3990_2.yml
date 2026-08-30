@@ -1,4 +1,4 @@
-name: Verify unified release surface v3990_2
+name: Verify unified release surface v3990_3
 
 on:
   pull_request:
@@ -15,12 +15,12 @@ on:
       - 'Public_company/**'
       - 'tongxue/**'
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
-      - 'shared/resources/release/active-resource-manifest.v3990_2.js'
-      - 'shared/resources/release/release-footer.v3990_2.js'
-      - 'shared/resources/release/release-footer.v3990_2.css'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - 'shared/resources/release/release-footer.v3990_3.js'
+      - 'shared/resources/release/release-footer.v3990_3.css'
       - 'tools/audit-unified-release-surface-v001.mjs'
-      - '.github/workflows/verify-unified-release-surface-v3990_2.yml'
+      - '.github/workflows/verify-unified-release-surface-v3990_3.yml'
   workflow_dispatch:
 
 permissions:
@@ -41,12 +41,12 @@ jobs:
           set -euo pipefail
           node --check tools/audit-unified-release-surface-v001.mjs
           node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/site-runtime-contract.v3990_2.js
-          node --check shared/resources/release/active-resource-manifest.v3990_2.js
-          node --check shared/resources/release/release-footer.v3990_2.js
+          node --check shared/resources/release/site-runtime-contract.v3990_3.js
+          node --check shared/resources/release/active-resource-manifest.v3990_3.js
+          node --check shared/resources/release/release-footer.v3990_3.js
           node tools/audit-unified-release-surface-v001.mjs
-          node tools/audit-canonical-release-version-v3990_2.mjs
-          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-canonical-release-version-v3990_3.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
       - name: Check formatting and protected paths
         run: |
           set -euo pipefail

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { resolveCanonicalPosition } from '../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords, RESULT_RANKING_VERSION } from '../shared/algorithms/ranking/result-ranking.v3967_0.js';
-import { rankMajorBandsRecordsOnce, MAJOR_BANDS_RESULT_ORDER_VERSION } from '../functions/_lib/major-bands-result-order.v3990_2.js';
+import { rankMajorBandsRecordsOnce, MAJOR_BANDS_RESULT_ORDER_VERSION } from '../functions/_lib/major-bands-result-order.v3990_3.js';
 import { resolveTrendInterpretation, TREND_INTERPRETATION_VERSION } from '../shared/algorithms/trend/trend-interpretation.v3967_0.js';
 import { classifyHistoricalRankSelection, resolveHistoricalRankChange, HISTORICAL_RANK_SELECTION_VERSION } from '../shared/algorithms/position/historical-rank-selection.v3967_0.js';
 
@@ -46,8 +46,8 @@ assert.equal(resolveHistoricalRankChange({currentRank:9000,previousRank:10000}).
 assert.equal(resolveHistoricalRankChange({currentRank:11000,previousRank:10000}).key,'backward');
 
 const majorBandsApi=fs.readFileSync('functions/api/major-bands.js','utf8');
-assert.match(majorBandsApi,/major-bands-result-order\.v3990_2/);
-assert.match(majorBandsApi,/major-bands-rank-query-kernel\.v3990_2/);
-assert.match(fs.readFileSync('functions/_lib/major-bands-result-order.v3990_2.js','utf8'),/staged-ranking\.v3960_0/);
+assert.match(majorBandsApi,/major-bands-result-order\.v3990_3/);
+assert.match(majorBandsApi,/major-bands-rank-query-kernel\.v3990_3/);
+assert.match(fs.readFileSync('functions/_lib/major-bands-result-order.v3990_3.js','utf8'),/staged-ranking\.v3960_0/);
 assert.match(fs.readFileSync('functions/api/school-majors.js','utf8'),/result-ranking\.v3967_0/);
 console.log(JSON.stringify({ok:true,ranking:RESULT_RANKING_VERSION,majorBandsOrder:MAJOR_BANDS_RESULT_ORDER_VERSION,trend:TREND_INTERPRETATION_VERSION,historicalRankSelection:HISTORICAL_RANK_SELECTION_VERSION,scoreOrder:score.map(x=>x.id),schoolOrder:school.map(x=>x.id)},null,2));

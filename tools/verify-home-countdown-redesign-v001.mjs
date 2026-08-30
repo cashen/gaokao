@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const read = file => fs.readFileSync(file, 'utf8');
 const home = read('index.html');
-const runtime = read('ln-rank/js/ux/family-home.v3990_2.js');
+const runtime = read('ln-rank/js/ux/family-home.v3990_3.js');
 const plan = read('docs/plans/home-countdown-redesign-v001.md');
 const release = read('shared/resources/release/current-release.js');
 
@@ -41,10 +41,10 @@ assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('da
 assert.ok(!home.includes('今日建议'), 'homepage must not invent a generic daily recommendation');
 assert.ok(!home.includes('更多入口'), 'homepage must not use a flat more-entries section');
 assert.ok(!home.includes('按天安排节奏'), 'homepage must not restore retired countdown copy');
-assert.match(runtime, /HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_2-r031'/);
+assert.match(runtime, /HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031'/);
 assert.match(runtime, /HOME_UI_REVISION = 'r031-home-redesign'/);
 assert.match(runtime, /setInterval\(renderCountdown, 1000\)/);
-assert.match(release, /homeEntryVersion: 'family-home-runtime-v3990_2-r031'/);
+assert.match(release, /homeEntryVersion: 'family-home-runtime-v3990_3-r031'/);
 assert.match(release, /homeUiRevision: 'r031-home-redesign'/);
 assert.match(plan, /开始专业初选.*唯一主要动作/);
 

@@ -157,13 +157,13 @@ jobs:
           node tools/verify-aiplus-human-intent-matrix-v001.mjs
           node tools/verify-ai-major-region-history-v3992_3.mjs
           node tools/verify-aiplus-parent-semantics-v003.mjs
-          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_3.mjs
           node tools/verify-aiplus-v002-contract.mjs
-          node tools/verify-ai-workspace-v3990_2.mjs
-          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_3.mjs
+          node tools/verify-aiplus-school-official-v3990_3.mjs
           node tools/audit-aiplus-v002-ui.mjs
-          node tools/audit-architecture-handoff-v3990_2.mjs
-          node tools/audit-site-runtime-generation-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
+          node tools/audit-site-runtime-generation-v3990_3.mjs
 
   preview-contract:
     if: github.event_name == 'pull_request'

@@ -3,6 +3,7 @@ import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION 
 import { buildDecisionActions } from '../shared/decision-context/decision-actions.v001.js';
 import { summarizeDecisionContext, withDecisionContext } from '../shared/decision-context/decision-context.v001.js';
 import { buildStudentVoiceMajorHref } from '../shared/resources/experience/student-voice-navigation.v001.js';
+import { buildMajorMinScoreHref } from '../shared/resources/admissions/min-score-navigation.v001.js';
 import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -317,6 +318,27 @@ function installDecisionActions(focus, major) {
   focus.append(wrap);
 }
 
+function appendMinScoreEntry(focus, major) {
+  if (!focus || focus.querySelector('[data-min-score-entry="major"]')) return;
+  const href = buildMajorMinScoreHref({
+    majorCode: major.code,
+    majorName: major.name,
+    returnTo: location.pathname + location.search + location.hash,
+    sourceSurface: 'major-path'
+  });
+  if (!href) return;
+  const entry = document.createElement('section');
+  entry.className = 'min-score-entry';
+  entry.dataset.minScoreEntry = 'major';
+  entry.innerHTML = '<p class="min-score-entry__eyebrow">想知道辽宁哪些学校有这个专业？</p><p class="min-score-entry__description">查看 2026 辽宁物理类投档记录、最低投档分和对应位次。</p>';
+  const link = document.createElement('a');
+  link.className = 'min-score-entry__link';
+  link.href = href;
+  link.textContent = '查这个专业在辽宁各校的最低分';
+  entry.append(link);
+  focus.append(entry);
+}
+
 function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   if (!undergradSection || !graduateSection) return null;
   const existing = shell.querySelector('[data-major-pathway-focus]');
@@ -354,6 +376,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   humanizeDegreeCards(graduateSection);
 
   focus.append(undergradSection, graduateSection);
+  appendMinScoreEntry(focus, major);
   installDecisionActions(focus, major);
   if (answer) answer.insertAdjacentElement('afterend', focus);
   else shell.prepend(focus);

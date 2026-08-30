@@ -1,16 +1,16 @@
 import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
-import { matchRegionRule } from '../../shared/resources/geo/china-region-catalog.v3990_2.js';
+import { matchRegionRule } from '../../shared/resources/geo/china-region-catalog.v3990_3.js';
 import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from './platform-upgrade-policy.js';
 
-export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_2';
-export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_2';
-export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_2';
-export const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_2';
-export const MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_2';
-export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_2';
-export const MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_2';
+export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_3';
+export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_3';
+export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_3';
+export const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_3';
+export const MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_3';
+export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_3';
+export const MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_3';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -280,7 +280,7 @@ export function majorBandsRankValueMatchesRange(rankLike, range = null) {
   return rank >= minRank && rank <= maxRank;
 }
 
-export const MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION = 'major-bands-rank-bucket-hybrid-decode-v3990_2';
+export const MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION = 'major-bands-rank-bucket-hybrid-decode-v3990_3';
 
 export function shouldUseMajorBandsNativeWholeBucketJson(options = {}) {
   if (options.allowedIds instanceof Set) return false;
@@ -643,7 +643,7 @@ const selectedRows = scan.rows;
     : Number(scan.regionMatchedCount || 0);
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
-    : 'full-record-v3990_2';
+    : 'full-record-v3990_3';
   const projectionSchema = projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? buildMajorBandsRankOrderProjectionSchema(schema)
     : null;
@@ -672,7 +672,7 @@ const selectedRows = scan.rows;
     predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
     pageIdRowsSkipped: scan.regionMatchedCount - selectedRows.length,
     pageIdFilterCount: allowedIds?.size || 0,
-    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_2',
+    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_3',
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
     rowScanVersion: scan.scanVersion,
     rowScanMode: scan.mode,

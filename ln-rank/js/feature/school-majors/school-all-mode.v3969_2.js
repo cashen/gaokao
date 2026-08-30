@@ -175,7 +175,7 @@ function renderRecord(record) {
     <section id="${detailId}" class="school-major-detail" data-school-detail-panel="${escapeHtml(key)}" ${expanded ? '' : 'hidden'}>
       <div class="school-major-detail-grid">
         ${renderThreeYearEvidenceDetail(record)}
-        <p><b>项目与代码</b><span>${escapeHtml(record.projectLabel || '普通招生记录')}｜院校代码 ${escapeHtml(record.schoolCode2026 || '待核验')}｜专业代码 ${escapeHtml(record.majorCode2026 || '待核验')}</span></p>
+        <p><b>项目与代码</b><span>${escapeHtml(record.projectLabel || '普通项目记录')}｜院校代码 ${escapeHtml(record.schoolCode2026 || '待核验')}｜专业代码 ${escapeHtml(record.majorCode2026 || '待核验')}</span></p>
         ${why}
         ${verify.length ? `<p class="school-major-detail-wide"><b>继续确认</b><span>${verify.map(escapeHtml).join(' / ')}</span></p>` : ''}
       </div>
@@ -193,7 +193,7 @@ function renderCandidates(payload) {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   const groups = interpretations.length
     ? interpretations.map(item => `<section class="school-candidate-group" data-school-query-intent="${escapeHtml(item.intent || '')}"><header><h3>${escapeHtml(item.label || '候选学校')}</h3><p>${escapeHtml(item.note || '')}｜共 ${fmt(item.total)} 所，当前全部列出可选学校。</p></header><div class="school-candidate-list">${renderCandidateButtons(item.candidates || [])}</div></section>`).join('')
-    : (candidates.length ? `<section class="school-candidate-group"><header><h3>候选学校</h3><p>共 ${fmt(payload?.candidateTotal ?? candidates.length)} 所；招生记录数量只作说明，不决定名称匹配顺序。</p></header><div class="school-candidate-list">${renderCandidateButtons(candidates)}</div></section>` : '');
+    : (candidates.length ? `<section class="school-candidate-group"><header><h3>候选学校</h3><p>共 ${fmt(payload?.candidateTotal ?? candidates.length)} 所；记录数量只作说明，不决定名称匹配顺序。</p></header><div class="school-candidate-list">${renderCandidateButtons(candidates)}</div></section>` : '');
   const ambiguity = query.ambiguityType === 'region-or-school-name'
     ? '<p class="school-candidate-boundary">这个词既可能是城市，也可能只是校名的一部分。这里不会替你默认选择，请从下面确认准确学校。</p>'
     : '<p class="school-candidate-boundary">学校本部、分校和招生校区不能混在一起，请选择准确名称。</p>';
@@ -201,7 +201,7 @@ function renderCandidates(payload) {
 }
 
 function renderLoading() {
-  byId('schoolAllContent').innerHTML = '<div class="ui-state ui-state--loading school-all-message"><b>正在读取该校全部招生专业…</b><p>会保留学校本部、分校、校区和特殊项目的原始区别。</p></div>';
+  byId('schoolAllContent').innerHTML = '<div class="ui-state ui-state--loading school-all-message"><b>正在读取该校全部最低分记录…</b><p>会保留学校本部、分校、校区和特殊项目的原始区别。</p></div>';
 }
 
 function recordGroup(title, note, records, className = '') {
@@ -221,7 +221,7 @@ function renderSchoolData() {
     expandedRecordKey = '';
     title.textContent = state.schoolSelection?.displayName || currentSchoolInput() || '先输入一所学校';
     meta.textContent = '展示范围是辽宁2026普通类本科批物理类投档记录，不是学校全国全部本科专业。';
-    content.innerHTML = '<div class="ui-state school-all-message"><b>准备查看学校全部招生专业</b><p>先输入准确学校名称。参考分数可以不填；填写后会优先显示离2026历史位次更近的记录。</p></div>';
+    content.innerHTML = '<div class="ui-state school-all-message"><b>准备查看学校全部最低分记录</b><p>先输入准确学校名称。参考分数可以不填；填写后会优先显示离2026历史位次更近的记录。</p></div>';
     return;
   }
   const records = Array.isArray(data.records) ? data.records : [];
@@ -231,7 +231,7 @@ function renderSchoolData() {
   const school = data.meta?.school || state.schoolSelection?.displayName || currentSchoolInput();
   const keyword = String(data.keywordQuery?.rawKeywords?.join(' / ') || '').trim();
   title.textContent = school;
-  meta.textContent = `辽宁2026物理类专业名称约 ${fmt(summary.uniqueMajorCount)} 个｜招生记录 ${fmt(total)} 条｜最低投档分 ${fmt(summary.minScore)}—${fmt(summary.maxScore)} 分${keyword ? `｜方向：${keyword}` : ''}`;
+  meta.textContent = `辽宁2026物理类专业名称约 ${fmt(summary.uniqueMajorCount)} 个｜最低分记录 ${fmt(total)} 条｜最低投档分 ${fmt(summary.minScore)}—${fmt(summary.maxScore)} 分${keyword ? `｜方向：${keyword}` : ''}`;
   recordMap.clear();
   const regular = records.filter(record => !record.specialProject?.hasSpecialProject);
   const special = records.filter(record => record.specialProject?.hasSpecialProject);
@@ -240,20 +240,20 @@ function renderSchoolData() {
     ? `${nearest.major || '该记录'}｜约第 ${fmt(nearest.rank2026)} 位`
     : '未填写参考分数';
   const groupedRecords = regular.length || special.length
-    ? `${recordGroup('普通招生记录', '先和孩子讨论课程与专业方向，再核验校区、学费和培养方式。', regular)}
+    ? `${recordGroup('普通项目最低分记录', '先和孩子讨论课程与专业方向，再核验校区、学费和培养方式。', regular)}
       ${recordGroup('需要单独核验的特殊项目', '资格、批次、服务年限、学费或培养方式可能不同，不能和普通记录直接混排。', special, 'is-special')}`
-    : '<div class="ui-state ui-state--pending school-all-message"><b>该校暂时没有符合当前专业方向的记录</b><p>可以减少专业关键词，或清空专业方向查看该校全部辽宁2026物理类招生记录。</p></div>';
+    : '<div class="ui-state ui-state--pending school-all-message"><b>当前条件下没有找到这所学校的辽宁最低分记录</b><p>这不一定代表学校没有招生，可能是 2026 年辽宁物理类没有对应投档记录，也可能是专业关键词或项目条件过窄。</p><p>可以减少专业关键词，或清空专业方向后再查看该校的辽宁记录。</p></div>';
   content.innerHTML = `<section class="ui-state school-all-boundary">${escapeHtml(data.meta?.dataBoundary || '')}</section>
     <section class="ui-card school-all-summary" aria-label="学校全部专业概览">
       <div><span>专业名称</span><b>${fmt(summary.uniqueMajorCount)}</b></div>
-      <div><span>招生记录</span><b>${fmt(total)}</b></div>
+      <div><span>最低分记录</span><b>${fmt(total)}</b></div>
       <div><span>普通 / 特殊</span><b>${fmt(summary.regularCount)} / ${fmt(summary.specialCount)}</b></div>
       <div><span>${data.meta?.candidateScore ? `参考 ${fmt(data.meta.candidateScore)} 分附近` : '参考位次'}</span><b>${escapeHtml(nearestText)}</b></div>
     </section>
     <div class="school-record-groups">
       ${groupedRecords}
     </div>
-    ${data.meta?.pagination?.hasMore ? '<button id="schoolAllLoadMore" class="ui-button ui-button--compact ui-button--secondary school-all-load-more" type="button">继续加载该校专业</button>' : '<p class="school-all-complete">该校符合当前专业关键词的招生记录已全部加载完成。</p>'}`;
+    ${data.meta?.pagination?.hasMore ? '<button id="schoolAllLoadMore" class="ui-button ui-button--compact ui-button--secondary school-all-load-more" type="button">继续加载该校专业</button>' : '<p class="school-all-complete">该校符合当前专业关键词的最低分记录已全部加载完成。</p>'}`;
 }
 
 function mergeRecords(previous, incoming) {

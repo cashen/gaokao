@@ -8,16 +8,16 @@ on:
       - 'AGENTS.md'
       - 'docs/skills/unified-site-release/**'
       - 'index.html'
-      - 'ln-rank/js/ux/family-home.v3990_2.js'
-      - 'ln-rank/site-active-generation.v3990_2.json'
+      - 'ln-rank/js/ux/family-home.v3990_3.js'
+      - 'ln-rank/site-active-generation.v3990_3.json'
       - 'shared/resources/release/**'
       - 'shared/resources/resource-registry.js'
       - 'shared/governance/**'
       - 'shared/ui/**'
       - 'functions/_lib/release-contract.js'
       - 'tools/audit-home-release-ownership-v3970.mjs'
-      - 'tools/audit-site-runtime-generation-v3990_2.mjs'
-      - 'tools/browser-home-release-v3990_2.mjs'
+      - 'tools/audit-site-runtime-generation-v3990_3.mjs'
+      - 'tools/browser-home-release-v3990_3.mjs'
       - 'tools/verify-home-countdown-redesign-v001.mjs'
       - 'docs/plans/home-countdown-redesign-v001.md'
       - '.codex/progress/home-countdown-redesign-v001.json'
@@ -56,18 +56,18 @@ jobs:
             git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           else
             node --check shared/resources/release/current-release.js
-            node --check shared/resources/release/active-resource-manifest.v3990_2.js
+            node --check shared/resources/release/active-resource-manifest.v3990_3.js
             node --check tools/verify-unified-visual-responsive-v3990_3.mjs
           fi
-          sed -e 's/v3\.9\.90\.0/v3.9.90.2/g' -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_2.py
-          python3 -m py_compile /tmp/verify-final-release-v3990_2.py
+          sed -e 's/v3\.9\.90\.0/v3.9.90.3/g' -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
+          python3 -m py_compile /tmp/verify-final-release-v3990_3.py
 
       - name: Verify homepage and site generation contracts
         run: |
           set -euo pipefail
-          python3 /tmp/verify-final-release-v3990_2.py | tee /tmp/v3990-2-home-release.out
-          node tools/audit-site-runtime-generation-v3990_2.mjs | tee /tmp/v3990-2-site-generation.out
+          python3 /tmp/verify-final-release-v3990_3.py | tee /tmp/v3990-2-home-release.out
+          node tools/audit-site-runtime-generation-v3990_3.mjs | tee /tmp/v3990-2-site-generation.out
           node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-2-home-audit.out
           node tools/verify-home-countdown-redesign-v001.mjs | tee /tmp/v3990-2-home-redesign.out
 
@@ -88,7 +88,7 @@ jobs:
             sleep 1
           done
           test "$ready" -eq 1
-          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-2-home-browser node tools/browser-home-release-v3990_2.mjs | tee /tmp/v3990-2-home-browser.out
+          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-2-home-browser node tools/browser-home-release-v3990_3.mjs | tee /tmp/v3990-2-home-browser.out
 
       - name: Upload diagnostics
         if: always()

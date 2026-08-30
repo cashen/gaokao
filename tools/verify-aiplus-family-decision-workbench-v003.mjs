@@ -150,9 +150,9 @@ no(String(planAudit.boundary).includes('录取概率'),'plan audit boundary must
 
 // FDW-06/07/08/09 source-level UI contracts.
 const html=fs.readFileSync(new URL('../aiplus/index.html',import.meta.url),'utf8');
-const app=fs.readFileSync(new URL('../aiplus/app.v3990_2.js',import.meta.url),'utf8');
+const app=fs.readFileSync(new URL('../aiplus/app.v3990_3.js',import.meta.url),'utf8');
 const render=fs.readFileSync(new URL('../aiplus/render.v3992_0.js',import.meta.url),'utf8');
-const css=fs.readFileSync(new URL('../aiplus/workspace.v3990_2.css',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../aiplus/workspace.v3990_3.css',import.meta.url),'utf8');
 ok(html.includes('把孩子的选择一步一步定下来'),'hero must describe the family decision job');
 ok(html.includes('id="decisionProgressList"'),'PC/drawer UI must expose decision progress');
 ok(html.includes('id="decisionBookContent"'),'Decision Book must be rendered from the canonical workspace');

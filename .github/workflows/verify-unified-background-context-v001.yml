@@ -104,7 +104,7 @@ jobs:
       - name: Preserve architecture handoff and temporary-artifact boundary
         run: |
           set -euo pipefail
-          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
           test ! -e .github/workflows/tmp-apply-unified-background-context-v001.yml
           test ! -e .github/workflows/tmp-build-unified-background-context-v001.yml
           test ! -e tools/tmp_apply_unified_background_context_v001.mjs

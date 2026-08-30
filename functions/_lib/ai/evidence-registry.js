@@ -1,6 +1,6 @@
 import { KB_SOURCE_REGISTRY } from '../kb/kb-source-registry.js';
 
-export const AI_EVIDENCE_REGISTRY_VERSION = 'ai-official-evidence-registry-v3990_2';
+export const AI_EVIDENCE_REGISTRY_VERSION = 'ai-official-evidence-registry-v3990_3';
 
 const OFFICIAL = Object.freeze([
   Object.freeze({ id:'liaoning-2026-score-rank', level:'A', sourceName:'辽宁省2026年普通高校招生考试成绩统计表（辽宁省教育厅）', sourceUrl:'https://jyt.ln.gov.cn/jyt/jyzx/jyyw/2026063014014729932/index.shtml', year:2026, scope:'辽宁普通高考物理学科类成绩统计与历史位次参考', decisionSafe:true, topics:['rank','candidate_search','comparison'] }),

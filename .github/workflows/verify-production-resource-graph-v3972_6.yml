@@ -6,32 +6,32 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_2.js'
-      - 'shared/resources/release/runtime-cache-contract.v3990_2.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
+      - 'shared/resources/release/runtime-cache-contract.v3990_3.js'
       - 'shared/resources/resource-registry.js'
-      - 'shared/ui/ui-resource-registry.v3990_2.js'
-      - 'shared/ui/interaction/interaction-transaction.v3990_2.js'
-      - 'shared/ui/interaction/interaction-transaction.v3990_2.css'
-      - 'shared/governance/resource-execution-contract.v3990_2.js'
-      - 'shared/governance/production-resource-verification-contract.v3990_2.js'
+      - 'shared/ui/ui-resource-registry.v3990_3.js'
+      - 'shared/ui/interaction/interaction-transaction.v3990_3.js'
+      - 'shared/ui/interaction/interaction-transaction.v3990_3.css'
+      - 'shared/governance/resource-execution-contract.v3990_3.js'
+      - 'shared/governance/production-resource-verification-contract.v3990_3.js'
       - 'ln-rank/index.html'
-      - 'ln-rank/site-active-generation.v3990_2.json'
+      - 'ln-rank/site-active-generation.v3990_3.json'
       - 'ln-rank/self-check.html'
-      - 'ln-rank/js/self-check.v3990_2.js'
-      - 'ln-rank/js/app.v3990_2.js'
-      - 'ln-rank/js/app-runtime.v3990_2.js'
-      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js'
-      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js'
-      - 'tools/audit-production-resource-verification-v3990_2.mjs'
-      - 'tools/verify-production-resource-graph-v3990_2.mjs'
-      - 'tools/verify-production-pagination-snapshot-guard-v3990_2.mjs'
-      - 'tools/verify-major-bands-preview-concurrency-v3990_2.mjs'
+      - 'ln-rank/js/self-check.v3990_3.js'
+      - 'ln-rank/js/app.v3990_3.js'
+      - 'ln-rank/js/app-runtime.v3990_3.js'
+      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_3.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js'
+      - 'tools/audit-production-resource-verification-v3990_3.mjs'
+      - 'tools/verify-production-resource-graph-v3990_3.mjs'
+      - 'tools/verify-production-pagination-snapshot-guard-v3990_3.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-v3990_3.mjs'
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
-      - 'functions/_lib/major-bands-rank-*.v3990_2.js'
+      - 'functions/_lib/major-bands-rank-*.v3990_3.js'
       - 'functions/_lib/major-bands-query-execution-cache.v3990_1.js'
-      - 'functions/_lib/major-bands-result-order.v3990_2.js'
-      - 'functions/_lib/major-bands-response-transport.v3990_2.js'
+      - 'functions/_lib/major-bands-result-order.v3990_3.js'
+      - 'functions/_lib/major-bands-response-transport.v3990_3.js'
       - '.github/workflows/verify-production-resource-graph-v3972_6.yml'
   push:
     branches: [main]
@@ -65,27 +65,27 @@ jobs:
             git diff --name-only "$base" HEAD | tee /tmp/v3990-1-production-files.txt
             if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-production-files.txt; then exit 1; fi
           fi
-          node --check shared/governance/production-resource-verification-contract.v3990_2.js
+          node --check shared/governance/production-resource-verification-contract.v3990_3.js
           node --check functions/_lib/major-bands-query-execution-cache.v3990_1.js
-          node --check functions/_lib/major-bands-result-order.v3990_2.js
-          node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js
-          node --check tools/audit-production-resource-verification-v3990_2.mjs
-          node --check tools/verify-production-resource-graph-v3990_2.mjs
-          node --check tools/verify-production-pagination-snapshot-guard-v3990_2.mjs
-          node --check tools/verify-major-bands-preview-concurrency-v3990_2.mjs
+          node --check functions/_lib/major-bands-result-order.v3990_3.js
+          node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_3.js
+          node --check tools/audit-production-resource-verification-v3990_3.mjs
+          node --check tools/verify-production-resource-graph-v3990_3.mjs
+          node --check tools/verify-production-pagination-snapshot-guard-v3990_3.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_3.mjs
 
-          sed -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' \
-            tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_2.mjs
-          node --check /tmp/audit-production-rank-concurrency-contract-v3990_2.mjs
+          sed -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' \
+            tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_3.mjs
+          node --check /tmp/audit-production-rank-concurrency-contract-v3990_3.mjs
 
       - name: Verify production resource contract and canonical graph
         run: |
           set -euo pipefail
-          node tools/audit-production-resource-verification-v3990_2.mjs | tee /tmp/v3990-1-production-contract.out
-          node /tmp/audit-production-rank-concurrency-contract-v3990_2.mjs | tee /tmp/v3990-1-production-rank-concurrency-contract.out
-          node tools/audit-unified-resource-graph-v3990_2.mjs | tee /tmp/v3990-1-production-resource.out
-          node tools/audit-site-runtime-generation-v3990_2.mjs | tee /tmp/v3990-1-production-runtime.out
-          node tools/audit-canonical-release-version-v3990_2.mjs | tee /tmp/v3990-1-production-canonical.out
+          node tools/audit-production-resource-verification-v3990_3.mjs | tee /tmp/v3990-1-production-contract.out
+          node /tmp/audit-production-rank-concurrency-contract-v3990_3.mjs | tee /tmp/v3990-1-production-rank-concurrency-contract.out
+          node tools/audit-unified-resource-graph-v3990_3.mjs | tee /tmp/v3990-1-production-resource.out
+          node tools/audit-site-runtime-generation-v3990_3.mjs | tee /tmp/v3990-1-production-runtime.out
+          node tools/audit-canonical-release-version-v3990_3.mjs | tee /tmp/v3990-1-production-canonical.out
 
       - name: Exercise verifier against local source graph
         env:
@@ -109,8 +109,8 @@ jobs:
             sleep 1
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-production-http.log; exit 1; fi
-          node tools/verify-production-resource-graph-v3990_2.mjs
-          node tools/verify-production-pagination-snapshot-guard-v3990_2.mjs
+          node tools/verify-production-resource-graph-v3990_3.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_3.mjs
 
       - name: Upload source evidence
         if: always()
@@ -136,7 +136,7 @@ jobs:
           node-version: '22'
 
       - name: Verify current pagination verifier
-        run: node --check tools/verify-production-pagination-snapshot-guard-v3990_2.mjs
+        run: node --check tools/verify-production-pagination-snapshot-guard-v3990_3.mjs
 
       - name: Verify Pages and custom-domain production resource graph
         env:
@@ -150,8 +150,8 @@ jobs:
           PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-1-production-pagination-snapshot-guard.json
         run: |
           set -euo pipefail
-          node tools/verify-production-resource-graph-v3990_2.mjs
-          node tools/verify-production-pagination-snapshot-guard-v3990_2.mjs
+          node tools/verify-production-resource-graph-v3990_3.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_3.mjs
 
       - name: Wait for bounded rank-query production deployment
         env:
@@ -161,10 +161,10 @@ jobs:
           ready=0
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_2"' <<<"$body" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_2"' <<<"$body" \
-              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_2"' <<<"$body" \
-              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_2"' <<<"$body" \
+            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_3"' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_3"' <<<"$body" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_3"' <<<"$body" \
+              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_3"' <<<"$body" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$body" \
               && grep -q '"sortPasses":1' <<<"$body" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$body" \
@@ -187,7 +187,7 @@ jobs:
           P99_LIMIT_MS: '15000'
           HARD_LIMIT_MS: '25000'
           MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/v3990-1-production-major-bands-concurrency.json
-        run: node tools/verify-major-bands-preview-concurrency-v3990_2.mjs
+        run: node tools/verify-major-bands-preview-concurrency-v3990_3.mjs
 
       - name: Upload production evidence
         if: always()

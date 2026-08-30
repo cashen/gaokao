@@ -17,7 +17,7 @@ on:
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
       - 'functions/_lib/ai/turn-orchestrator.js'
-      - 'tools/browser-ai-workspace-v3990_2.mjs'
+      - 'tools/browser-ai-workspace-v3990_3.mjs'
       - 'tools/verify-aiplus-family-decision-workbench-v003.mjs'
       - 'docs/architecture/AIPLUS-FAMILY-DECISION-WORKBENCH-STATUS.md'
       - '.github/workflows/verify-aiplus-family-decision-workbench-v003.yml'
@@ -36,7 +36,7 @@ on:
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
       - 'functions/_lib/ai/turn-orchestrator.js'
-      - 'tools/browser-ai-workspace-v3990_2.mjs'
+      - 'tools/browser-ai-workspace-v3990_3.mjs'
       - 'tools/verify-aiplus-family-decision-workbench-v003.mjs'
       - 'docs/architecture/AIPLUS-FAMILY-DECISION-WORKBENCH-STATUS.md'
       - '.github/workflows/verify-aiplus-family-decision-workbench-v003.yml'
@@ -76,7 +76,7 @@ jobs:
           grep -q "AI_DECISION_PROGRESS_VERSION='ai-decision-progress-v0.03'" shared/ai/decision-progress.v003.js
           grep -q "AI_DECISION_BOOK_VERSION='ai-decision-book-v0.03'" shared/ai/decision-book.v003.js
           grep -q "AI_DECISION_REFLECTION_VERSION='ai-decision-reflection-v0.03'" functions/_lib/ai/decision-reflection.js
-          grep -q "AI_SELECTION_REVIEW_VERSION = 'ai-selection-review-v3990_2'" functions/_lib/ai/selection-review.js
+          grep -q "AI_SELECTION_REVIEW_VERSION = 'ai-selection-review-v3990_3'" functions/_lib/ai/selection-review.js
           grep -q 'mutatesWorkspace:false' functions/_lib/ai/decision-reflection.js
           grep -q 'autoExecutesTools:false' functions/_lib/ai/decision-reflection.js
           grep -q 'id="decisionProgressList"' aiplus/index.html
@@ -85,12 +85,12 @@ jobs:
           grep -q 'class="decision-history-card"' aiplus/index.html
           ! grep -q 'id="probeModel"' aiplus/index.html
           ! grep -q 'id="healthBar"' aiplus/index.html
-          grep -q 'async function openNewTopic(page)' tools/browser-ai-workspace-v3990_2.mjs
-          grep -q 'async function openNewFamilyProfile(page)' tools/browser-ai-workspace-v3990_2.mjs
-          grep -q "decision-history-card').evaluate(el=>el.open=true)" tools/browser-ai-workspace-v3990_2.mjs
-          grep -q "historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;})" tools/browser-ai-workspace-v3990_2.mjs
-          grep -q "if(name!=='pc'){" tools/browser-ai-workspace-v3990_2.mjs
-          ! grep -q 'openNewWorkspace' tools/browser-ai-workspace-v3990_2.mjs
+          grep -q 'async function openNewTopic(page)' tools/browser-ai-workspace-v3990_3.mjs
+          grep -q 'async function openNewFamilyProfile(page)' tools/browser-ai-workspace-v3990_3.mjs
+          grep -q "decision-history-card').evaluate(el=>el.open=true)" tools/browser-ai-workspace-v3990_3.mjs
+          grep -q "historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;})" tools/browser-ai-workspace-v3990_3.mjs
+          grep -q "if(name!=='pc'){" tools/browser-ai-workspace-v3990_3.mjs
+          ! grep -q 'openNewWorkspace' tools/browser-ai-workspace-v3990_3.mjs
       - name: Syntax check FDW graph
         shell: bash
         run: |
@@ -107,8 +107,8 @@ jobs:
           node --check functions/_lib/ai/advisor-presentation.js
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check aiplus/render.v3992_0.js
-          node --check aiplus/app.v3990_2.js
-          node --check tools/browser-ai-workspace-v3990_2.mjs
+          node --check aiplus/app.v3990_3.js
+          node --check tools/browser-ai-workspace-v3990_3.mjs
           node --check tools/verify-aiplus-family-decision-workbench-v003.mjs
       - name: Verify family decision workbench
         run: node tools/verify-aiplus-family-decision-workbench-v003.mjs
@@ -117,8 +117,8 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-aiplus-parent-semantics-v003.mjs
-          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_3.mjs
           node tools/verify-aiplus-aek-v001.mjs
           node tools/verify-aiplus-aek-journeys-v001.mjs
           node tools/verify-ai-major-region-history-v3992_3.mjs
-          node tools/audit-architecture-handoff-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs

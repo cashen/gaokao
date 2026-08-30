@@ -36,17 +36,17 @@ jobs:
             git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           else
             node --check shared/resources/release/current-release.js
-            node --check shared/resources/release/active-resource-manifest.v3990_2.js
+            node --check shared/resources/release/active-resource-manifest.v3990_3.js
             node --check tools/verify-unified-visual-responsive-v3990_3.mjs
           fi
           sed \
-            -e 's/v3\.9\.90\.0/v3.9.90.2/g' \
-            -e 's/v3990_0/v3990_2/g' \
-            -e 's/3990_0/3990_2/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_2.py
+            -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
+            -e 's/v3990_0/v3990_3/g' \
+            -e 's/3990_0/3990_3/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
           python3 -m py_compile \
             tools/ln-2026/verify-final-release-v3970.py \
-            /tmp/verify-final-release-v3990_2.py \
+            /tmp/verify-final-release-v3990_3.py \
             tools/ln-2026/verify-generated-release-v3968.py \
             tools/ln-2026/verify-generated-release-v3971.py \
             tools/schools/school_resource_bundle.py \
@@ -58,11 +58,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 /tmp/verify-final-release-v3990_2.py | tee /tmp/v3990-2-final-release.out
-          node tools/audit-unified-resource-graph-v3990_2.mjs | tee /tmp/v3990-2-resource-graph.out
-          node tools/audit-site-runtime-generation-v3990_2.mjs | tee /tmp/v3990-2-site-runtime.out
-          node tools/audit-canonical-release-version-v3990_2.mjs | tee /tmp/v3990-2-canonical-release.out
-          node tools/audit-major-bands-rank-kernel-v3990_2.mjs | tee /tmp/v3990-2-major-bands.out
+          python3 /tmp/verify-final-release-v3990_3.py | tee /tmp/v3990-2-final-release.out
+          node tools/audit-unified-resource-graph-v3990_3.mjs | tee /tmp/v3990-2-resource-graph.out
+          node tools/audit-site-runtime-generation-v3990_3.mjs | tee /tmp/v3990-2-site-runtime.out
+          node tools/audit-canonical-release-version-v3990_3.mjs | tee /tmp/v3990-2-canonical-release.out
+          node tools/audit-major-bands-rank-kernel-v3990_3.mjs | tee /tmp/v3990-2-major-bands.out
           node tools/audit-family-action-v3970.mjs | tee /tmp/v3990-2-family-action.out
           node tools/audit-school-query-v3970.mjs | tee /tmp/v3990-2-school-query.out
           node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3990-2-algorithm-parity.out
@@ -82,21 +82,21 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_2.js';
-          import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from './shared/governance/resource-execution-contract.v3990_2.js';
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_3.js';
+          import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from './shared/governance/resource-execution-contract.v3990_3.js';
           import { ALGORITHM_CONTRACT } from './shared/algorithms/algorithm-registry.js';
-          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3990_2.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3990_3.js';
           import { SHARED_RESOURCE_GRAPH_VERSION, SHARED_RESOURCE_REGISTRY } from './shared/resources/resource-registry.js';
-          import { UI_RESOURCE_REGISTRY_VERSION, UI_CSS_RESOURCE_GRAPH_VERSION } from './shared/ui/ui-resource-registry.v3990_2.js';
+          import { UI_RESOURCE_REGISTRY_VERSION, UI_CSS_RESOURCE_GRAPH_VERSION } from './shared/ui/ui-resource-registry.v3990_3.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
-          if(CURRENT_RELEASE.display!=='v3.9.90.2'||CURRENT_RELEASE.assetVersion!=='v3990_2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.90.2'||CURRENT_RELEASE.asset!=='3990_2') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if(CURRENT_RELEASE.display!=='v3.9.90.3'||CURRENT_RELEASE.assetVersion!=='v3990_3'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.90.3'||CURRENT_RELEASE.asset!=='3990_3') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation) throw new Error('site generation owner');
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
           if(CURRENT_RELEASE.sharedResourceGraphVersion!==SHARED_RESOURCE_GRAPH_VERSION) throw new Error('resource graph owner');
           if(CURRENT_RELEASE.uiResourceRegistryVersion!==UI_RESOURCE_REGISTRY_VERSION) throw new Error('UI registry owner');
           if(CURRENT_RELEASE.cssResourceGraphVersion!==UI_CSS_RESOURCE_GRAPH_VERSION) throw new Error('CSS graph owner');
-          if(CURRENT_RELEASE.resourceOwners.ui!=='/shared/ui/ui-resource-registry.v3990_2.js') throw new Error('current UI owner');
+          if(CURRENT_RELEASE.resourceOwners.ui!=='/shared/ui/ui-resource-registry.v3990_3.js') throw new Error('current UI owner');
           if(CURRENT_RELEASE.resourceOwners.uiComponents!==CURRENT_RELEASE.resourceOwners.ui) throw new Error('current UI component owner');
           if(SHARED_RESOURCE_REGISTRY.ui.registry!==CURRENT_RELEASE.resourceOwners.ui) throw new Error('shared UI graph owner');
           if(fs.existsSync('ln-rank/active-assets.json')||fs.existsSync('ln-rank/release-meta.json')) throw new Error('stale active inventory');
@@ -105,13 +105,13 @@ jobs:
           if(CURRENT_RELEASE.localStrengthDataVersion!=='local-strength-static-v3971_2') throw new Error('LocalStrength static owner');
           if(CURRENT_RELEASE.all211DataVersion!=='all-211-static-v3972_0'||CURRENT_RELEASE.all211Architecture!=='build-time-static-index') throw new Error('211 static owner');
           if(CURRENT_RELEASE.majorBandsVersion!=='major-bands-static-v3972_2') throw new Error('major-bands owner');
-          if(CURRENT_RELEASE.majorBandsOrchestrationVersion!=='major-bands-single-worker-rank-window-v3990_2') throw new Error('major-bands query governance');
+          if(CURRENT_RELEASE.majorBandsOrchestrationVersion!=='major-bands-single-worker-rank-window-v3990_3') throw new Error('major-bands query governance');
           if(CURRENT_RELEASE.majorBandsStableWorkerVersion!=='major-bands-bounded-fanout-v3972_5') throw new Error('major-bands stable worker preservation');
-          if(CURRENT_RELEASE.majorBandsQueryKernelVersion!=='major-bands-rank-query-kernel-v3990_2') throw new Error('major-bands rank kernel');
+          if(CURRENT_RELEASE.majorBandsQueryKernelVersion!=='major-bands-rank-query-kernel-v3990_3') throw new Error('major-bands rank kernel');
           if(ALGORITHM_CONTRACT.version!=='algorithm-orchestration-v3969') throw new Error('algorithm owner');
-          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3990_2') throw new Error('cache owner');
-          if(RESOURCE_EXECUTION_REGISTRY.familyAction.owner!=='/shared/ui/components/family-plan-entry.v3990_2.js') throw new Error('family action current owner');
-          if(RESOURCE_EXECUTION_REGISTRY.interaction.owner!=='/shared/ui/interaction/interaction-transaction.v3990_2.js') throw new Error('interaction owner');
+          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3990_3') throw new Error('cache owner');
+          if(RESOURCE_EXECUTION_REGISTRY.familyAction.owner!=='/shared/ui/components/family-plan-entry.v3990_3.js') throw new Error('family action current owner');
+          if(RESOURCE_EXECUTION_REGISTRY.interaction.owner!=='/shared/ui/interaction/interaction-transaction.v3990_3.js') throw new Error('interaction owner');
           if(RESOURCE_EXECUTION_REGISTRY.interaction.nativeChooserActivationOwner!==RESOURCE_EXECUTION_REGISTRY.interaction.owner) throw new Error('native chooser activation owner');
           const healthSource=fs.readFileSync('functions/api/major-bands-health.js','utf8');
           const fetcherSource=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
@@ -130,7 +130,7 @@ jobs:
           if(!directory.schools.some(row=>row.officialName==='沈阳化工大学')) throw new Error('沈阳化工大学 missing');
           const all211=JSON.parse(fs.readFileSync('ln-rank/data/211-static/211-static-index.v3972_0.json','utf8'));
           if(!all211.meta.completeEvaluation||all211.records.length!==2494||all211.scoreBands.length!==8) throw new Error('211 static integrity');
-          console.log('v3990_2 current owners, worker budget and preserved static resources passed');
+          console.log('v3990_3 current owners, worker budget and preserved static resources passed');
           NODE
           node tools/verify-school-profile-center-v3957.mjs
           node tools/verify-card-ai-2026-v3955.mjs
@@ -151,34 +151,34 @@ jobs:
             / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/self-check.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html /aiplus/
             /shared/resources/release/current-release.js
             /shared/resources/resource-registry.js
-            /shared/ui/ui-resource-registry.v3990_2.js
-            /shared/resources/release/site-runtime-contract.v3990_2.js
-            /shared/resources/release/release-presenter.v3990_2.js
-            /shared/resources/release/runtime-cache-contract.v3990_2.js
-            /shared/governance/resource-execution-contract.v3990_2.js
-            /functions/_lib/major-bands-rank-index.v3990_2.js
-            /functions/_lib/major-bands-rank-bucket-loader.v3990_2.js
-            /functions/_lib/major-bands-rank-query-kernel.v3990_2.js
-            /functions/_lib/major-bands-result-order.v3990_2.js
-            /functions/_lib/major-bands-response-transport.v3990_2.js
-            /tools/build-major-bands-rank-index-v3990_2.mjs
-            /ln-rank/site-active-generation.v3990_2.json
-            /shared/ui/interaction/interaction-transaction.v3990_2.js
-            /shared/ui/interaction/interaction-transaction.v3990_2.css
-            /ln-rank/js/app.v3990_2.js
-            /ln-rank/js/app-runtime.v3990_2.js
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js
-            /ln-rank/js/self-check.v3990_2.js
-            /shared/ui/shell/family-shell.v3990_2.js
+            /shared/ui/ui-resource-registry.v3990_3.js
+            /shared/resources/release/site-runtime-contract.v3990_3.js
+            /shared/resources/release/release-presenter.v3990_3.js
+            /shared/resources/release/runtime-cache-contract.v3990_3.js
+            /shared/governance/resource-execution-contract.v3990_3.js
+            /functions/_lib/major-bands-rank-index.v3990_3.js
+            /functions/_lib/major-bands-rank-bucket-loader.v3990_3.js
+            /functions/_lib/major-bands-rank-query-kernel.v3990_3.js
+            /functions/_lib/major-bands-result-order.v3990_3.js
+            /functions/_lib/major-bands-response-transport.v3990_3.js
+            /tools/build-major-bands-rank-index-v3990_3.mjs
+            /ln-rank/site-active-generation.v3990_3.json
+            /shared/ui/interaction/interaction-transaction.v3990_3.js
+            /shared/ui/interaction/interaction-transaction.v3990_3.css
+            /ln-rank/js/app.v3990_3.js
+            /ln-rank/js/app-runtime.v3990_3.js
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js
+            /ln-rank/js/self-check.v3990_3.js
+            /shared/ui/shell/family-shell.v3990_3.js
             /shared/ui/shell/family-shell.v3972_5.css
-            /shared/ui/components/family-plan-entry.v3990_2.js
+            /shared/ui/components/family-plan-entry.v3990_3.js
             /shared/ui/components/family-plan-entry.v3972_5.css
-            /ln-rank/js/ux/family-home.v3990_2.js
-            /ln-rank/js/selection-pool.v3990_2.js
-            /ln-rank/js/selection-pool-runtime.v3990_2.js
-            /shared/ai/ai-workspace-contract.v3990_2.js
-            /aiplus/app.v3990_2.js
-            /aiplus/workspace.v3990_2.css
+            /ln-rank/js/ux/family-home.v3990_3.js
+            /ln-rank/js/selection-pool.v3990_3.js
+            /ln-rank/js/selection-pool-runtime.v3990_3.js
+            /shared/ai/ai-workspace-contract.v3990_3.js
+            /aiplus/app.v3990_3.js
+            /aiplus/workspace.v3990_3.css
             /ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
             /ln-rank/js/academic-background/all211-static-app.v3972_0.js
             /ln-rank/css/all211-static.v3972_0.css

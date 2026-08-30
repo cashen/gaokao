@@ -96,9 +96,9 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_2.js';
-          if(CURRENT_RELEASE.display!=='v3.9.90.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.90.2') throw new Error('release mismatch');
-          if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation||SITE_RUNTIME_CONTRACT.generation!=='v3990_2') throw new Error('site generation mismatch');
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3990_3.js';
+          if(CURRENT_RELEASE.display!=='v3.9.90.3'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.90.3') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation||SITE_RUNTIME_CONTRACT.generation!=='v3990_3') throw new Error('site generation mismatch');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
           if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue stable package mismatch');
           if(!SITE_RUNTIME_CONTRACT.stableDependencies.includes('/tongxue/app/tongxue-runtime-v159-r3968.js')) throw new Error('Tongxue runtime must be declared as a stable dependency');
@@ -114,7 +114,7 @@ jobs:
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue stable v159 package under current site generation v3990_2 and release v3.9.90.2 passed');
+          console.log('Tongxue stable v159 package under current site generation v3990_3 and release v3.9.90.3 passed');
           NODE
           node tools/verify-tongxue-uec-cache-identity-v001.mjs
           node tools/verify-ln-rank-school-entry-tongxue-v001.mjs

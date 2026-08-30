@@ -1,6 +1,6 @@
 import { resolveWorkersAiModelAlias } from '../ai-model-resolver.js';
 
-export const AI_PROVIDER_ROUTER_VERSION = 'ai-provider-router-v3990_2';
+export const AI_PROVIDER_ROUTER_VERSION = 'ai-provider-router-v3990_3';
 
 function clean(value, max = 240) { return String(value == null ? '' : value).trim().slice(0, max); }
 function positiveInt(value, fallback, min = 1000, max = 60000) { const number = Math.round(Number(value)); return Number.isFinite(number) ? Math.max(min, Math.min(max, number)) : fallback; }

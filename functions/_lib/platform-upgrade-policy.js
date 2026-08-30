@@ -1,6 +1,6 @@
 import { resolveSchoolProfile } from '../../shared/resources/schools/school-profile-center.js';
 
-export const PLATFORM_UPGRADE_POLICY_VERSION = 'platform-upgrade-policy-v3990_2';
+export const PLATFORM_UPGRADE_POLICY_VERSION = 'platform-upgrade-policy-v3990_3';
 const SCHOOL_TIER_CACHE_MAX = 1024;
 const schoolTierCache = new Map();
 

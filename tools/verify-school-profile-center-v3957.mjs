@@ -10,7 +10,7 @@ import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.js
 import { buildDisplayTags } from '../functions/_lib/school-display-tags.js';
 import { normalizeLocation } from '../functions/_lib/location-normalizer.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
-import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3990_2.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3990_3.js';
 import { SHARED_RESOURCE_REGISTRY, SHARED_RESOURCE_GRAPH_VERSION } from '../shared/resources/resource-registry.js';
 import { getSchoolEntity } from '../shared/resources/schools/school-identity-center.js';
 
@@ -114,7 +114,7 @@ for (const source of [tagsAdapter, displayAdapter, locationAdapter]) {
 assert.ok(locationAdapter.includes('shared/resources/geo/china-region-catalog.js'));
 assert.ok(!tagsAdapter.includes("'大连理工大学':"));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.90.2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.90.3');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
 assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
 assert.equal(SHARED_RESOURCE_REGISTRY.schools.profileModule, CURRENT_RELEASE.resourceOwners.schools);
@@ -127,7 +127,7 @@ assert.equal(SHARED_RESOURCE_REGISTRY.schools.identityPolicy, 'shared-upstream-t
 assert.ok(!fs.existsSync('ln-rank/release-meta.json'), 'retired release-meta.json remains');
 assert.ok(!fs.existsSync('ln-rank/active-assets.json'), 'retired active-assets.json remains');
 
-const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3990_2.json', 'utf8'));
+const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3990_3.json', 'utf8'));
 assert.equal(activeManifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(activeManifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
 assert.equal(activeManifest.resourceGraph.version, CURRENT_RELEASE.sharedResourceGraphVersion);
