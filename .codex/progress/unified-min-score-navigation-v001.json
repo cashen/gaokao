@@ -6,8 +6,8 @@
   "branch": "feat/unified-min-score-navigation-v001",
   "pr": 251,
   "prUrl": "https://github.com/cashen/gaokao/pull/251",
-  "headSha": "4a85889f793e335ec024051ec4564583b186dbe1",
-  "status": "exact-head-preview-verified",
+  "headSha": "0f754e2cef83aff51be3395c15f972a041f76670",
+  "status": "ready-blocked-github-connector",
   "completed": [
     "live-state-reconciled",
     "required-repository-skills-read",
@@ -29,7 +29,8 @@
     "remote-implementation-synced",
     "current-generation-contract-repair",
     "responsive-browser-tests",
-    "exact-head-preview"
+    "exact-head-preview",
+    "tongxue-school-browser-regression"
   ],
   "inProgress": "ready-same-sha",
   "pending": [
@@ -49,12 +50,13 @@
   },
   "recovery": "On resume, read this checkpoint, re-read PR 251 metadata, branch head, latest main and workflow runs. If main or PR head changed, remote state wins. Continue from the first pending phase and never repeat a successful write/test at the same SHA.",
   "lastEvidence": {
-    "headSha": "4a85889f793e335ec024051ec4564583b186dbe1",
-    "preview": "exact-head Cloudflare Pages preview and branch Functions graph",
-    "previewRun": 33282165315,
-    "previewBrowserJob": 99179715463,
+    "headSha": "0f754e2cef83aff51be3395c15f972a041f76670",
+    "preview": "exact-head Cloudflare Pages preview, branch Functions graph, and Tongxue school entry browser regression",
+    "previewRun": 33283025333,
+    "previewBrowserJob": 99181766252,
     "previewStatus": "success",
-    "allPullRequestWorkflowRuns": "success"
+    "allPullRequestWorkflowRuns": "success",
+    "readyBlocker": "GitHub connector markPullRequestReadyForReview failed because its GraphQL selection references Repository.fullDatabaseId, which GitHub does not expose; merge correctly rejected the still-draft PR with HTTP 405."
   },
-  "verifiedAt": "2026-08-30T00:08:00Z"
+  "verifiedAt": "2026-08-30T00:35:00Z"
 }
