@@ -78,7 +78,7 @@ try {
     await page.goto(`${base}/tongxue/?school=${encodeURIComponent('吉林大学')}`, { waitUntil: 'networkidle' });
     await page.locator('[data-min-score-entry="school"] .min-score-entry__link').waitFor();
     const schoolEntry = page.locator('[data-min-score-entry="school"] .min-score-entry__link');
-    assert.equal(await schoolEntry.innerText(), '查这所学校在辽宁各专业的最低分 →');
+    assert.equal(await schoolEntry.innerText(), '查这所学校在辽宁各专业的最低分');
     assert.match(await schoolEntry.getAttribute('href'), /mode=school-all/);
     assert.match(await schoolEntry.getAttribute('href'), /school=%E5%90%89%E6%9E%97%E5%A4%A7%E5%AD%A6/);
 
