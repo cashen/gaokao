@@ -7,6 +7,8 @@ const exists = path => fs.existsSync(path);
 const redirects = read('_redirects');
 const handoff = read('ln-rank/js/workspace/major-path-handoff.v003.js');
 const interaction = read('shared/ui/interaction/interaction-transaction.v3990_3.js');
+const majorNavigation = read('shared/resources/majors/major-path-navigation.v003.js');
+const studentVoiceNavigation = read('shared/resources/experience/student-voice-navigation.v001.js');
 const report = read('browser-audit/index.html');
 const manifest = read('shared/resources/release/active-resource-manifest.v3990_3.js');
 
@@ -28,6 +30,14 @@ assert.equal((handoff.match(/link\.href = href/g) || []).length, 2, 'both cross-
 assert.ok(interaction.includes('function isNativeLink(action)'), 'interaction owner must recognize native links');
 assert.ok(interaction.includes('if (!action || isNativeLink(action)) return;'), 'gesture start/end must not block native links');
 assert.ok(interaction.includes('emitNativeLinkAcceptance(action);'), 'native link acceptance must preserve resume-state instrumentation');
+for (const [name, source, meta] of [
+  ['major path', majorNavigation, 'MAJOR_PATH_NAVIGATION_META'],
+  ['student voice', studentVoiceNavigation, 'STUDENT_VOICE_NAVIGATION_META']
+]) {
+  assert.ok(source.includes('maxUrlLength: 1800') || source.includes('maxUrlLength:1800'), `${name} navigation must publish a URL budget`);
+  assert.ok(source.includes('params.delete(DECISION_CONTEXT_QUERY_KEY)'), `${name} navigation must drop optional context when over budget`);
+  assert.ok(source.includes(meta), `${name} navigation metadata owner missing`);
+}
 
 assert.ok(report.includes('data-audit-version="browser-compatibility-audit-v001"'));
 assert.ok(report.includes('href="https://gaokao.powers.org.cn/browser-audit/"'));
