@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "e314b8f17a1228e77135224dc6a7ccd4980e15ea",
+  "currentHeadSha": "d4409ed84ac59bd8614cdc044b083bacab69d0a9",
   "releaseTarget": "v3.9.90.4 / v3990_4 (pending source-of-truth verification)",
   "completed": [
     "live-main-reconciled",
@@ -20,7 +20,10 @@
     "audit-report-page-contract-tested",
     "release-audit-capability-version-registered",
     "static-gate-added",
-    "report-and-route-contract-tested"
+    "report-and-route-contract-tested",
+    "url-budget-fallback-implemented",
+    "browser-audit-static-gate-updated",
+    "release-audit-revision-advanced"
   ],
   "inProgress": "release-contract-and-static-gates",
   "pending": [
@@ -35,8 +38,8 @@
   ],
   "tests": {
     "plan": "written-to-pr",
-    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling; canonical route test passed: old .html links removed from active files, legacy redirects are explicit single-hop, zy2026 legacy entry no longer owns a runtime; report page passed: canonical, viewport, mobile CSS, offline-safe static markup, matrix and release-log link; static gate added and enqueued on PR head",
-    "architecture": "not-run",
+    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling; canonical route test passed: old .html links removed from active files, legacy redirects are explicit single-hop, zy2026 legacy entry no longer owns a runtime; report page passed: canonical, viewport, mobile CSS, offline-safe static markup, matrix and release-log link; static gate added and enqueued on PR head; navigation builders now remove optional dc when the final handoff exceeds 1800 characters",
+    "architecture": "pending Actions on exact PR head",
     "humanCopy": "passed: report is static/offline-readable, mobile-first, and uses parent/student language",
     "browser": "not-run",
     "treeIntegrity": "queued on PR head"
@@ -54,5 +57,5 @@
     }
   ],
   "lastFailure": null,
-  "updatedAt": "2026-08-30T23:15:00Z"
+  "updatedAt": "2026-08-30T23:30:00Z"
 }
