@@ -2,7 +2,7 @@
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-semantic-navigation-v001",
-  "headSha": "3ebdadeead2bd2ab9930ea618507b90ef3299fb4",
+  "headSha": "835843e1895e9a9dfe8dfc9c8312a9e15bd01d72",
   "baseSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
   "pr": 257,
   "completed": [
@@ -16,7 +16,9 @@
     "browser-failure-diagnosed",
     "focus-query-fix-committed",
     "static-failure-diagnosed",
-    "static-contract-fix-committed"
+    "static-contract-fix-committed",
+    "browser-major-code-leak-diagnosed",
+    "major-context-clear-fix-committed"
   ],
   "inProgress": "ci",
   "pending": [
@@ -26,10 +28,10 @@
     "production-browser-recheck"
   ],
   "lastFailure": {
-    "check": "static-contract",
-    "reason": "new r044 navigation revision assertions were not all updated from r043",
-    "resolvedBy": "3ebdadeead2bd2ab9930ea618507b90ef3299fb4"
+    "check": "browser-journeys",
+    "reason": "school handoff retained majorCode from the originating major-all URL even after majorKeyword was cleared",
+    "resolvedBy": "835843e1895e9a9dfe8dfc9c8312a9e15bd01d72"
   },
   "revision": "r045-ln-rank-school-handoff-scope",
-  "verifiedAt": "2026-08-30T03:53:13.667Z"
+  "verifiedAt": "2026-08-30T03:56:51.922Z"
 }
