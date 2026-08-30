@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "d4409ed84ac59bd8614cdc044b083bacab69d0a9",
+  "currentHeadSha": "e9f967ceabad1c5e4dd17ae6310a2f7d2fdbcfd4",
   "releaseTarget": "v3.9.90.4 / v3990_4 (pending source-of-truth verification)",
   "completed": [
     "live-main-reconciled",
@@ -12,20 +12,12 @@
     "branch-created",
     "plan-written",
     "draft-pr-created",
-    "native-link-fallback-implemented",
-    "native-link-source-contract-tested",
-    "canonical-routes-implemented",
-    "canonical-route-contract-tested",
-    "audit-report-page-implemented",
-    "audit-report-page-contract-tested",
-    "release-audit-capability-version-registered",
-    "static-gate-added",
-    "report-and-route-contract-tested",
-    "url-budget-fallback-implemented",
-    "browser-audit-static-gate-updated",
-    "release-audit-revision-advanced"
+    "current-architecture-audit-passed",
+    "human-copy-audit-passed",
+    "tree-integrity-audit-passed",
+    "relevant-navigation-contracts-passed"
   ],
-  "inProgress": "release-contract-and-static-gates",
+  "inProgress": "preview-exact-head",
   "pending": [
     "canonical-routes",
     "audit-report-page",
@@ -38,11 +30,11 @@
   ],
   "tests": {
     "plan": "written-to-pr",
-    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling; canonical route test passed: old .html links removed from active files, legacy redirects are explicit single-hop, zy2026 legacy entry no longer owns a runtime; report page passed: canonical, viewport, mobile CSS, offline-safe static markup, matrix and release-log link; static gate added and enqueued on PR head; navigation builders now remove optional dc when the final handoff exceeds 1800 characters",
-    "architecture": "pending Actions on exact PR head",
-    "humanCopy": "passed: report is static/offline-readable, mobile-first, and uses parent/student language",
-    "browser": "not-run",
-    "treeIntegrity": "queued on PR head"
+    "source": "not-run",
+    "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
+    "humanCopy": "passed: audit-human-copy-v001",
+    "browser": "local browser automation blocked: Playwright Chromium download unavailable; cloud Chrome production baseline previously available, PR Preview still required",
+    "treeIntegrity": "passed: 2488 base files, 2494 PR files, all 16 sentinels present"
   },
   "blockers": [
     {
@@ -56,6 +48,11 @@
       "detail": "主分支历史 workflow 出现 push failure 且 jobs=[]，需在本 PR 中修复或形成可审计的配置解释后再合并。"
     }
   ],
-  "lastFailure": null,
-  "updatedAt": "2026-08-30T23:30:00Z"
+  "lastFailure": {
+    "check": "legacy-test-scripts",
+    "reason": "tools/audit-architecture-handoff-v3990_2.mjs and tools/verify-major-path-handoff-v003.mjs/tools/verify-module-navigation-v001.mjs assert retired v3990_2/v0.04 markers; current workflows use v3990_3/v0.05 owners",
+    "classification": "historical-stale-tests-not-called-by-current-workflows",
+    "followUp": "do not use these stale scripts as current evidence; retain current workflow owners and new browser audit gate"
+  },
+  "updatedAt": "2026-08-30T23:55:00Z"
 }
