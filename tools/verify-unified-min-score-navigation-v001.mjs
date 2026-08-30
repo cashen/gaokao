@@ -51,6 +51,9 @@ const majorPathView = read('shared/resources/majors/undergrad-graduate-pathway-v
 const tongxue = read('tongxue/app/tongxue-runtime-result-view-v159.js');
 const majorAll = read('ln-rank/js/feature/major-all/major-all-mode.v001.js');
 const schoolAll = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js');
+const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js');
+const runtime = read('ln-rank/js/app-runtime.v3990_3.js');
+const release = read('shared/resources/release/current-release.js');
 const majorIndex = read('major-path/index.html');
 const tongxueIndex = read('tongxue/index.html');
 
@@ -64,6 +67,13 @@ assert.match(majorAll, /专业本身不一定不存在/);
 assert.match(schoolAll, /当前条件下没有找到这所学校的辽宁最低分记录/);
 assert.match(schoolAll, /这不一定代表学校没有招生/);
 assert.match(majorAll, /autoQuery/);
+const renderRecord = majorAll.slice(majorAll.indexOf('function renderRecord'), majorAll.indexOf('function mergeRecords'));
+assert.match(renderRecord, /focus:'school-all'/);
+assert.doesNotMatch(renderRecord, /majorKeyword/);
+assert.match(workspace, /state\.filters\.majorKeyword = ''/);
+assert.match(workspace, /updateSearchUrl\(\{ push: true, focus: MODE_SCHOOL \}\)/);
+assert.match(runtime, /r=r043-ln-rank-semantic-navigation/);
+assert.match(release, /lnRankNavigationRevision: 'r043-ln-rank-semantic-navigation'/);
 const lnRankIndex = read('ln-rank/index.html');
 const lnRankBootstrap = read('ln-rank/js/app.v3990_3.js');
 assert.match(lnRankIndex, /min-score-handoff-loading/);

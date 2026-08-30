@@ -50,6 +50,16 @@ try {
           };
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
     });
+    await page.route('**/api/school-majors*', route => {
+      const requestUrl = new URL(route.request().url());
+      const school = requestUrl.searchParams.get('school') || '辽宁大学';
+      const resolveOnly = requestUrl.searchParams.get('resolveOnly') === '1';
+      const payload = resolveOnly
+        ? { ok: true, meta: { school, schoolEntity: { entityId: 'admission:liaoning-university', school } } }
+        : { ok: true, meta: { school, schoolEntity: { entityId: 'admission:liaoning-university', school }, filteredTotal: 1, pagination: { hasMore: false } }, summary: { uniqueMajorCount: 1, regularCount: 1, specialCount: 0, minScore: 600, maxScore: 600 }, records: [{ school, major: '电气工程及其自动化', standardMajor: { code: '080601', name: '电气工程及其自动化' }, score2026: 600, rank2026: 1000 }] };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
+    });
+
     await page.route('**/api/ai/major-history*', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -99,8 +109,24 @@ try {
     assert.equal(await page.evaluate(() => document.querySelector('#majorAllResultsPanel').getBoundingClientRect().top < 120), true);
     await page.locator('.major-all-record').waitFor();
     assert.equal(await page.locator('.major-all-record').count(), 1);
+    const majorSchoolLink = page.locator('.major-all-school-link').first();
+    const majorSchoolHref = await majorSchoolLink.getAttribute('href');
+    assert.match(majorSchoolHref, /focus=school-all/);
+    assert.match(majorSchoolHref, /#schoolAllResultsPanel$/);
+    assert.doesNotMatch(majorSchoolHref, /majorKeyword|majorCode|majorConfirmed/);
+    await page.locator('[data-major-school]').first().click();
+    await page.locator('#schoolAllTitle').waitFor();
+    await page.locator('[data-school-record]').waitFor();
+    const schoolUrl = new URL(page.url());
+    assert.equal(schoolUrl.searchParams.get('mode'), 'school-all');
+    assert.equal(schoolUrl.searchParams.get('focus'), 'school-all');
+    assert.equal(schoolUrl.hash, '#schoolAllResultsPanel');
+    assert.equal(schoolUrl.searchParams.get('majorKeyword'), null);
+    assert.equal(schoolUrl.searchParams.get('majorCode'), null);
+    assert.equal(await page.locator('#schoolAllResultsPanel').evaluate(node => node.hidden), false);
+    assert.equal(await page.locator('[data-school-record]').count(), 1);
 
-    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query'] }, null, 2));
+    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query', 'major-all-to-school-all'] }, null, 2));
   } finally {
     await browser.close();
   }
