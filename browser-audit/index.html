@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f2f7f4">
+  <meta name="description" content="全站浏览器兼容性审计：记录 Android、Alook、PC 和 Pad 的入口检查、已知问题与整改进度。">
+  <link rel="canonical" href="https://gaokao.powers.org.cn/browser-audit/">
+  <title>全站浏览器兼容性审计｜辽宁高考家庭决策工作台</title>
+  <style>
+    :root{--bg:#f2f7f4;--paper:#fff;--ink:#19312a;--muted:#62766e;--line:#dce9e2;--green:#24765e;--green-soft:#e8f3ed;--blue:#2d6681;--amber:#a66326;--amber-soft:#fff3e6;--shadow:0 18px 46px rgba(35,77,61,.09)}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at 88% 0,#e9f4f1 0,transparent 35%),linear-gradient(180deg,#f8fbfa 0,var(--bg) 70%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+    a{color:var(--green);text-underline-offset:3px}
+    .wrap{width:min(1040px,calc(100% - 28px));margin:auto;padding:18px 0 54px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:44px}
+    .brand{font-weight:900;color:var(--green);letter-spacing:.02em}
+    .back{font-size:13px;font-weight:800}
+    .hero{margin-top:28px;padding:clamp(26px,5vw,52px);border:1px solid var(--line);border-radius:28px;background:linear-gradient(135deg,#fff 0,#f1f8f5 100%);box-shadow:var(--shadow)}
+    .eyebrow{display:inline-flex;padding:5px 10px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:12px;font-weight:900}
+    h1{max-width:720px;margin:14px 0 10px;font-size:clamp(32px,6vw,58px);line-height:1.13;letter-spacing:-.05em}
+    .lead{max-width:760px;margin:0;color:var(--muted);font-size:17px}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+    .pill{display:inline-flex;padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:#fbfdfc;color:var(--muted);font-size:12px;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+    .card{padding:20px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.9);box-shadow:0 10px 26px rgba(35,77,61,.05)}
+    .card h2,.card h3{margin:0;color:var(--ink);line-height:1.35}
+    .card p{margin:9px 0 0;color:var(--muted)}
+    .status{display:inline-flex;align-items:center;gap:6px;font-weight:900;color:var(--green)}
+    .status:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+    .status.pending{color:var(--amber)}
+    .status.pending:before{background:var(--amber)}
+    .section{margin-top:28px}
+    .section>h2{margin:0;font-size:24px}
+    .section>p{margin:6px 0 0;color:var(--muted)}
+    .matrix{width:100%;border-collapse:collapse;margin-top:14px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--paper)}
+    th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:#f5faf7;color:var(--muted);font-size:12px}
+    tr:last-child td{border-bottom:0}
+    td small{display:block;color:var(--muted)}
+    .steps{display:grid;gap:10px;margin-top:14px}
+    .step{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
+    .step b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--green-soft);color:var(--green)}
+    .step strong{display:block}
+    .step span{color:var(--muted)}
+    details{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:#fbfdfc}
+    summary{cursor:pointer;font-weight:900;color:var(--green)}
+    code{padding:2px 5px;border-radius:5px;background:#eef4f1;color:#31544a;font-size:.92em;word-break:break-word}
+    .footer{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+    @media(max-width:760px){.wrap{width:min(100% - 20px,620px);padding-top:10px}.topbar{align-items:flex-start}.hero{margin-top:18px;padding:24px 20px;border-radius:22px}.lead{font-size:15px}.grid{grid-template-columns:1fr}.section{margin-top:24px}.matrix{display:block;overflow-x:auto;white-space:normal}th,td{min-width:128px;padding:11px 10px}.footer{margin-top:24px}}
+  </style>
+</head>
+<body data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-audit-version="browser-compatibility-audit-v001" data-audit-revision="r001-native-links-canonical-routes">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">辽宁高考家庭决策工作台</div>
+      <a class="back" href="/">返回首页</a>
+    </div>
+
+    <header class="hero">
+      <span class="eyebrow">全站 · 浏览器兼容性审计</span>
+      <h1>先保证入口能打开，再谈页面好不好用。</h1>
+      <p class="lead">这页记录专业初选、学校查询、同学你好、AIPLuS、招生变化和旧入口的检查结果。重点回应 Android 浏览器，尤其是 Alook 在选择器、倒计时或页面正在变化时，点击后没有进入下一页的问题。</p>
+      <div class="meta">
+        <span class="pill">审计版本 browser-compatibility-audit-v001</span>
+        <span class="pill">当前站点 v3.9.90.3</span>
+        <span class="pill">移动优先 · 原生链接优先</span>
+      </div>
+    </header>
+
+    <section class="grid" aria-label="审计摘要">
+      <article class="card">
+        <span class="status">已确认根因</span>
+        <h2>部分动态入口没有 href</h2>
+        <p>“专业升学路径”和“大学生说专业”过去由无地址按钮加手势拦截器完成跳转，移动浏览器更容易把它判成一次被拦截的点击。</p>
+      </article>
+      <article class="card">
+        <span class="status">已整改入口</span>
+        <h2>跨模块入口回到原生链接</h2>
+        <p>现在先把完整地址写进 <code>href</code>，状态记录只做增强；即使脚本晚到、网络暂时断开或事件顺序不同，浏览器仍有默认打开路径。</p>
+      </article>
+      <article class="card">
+        <span class="status pending">仍需真机</span>
+        <h2>Alook 不能用别的浏览器代测</h2>
+        <p>云端 Chrome、桌面模拟移动尺寸和 Android Chrome 结果都不能代替 Alook 真机。最终验收会单独记录 Alook 版本、系统、地址和结果。</p>
+      </article>
+    </section>
+
+    <section class="section" aria-labelledby="matrixTitle">
+      <h2 id="matrixTitle">浏览器验收矩阵</h2>
+      <p>“已完成”表示已有检查证据；“待真机”表示不把模拟器或其他浏览器的结果冒充目标浏览器。</p>
+      <table class="matrix">
+        <thead><tr><th>环境</th><th>本次检查</th><th>状态</th><th>重点路径</th></tr></thead>
+        <tbody>
+          <tr><td>PC Chrome</td><td>入口、地址、资源、回退</td><td><span class="status">已完成基线检查</span></td><td>首页 → 专业初选 → 专业路径/同学你好</td></tr>
+          <tr><td>Pad / 窄屏</td><td>触控目标、换行、无横向溢出</td><td><span class="status pending">Preview 待复核</span></td><td>首页、ln-rank、tongxue、AIPLuS</td></tr>
+          <tr><td>Android Chrome</td><td>真机点击与断网回退</td><td><span class="status pending">待真机</span></td><td>选择器后、倒计时后、长 URL 入口</td></tr>
+          <tr><td>Alook</td><td>真实点击事件顺序与页面打开</td><td><span class="status pending">必须人工完成</span></td><td>专业升学路径、大学生说专业、学校专业卡</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" aria-labelledby="scopeTitle">
+      <h2 id="scopeTitle">全站覆盖范围</h2>
+      <p>不只检查首页：每个入口都按“地址是否存在、脚本未完成时是否还能打开、旧地址是否只跳一次”复核。</p>
+      <div class="grid">
+        <article class="card"><h3>核心决策路径</h3><p><a href="/ln-rank/">专业初选</a> · <a href="/major-path/">专业升学路径</a> · <a href="/tongxue/">同学你好</a> · <a href="/aiplus/">AIPLuS</a></p></article>
+        <article class="card"><h3>补充数据入口</h3><p><a href="/ln2026">招生变化</a> · <a href="/zy2026/">招生结构变化</a> · <a href="/Public_company/">产业地图</a> · <a href="/ln-rank/selection-pool">自选池</a></p></article>
+        <article class="card"><h3>旧入口处理</h3><p><code>/ln2026.html</code>、<code>/zy2026.html</code>、<code>/zy.html</code>、旧诊断页和产业 source 入口均归并到明确地址。</p></article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="planTitle">
+      <h2 id="planTitle">整改顺序</h2>
+      <p>每完成一步都先测试，再进入下一步；中断后从检查点里的第一项未完成任务继续。</p>
+      <div class="steps">
+        <div class="step"><b>1</b><div><strong>原生化跨模块入口</strong><span>真实 href + 原有返回状态记录，避免手势事务成为唯一跳转条件。</span></div></div>
+        <div class="step"><b>2</b><div><strong>统一规范地址</strong><span>主动链接使用唯一地址，旧地址保留单跳兼容，避免重复运行时。</span></div></div>
+        <div class="step"><b>3</b><div><strong>加入审计门</strong><span>静态检查入口类型、规范链接、报告页和断网安全边界，防止回归。</span></div></div>
+        <div class="step"><b>4</b><div><strong>Preview 与真机验收</strong><span>exact-head Preview 通过后复核 PC、Pad、Android Chrome；Alook 单独完成并记录。</span></div></div>
+        <div class="step"><b>5</b><div><strong>合并后全站复核</strong><span>核对 main、Pages、自定义域名、关键 CSS/运行时/API 和所有核心路径。</span></div></div>
+      </div>
+    </section>
+
+    <details>
+      <summary>维护者核验记录与边界</summary>
+      <p>本报告只记录浏览器可打开性、地址和呈现层行为，不把 AI 解释当作招生事实，也不改变录取数据、专业目录或受保护的 <code>/fenxi/</code> 运行时。</p>
+      <p>当前整改保留既有导航事件与返回定位能力；新增的原生链接回退不新增业务状态机。断网保护的含义是“地址已经可打开”，不承诺无网络时能加载需要服务端数据的完整结果。</p>
+      <p>受保护路径：<code>/fenxi/</code>、<code>functions/fenxi/</code>、<code>functions/_middleware.js</code>。合并门：PR 计划、检查点、exact-head Preview、required checks、真机矩阵和合并后生产复核必须可追溯。</p>
+    </details>
+
+    <div class="footer">
+      当前发布：v3.9.90.3 · <a href="/changelog.html">查看全站更新记录</a> · <a href="/browser-audit/">刷新本页</a>
+    </div>
+  </div>
+</body>
+</html>
