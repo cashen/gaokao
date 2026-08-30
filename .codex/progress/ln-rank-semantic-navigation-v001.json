@@ -2,7 +2,7 @@
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-semantic-navigation-v002",
-  "headSha": null,
+  "headSha": "a3321707ad74012a474637cc8b22ee9817d36f36",
   "baseSha": "0b3cd43cba73ec73d988b37078db615b256bf1f9",
   "pr": null,
   "completed": [
@@ -19,9 +19,10 @@
     "static-contract-fix-committed",
     "browser-major-code-leak-diagnosed",
     "major-context-clear-fix-committed",
-    "focus-scroll-gap-diagnosed"
+    "focus-scroll-gap-diagnosed",
+    "focus-scroll-fix-committed"
   ],
-  "inProgress": "focus-scroll-fix-committed",
+  "inProgress": "pr-ci",
   "pending": [
     "checkpoint-head-update",
     "pr",
@@ -32,9 +33,9 @@
   ],
   "lastFailure": {
     "check": "production-browser-recheck",
-    "reason": "dynamic internal handoff kept initial major-all focus target and treated pointerdown on the navigation control as user movement",
-    "resolvedBy": null
+    "reason": "dynamic internal handoff kept initial major-all focus target and treated pointerdown on the navigation control as user movement, leaving the school panel below the viewport top",
+    "resolvedBy": "a3321707ad74012a474637cc8b22ee9817d36f36"
   },
   "revision": "r046-ln-rank-dynamic-focus-scroll",
-  "verifiedAt": "2026-08-30T04:07:06.077Z"
+  "verifiedAt": "2026-08-30T04:07:29.639Z"
 }
