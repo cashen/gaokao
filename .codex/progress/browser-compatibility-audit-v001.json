@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "f272922cb646cb3db73e2a9cffb4b29e210dca05",
+  "currentHeadSha": "db262d2a5472402b9ee3f72d190a3f83e17bee03",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -31,7 +31,9 @@
     "homepage-disclosure-static-contract-passed",
     "active-disclosure-inventory-recorded",
     "audit-report-r003-plan-updated",
-    "audit-r003-remote-static-contract-passed"
+    "audit-r003-remote-static-contract-passed",
+    "homepage-runtime-cache-bust-implemented",
+    "homepage-runtime-cache-bust-static-checked"
   ],
   "inProgress": "real-browser-matrix",
   "pending": [
@@ -47,8 +49,8 @@
     "source": "passed: homepage explicit disclosure contract; runtime and browser audit tool node syntax; audit r003 remote static contract; previous handoff/navigation/architecture/human-copy contracts remain passed",
     "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
     "humanCopy": "passed: audit-human-copy-v001",
-    "browser": "previous exact-head Preview 39f3e5e evidence invalidated by subsequent head changes; rerun exact-head Preview for f272922c and then repeat route and disclosure clicks. Cloud browser is not Alook.",
-    "treeIntegrity": "passed locally before later disclosure commits; rerun against final PR head"
+    "browser": "previous exact-head Preview evidence invalidated by disclosure changes; current final code head db262d2a requires a fresh Pages Preview and repeat route/disclosure clicks. Cloud browser is not Alook.",
+    "treeIntegrity": "passed locally before final disclosure/cache-bust commits; rerun against final PR head"
   },
   "blockers": [
     {
@@ -59,12 +61,12 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "f272922c 当前 PR 工作流仍大量 queued/pending；需等待真实结论，不能把 pending 记为绿色。"
+      "detail": "当前 PR head 的工作流仍大量 queued/pending，需等待真实结论，不能把 pending 记为绿色。"
     }
   ],
   "knownHistoricalFindings": [
     "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。"
   ],
   "lastFailure": null,
-  "updatedAt": "2026-08-31T00:20:00Z"
+  "updatedAt": "2026-08-31T00:28:00Z"
 }
