@@ -56,6 +56,7 @@ const tongxueIndex = read('tongxue/index.html');
 
 assert.match(majorPath, /buildMajorMinScoreHref/);
 assert.match(majorPathView, /data-min-score-entry="major"/);
+assert.match(majorPathView, /min-score-navigation\.v001\.js\?v=001&r=r042-direct-min-score-handoff/);
 assert.match(tongxue, /data-min-score-entry=/);
 assert.match(tongxue, /暂时没有找到可展示的学生留言/);
 assert.match(majorAll, /当前条件下没有找到辽宁最低分记录/);
