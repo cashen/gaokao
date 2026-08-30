@@ -102,6 +102,7 @@ export const CURRENT_RELEASE = Object.freeze({
   minScoreNavigationVersion: 'min-score-navigation-v001',
   minScoreEntryStylesVersion: 'min-score-entry-styles-v001',
   lnRankCacheRevision: 'r036-major-history-rank-lazy',
+  lnRankNavigationRevision: 'r045-ln-rank-school-handoff-scope',
   lnRankMajorFilterContextVersion: 'major-filter-context-v004',
   resourceOwners: Object.freeze({
     activeResourceManifest: '/shared/resources/release/active-resource-manifest.v3990_3.js',

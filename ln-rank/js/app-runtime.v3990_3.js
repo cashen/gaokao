@@ -6,8 +6,8 @@ import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
 } from '../../shared/resources/exam/liaoning-physics.js?v=3967_0';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_3&r=r036-major-history-rank-lazy';
-import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r036-major-history-rank-lazy';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3990_3&r=r045-ln-rank-school-handoff-scope';
+import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r045-ln-rank-school-handoff-scope';
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../../shared/resources/release/runtime-cache-contract.v3990_3.js?v=3990_3';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3969_0';
 import { state } from './state/app-state.v3963_1.js?v=3963_1';
@@ -165,11 +165,11 @@ export function startLnRankRuntime() {
     if (globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version !== INTERACTION_VERSION) {
       throw new Error('unified interaction transaction did not initialize');
     }
-    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_3.js?v=3990_3&r=r036-major-history-rank-lazy');
+    const workspace = await import('./workspace/selection-workspace-orchestrator.v3990_3.js?v=3990_3&r=r045-ln-rank-school-handoff-scope');
     await workspace.selectionWorkspaceReady;
-    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r036-major-history-rank-lazy');
+    const schoolMode = await import('./feature/school-majors/school-all-mode.v3969_2.js?v=3969_2&r=r045-ln-rank-school-handoff-scope');
     await schoolMode.schoolAllModeReady;
-    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_3&context=major-filter-context-v004&r=r036-major-history-rank-lazy');
+    const majorMode = await import('./feature/major-all/major-all-mode.v001.js?v=3990_3&context=major-filter-context-v004&r=r045-ln-rank-school-handoff-scope');
     await majorMode.majorAllModeReady;
     syncSharedBottomLine();
     return Object.freeze({

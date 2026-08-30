@@ -232,7 +232,7 @@ function restoreScoreModeReturnState() {
   }
 }
 
-function updateSearchUrl({ push = false } = {}) {
+function updateSearchUrl({ push = false, focus = '' } = {}) {
   const url = new URL(location.href);
   const score = scoreQueryValue(scoreInput()?.value);
   const school = state.schoolSelection?.displayName || schoolInputValue();
@@ -249,6 +249,16 @@ function updateSearchUrl({ push = false } = {}) {
   else url.searchParams.delete('majorKeyword');
   if (state.resultMode === MODE_SCHOOL) url.searchParams.set('schoolSort', normalizeSchoolSort(state.schoolAll.sort));
   else url.searchParams.delete('schoolSort');
+  if (focus === MODE_SCHOOL) {
+    url.searchParams.delete('majorKeyword');
+    url.searchParams.delete('majorCode');
+    url.searchParams.delete('majorConfirmed');
+    url.searchParams.set('focus', MODE_SCHOOL);
+    url.hash = '#schoolAllResultsPanel';
+  } else if (focus === MODE_MAJOR) {
+    url.searchParams.set('focus', MODE_MAJOR);
+    url.hash = '#majorAllResultsPanel';
+  }
   const nextUrl = `${url.pathname}${url.search}${url.hash}`;
   if (push) history.pushState(history.state, '', nextUrl);
   else history.replaceState(history.state, '', nextUrl);
@@ -1675,7 +1685,10 @@ function bind() {
     rememberScoreModeReturnState();
     const schoolInput = document.getElementById('schoolKeyword');
     if (schoolInput) schoolInput.value = school;
+    const majorInput = document.getElementById('majorKeyword');
+    if (majorInput) majorInput.value = '';
     state.filters.schoolKeyword = school;
+    state.filters.majorKeyword = '';
     state.schoolSelection = {
       status: event.detail?.entityId ? 'resolved' : 'input',
       input: school,
@@ -1687,7 +1700,8 @@ function bind() {
     state.filters.schoolEntityId = state.schoolSelection.entityId;
     markDirty('school_handoff_changed');
     state.schoolAll.dirty = Boolean(state.schoolAll.data);
-    setResultMode(MODE_SCHOOL);
+    setResultMode(MODE_SCHOOL, { updateHistory: false });
+    updateSearchUrl({ push: true, focus: MODE_SCHOOL });
     submitActiveSearch();
   });
 

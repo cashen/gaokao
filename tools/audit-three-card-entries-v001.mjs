@@ -20,7 +20,7 @@ assert.match(presenter, /看看这所学校的大学生怎么说/);
 assert.match(handoff, /看看这所学校的大学生怎么说/);
 assert.match(handoff, /entry\.classList\.add\('tongxue-card-entry--compact'\)/);
 assert.match(handoff, /major-path-handoff\.v003\.css\?v=003_0&r=r036-major-history-rank-lazy/);
-assert.match(html, /app\.v3990_3\.js\?v=3990_3-nav003&r=r042-direct-min-score-handoff/);
+assert.match(html, /app\.v3990_3\.js\?v=3990_3-nav003&r=r045-ln-rank-school-handoff-scope/);
 assert.match(html, /ln-rank-workspace\.v3967_0\.css\?v=3967_0&r=r036-major-history-rank-lazy/);
 assert.match(commit, /family-card-presenter\.v3967_0\.js\?v=3967_0&r=r036-major-history-rank-lazy/);
 assert.match(release, /lnRankHumanQueryInputRevision: 'r032-input-clear-state'/);
