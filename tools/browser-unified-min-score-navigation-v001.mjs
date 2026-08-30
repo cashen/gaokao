@@ -24,20 +24,32 @@ try {
   });
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
-    await page.route('**/api/tongxue-summary*', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        ok: true,
-        mode: 'major_reviews',
-        scope: 'major',
-        major: { code: '080601', name: '电气工程及其自动化', categoryName: '工学' },
-        reviews: [{ content: '课程和项目体验示例。', createdAt: '2026-08-01', authorLabel: '同学甲' }],
-        evidence: { sampleSize: 1 },
-        source: { url: 'https://example.com', label: '测试来源' },
-        fetchedAt: '2026-08-29T00:00:00Z'
-      })
-    }));
+    await page.route('**/api/tongxue-summary*', route => {
+      const requestUrl = new URL(route.request().url());
+      const isMajor = requestUrl.searchParams.get('scope') === 'major';
+      const payload = isMajor
+        ? {
+            ok: true,
+            mode: 'major_reviews',
+            scope: 'major',
+            major: { code: '080601', name: '电气工程及其自动化', categoryName: '工学' },
+            reviews: [{ content: '课程和项目体验示例。', createdAt: '2026-08-01', authorLabel: '同学甲' }],
+            evidence: { sampleSize: 1 },
+            source: { url: 'https://example.com', label: '测试来源' },
+            fetchedAt: '2026-08-29T00:00:00Z'
+          }
+        : {
+            ok: true,
+            mode: 'ai_summary',
+            scope: 'school',
+            school: requestUrl.searchParams.get('school') || '吉林大学',
+            summary: '学校公开体验示例：校园生活和学习资源各有特点，仍需结合校区、专业和正式资料继续核验。',
+            schoolMeta: { province: '吉林省', city: '长春市', type: '综合类' },
+            source: { url: 'https://example.com', label: '测试来源' },
+            fetchedAt: '2026-08-29T00:00:00Z'
+          };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
+    });
     await page.route('**/api/ai/major-history*', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -63,11 +75,18 @@ try {
     assert.match(await page.locator('[data-min-score-entry="major"] .min-score-entry__link').getAttribute('href'), /major-all/);
     assert.equal(await page.locator('body').evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, '390px viewport must not overflow horizontally');
 
+    await page.goto(`${base}/tongxue/?school=${encodeURIComponent('吉林大学')}`, { waitUntil: 'networkidle' });
+    await page.locator('[data-min-score-entry="school"] .min-score-entry__link').waitFor();
+    const schoolEntry = page.locator('[data-min-score-entry="school"] .min-score-entry__link');
+    assert.equal(await schoolEntry.innerText(), '查这所学校在辽宁各专业的最低分 →');
+    assert.match(await schoolEntry.getAttribute('href'), /mode=school-all/);
+    assert.match(await schoolEntry.getAttribute('href'), /school=%E5%90%89%E6%9E%97%E5%A4%A7%E5%AD%A6/);
+
     await page.goto(`${base}/ln-rank/?mode=major-all&majorKeyword=${encodeURIComponent('电气工程及其自动化')}&majorCode=080601&autoQuery=1`, { waitUntil: 'networkidle' });
     await page.locator('.major-all-record').waitFor();
     assert.equal(await page.locator('.major-all-record').count(), 1);
 
-    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'ln-rank-major-auto-query'] }, null, 2));
+    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query'] }, null, 2));
   } finally {
     await browser.close();
   }
