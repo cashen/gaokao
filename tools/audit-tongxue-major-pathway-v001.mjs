@@ -32,7 +32,7 @@ assert.ok(mainTargetStart >= 0 && mainTargetEnd > mainTargetStart, 'major source
 const mainTarget = resultView.slice(mainTargetStart, mainTargetEnd);
 assert.doesNotMatch(mainTarget, /eo\.srgaoxiao\.cn|抓取日期|sourceLink/, 'source attribution must not render in the main result block');
 
-assert.match(index, /tongxue-runtime-result-view-v159\.js\?v=159-flow005/);
+assert.match(index, /tongxue-runtime-result-view-v159\.js\?v=159-flow006/);
 assert.match(index, /data-major-source-footer-note/);
 const footerStart = index.indexOf('<footer');
 const footerEnd = index.indexOf('</footer>', footerStart);
