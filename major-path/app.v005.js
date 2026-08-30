@@ -3,7 +3,7 @@ import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION 
 import { buildDecisionActions } from '../shared/decision-context/decision-actions.v001.js';
 import { summarizeDecisionContext, withDecisionContext } from '../shared/decision-context/decision-context.v001.js';
 import { buildStudentVoiceMajorHref } from '../shared/resources/experience/student-voice-navigation.v001.js';
-import { buildMajorMinScoreHref } from '../shared/resources/admissions/min-score-navigation.v001.js';
+import { buildMajorMinScoreHref } from '../shared/resources/admissions/min-score-navigation.v001.js?v=001&r=r042-direct-min-score-handoff';
 import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
