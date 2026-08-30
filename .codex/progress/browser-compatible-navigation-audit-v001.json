@@ -1,0 +1,51 @@
+{
+  "task": "browser-compatibility-audit-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/browser-compatible-navigation-audit-v001",
+  "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
+  "pr": 259,
+  "currentHeadSha": "682b6d4f60414b55a31ed5b2a7575ebc7c0d9eed",
+  "releaseTarget": "v3.9.90.4 / v3990_4 (pending source-of-truth verification)",
+  "completed": [
+    "live-main-reconciled",
+    "required-skills-read",
+    "branch-created",
+    "plan-written",
+    "draft-pr-created",
+    "native-link-fallback-implemented",
+    "native-link-source-contract-tested"
+  ],
+  "inProgress": "canonical-routes",
+  "pending": [
+    "canonical-routes",
+    "audit-report-page",
+    "release-contract-and-static-gates",
+    "preview-exact-head",
+    "real-browser-matrix",
+    "alook-device-acceptance",
+    "ready-and-merge",
+    "post-merge-production-recheck"
+  ],
+  "tests": {
+    "plan": "written-to-pr",
+    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling",
+    "architecture": "not-run",
+    "humanCopy": "not-run",
+    "browser": "not-run",
+    "treeIntegrity": "not-run"
+  },
+  "blockers": [
+    {
+      "id": "alook-runtime-unavailable",
+      "status": "open",
+      "detail": "当前执行环境没有 Alook 真机/运行时；必须在最终验收前由真实 Alook 设备打开报告页与关键跨模块入口。"
+    },
+    {
+      "id": "bounded-fanout-zero-jobs",
+      "status": "open",
+      "detail": "主分支历史 workflow 出现 push failure 且 jobs=[]，需在本 PR 中修复或形成可审计的配置解释后再合并。"
+    }
+  ],
+  "lastFailure": null,
+  "updatedAt": "2026-08-30T22:45:00Z"
+}
