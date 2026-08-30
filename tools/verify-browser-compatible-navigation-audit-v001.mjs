@@ -8,6 +8,11 @@ const read = path => fs.readFileSync(path, 'utf8');
 const exists = path => fs.existsSync(path);
 const redirects = read('_redirects');
 const handoff = read('ln-rank/js/workspace/major-path-handoff.v003.js');
+const home = read('index.html');
+const homeRuntime = read('ln-rank/js/ux/family-home.v3990_3.js');
+const aiplus = read('aiplus/index.html');
+const selectionWorkbench = read('aiplus/selection-workbench.v005.js');
+const scoreConverter = read('ln-rank/score-converter/index.html');
 const interaction = read('shared/ui/interaction/interaction-transaction.v3990_3.js');
 const majorNavigation = read('shared/resources/majors/major-path-navigation.v003.js');
 const studentVoiceNavigation = read('shared/resources/experience/student-voice-navigation.v001.js');
@@ -27,6 +32,17 @@ const requiredRedirects = [
 for (const rule of requiredRedirects) assert.ok(redirects.includes(rule), `missing redirect: ${rule}`);
 
 assert.equal((handoff.match(/createElement\('a'\)/g) || []).length, 2, 'both cross-module factories must create anchors');
+assert.equal((home.match(/class="tool-toggle"/g) || []).length, 4, 'homepage must expose four explicit disclosure controls');
+assert.equal((home.match(/aria-controls="tool-panel-/g) || []).length, 4, 'homepage disclosure controls must own their panels');
+assert.equal((home.match(/data-tool-group="[^"]+" data-open="(?:true|false)"/g) || []).length, 4, 'homepage disclosure state must be explicit');
+assert.ok(!home.includes('<details') && !home.includes('<summary'), 'homepage must not depend on native summary disclosure');
+assert.ok(!home.includes('scroll-behavior:smooth'), 'homepage disclosure audit must forbid implicit smooth anchor motion');
+for (const marker of ['TOOL_GROUP_RUNTIME_VERSION', 'bindToolGroups', 'preventScroll', 'window.scrollTo', 'requestAnimationFrame']) {
+  assert.ok(homeRuntime.includes(marker), `homepage disclosure runtime marker missing: ${marker}`);
+}
+assert.ok(aiplus.includes('<details class="decision-book-card"'), 'AIPLuS decision rail disclosure must remain inventoried');
+assert.ok((selectionWorkbench.match(/node\('details'/g) || []).length >= 2, 'dynamic AIPLuS disclosure surfaces must remain inventoried');
+assert.ok((scoreConverter.match(/<details/g) || []).length >= 2, 'score converter explanation disclosures must remain inventoried');
 assert.equal((handoff.match(/createElement\('button'\)/g) || []).length, 0, 'cross-module handoff must not generate button-only navigation');
 assert.equal((handoff.match(/link\.href = href/g) || []).length, 2, 'both cross-module anchors must carry href');
 assert.ok(interaction.includes('function isNativeLink(action)'), 'interaction owner must recognize native links');
@@ -45,10 +61,12 @@ assert.ok(report.includes('data-audit-version="browser-compatibility-audit-v001"
 assert.ok(report.includes('href="https://gaokao.powers.org.cn/browser-audit/"'));
 assert.ok(report.includes('name="viewport"'));
 assert.ok(report.includes('PC Chrome') && report.includes('Android Chrome') && report.includes('Alook'));
+assert.ok(report.includes('展开控件专项审计'), 'report must document disclosure stability audit');
+assert.ok(report.includes('AIPLuS 决策侧栏') && report.includes('自选诊断/建议讨论顺序'), 'report must name active disclosure surfaces');
 assert.ok(!/<script[\s>]/i.test(report) && !/fetch\(/i.test(report), 'audit report must be readable without network/runtime JavaScript');
 assert.ok(manifest.includes('browserCompatibilityAudit'), 'active manifest must declare the audit owner');
 assert.equal(CURRENT_RELEASE.browserCompatibilityAuditVersion, 'browser-compatibility-audit-v001');
-assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r002-native-links-url-budget-canonical-routes-audit-report');
+assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r003-alook-disclosure-stability-audit-report');
 assert.equal(CURRENT_RELEASE.resourceOwners.browserCompatibilityAudit, '/browser-audit/');
 assert.ok(exists('browser-audit/index.html'));
 const largeContext = {
@@ -104,6 +122,8 @@ console.log(JSON.stringify({
   capability: CURRENT_RELEASE.browserCompatibilityAuditVersion,
   revision: CURRENT_RELEASE.browserCompatibilityAuditRevision,
   nativeCrossModuleFactories: 2,
+  explicitHomeDisclosureControls: 4,
+  inventoriedActiveDisclosureSurfaces: 4,
   explicitLegacyRedirects: requiredRedirects.length,
   offlineReport: true,
   protectedFenxiUntouchedByContract: true
