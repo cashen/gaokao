@@ -54,7 +54,7 @@ assert.ok(exists('browser-audit/index.html'));
 const largeContext = {
   sourceSurface: 'ln-rank',
   sourceAction: 'view_major_path',
-  returnTo: '/ln-rank/?' + 'x='.repeat(880),
+  returnTo: '/ln-rank/?x=' + 'x'.repeat(880),
   province: '辽宁',
   admissionYear: 2026,
   track: '物理类',
