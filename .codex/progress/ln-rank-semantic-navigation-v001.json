@@ -2,18 +2,18 @@
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-semantic-navigation-v001",
-  "headSha": "32306e6997ab87802e3b86c6c77d5f70d0dca849",
+  "headSha": "15c1cce84d3ec51be06b099151aa09bf43954213",
   "baseSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
-  "pr": null,
+  "pr": 257,
   "completed": [
     "live-main-reconciled",
     "semantic-bug-reproduced",
     "branch-created",
-    "source-and-browser-fix-committed"
+    "source-and-browser-fix-committed",
+    "pr-created"
   ],
-  "inProgress": "pr-ci",
+  "inProgress": "ci",
   "pending": [
-    "pr",
     "ci",
     "merge-main",
     "cloudflare-deploy",
@@ -21,5 +21,5 @@
   ],
   "lastFailure": null,
   "revision": "r043-ln-rank-semantic-navigation",
-  "verifiedAt": "2026-08-30T03:42:28.690Z"
+  "verifiedAt": "2026-08-30T03:42:53.318Z"
 }
