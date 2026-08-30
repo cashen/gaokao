@@ -70,7 +70,7 @@ export const CURRENT_RELEASE = Object.freeze({
   aiInterruptionVersion: 'ai-client-latest-write-wins-v3990_3',
   interactionVersion: 'interaction-transaction-v3990_3',
   browserCompatibilityAuditVersion: 'browser-compatibility-audit-v001',
-  browserCompatibilityAuditRevision: 'r001-native-links-canonical-routes-audit-report',
+  browserCompatibilityAuditRevision: 'r002-native-links-url-budget-canonical-routes-audit-report',
   nativeChooserActivationVersion: 'native-chooser-activation-integrity-v3990_3',
   algorithmOrchestrationVersion: 'algorithm-orchestration-v3969',
   resultRankingVersion: 'result-ranking-v3967_0',
