@@ -1,8 +1,8 @@
 {
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
-  "branch": "fix/ln-rank-semantic-navigation-v002",
-  "headSha": "54dad21c8cfb5a266fb26d479aa275f91c303fba",
+  "branch": "main",
+  "headSha": "56bb528ad0d58a377c992303e1644c5dc29c360d",
   "baseSha": "0b3cd43cba73ec73d988b37078db615b256bf1f9",
   "pr": 258,
   "completed": [
@@ -21,20 +21,47 @@
     "major-context-clear-fix-committed",
     "focus-scroll-gap-diagnosed",
     "focus-scroll-fix-committed",
-    "pr-created"
-  ],
-  "inProgress": "ci",
-  "pending": [
-    "ci",
-    "merge-main",
+    "pr-created",
+    "ci-green",
+    "merged-main",
     "cloudflare-deploy",
     "production-browser-recheck"
   ],
-  "lastFailure": {
-    "check": "production-browser-recheck",
-    "reason": "dynamic internal handoff kept initial major-all focus target and treated pointerdown on the navigation control as user movement, leaving the school panel below the viewport top",
-    "resolvedBy": "a3321707ad74012a474637cc8b22ee9817d36f36"
+  "inProgress": null,
+  "pending": [],
+  "mergeSha": "56bb528ad0d58a377c992303e1644c5dc29c360d",
+  "deployment": {
+    "workflowRunId": 33292016214,
+    "conclusion": "success",
+    "url": "https://github.com/cashen/gaokao/actions/runs/33292016214"
   },
+  "browserVerification": {
+    "production": "https://gaokao.powers.org.cn",
+    "verifiedAt": "2026-08-30T04:20:00Z",
+    "paths": [
+      "major-path -> major-all",
+      "tongxue-major -> major-all",
+      "tongxue-school -> school-all",
+      "major-all school card -> school-all",
+      "school-all major card -> major-path",
+      "school-all major card -> tongxue-major"
+    ],
+    "assertions": [
+      "major-all links contain focus=major-all and #majorAllResultsPanel",
+      "school-all links contain focus=school-all and #schoolAllResultsPanel",
+      "school handoff removes majorKeyword, majorCode, and majorConfirmed",
+      "target result panel visible and top approximately 20px",
+      "final records loaded and no loading prompt remains",
+      "user scroll remains in user-selected position"
+    ]
+  },
+  "knownNonTaskFailures": [
+    {
+      "workflow": "verify-major-bands-bounded-fanout-v3972_5",
+      "classification": "historical baseline failure; unrelated to this task"
+    }
+  ],
+  "lastFailure": null,
   "revision": "r046-ln-rank-dynamic-focus-scroll",
-  "verifiedAt": "2026-08-30T04:07:58.211Z"
+  "verifiedAt": "2026-08-30T04:20:00Z"
 }
