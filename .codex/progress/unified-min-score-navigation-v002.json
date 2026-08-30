@@ -1,0 +1,185 @@
+{
+  "task": "unified-min-score-navigation-v001",
+  "repository": "cashen/gaokao",
+  "baseBranch": "main",
+  "baseSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
+  "branch": "main",
+  "pr": null,
+  "prUrl": null,
+  "headSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
+  "status": "production-browser-verified-with-known-non-task-red",
+  "completed": [
+    "live-state-reconciled",
+    "main-sha-verified",
+    "no-open-prs-verified",
+    "pr253-merged",
+    "pr254-merged",
+    "pr255-merged",
+    "release-v3990_3-deployed",
+    "task-static-contract-green",
+    "task-browser-journeys-green",
+    "production-tongxue-school-browser-verified",
+    "production-tongxue-major-browser-verified",
+    "production-major-path-browser-verified",
+    "production-no-record-browser-verified",
+    "production-user-scroll-protection-verified",
+    "pages-release-browser-verified",
+    "mobile-390x844-ci-verified",
+    "cache-identities-verified",
+    "resource-graph-503-retried-and-isolated"
+  ],
+  "inProgress": null,
+  "pending": [],
+  "releaseBaseline": {
+    "publicVersion": "v3.9.90.2",
+    "generation": "v3990_2",
+    "asset": "3990_2"
+  },
+  "targetRelease": {
+    "publicVersion": "v3.9.90.3",
+    "generation": "v3990_3",
+    "asset": "3990_3"
+  },
+  "recovery": "On resume, read this checkpoint and re-read main, open PRs, Actions, Pages/production release, and browser state. The product head verified here is headSha; do not repeat successful writes or tests unless that SHA or environment changes.",
+  "lastEvidence": {
+    "productHeadSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
+    "mergedPRs": [
+      {
+        "number": 253,
+        "mergeCommit": "10cb54bcc92359e64bf873a537abc1bd3ddef52d"
+      },
+      {
+        "number": 254,
+        "mergeCommit": "a875e1ccb4fc1c0d1bc0b55239600c6e002f88b5"
+      },
+      {
+        "number": 255,
+        "mergeCommit": "fed13616e12da4aa593c168cbe33f64a7f612716"
+      }
+    ],
+    "actions": [
+      {
+        "runId": 33286536416,
+        "name": "Verify unified minimum-score navigation v001",
+        "conclusion": "success",
+        "jobs": {
+          "staticContract": 99190576121,
+          "browserJourneys": 99190592501
+        }
+      },
+      {
+        "runId": 33286536349,
+        "name": "Deploy main to Cloudflare Pages",
+        "conclusion": "success",
+        "deployJob": 99190601451
+      },
+      {
+        "runId": 33286536376,
+        "name": "Verify production resource graph v3990.1",
+        "conclusion": "failure",
+        "runAttempt": 3,
+        "failedJob": 99198554705,
+        "knownCause": "independent Pages HTTP 503 resource-graph gate; custom-domain managed challenge is separately recognized"
+      },
+      {
+        "runId": 33286592634,
+        "name": "verify-major-bands-bounded-fanout-v3972_5",
+        "conclusion": "failure",
+        "known": "historical baseline red"
+      }
+    ],
+    "browser": {
+      "customDomain": {
+        "school": {
+          "hrefContains": [
+            "focus=school-all",
+            "#schoolAllResultsPanel"
+          ],
+          "immediate": {
+            "panelVisible": true,
+            "loading": true
+          },
+          "complete": {
+            "runtime": "ready",
+            "targetTopPx": 20
+          },
+          "userScrollPreserved": true
+        },
+        "tongxueMajor": {
+          "hrefContains": [
+            "focus=major-all",
+            "#majorAllResultsPanel"
+          ],
+          "immediate": {
+            "panelVisible": true,
+            "loading": true
+          },
+          "complete": {
+            "runtime": "ready",
+            "targetTopPx": 20,
+            "records": 40
+          },
+          "userScrollPreserved": true
+        },
+        "majorPath": {
+          "hrefContains": [
+            "focus=major-all",
+            "#majorAllResultsPanel"
+          ],
+          "immediate": {
+            "panelVisible": true,
+            "loading": true
+          },
+          "complete": {
+            "runtime": "ready",
+            "targetTopPx": 20,
+            "records": 40
+          }
+        },
+        "noRecord": {
+          "friendlyMessage": true,
+          "records": 0,
+          "runtime": "ready",
+          "horizontalOverflow": false
+        }
+      },
+      "pagesDomain": {
+        "release": "v3.9.90.3",
+        "generation": "v3990_3",
+        "majorTargetVisible": true,
+        "targetTopPx": 20,
+        "records": 40,
+        "horizontalOverflow": false
+      },
+      "desktopCloudViewport": {
+        "width": 1363,
+        "height": 936
+      },
+      "mobileCiViewport": "390x844"
+    },
+    "cacheIdentity": {
+      "generation": "v3990_3",
+      "publicVersion": "v3.9.90.3",
+      "interaction": "interaction-transaction-v3990_3",
+      "handoffRevision": "r042-direct-min-score-handoff",
+      "responsive": "unified-v001"
+    },
+    "browserConsole": "No product-page errors observed; captured warnings were extension metadata errors only."
+  },
+  "lastFailure": {
+    "stage": "production-resource-graph-v3990.1",
+    "firstAttempt": {
+      "runId": 33286536376,
+      "jobId": 99190727606,
+      "assertion": "distinct-49-687-wide-near: HTTP 503"
+    },
+    "retry": {
+      "runAttempt": 3,
+      "jobId": 99198554705,
+      "conclusion": "failure",
+      "logFetch": "GitHub connector returned BlobNotFound for retry log"
+    },
+    "classification": "task-external-known-red; minimum-score navigation workflow and deploy workflow are green"
+  },
+  "verifiedAt": "2026-08-30T03:11:09.161Z"
+}
