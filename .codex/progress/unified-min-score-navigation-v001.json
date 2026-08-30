@@ -6,8 +6,8 @@
   "branch": "feat/unified-min-score-navigation-v001",
   "pr": 251,
   "prUrl": "https://github.com/cashen/gaokao/pull/251",
-  "headSha": "0a642cd17ce97f31153f1af0b31caab9cb18ca05",
-  "status": "current-generation-contract-repair-synced",
+  "headSha": "4a85889f793e335ec024051ec4564583b186dbe1",
+  "status": "exact-head-preview-verified",
   "completed": [
     "live-state-reconciled",
     "required-repository-skills-read",
@@ -28,11 +28,11 @@
     "implementation-committed",
     "remote-implementation-synced",
     "current-generation-contract-repair",
-    "responsive-browser-tests"
+    "responsive-browser-tests",
+    "exact-head-preview"
   ],
-  "inProgress": "exact-head-preview",
+  "inProgress": "ready-same-sha",
   "pending": [
-    "exact-head-preview",
     "ready-same-sha",
     "merge-main",
     "post-merge-production-and-tree-integrity"
@@ -48,5 +48,13 @@
     "asset": "3990_3"
   },
   "recovery": "On resume, read this checkpoint, re-read PR 251 metadata, branch head, latest main and workflow runs. If main or PR head changed, remote state wins. Continue from the first pending phase and never repeat a successful write/test at the same SHA.",
-  "verifiedAt": "2026-08-29T23:00:00Z"
+  "lastEvidence": {
+    "headSha": "4a85889f793e335ec024051ec4564583b186dbe1",
+    "preview": "exact-head Cloudflare Pages preview and branch Functions graph",
+    "previewRun": 33282165315,
+    "previewBrowserJob": 99179715463,
+    "previewStatus": "success",
+    "allPullRequestWorkflowRuns": "success"
+  },
+  "verifiedAt": "2026-08-30T00:08:00Z"
 }
