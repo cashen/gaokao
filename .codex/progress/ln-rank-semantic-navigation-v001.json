@@ -2,9 +2,9 @@
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-semantic-navigation-v002",
-  "headSha": "a3321707ad74012a474637cc8b22ee9817d36f36",
+  "headSha": "54dad21c8cfb5a266fb26d479aa275f91c303fba",
   "baseSha": "0b3cd43cba73ec73d988b37078db615b256bf1f9",
-  "pr": null,
+  "pr": 258,
   "completed": [
     "live-main-reconciled",
     "semantic-bug-reproduced",
@@ -20,12 +20,11 @@
     "browser-major-code-leak-diagnosed",
     "major-context-clear-fix-committed",
     "focus-scroll-gap-diagnosed",
-    "focus-scroll-fix-committed"
+    "focus-scroll-fix-committed",
+    "pr-created"
   ],
-  "inProgress": "pr-ci",
+  "inProgress": "ci",
   "pending": [
-    "checkpoint-head-update",
-    "pr",
     "ci",
     "merge-main",
     "cloudflare-deploy",
@@ -37,5 +36,5 @@
     "resolvedBy": "a3321707ad74012a474637cc8b22ee9817d36f36"
   },
   "revision": "r046-ln-rank-dynamic-focus-scroll",
-  "verifiedAt": "2026-08-30T04:07:29.639Z"
+  "verifiedAt": "2026-08-30T04:07:58.211Z"
 }
