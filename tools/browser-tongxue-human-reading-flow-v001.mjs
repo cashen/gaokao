@@ -147,8 +147,8 @@ async function finish(opened, name) {
   assert.deepEqual(pageErrors, [], `${name}: ${pageErrors.join('\n')}`);
   assert.deepEqual(consoleErrors, [], `${name}: ${consoleErrors.join('\n')}`);
   const resultModule = moduleRequests.at(-1);
-  assert.equal(resultModule?.searchParams.get('v'), '159-flow004', `${name}: result cache identity drift`);
-  assert.equal(resultModule?.searchParams.get('r'), 'r040-human-reading-flow', `${name}: UI cache revision drift`);
+  assert.equal(resultModule?.searchParams.get('v'), '159-flow005', `${name}: result cache identity drift`);
+  assert.equal(resultModule?.searchParams.get('r'), 'r041-unified-min-score-navigation', `${name}: UI cache revision drift`);
   await context.close();
   return { overflow, resultView:`${resultModule?.searchParams.get('v')}&${resultModule?.searchParams.get('r')}` };
 }

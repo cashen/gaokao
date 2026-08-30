@@ -190,10 +190,10 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_preview=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_preview=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_preview=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow005&r=r041-unified-min-score-navigation&uec_preview=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
-              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow005' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
               && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
               && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
@@ -234,10 +234,10 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_prod=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_prod=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&uec_prod=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow005&r=r041-unified-min-score-navigation&uec_prod=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
-              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow004' <<<"$html" \
+              && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow005' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
               && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
               && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
