@@ -6,6 +6,7 @@ import {
   buildMinScoreEntryModel,
   sanitizeMinScoreReturnTarget
 } from '../shared/resources/admissions/min-score-navigation.v001.js';
+import { buildSchoolAllHref } from '../shared/resources/schools/school-resource-center.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
 
@@ -39,6 +40,10 @@ assert.equal(schoolParams.get('autoQuery'), '1');
 assert.equal(schoolParams.get('focus'), 'school-all');
 assert.equal(new URL(schoolHref, 'https://gaokao.powers.org.cn').hash, '#schoolAllResultsPanel');
 assert.equal(schoolParams.get('returnTo'), '/tongxue/?school=%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6');
+const schoolAllHref = buildSchoolAllHref({ school: '测试大学', focus: 'school-all' });
+const schoolAllUrl = new URL(`https://gaokao.test${schoolAllHref}`);
+assert.equal(schoolAllUrl.searchParams.get('focus'), 'school-all');
+assert.equal(schoolAllUrl.hash, '#schoolAllResultsPanel');
 
 assert.equal(sanitizeMinScoreReturnTarget('https://evil.example/steal'), '/ln-rank/');
 assert.equal(sanitizeMinScoreReturnTarget('javascript:alert(1)'), '/ln-rank/');

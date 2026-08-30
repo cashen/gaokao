@@ -26,6 +26,6 @@
     "reason": "existing assertions referenced superseded r036 navigation cache and old major-filtered school handoff",
     "resolvedBy": "552e3d034d9471afba01a7eb450148a50ebc96c7"
   },
-  "revision": "r043-ln-rank-semantic-navigation",
+  "revision": "r044-ln-rank-navigation-focus-query",
   "verifiedAt": "2026-08-30T03:45:40.646Z"
 }

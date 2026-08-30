@@ -132,7 +132,10 @@ export function buildSchoolAllHref({ school, entityId = '', majorKeyword = '', s
   if (major) params.set('majorKeyword', major);
   const scoreText = String(score || '').replace(/[^0-9]/g, '');
   if (scoreText) params.set('score', scoreText);
-  if (focus === 'school-all') return `/ln-rank/?${params.toString()}#schoolAllResultsPanel`;
+  if (focus === 'school-all') {
+    params.set('focus', 'school-all');
+    return `/ln-rank/?${params.toString()}#schoolAllResultsPanel`;
+  }
   return `/ln-rank/?${params.toString()}`;
 }
 

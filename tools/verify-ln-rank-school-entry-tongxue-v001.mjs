@@ -46,12 +46,12 @@ assert.match(release, /lnRankSchoolEntryVersion: 'ln-rank-school-entry-v001'/);
 assert.match(release, /tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001'/);
 assert.match(release, /lnRankCacheRevision: 'r036-major-history-rank-lazy'/);
 assert.match(manifest, /CURRENT_RELEASE\.lnRankCacheRevision/);
-assert.match(generation, /major-filter-context-v004&r=r043-ln-rank-semantic-navigation/);
+assert.match(generation, /major-filter-context-v004&r=r044-ln-rank-navigation-focus-query/);
 
 console.log(JSON.stringify({
   ok: true,
   staleAdmissionHandoff: 'name-only fallback',
   canonicalHandoff: 'canonical entity preserved',
   majorSchoolLink: 'native school-all href without hidden major filter scope',
-  revision: 'r043-ln-rank-semantic-navigation'
+  revision: 'r044-ln-rank-navigation-focus-query'
 }, null, 2));
