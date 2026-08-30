@@ -9,7 +9,8 @@ export const STUDENT_VOICE_NAVIGATION_VERSION = 'student-voice-navigation-v0.01'
 export const STUDENT_VOICE_NAVIGATION_META = Object.freeze({
   version:STUDENT_VOICE_NAVIGATION_VERSION,
   targetPath:'/tongxue/',
-  scope:'major'
+  scope:'major',
+  maxUrlLength:1800
 });
 
 function clean(value = '') {
@@ -53,7 +54,12 @@ export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', top
   if (returnTarget) params.set('returnTo', returnTarget);
   const normalizedContext = decisionContext ? validateDecisionContext(decisionContext) : null;
   const encodedContext = normalizedContext ? encodeDecisionContext(normalizedContext) : '';
-  if (encodedContext) params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
+  if (encodedContext) {
+    params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
+    if (`${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`.length > STUDENT_VOICE_NAVIGATION_META.maxUrlLength) {
+      params.delete(DECISION_CONTEXT_QUERY_KEY);
+    }
+  }
   return `${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
 
