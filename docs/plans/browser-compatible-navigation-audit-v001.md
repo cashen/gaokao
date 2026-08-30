@@ -12,6 +12,8 @@
 2. 站内仍有多个 `.html` 别名和隐式重定向；`/zy2026.html` 与 `/zy2026/index.html` 目前加载不同版本运行时，存在重复入口与资源身份分裂。
 3. 历史诊断入口和 `Public_company/source` 暴露了旧入口/旧资源错误，需在不触碰受保护 `/fenxi/` 的前提下明确归并。
 4. 跨模块上下文 URL 偏长；本阶段至少加入长度预算与断网/降级保护，避免把可打开性绑定在单一网络请求或过长地址上。
+5. 首页“了解 / 证据 / 主线 / 产业”使用原生 `details/summary` 作为关键入口容器；用户在 Alook 复现了焦点/锚点向上移动后目标区域没有稳定展开。Android Chrome 正常不能覆盖该风险。
+6. 全站仍有活动页面沿用同类模式：AIPLuS 决策侧栏、动态自选诊断/建议讨论顺序、分数换算说明折叠。它们风险级别不同，但必须进入清单和逐页回归，不能只测首页。
 
 ## 执行阶段与逐步验收
 
@@ -32,6 +34,15 @@
 - 复核专业路径、大学生说专业、学校专业卡、专业聚合卡四类入口。
 
 验收：静态契约测试；PC/Pad/Android Chrome 预览检查；Alook 真机检查项记录为必须人工完成，不以 CI 冒充。
+
+### 阶段 1A：Alook 展开控件与滚动稳定性
+
+- 首页关键分组改为显式 button + `aria-expanded` + `aria-controls` + `hidden` 面板，不把原生 `summary` 的默认焦点滚动作为业务行为。
+- 点击展开前保存 `scrollX/scrollY`，展开、聚焦和下一帧布局变化后恢复位置；关闭浏览器级平滑滚动，避免页面向上跳造成下一次触控命中错位。
+- 全站盘点 `details/summary`、`scrollIntoView({behavior:"smooth"})`、隐式 hash/锚点和动态重绘后的关键操作，按 P0/P1/P2 记录，不把说明折叠误判为已验证。
+- 当前只直接修改已复现的首页 P0；AIPLuS 决策侧栏与动态自选控件列为 P1 后续整改对象，审计报告必须公开列出剩余风险。
+
+验收：首页静态契约、运行时语法、显式状态一致性、展开前后滚动位置不变；Preview 上逐项点击四组；Android Chrome 与 Alook 分开记录，缺少 Alook 真机证据时保持阻塞。
 
 ### 阶段 2：站内地址归一
 
@@ -54,7 +65,7 @@
 
 ### 阶段 4：发布身份与质量门
 
-- 以 `shared/resources/release/current-release.js` 为唯一发布 owner；本 PR 注册并推进 `browser-compatibility-audit-v001` 的 `r002` 能力修订，同时保留全站当前一致的 `v3.9.90.3 / v3990_3`。只有完整 active generation graph 可以同时迁移时才升级全站 generation，本 PR 不制造半迁移。
+- 以 `shared/resources/release/current-release.js` 为唯一发布 owner；本 PR 注册并推进 `browser-compatibility-audit-v001` 的 `r003` 能力修订，同时保留全站当前一致的 `v3.9.90.3 / v3990_3`。只有完整 active generation graph 可以同时迁移时才升级全站 generation，本 PR 不制造半迁移。
 - 更新受影响的 active generation、缓存/资源/发布契约及对应查询串；不修改历史非 owner 版本标记。
 - 增加专门的浏览器兼容审计静态契约门，确保以后不会重新生成无 `href` 的跨模块入口、重复规范地址或无报告页状态。
 - 解决/分类 bounded-fanout 当前 `push + failure + jobs=[]` 的 CI 配置门；不能将其默认为产品失败，也不能带着未解释的 required failure 合并。
@@ -101,5 +112,6 @@
 - 所有实现阶段均有对应测试结果；
 - exact-head Preview 和同 SHA required checks 全绿；
 - 未引入新的重复 owner/运行时/真相源；
+- 活动展开控件已完成盘点，P0 首页已整改，P1/P2 剩余项有明确 owner、测试和阻塞记录；
 - Alook 真机已完成，或用户明确接受将其作为合并后的独立人工验收（默认不接受静默跳过）；
 - 合并后 main 与生产精确 SHA、全站浏览器路径复核通过。
