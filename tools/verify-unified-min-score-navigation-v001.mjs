@@ -79,8 +79,8 @@ assert.match(workspace, /state\.filters\.majorKeyword = ''/);
 assert.match(workspace, /url\.searchParams\.delete\('majorCode'\)/);
 assert.match(workspace, /url\.searchParams\.delete\('majorConfirmed'\)/);
 assert.match(workspace, /updateSearchUrl\(\{ push: true, focus: MODE_SCHOOL \}\)/);
-assert.match(runtime, /r=r045-ln-rank-school-handoff-scope/);
-assert.match(release, /lnRankNavigationRevision: 'r045-ln-rank-school-handoff-scope'/);
+assert.match(runtime, /r=r046-ln-rank-dynamic-focus-scroll/);
+assert.match(release, /lnRankNavigationRevision: 'r046-ln-rank-dynamic-focus-scroll'/);
 const lnRankIndex = read('ln-rank/index.html');
 const lnRankBootstrap = read('ln-rank/js/app.v3990_3.js');
 assert.match(lnRankIndex, /min-score-handoff-loading/);
@@ -88,6 +88,7 @@ assert.match(lnRankIndex, /正在读取辽宁最低分记录/);
 assert.match(lnRankBootstrap, /MIN_SCORE_HANDOFF_TARGETS/);
 assert.match(lnRankBootstrap, /gaokao:major-result-render/);
 assert.match(lnRankBootstrap, /behavior: 'auto'/);
+assert.match(lnRankBootstrap, /const nextFocus = new URLSearchParams/);
 assert.match(majorIndex, /min-score-entry\.v001\.css\?v=001_0/);
 assert.match(tongxueIndex, /min-score-entry\.v001\.css\?v=001_0/);
 

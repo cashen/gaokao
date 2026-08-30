@@ -1,10 +1,10 @@
 {
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
-  "branch": "fix/ln-rank-semantic-navigation-v001",
-  "headSha": "835843e1895e9a9dfe8dfc9c8312a9e15bd01d72",
-  "baseSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
-  "pr": 257,
+  "branch": "fix/ln-rank-semantic-navigation-v002",
+  "headSha": null,
+  "baseSha": "0b3cd43cba73ec73d988b37078db615b256bf1f9",
+  "pr": null,
   "completed": [
     "live-main-reconciled",
     "semantic-bug-reproduced",
@@ -18,20 +18,23 @@
     "static-failure-diagnosed",
     "static-contract-fix-committed",
     "browser-major-code-leak-diagnosed",
-    "major-context-clear-fix-committed"
+    "major-context-clear-fix-committed",
+    "focus-scroll-gap-diagnosed"
   ],
-  "inProgress": "ci",
+  "inProgress": "focus-scroll-fix-committed",
   "pending": [
+    "checkpoint-head-update",
+    "pr",
     "ci",
     "merge-main",
     "cloudflare-deploy",
     "production-browser-recheck"
   ],
   "lastFailure": {
-    "check": "browser-journeys",
-    "reason": "school handoff retained majorCode from the originating major-all URL even after majorKeyword was cleared",
-    "resolvedBy": "835843e1895e9a9dfe8dfc9c8312a9e15bd01d72"
+    "check": "production-browser-recheck",
+    "reason": "dynamic internal handoff kept initial major-all focus target and treated pointerdown on the navigation control as user movement",
+    "resolvedBy": null
   },
-  "revision": "r045-ln-rank-school-handoff-scope",
-  "verifiedAt": "2026-08-30T03:56:51.922Z"
+  "revision": "r046-ln-rank-dynamic-focus-scroll",
+  "verifiedAt": "2026-08-30T04:07:06.077Z"
 }
