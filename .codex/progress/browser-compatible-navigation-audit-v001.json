@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "5469fbd395403c6fa5318ecfbecbe9e362740d10",
+  "currentHeadSha": "e314b8f17a1228e77135224dc6a7ccd4980e15ea",
   "releaseTarget": "v3.9.90.4 / v3990_4 (pending source-of-truth verification)",
   "completed": [
     "live-main-reconciled",
@@ -17,7 +17,10 @@
     "canonical-routes-implemented",
     "canonical-route-contract-tested",
     "audit-report-page-implemented",
-    "audit-report-page-contract-tested"
+    "audit-report-page-contract-tested",
+    "release-audit-capability-version-registered",
+    "static-gate-added",
+    "report-and-route-contract-tested"
   ],
   "inProgress": "release-contract-and-static-gates",
   "pending": [
@@ -32,11 +35,11 @@
   ],
   "tests": {
     "plan": "written-to-pr",
-    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling; canonical route test passed: old .html links removed from active files, legacy redirects are explicit single-hop, zy2026 legacy entry no longer owns a runtime; report page passed: canonical, viewport, mobile CSS, offline-safe static markup, matrix and release-log link",
+    "source": "passed: two dynamic cross-module entry factories now create anchors with href; interaction transaction preserves native links during settling; canonical route test passed: old .html links removed from active files, legacy redirects are explicit single-hop, zy2026 legacy entry no longer owns a runtime; report page passed: canonical, viewport, mobile CSS, offline-safe static markup, matrix and release-log link; static gate added and enqueued on PR head",
     "architecture": "not-run",
-    "humanCopy": "report page copy/static contract passed; no assistant-style process narration in new public page",
+    "humanCopy": "passed: report is static/offline-readable, mobile-first, and uses parent/student language",
     "browser": "not-run",
-    "treeIntegrity": "not-run"
+    "treeIntegrity": "queued on PR head"
   },
   "blockers": [
     {
@@ -51,5 +54,5 @@
     }
   ],
   "lastFailure": null,
-  "updatedAt": "2026-08-30T23:05:00Z"
+  "updatedAt": "2026-08-30T23:15:00Z"
 }
