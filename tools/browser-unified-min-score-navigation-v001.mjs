@@ -68,6 +68,8 @@ try {
     const majorEntry = page.locator('[data-min-score-entry="major"] .min-score-entry__link');
     assert.match(await majorEntry.getAttribute('href'), /mode=major-all/);
     assert.match(await majorEntry.getAttribute('href'), /majorCode=080601/);
+    assert.match(await majorEntry.getAttribute('href'), /focus=major-all/);
+    assert.match(await majorEntry.getAttribute('href'), /#majorAllResultsPanel$/);
 
     await page.goto(`${base}/tongxue/?scope=major&majorCode=080601&major=${encodeURIComponent('电气工程及其自动化')}&returnTo=%2Fln-rank%2F`, { waitUntil: 'networkidle' });
     await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor();
@@ -81,8 +83,20 @@ try {
     assert.equal(await schoolEntry.innerText(), '查这所学校在辽宁各专业的最低分');
     assert.match(await schoolEntry.getAttribute('href'), /mode=school-all/);
     assert.match(await schoolEntry.getAttribute('href'), /school=%E5%90%89%E6%9E%97%E5%A4%A7%E5%AD%A6/);
+    assert.match(await schoolEntry.getAttribute('href'), /focus=school-all/);
+    assert.match(await schoolEntry.getAttribute('href'), /#schoolAllResultsPanel$/);
 
-    await page.goto(`${base}/ln-rank/?mode=major-all&majorKeyword=${encodeURIComponent('电气工程及其自动化')}&majorCode=080601&autoQuery=1`, { waitUntil: 'networkidle' });
+    await page.goto(`${base}/ln-rank/?mode=school-all&school=${encodeURIComponent('吉林大学')}&autoQuery=1&focus=school-all#schoolAllResultsPanel`, { waitUntil: 'domcontentloaded' });
+    await page.locator('#schoolAllResultsPanel').waitFor();
+    assert.equal(await page.locator('#schoolAllResultsPanel').evaluate(node => node.hidden), false);
+    assert.equal(await page.locator('#schoolAllResultsPanel').getAttribute('data-min-score-handoff'), 'school-all');
+    assert.match(await page.locator('#schoolAllContent').innerText(), /正在读取辽宁最低分记录/);
+    assert.equal(await page.evaluate(() => document.querySelector('#schoolAllResultsPanel').getBoundingClientRect().top < 120), true);
+
+    await page.goto(`${base}/ln-rank/?mode=major-all&majorKeyword=${encodeURIComponent('电气工程及其自动化')}&majorCode=080601&autoQuery=1&focus=major-all#majorAllResultsPanel`, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#majorAllResultsPanel').evaluate(node => node.hidden), false);
+    assert.equal(await page.locator('#majorAllResultsPanel').getAttribute('data-min-score-handoff'), 'major-all');
+    assert.equal(await page.evaluate(() => document.querySelector('#majorAllResultsPanel').getBoundingClientRect().top < 120), true);
     await page.locator('.major-all-record').waitFor();
     assert.equal(await page.locator('.major-all-record').count(), 1);
 

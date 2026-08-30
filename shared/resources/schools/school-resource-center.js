@@ -122,7 +122,7 @@ export function buildTongxueSchoolHref({ school, entityId = '' } = {}) {
   return `/tongxue/?${params.toString()}`;
 }
 
-export function buildSchoolAllHref({ school, entityId = '', majorKeyword = '', score = '' } = {}) {
+export function buildSchoolAllHref({ school, entityId = '', majorKeyword = '', score = '', focus = '' } = {}) {
   const name = String(school || '').trim();
   if (!name) return '';
   const entity = canonicalSchoolEntity(name, entityId);
@@ -132,6 +132,7 @@ export function buildSchoolAllHref({ school, entityId = '', majorKeyword = '', s
   if (major) params.set('majorKeyword', major);
   const scoreText = String(score || '').replace(/[^0-9]/g, '');
   if (scoreText) params.set('score', scoreText);
+  if (focus === 'school-all') return `/ln-rank/?${params.toString()}#schoolAllResultsPanel`;
   return `/ln-rank/?${params.toString()}`;
 }
 

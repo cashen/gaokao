@@ -6,6 +6,52 @@ const CONTROL_SELECTOR = '[data-runtime-control]';
 
 function byId(id) { return document.getElementById(id); }
 
+const MIN_SCORE_HANDOFF_TARGETS = Object.freeze({
+  'school-all': 'schoolAllResultsPanel',
+  'major-all': 'majorAllResultsPanel'
+});
+
+function mountMinScoreHandoff() {
+  const focus = new URLSearchParams(location.search).get('focus');
+  const targetId = MIN_SCORE_HANDOFF_TARGETS[focus];
+  if (!targetId) return null;
+  const target = byId(targetId);
+  if (!target) return null;
+  let userMoved = false;
+  const markUserMoved = () => { userMoved = true; };
+  ['wheel', 'touchmove', 'pointerdown'].forEach(type => {
+    globalThis.addEventListener(type, markUserMoved, { passive: true, capture: true });
+  });
+  globalThis.addEventListener('keydown', event => {
+    if (['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) userMoved = true;
+  }, true);
+  const focusTarget = () => {
+    if (userMoved) return;
+    target.hidden = false;
+    target.dataset.minScoreHandoff = focus;
+    target.scrollIntoView({ block: 'start', behavior: 'auto' });
+  };
+  const scheduleFocus = event => {
+    if (userMoved) return;
+    if (event?.type === 'gaokao:major-result-render'
+      || (event?.type === 'gaokao:school-search-state' && event.detail?.loading === false)) {
+      target.removeAttribute('aria-busy');
+    }
+    requestAnimationFrame(() => requestAnimationFrame(focusTarget));
+  };
+  [
+    'gaokao:result-mode-change',
+    'gaokao:school-search-state',
+    'gaokao:major-result-render',
+    'gaokao:workspace-state',
+    'gaokao:runtime-state'
+  ].forEach(type => document.addEventListener(type, scheduleFocus));
+  focusTarget();
+  return Object.freeze({ focus, targetId, focusTarget });
+}
+
+mountMinScoreHandoff();
+
 function setRuntimeState(state, detail = '') {
   document.body.dataset.runtimeState = state;
   document.body.dataset.siteRuntimeGeneration = SITE_RUNTIME_CONTRACT.generation;

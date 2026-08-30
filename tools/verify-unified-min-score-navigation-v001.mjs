@@ -22,6 +22,8 @@ assert.equal(majorParams.get('majorCode'), '080601');
 assert.equal(majorParams.get('autoQuery'), '1');
 assert.equal(majorParams.get('returnTo'), '/major-path/?major=080601');
 assert.equal(majorParams.get('sourceSurface'), 'major-path');
+assert.equal(majorParams.get('focus'), 'major-all');
+assert.equal(new URL(majorHref, 'https://gaokao.powers.org.cn').hash, '#majorAllResultsPanel');
 
 const schoolHref = buildSchoolMinScoreHref({
   school: '测试大学',
@@ -34,6 +36,8 @@ assert.equal(schoolParams.get('mode'), 'school-all');
 assert.equal(schoolParams.get('school'), '测试大学');
 assert.equal(schoolParams.get('schoolEntity'), null, 'temporary admission identity must not cross the boundary');
 assert.equal(schoolParams.get('autoQuery'), '1');
+assert.equal(schoolParams.get('focus'), 'school-all');
+assert.equal(new URL(schoolHref, 'https://gaokao.powers.org.cn').hash, '#schoolAllResultsPanel');
 assert.equal(schoolParams.get('returnTo'), '/tongxue/?school=%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6');
 
 assert.equal(sanitizeMinScoreReturnTarget('https://evil.example/steal'), '/ln-rank/');
@@ -59,6 +63,13 @@ assert.match(majorAll, /专业本身不一定不存在/);
 assert.match(schoolAll, /当前条件下没有找到这所学校的辽宁最低分记录/);
 assert.match(schoolAll, /这不一定代表学校没有招生/);
 assert.match(majorAll, /autoQuery/);
+const lnRankIndex = read('ln-rank/index.html');
+const lnRankBootstrap = read('ln-rank/js/app.v3990_3.js');
+assert.match(lnRankIndex, /min-score-handoff-loading/);
+assert.match(lnRankIndex, /正在读取辽宁最低分记录/);
+assert.match(lnRankBootstrap, /MIN_SCORE_HANDOFF_TARGETS/);
+assert.match(lnRankBootstrap, /gaokao:major-result-render/);
+assert.match(lnRankBootstrap, /behavior: 'auto'/);
 assert.match(majorIndex, /min-score-entry\.v001\.css\?v=001_0/);
 assert.match(tongxueIndex, /min-score-entry\.v001\.css\?v=001_0/);
 

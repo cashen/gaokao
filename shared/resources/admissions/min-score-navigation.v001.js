@@ -31,11 +31,21 @@ export function sanitizeMinScoreReturnTarget(value, { origin = ORIGIN, fallback 
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function addCommonParams(url, { returnTo = '', sourceSurface = '' } = {}) {
+const FOCUS_TARGETS = Object.freeze({
+  school: Object.freeze({ value: 'school-all', hash: '#schoolAllResultsPanel' }),
+  major: Object.freeze({ value: 'major-all', hash: '#majorAllResultsPanel' })
+});
+
+function addCommonParams(url, { returnTo = '', sourceSurface = '', focus = '' } = {}) {
   url.searchParams.set('autoQuery', '1');
   url.searchParams.set('returnTo', sanitizeMinScoreReturnTarget(returnTo));
   const source = text(sourceSurface);
   if (source) url.searchParams.set('sourceSurface', source);
+  const target = FOCUS_TARGETS[focus];
+  if (target) {
+    url.searchParams.set('focus', target.value);
+    url.hash = target.hash;
+  }
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
@@ -48,7 +58,7 @@ export function buildMajorMinScoreHref({ majorCode = '', majorName = '', returnT
   url.searchParams.set('mode', 'major-all');
   url.searchParams.set('majorKeyword', query);
   if (code) url.searchParams.set('majorCode', code);
-  return addCommonParams(url, { returnTo, sourceSurface });
+  return addCommonParams(url, { returnTo, sourceSurface, focus: 'major' });
 }
 
 export function buildSchoolMinScoreHref({ school = '', entityId = '', returnTo = '/tongxue/', sourceSurface = '' } = {}) {
@@ -56,7 +66,7 @@ export function buildSchoolMinScoreHref({ school = '', entityId = '', returnTo =
   if (!name) return '';
   const href = buildSchoolAllHref({ school: name, entityId });
   if (!href) return '';
-  return addCommonParams(new URL(href, ORIGIN), { returnTo, sourceSurface });
+  return addCommonParams(new URL(href, ORIGIN), { returnTo, sourceSurface, focus: 'school' });
 }
 
 export function buildMinScoreEntryModel({ kind = '', school = '', entityId = '', majorCode = '', majorName = '', returnTo = '', sourceSurface = '' } = {}) {
