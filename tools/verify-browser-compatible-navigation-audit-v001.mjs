@@ -46,7 +46,7 @@ assert.ok(report.includes('PC Chrome') && report.includes('Android Chrome') && r
 assert.ok(!/<script[\s>]/i.test(report) && !/fetch\(/i.test(report), 'audit report must be readable without network/runtime JavaScript');
 assert.ok(manifest.includes('browserCompatibilityAudit'), 'active manifest must declare the audit owner');
 assert.equal(CURRENT_RELEASE.browserCompatibilityAuditVersion, 'browser-compatibility-audit-v001');
-assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r001-native-links-canonical-routes-audit-report');
+assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r002-native-links-url-budget-canonical-routes-audit-report');
 assert.equal(CURRENT_RELEASE.resourceOwners.browserCompatibilityAudit, '/browser-audit/');
 assert.ok(exists('browser-audit/index.html'));
 
