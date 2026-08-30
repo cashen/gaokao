@@ -1,0 +1,64 @@
+name: Verify browser compatibility audit
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'browser-audit/**'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'ln-rank/css/major-path-handoff.v003.css'
+      - 'shared/ui/interaction/interaction-transaction.v3990_3.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - '_redirects'
+      - 'index.html'
+      - 'aiplus/selection-workbench.v005.js'
+      - 'ln-rank/selection-pool.html'
+      - 'zy2026/**'
+      - 'zy2026.html'
+      - 'zy.html'
+      - 'diagnostics.html'
+      - 'tools/verify-browser-compatible-navigation-audit-v001.mjs'
+      - '.github/workflows/verify-browser-compatible-navigation-audit-v001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-compatibility-audit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  static-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject protected path changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD > /tmp/browser-audit-changed.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\\.js$)' /tmp/browser-audit-changed.txt; then
+            echo 'protected path changed'
+            exit 1
+          fi
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check ln-rank/js/workspace/major-path-handoff.v003.js
+          node --check shared/ui/interaction/interaction-transaction.v3990_3.js
+          node --check tools/verify-browser-compatible-navigation-audit-v001.mjs
+      - name: Run browser compatibility contract
+        run: node tools/verify-browser-compatible-navigation-audit-v001.mjs
