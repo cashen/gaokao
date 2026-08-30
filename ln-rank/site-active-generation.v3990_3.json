@@ -30,7 +30,7 @@
     "selectionBootstrap": "/ln-rank/js/app.v3990_3.js?v=3990_3",
     "selectionRuntime": "/ln-rank/js/app-runtime.v3990_3.js?v=3990_3",
     "selectionWorkspace": "/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js?v=3990_3",
-    "majorFilterContext": "/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_3&context=major-filter-context-v004&r=r045-ln-rank-school-handoff-scope",
+    "majorFilterContext": "/ln-rank/js/feature/major-all/major-all-mode.v001.js?v=3990_3&context=major-filter-context-v004&r=r046-ln-rank-dynamic-focus-scroll",
     "interaction": "/shared/ui/interaction/interaction-transaction.v3990_3.js?v=3990_3",
     "interactionStyles": "/shared/ui/interaction/interaction-transaction.v3990_3.css?v=3990_3",
     "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3990_3.js?v=3990_3",

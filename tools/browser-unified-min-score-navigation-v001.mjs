@@ -125,6 +125,7 @@ try {
     assert.equal(schoolUrl.searchParams.get('majorCode'), null);
     assert.equal(schoolUrl.searchParams.get('majorConfirmed'), null);
     assert.equal(await page.locator('#schoolAllResultsPanel').evaluate(node => node.hidden), false);
+    assert.equal(await page.evaluate(() => document.querySelector('#schoolAllResultsPanel').getBoundingClientRect().top < 120), true);
     assert.equal(await page.locator('[data-school-record]').count(), 1);
 
     console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query', 'major-all-to-school-all'] }, null, 2));

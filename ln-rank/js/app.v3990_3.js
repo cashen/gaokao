@@ -1,5 +1,5 @@
-import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r045-ln-rank-school-handoff-scope';
-import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r045-ln-rank-school-handoff-scope';
+import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r046-ln-rank-dynamic-focus-scroll';
+import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r046-ln-rank-dynamic-focus-scroll';
 
 const RUNTIME_VERSION = 'resource-execution-v3990_3';
 const CONTROL_SELECTOR = '[data-runtime-control]';
@@ -13,13 +13,14 @@ const MIN_SCORE_HANDOFF_TARGETS = Object.freeze({
 
 function mountMinScoreHandoff() {
   const focus = new URLSearchParams(location.search).get('focus');
-  const targetId = MIN_SCORE_HANDOFF_TARGETS[focus];
+  let targetId = MIN_SCORE_HANDOFF_TARGETS[focus];
   if (!targetId) return null;
-  const target = byId(targetId);
+  let target = byId(targetId);
   if (!target) return null;
+  let activeFocus = focus;
   let userMoved = false;
   const markUserMoved = () => { userMoved = true; };
-  ['wheel', 'touchmove', 'pointerdown'].forEach(type => {
+  ['wheel', 'touchmove'].forEach(type => {
     globalThis.addEventListener(type, markUserMoved, { passive: true, capture: true });
   });
   globalThis.addEventListener('keydown', event => {
@@ -27,8 +28,15 @@ function mountMinScoreHandoff() {
   }, true);
   const focusTarget = () => {
     if (userMoved) return;
+    const nextFocus = new URLSearchParams(location.search).get('focus') || activeFocus;
+    const nextTargetId = MIN_SCORE_HANDOFF_TARGETS[nextFocus];
+    const nextTarget = byId(nextTargetId);
+    if (!nextTarget) return;
+    activeFocus = nextFocus;
+    targetId = nextTargetId;
+    target = nextTarget;
     target.hidden = false;
-    target.dataset.minScoreHandoff = focus;
+    target.dataset.minScoreHandoff = activeFocus;
     target.scrollIntoView({ block: 'start', behavior: 'auto' });
   };
   const scheduleFocus = event => {
@@ -104,7 +112,7 @@ globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__ = Object.freeze({
 
 setRuntimeState('loading');
 try {
-  const runtime = await import('./app-runtime.v3990_3.js?v=3990_3-nav003&r=r045-ln-rank-school-handoff-scope');
+  const runtime = await import('./app-runtime.v3990_3.js?v=3990_3-nav003&r=r046-ln-rank-dynamic-focus-scroll');
   await runtime.startLnRankRuntime();
   mountMajorPathHandoff();
   currentState = 'ready';
