@@ -8,7 +8,7 @@ import {
   dedupeReviews,
   summaryGroups
 } from './tongxue-runtime-utils-v159.js?v=159';
-import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_0&r=r040-human-reading-flow';
+import { buildUndergradGraduatePathwayView, UNDERGRAD_GRADUATE_PATHWAY_VIEW_META } from '../../shared/resources/majors/undergrad-graduate-pathway-view.v001.js?v=001_1&r=r041-unified-min-score-navigation';
 import { summarizeDecisionContext } from '../../shared/decision-context/decision-context.v001.js';
 import { buildMinScoreEntryModel } from '../../shared/resources/admissions/min-score-navigation.v001.js';
 

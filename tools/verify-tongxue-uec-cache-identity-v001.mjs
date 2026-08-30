@@ -11,7 +11,7 @@ const CONTROLLER_SPECIFIER = '/tongxue/app/tongxue-runtime-controller-v159.js?v=
 const CONTROLLER_IDENTITY = '/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001';
 const CONTROLLER_CACHE_IDENTITY = `${CONTROLLER_IDENTITY}&r=r036-major-history-rank-lazy`;
 const RESULT_VIEW_SPECIFIER = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159';
-const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow004&r=r040-human-reading-flow';
+const RESULT_VIEW_IDENTITY = '/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow005&r=r041-unified-min-score-navigation';
 
 const importMapMatch = html.match(/<script type="importmap">([^<]+)<\/script>/);
 assert.ok(importMapMatch, 'Tongxue import map missing');
