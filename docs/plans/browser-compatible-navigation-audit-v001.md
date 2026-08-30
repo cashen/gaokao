@@ -54,7 +54,7 @@
 
 ### 阶段 4：发布身份与质量门
 
-- 按仓库规则推进当前发布身份到下一代一致版本（目标：`v3.9.90.4 / v3990_4)，以当前发布源和现有契约核验后的实际值为准）。
+- 以 `shared/resources/release/current-release.js` 为唯一发布 owner；本 PR 注册并推进 `browser-compatibility-audit-v001` 的 `r002` 能力修订，同时保留全站当前一致的 `v3.9.90.3 / v3990_3`。只有完整 active generation graph 可以同时迁移时才升级全站 generation，本 PR 不制造半迁移。
 - 更新受影响的 active generation、缓存/资源/发布契约及对应查询串；不修改历史非 owner 版本标记。
 - 增加专门的浏览器兼容审计静态契约门，确保以后不会重新生成无 `href` 的跨模块入口、重复规范地址或无报告页状态。
 - 解决/分类 bounded-fanout 当前 `push + failure + jobs=[]` 的 CI 配置门；不能将其默认为产品失败，也不能带着未解释的 required failure 合并。
