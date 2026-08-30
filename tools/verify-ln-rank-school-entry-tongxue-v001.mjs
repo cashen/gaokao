@@ -34,7 +34,9 @@ const manifest = fs.readFileSync('shared/resources/release/active-resource-manif
 const generation = fs.readFileSync('ln-rank/site-active-generation.v3990_3.json', 'utf8');
 assert.match(majorAll, /buildSchoolAllHref/);
 assert.match(majorAll, /class="major-all-school-link"/);
-assert.match(majorAll, /majorKeyword:draftMajorText(),score:scoreValue()||''/);
+const majorRenderRecord = majorAll.slice(majorAll.indexOf('function renderRecord'), majorAll.indexOf('function mergeRecords'));
+assert.match(majorRenderRecord, /focus:'school-all'/);
+assert.doesNotMatch(majorRenderRecord, /majorKeyword/);
 assert.match(majorCss, /\.major-all-school-link/);
 assert.match(api, /isLegacyAdmissionHandoff/);
 assert.match(api, /legacyEntityFallback=true/);
@@ -44,12 +46,12 @@ assert.match(release, /lnRankSchoolEntryVersion: 'ln-rank-school-entry-v001'/);
 assert.match(release, /tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001'/);
 assert.match(release, /lnRankCacheRevision: 'r036-major-history-rank-lazy'/);
 assert.match(manifest, /CURRENT_RELEASE\.lnRankCacheRevision/);
-assert.match(generation, /major-filter-context-v004&r=r036-major-history-rank-lazy/);
+assert.match(generation, /major-filter-context-v004&r=r043-ln-rank-semantic-navigation/);
 
 console.log(JSON.stringify({
   ok: true,
   staleAdmissionHandoff: 'name-only fallback',
   canonicalHandoff: 'canonical entity preserved',
-  majorSchoolLink: 'native school-all href with major and score context',
-  revision: 'r036-major-history-rank-lazy'
+  majorSchoolLink: 'native school-all href without hidden major filter scope',
+  revision: 'r043-ln-rank-semantic-navigation'
 }, null, 2));
