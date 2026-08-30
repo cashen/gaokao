@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
+import { buildMajorPathHref } from '../shared/resources/majors/major-path-navigation.v003.js';
+import { buildStudentVoiceMajorHref } from '../shared/resources/experience/student-voice-navigation.v001.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
 const exists = path => fs.existsSync(path);
@@ -49,6 +51,42 @@ assert.equal(CURRENT_RELEASE.browserCompatibilityAuditVersion, 'browser-compatib
 assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r002-native-links-url-budget-canonical-routes-audit-report');
 assert.equal(CURRENT_RELEASE.resourceOwners.browserCompatibilityAudit, '/browser-audit/');
 assert.ok(exists('browser-audit/index.html'));
+const largeContext = {
+  sourceSurface: 'ln-rank',
+  sourceAction: 'view_major_path',
+  returnTo: '/ln-rank/?' + 'x='.repeat(880),
+  province: '辽宁',
+  admissionYear: 2026,
+  track: '物理类',
+  score: 580,
+  regionLabel: '辽宁',
+  school: '沈阳建筑大学',
+  major: '工程管理',
+  majorCode: '120103',
+  majorKeywords: ['工程管理'.repeat(20)],
+  candidateIds: ['school-key'.repeat(8)],
+  evidenceRefs: [{kind: 'result', label: '当前专业初选结果'.repeat(20), ref: 'record'.repeat(20)}]
+};
+const boundedMajorHref = buildMajorPathHref({
+  majorCode: '120103',
+  canonicalName: '工程管理',
+  context: 'school',
+  sourceKey: 'school-key',
+  sourceMajor: '工程管理',
+  school: '沈阳建筑大学',
+  returnTo: largeContext.returnTo,
+  decisionContext: largeContext
+});
+const boundedVoiceHref = buildStudentVoiceMajorHref({
+  majorCode: '120103',
+  canonicalName: '工程管理',
+  context: 'school',
+  sourceKey: 'school-key',
+  returnTo: largeContext.returnTo,
+  decisionContext: largeContext
+});
+assert.ok(boundedMajorHref.length <= 1800, `major handoff exceeded mobile URL budget: ${boundedMajorHref.length}`);
+assert.ok(boundedVoiceHref.length <= 1800, `student voice handoff exceeded mobile URL budget: ${boundedVoiceHref.length}`);
 
 for (const [path, source] of [
   ['index.html', read('index.html')],
