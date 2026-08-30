@@ -341,7 +341,7 @@ async function renderWorkbench() {
   title.id = 'selectionWorkbenchTitle';
   titleWrap.append(title, node('span', '', items.length ? `${items.length} 个学校×专业` : '把真正愿意读的项目留下来'));
   const planLink = node('a', 'selection-workbench-plan-link', '打开家庭方案');
-  planLink.href = '/ln-rank/selection-pool.html';
+  planLink.href = '/ln-rank/selection-pool';
   head.append(titleWrap, planLink);
   root.append(head);
 
@@ -356,7 +356,7 @@ async function renderWorkbench() {
     items.slice(0, 12).forEach((item, index) => list.append(renderPoolItem(item, index, items.length)));
     if (items.length > 12) {
       const more = node('a', 'selection-workbench-more', `其余 ${items.length - 12} 项在家庭方案中管理 →`);
-      more.href = '/ln-rank/selection-pool.html';
+      more.href = '/ln-rank/selection-pool';
       list.append(more);
     }
     root.append(list);
