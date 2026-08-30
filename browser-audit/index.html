@@ -50,7 +50,7 @@
     @media(max-width:760px){.wrap{width:min(100% - 20px,620px);padding-top:10px}.topbar{align-items:flex-start}.hero{margin-top:18px;padding:24px 20px;border-radius:22px}.lead{font-size:15px}.grid{grid-template-columns:1fr}.section{margin-top:24px}.matrix{display:block;overflow-x:auto;white-space:normal}th,td{min-width:128px;padding:11px 10px}.footer{margin-top:24px}}
   </style>
 </head>
-<body data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-audit-version="browser-compatibility-audit-v001" data-audit-revision="r002-native-links-url-budget-canonical-routes">
+<body data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-audit-version="browser-compatibility-audit-v001" data-audit-revision="r003-alook-disclosure-stability-audit-report">
   <div class="wrap">
     <div class="topbar">
       <div class="brand">辽宁高考家庭决策工作台</div>
@@ -98,6 +98,21 @@
           <tr><td>Alook</td><td>真实点击事件顺序与页面打开</td><td><span class="status pending">必须人工完成</span></td><td>专业升学路径、大学生说专业、学校专业卡</td></tr>
         </tbody>
       </table>
+    </section>
+
+    <section class="section" aria-labelledby="disclosureTitle">
+      <h2 id="disclosureTitle">展开控件专项审计</h2>
+      <p>用户复现的“点了以后页面向上跳、真正想打开的内容反而没有打开”，说明风险不只存在于地址跳转，也存在于原生展开控件触发的焦点滚动、布局变化和下一次触控命中。Android Chrome 可正常展开，不能证明 Alook 的事件顺序也安全。</p>
+      <table class="matrix">
+        <thead><tr><th>活动界面</th><th>风险级别</th><th>当前结论</th><th>处理计划</th></tr></thead>
+        <tbody>
+          <tr><td>首页“了解 / 证据 / 主线 / 产业”</td><td>P0</td><td><span class="status">本轮已整改</span><small>显式 button + aria-expanded + hidden 面板；展开前后恢复滚动位置。</small></td><td>PC/Pad/Android Chrome 复核，Alook 真机单独验收。</td></tr>
+          <tr><td>AIPLuS 决策侧栏</td><td>P1</td><td><span class="status pending">已登记风险</span><small>仍有“家庭决策书、已确认条件与依据、其他家庭档案”原生 details。</small></td><td>下一阶段统一为稳定展开控件，保留侧栏状态与键盘语义。</td></tr>
+          <tr><td>自选诊断/建议讨论顺序</td><td>P1</td><td><span class="status pending">已登记风险</span><small>AIPLuS 运行时会动态生成两个 details，重绘时还可能发生布局变化。</small></td><td>加入动态重绘后的控件契约和滚动稳定性测试。</td></tr>
+          <tr><td>分数换算说明</td><td>P2</td><td><span class="status pending">低风险说明折叠</span><small>不直接负责跨页面打开，但结果区另有显式平滑滚动，需纳入 Android 回归。</small></td><td>验证结果展示不抢焦点、不把用户带离当前操作；必要时改为显式定位。</td></tr>
+        </tbody>
+      </table>
+      <p>本轮结论：首页是已复现且已直接整改的阻塞点；其余活动界面不是“未发现问题”，而是已发现同类实现并进入分级整改。审计门会阻止首页回退到原生 <code>summary</code>，同时持续记录这些 P1/P2 面。</p>
     </section>
 
     <section class="section" aria-labelledby="scopeTitle">
