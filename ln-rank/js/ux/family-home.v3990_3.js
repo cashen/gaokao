@@ -118,6 +118,62 @@ function renderHomeState() {
   ]);
 }
 
+const TOOL_GROUP_SELECTOR = '.tool-group[data-tool-group]';
+const TOOL_GROUP_RUNTIME_VERSION = 'home-disclosure-stability-v001';
+
+function restoreViewport(position) {
+  if (!position) return;
+  try {
+    window.scrollTo(position.x, position.y);
+  } catch {
+    // Older embedded browsers may expose only the numeric scrollTo signature.
+    try { window.scrollTo(Number(position.x) || 0, Number(position.y) || 0); } catch {}
+  }
+}
+
+function bindToolGroups() {
+  for (const group of document.querySelectorAll(TOOL_GROUP_SELECTOR)) {
+    const toggle = group.querySelector('.tool-toggle');
+    const panelId = toggle?.getAttribute('aria-controls');
+    const panel = panelId ? document.getElementById(panelId) : group.querySelector('.tool-list');
+    if (!toggle || !panel || toggle.dataset.bound === 'true') continue;
+
+    const setOpen = open => {
+      const next = Boolean(open);
+      group.dataset.open = String(next);
+      toggle.setAttribute('aria-expanded', String(next));
+      panel.hidden = !next;
+    };
+
+    setOpen(toggle.getAttribute('aria-expanded') === 'true' && !panel.hidden);
+    toggle.dataset.bound = 'true';
+    toggle.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const position = {
+        x: Number(window.scrollX) || 0,
+        y: Number(window.scrollY) || 0
+      };
+      const next = toggle.getAttribute('aria-expanded') !== 'true';
+      setOpen(next);
+      try {
+        toggle.focus({ preventScroll: true });
+      } catch {
+        try { toggle.focus(); } catch {}
+      }
+      const restore = () => restoreViewport(position);
+      restore();
+      globalThis.setTimeout(restore, 0);
+      if (typeof globalThis.requestAnimationFrame === 'function') {
+        globalThis.requestAnimationFrame(restore);
+        globalThis.requestAnimationFrame(() => {
+          globalThis.requestAnimationFrame(restore);
+        });
+      }
+    });
+  }
+}
+
 function renderCountdown(now = new Date()) {
   const remainingMs = Math.max(0, EXAM_START_AT.getTime() - now.getTime());
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -140,6 +196,7 @@ function renderCountdown(now = new Date()) {
 
 const release = mountCurrentRelease();
 renderHomeState();
+bindToolGroups();
 renderCountdown();
 const countdownTimer = globalThis.setInterval(renderCountdown, 1000);
 
@@ -160,6 +217,7 @@ globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   stateOwner: release.resourceOwners.familyDecisionState,
   countdownOwner: HOME_RUNTIME_VERSION,
   countdownPrecision: 'second',
+  disclosureOwner: TOOL_GROUP_RUNTIME_VERSION,
   countdownIntervalMs: 1000,
   examStartAt: EXAM_START_AT.toISOString(),
   timer: countdownTimer
