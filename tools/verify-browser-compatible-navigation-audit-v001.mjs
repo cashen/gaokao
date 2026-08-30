@@ -43,7 +43,7 @@ assert.ok(report.includes('data-audit-version="browser-compatibility-audit-v001"
 assert.ok(report.includes('href="https://gaokao.powers.org.cn/browser-audit/"'));
 assert.ok(report.includes('name="viewport"'));
 assert.ok(report.includes('PC Chrome') && report.includes('Android Chrome') && report.includes('Alook'));
-assert.ok(!/<script[\\s>]/i.test(report) && !/fetch\\(/i.test(report), 'audit report must be readable without network/runtime JavaScript');
+assert.ok(!/<script[\s>]/i.test(report) && !/fetch\(/i.test(report), 'audit report must be readable without network/runtime JavaScript');
 assert.ok(manifest.includes('browserCompatibilityAudit'), 'active manifest must declare the audit owner');
 assert.equal(CURRENT_RELEASE.browserCompatibilityAuditVersion, 'browser-compatibility-audit-v001');
 assert.equal(CURRENT_RELEASE.browserCompatibilityAuditRevision, 'r001-native-links-canonical-routes-audit-report');
