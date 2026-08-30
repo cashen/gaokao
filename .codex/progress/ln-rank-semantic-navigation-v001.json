@@ -2,7 +2,7 @@
   "task": "ln-rank-semantic-navigation-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ln-rank-semantic-navigation-v001",
-  "headSha": "f751a271dd36fb030d7f05d5428a54ef134945f4",
+  "headSha": "3ebdadeead2bd2ab9930ea618507b90ef3299fb4",
   "baseSha": "fed13616e12da4aa593c168cbe33f64a7f612716",
   "pr": 257,
   "completed": [
@@ -14,7 +14,9 @@
     "ci-failure-diagnosed",
     "test-contract-sync-committed",
     "browser-failure-diagnosed",
-    "focus-query-fix-committed"
+    "focus-query-fix-committed",
+    "static-failure-diagnosed",
+    "static-contract-fix-committed"
   ],
   "inProgress": "ci",
   "pending": [
@@ -24,10 +26,10 @@
     "production-browser-recheck"
   ],
   "lastFailure": {
-    "check": "browser-journeys",
-    "reason": "buildSchoolAllHref emitted the hash but omitted focus=school-all query parameter",
-    "resolvedBy": "f751a271dd36fb030d7f05d5428a54ef134945f4"
+    "check": "static-contract",
+    "reason": "new r044 navigation revision assertions were not all updated from r043",
+    "resolvedBy": "3ebdadeead2bd2ab9930ea618507b90ef3299fb4"
   },
   "revision": "r044-ln-rank-navigation-focus-query",
-  "verifiedAt": "2026-08-30T03:50:50.331Z"
+  "verifiedAt": "2026-08-30T03:53:13.667Z"
 }
