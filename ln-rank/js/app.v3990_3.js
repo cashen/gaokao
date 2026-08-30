@@ -1,5 +1,5 @@
-import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r044-ln-rank-navigation-focus-query';
-import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r044-ln-rank-navigation-focus-query';
+import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r045-ln-rank-school-handoff-scope';
+import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r045-ln-rank-school-handoff-scope';
 
 const RUNTIME_VERSION = 'resource-execution-v3990_3';
 const CONTROL_SELECTOR = '[data-runtime-control]';
@@ -104,7 +104,7 @@ globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__ = Object.freeze({
 
 setRuntimeState('loading');
 try {
-  const runtime = await import('./app-runtime.v3990_3.js?v=3990_3-nav003&r=r044-ln-rank-navigation-focus-query');
+  const runtime = await import('./app-runtime.v3990_3.js?v=3990_3-nav003&r=r045-ln-rank-school-handoff-scope');
   await runtime.startLnRankRuntime();
   mountMajorPathHandoff();
   currentState = 'ready';

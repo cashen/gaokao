@@ -76,9 +76,11 @@ const renderRecord = majorAll.slice(majorAll.indexOf('function renderRecord'), m
 assert.match(renderRecord, /focus:'school-all'/);
 assert.doesNotMatch(renderRecord, /majorKeyword/);
 assert.match(workspace, /state\.filters\.majorKeyword = ''/);
+assert.match(workspace, /url\.searchParams\.delete\('majorCode'\)/);
+assert.match(workspace, /url\.searchParams\.delete\('majorConfirmed'\)/);
 assert.match(workspace, /updateSearchUrl\(\{ push: true, focus: MODE_SCHOOL \}\)/);
-assert.match(runtime, /r=r044-ln-rank-navigation-focus-query/);
-assert.match(release, /lnRankNavigationRevision: 'r044-ln-rank-navigation-focus-query'/);
+assert.match(runtime, /r=r045-ln-rank-school-handoff-scope/);
+assert.match(release, /lnRankNavigationRevision: 'r045-ln-rank-school-handoff-scope'/);
 const lnRankIndex = read('ln-rank/index.html');
 const lnRankBootstrap = read('ln-rank/js/app.v3990_3.js');
 assert.match(lnRankIndex, /min-score-handoff-loading/);

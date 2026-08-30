@@ -123,6 +123,7 @@ try {
     assert.equal(schoolUrl.hash, '#schoolAllResultsPanel');
     assert.equal(schoolUrl.searchParams.get('majorKeyword'), null);
     assert.equal(schoolUrl.searchParams.get('majorCode'), null);
+    assert.equal(schoolUrl.searchParams.get('majorConfirmed'), null);
     assert.equal(await page.locator('#schoolAllResultsPanel').evaluate(node => node.hidden), false);
     assert.equal(await page.locator('[data-school-record]').count(), 1);
 

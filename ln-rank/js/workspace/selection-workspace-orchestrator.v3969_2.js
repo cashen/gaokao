@@ -250,6 +250,9 @@ function updateSearchUrl({ push = false, focus = '' } = {}) {
   if (state.resultMode === MODE_SCHOOL) url.searchParams.set('schoolSort', normalizeSchoolSort(state.schoolAll.sort));
   else url.searchParams.delete('schoolSort');
   if (focus === MODE_SCHOOL) {
+    url.searchParams.delete('majorKeyword');
+    url.searchParams.delete('majorCode');
+    url.searchParams.delete('majorConfirmed');
     url.searchParams.set('focus', MODE_SCHOOL);
     url.hash = '#schoolAllResultsPanel';
   } else if (focus === MODE_MAJOR) {
