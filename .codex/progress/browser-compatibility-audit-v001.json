@@ -3,18 +3,18 @@
   "repository": "cashen/gaokao",
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
-  "pr": null,
-  "currentHeadSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
+  "pr": 259,
+  "currentHeadSha": "00904e68c5087a78874e3b178760cf3b0fc8006e",
   "releaseTarget": "v3.9.90.4 / v3990_4 (pending source-of-truth verification)",
   "completed": [
     "live-main-reconciled",
     "required-skills-read",
     "branch-created",
-    "plan-written"
+    "plan-written",
+    "draft-pr-created"
   ],
-  "inProgress": "draft-pr",
+  "inProgress": "native-link-fallback",
   "pending": [
-    "native-link-fallback",
     "canonical-routes",
     "audit-report-page",
     "release-contract-and-static-gates",
@@ -25,7 +25,7 @@
     "post-merge-production-recheck"
   ],
   "tests": {
-    "plan": "not-applicable",
+    "plan": "written-to-pr",
     "source": "not-run",
     "architecture": "not-run",
     "humanCopy": "not-run",
@@ -45,5 +45,5 @@
     }
   ],
   "lastFailure": null,
-  "updatedAt": "2026-08-30T00:00:00Z"
-}\n
+  "updatedAt": "2026-08-30T22:41:00Z"
+}
