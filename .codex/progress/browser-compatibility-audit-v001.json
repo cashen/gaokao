@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "6fcdc0540f1d60e386ad3eb1ed6c0f1cb2925f78",
+  "currentHeadSha": "fcdf8266e9e2656be6b3e887058bcca5a5f6e4b3",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -38,7 +38,9 @@
     "tongxue-live-failure-diagnosed",
     "tongxue-scope-test-fixed",
     "tongxue-scope-callback-failure-diagnosed",
-    "tongxue-scope-callback-fixed"
+    "tongxue-scope-callback-fixed",
+    "tongxue-api-route-fixture-failure-diagnosed",
+    "tongxue-api-route-fixture-fixed"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -52,8 +54,8 @@
     "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
-    "treeIntegrity": "rerun required on current candidate after Tongxue test-only fix",
-    "ci": "rerun required: candidate 8a7048d failed only because browser-tongxue-major-scope-v001.mjs referenced Node variable page inside waitForFunction at line 96; corrected to browser location.href in 6fcdc054."
+    "treeIntegrity": "rerun required on current candidate after Tongxue test-only fixes",
+    "ci": "rerun required: candidate d524411 failed because the Tongxue scope test route pattern omitted query-string matching; unified with other Tongxue browser tests in fcdf8266."
   },
   "blockers": [
     {
@@ -64,18 +66,18 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "第二处 Tongxue 测试回调作用域问题已修正，当前候选需要重新跑完整 exact-head workflow matrix。"
+      "detail": "Tongxue 浏览器测试夹具已统一查询串匹配，当前候选需要重新跑完整 exact-head workflow matrix。"
     }
   ],
   "knownHistoricalFindings": [
     "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。"
   ],
   "lastFailure": {
-    "runId": 33362615048,
-    "jobId": 99396797646,
-    "headSha": "8a7048d46d68f1541df3c34054779ac59af46ce8",
-    "cause": "test harness ReferenceError: page is not defined inside waitForFunction callback at tools/browser-tongxue-major-scope-v001.mjs:96",
-    "correctionCommit": "6fcdc0540f1d60e386ad3eb1ed6c0f1cb2925f78"
+    "runId": 33362775623,
+    "jobId": 99397259799,
+    "headSha": "d524411559b56396b7436eccffc46215bb192bcf",
+    "cause": "Tongxue scope browser fixture did not match query-string URL, so local static server HTML was parsed as api_route_missed; apiRequests=0.",
+    "correctionCommit": "fcdf8266e9e2656be6b3e887058bcca5a5f6e4b3"
   },
-  "updatedAt": "2026-08-31T06:05:00.000Z"
+  "updatedAt": "2026-08-31T06:09:00.000Z"
 }
