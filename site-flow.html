@@ -130,7 +130,7 @@
       <h2 id="riskTitle">当前审计风险与判断</h2>
       <p class="sub">这些不是“页面一定坏了”的结论，而是从代码关系中推导出的必须持续验证的点。</p>
       <div class="grid">
-        <article class="card risk"><h3>版本标识不一致</h3><p><code>VERSION.txt</code> 为 <code>v3.9.90.0</code>，而 canonical release 与多个页面 runtime 为 <code>v3.9.90.3</code>。根版本文件是历史标记还是仍有消费者，需要持续确认。</p></article>
+        <article class="card risk"><h3>历史版本标记不能当发布真相</h3><p>根目录 <code>VERSION.txt</code> 的 <code>v3.9.90.0</code> 是历史标记，不拥有当前发布版本。当前真相由 <code>shared/resources/release/current-release.js</code>、活动代际清单和资源图共同声明为 <code>v3.9.90.3 / v3990_3</code>；新增页面或脚本不得把 <code>VERSION.txt</code> 当作运行时版本来源。</p></article>
         <article class="card risk"><h3>锚点不能只靠动画滚动</h3><p><code>#schoolAllResultsPanel</code> 和 <code>#majorAllResultsPanel</code> 是跨模块直达契约。Android、Alook 和弱网场景需要验证“参数、异步结果、定位”三者同时成立。</p></article>
         <article class="card risk"><h3>学校实体必须先统一</h3><p><code>school + entity</code> 共同决定同学你好请求的身份。名称可显示，不代表实体一定有效；错误实体不能扩散成整页失败。</p></article>
         <article class="card aux"><h3>独立入口不能被漏审</h3><p><code>/fenxi/</code>、历史页和专题页没有全部出现在主导航，但仍可由 URL 直接访问。它们需要明确保留、迁移或退役。</p></article>

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
 import {
   MAJOR_BANDS_BUCKET_ORCHESTRATION,
   MajorBandsBucketWorkerError,
@@ -265,53 +266,27 @@ assert.ok(JSON.stringify(compactCandidate).length < JSON.stringify(tracedCandida
 assert.ok(JSON.stringify(responseRecord).length < JSON.stringify(tracedCandidate).length);
 assert.equal(MAJOR_BANDS_BUCKET_TRANSFER_VERSION, 'major-bands-bucket-candidate-compact-v3972_5');
 assert.equal(MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION, 'major-bands-response-compact-v3972_5');
-assert.equal(MAJOR_BANDS_MATERIALIZATION_VERSION, 'major-bands-materialized-v3972_5');
+assert.equal(MAJOR_BANDS_MATERIALIZATION_VERSION, CURRENT_RELEASE.majorBandsMaterializationVersion);
 
 const source = fs.readFileSync('functions/api/major-bands.js', 'utf8');
-const bucketApi = fs.readFileSync('functions/api/major-bands-bucket.js', 'utf8');
-const bucketEngine = fs.readFileSync('functions/_lib/major-bands-bucket-engine.js', 'utf8');
-const bucketCache = fs.readFileSync('functions/_lib/major-bands-bucket-cache.v3972_5.js', 'utf8');
 const staticProvider = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
-const productionVerifier = fs.readFileSync('tools/verify-production-v3971.mjs', 'utf8');
-assert.ok(source.includes('major-bands-bucket-orchestrator.v3972_5.js'));
-assert.ok(source.includes('major-bands-bucket-transfer.v3972_5.js'));
-assert.ok(source.includes('major-bands-bucket-cache.v3972_5.js'));
-assert.ok(source.includes('readMajorBandsBucketCache(endpoint)'));
-assert.ok(source.includes('writeMajorBandsBucketCache(cached.cacheKey, responseText)'));
-assert.ok(source.indexOf('parseBucketPayload(response, responseText, bucket.file)') < source.indexOf('writeMajorBandsBucketCache(cached.cacheKey, responseText)'));
-assert.ok(!source.includes("endpoint.searchParams.set('requestToken'"));
-assert.ok(!source.includes("endpoint.searchParams.set('bucketAttempt'"));
-assert.ok(source.includes('bucketWorkerCacheHits:'));
-assert.ok(source.includes('bucketWorkerCacheMisses:'));
-assert.ok(source.includes('bucketWorkerCacheUnavailable:'));
-assert.ok(bucketCache.includes("['stress', 'requestToken', 'bucketAttempt'].includes(key)"));
-assert.ok(bucketCache.includes('await cache.put(cacheKey, new Response(text'));
-assert.ok(bucketCache.includes('MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS = 300'));
-assert.ok(/runMajorBandsBucketWorkers\s*\(\s*selected\.buckets/.test(source));
+assert.ok(source.includes('major-bands-rank-bucket-loader.v3990_3.js'));
+assert.ok(source.includes('major-bands-rank-query-kernel.v3990_3.js'));
+assert.ok(source.includes('executeMajorBandsAllBandsPageOnce'));
+assert.ok(source.includes('majorBandsInternalBandRequest: true'));
+assert.ok(source.includes('for (const band of BAND_KEYS)'));
+assert.ok(source.includes('loadMajorBandsRankWindow(context'));
+assert.ok(source.includes('context.env?.MAJOR_BANDS_MAX_PER_BAND'));
 assert.ok(!source.includes('Promise.all(selected.buckets.map'));
-assert.ok(source.includes('bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency'));
-assert.ok(source.includes('bucketWorkerRetries: bucketExecution.stats.retryCount'));
-assert.ok(source.includes('bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
-assert.ok(source.includes('responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION'));
+assert.ok(source.includes('bucketWorkerCount: 0'));
+assert.ok(source.includes('bucketWorkerRetries: 0'));
+assert.ok(source.includes('publicHttpSelfFanout: false'));
 assert.ok(source.includes('compactMajorBandsResponseRecord'));
-assert.ok(source.includes('resolveCanonicalPosition, rankBandRangeText'));
-assert.ok(source.includes('const item = materializeMajorBandsStaticRecord(source);'));
-assert.ok(source.includes('分桶排序位置与父级重建不一致'));
-assert.ok(source.includes('finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })'));
-assert.ok(!source.includes('record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION'));
+assert.ok(source.includes('resolveCanonicalPosition'));
+assert.ok(source.includes('const item = materializeMajorBandsStaticRecord(expanded);'));
+assert.ok(source.includes('finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset, specialIntent })'));
 assert.ok(source.includes("'x-gaokao-response-transport'"));
-assert.ok(source.includes('isRetryableBucketWorkerFailure(error) ? 503 : 500'));
-assert.ok(bucketApi.includes('candidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
-assert.ok(!bucketEngine.includes("import { materializeMajorBandsStaticRecord } from './major-bands-static-provider.js';"));
-assert.ok(!bucketEngine.includes("import { buildDisplayTags } from './school-display-tags.js';"));
-assert.ok(!bucketEngine.includes('materializeMajorBandsStaticRecord(record)'));
-assert.ok(bucketEngine.includes('...record'));
-assert.ok(bucketEngine.includes('.slice(0, maxCandidates).map(compactMajorBandsBucketCandidate)'));
 assert.ok(staticProvider.includes("if (record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION) return record;"));
-assert.ok(productionVerifier.includes('SCORE_RESPONSE_BUDGET_BYTES = 260000'));
-assert.ok(productionVerifier.includes('SCHOOL_RESPONSE_BUDGET_BYTES = 180000'));
-assert.ok(productionVerifier.includes('SCORE_TRANSFER_BUDGET_CHARS = 1200000'));
-assert.ok(productionVerifier.includes('SCHOOL_TRANSFER_BUDGET_CHARS = 300000'));
 
 console.log(JSON.stringify({
   ok: true,

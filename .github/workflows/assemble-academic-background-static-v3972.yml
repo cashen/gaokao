@@ -88,7 +88,7 @@ jobs:
           if(!release.includes("display: 'v3.9.90.3'")) throw new Error('site release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
           const page=fs.readFileSync('ln-rank/211-mainline.html','utf8');
-          if(!page.includes('data-release="v3.9.90.0"')) throw new Error('211 stable page release');
+          if(!page.includes('data-release="v3.9.90.3"')) throw new Error('211 page release lineage');
           if(!page.includes('all211-static-app.v3972_0.js?v=3972_0')) throw new Error('211 stable runtime');
           const compat=fs.readFileSync('functions/_lib/211-static-compat-response.js','utf8');
           if(!compat.includes('scannedCount: 0')||!compat.includes('build-time-static-index')) throw new Error('scan-free compatibility contract');
@@ -96,7 +96,7 @@ jobs:
           const fetcher=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
           if(!health.includes("maximumProbeChunks: 1")||!health.includes("fullDatasetScan: false")) throw new Error('bounded health probe contract');
           if(!fetcher.includes('Large admission chunks are deliberately request-scoped')) throw new Error('request-scoped chunk contract');
-          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size,siteRelease:'v3.9.90.3',pageRelease:'v3.9.90.0',package:index.version},null,2));
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size,siteRelease:'v3.9.90.3',pageRelease:'v3.9.90.3',package:index.version},null,2));
           NODE
       - name: Upload assembly evidence
         if: always()
@@ -109,4 +109,3 @@ jobs:
             ln-rank/data/211-static/211-static-audit.v3972_0.json
           if-no-files-found: error
           retention-days: 7
-

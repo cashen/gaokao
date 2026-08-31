@@ -28,8 +28,7 @@ const bodyTag = html => html.match(/<body\b[^>]*>/i)?.[0] || '';
 const footer = html => html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] || '';
 const staleRelease = /v3\.9\.(?:50\.0|67\.0|68\.0|71\.2|90\.0)\b/;
 const stablePageReleases = Object.freeze({
-  'ln-rank/local-mainline.html': 'v3.9.71.2',
-  'ln-rank/211-mainline.html': 'v3.9.90.0'
+  'ln-rank/local-mainline.html': 'v3.9.71.2'
 });
 const compatibilityAliases = Object.freeze({
   'zy2026.html': '/zy2026/'

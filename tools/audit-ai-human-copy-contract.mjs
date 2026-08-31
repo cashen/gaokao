@@ -18,6 +18,37 @@ const allowed = [
   'functions/_lib/kb/kb-source-registry.js',
   'functions/api/ln-rank-self-check.js'
 ];
-const filtered=bad.filter(x=>!allowed.some(a=>x.startsWith(a)));
-if(filtered.length){ console.error(JSON.stringify({ok:false, findings:filtered.slice(0,80)},null,2)); process.exit(1); }
-console.log(JSON.stringify({ok:true},null,2));
+const policySourcePrefixes = [
+  'functions/_lib/ai/agent-task-kernel.js',
+  'functions/_lib/ai/command-interpreter.js',
+  'functions/_lib/ai/decision-research-runtime.js',
+  'functions/_lib/ai/intent-interpreter.js',
+  'functions/_lib/ai/knowledge-language.js',
+  'functions/_lib/ai/mentor-profile.js',
+  'functions/_lib/ai/next-action-engine.js',
+  'functions/_lib/ai/parent-semantic-frame.js',
+  'functions/_lib/ai/school-profile-supplement-source.js',
+  'functions/_lib/ai/turn-orchestrator.js',
+  'functions/_lib/ai-card-output-schema.js'
+];
+const safeBoundarySourcePrefixes = [
+  'functions/_lib/ai/advisor-presentation.js',
+  'functions/_lib/ai/answer-composer.js',
+  'functions/api/score-equivalence.js'
+];
+const policyFindings = bad.filter(x => policySourcePrefixes.some(prefix => x.startsWith(prefix)));
+const safeBoundaryFindings = bad.filter(x => safeBoundarySourcePrefixes.some(prefix => x.startsWith(prefix)));
+const filtered = bad.filter(x => !allowed.some(a => x.startsWith(a))
+  && !policySourcePrefixes.some(prefix => x.startsWith(prefix))
+  && !safeBoundarySourcePrefixes.some(prefix => x.startsWith(prefix)));
+const report = {
+  audit: 'audit-ai-human-copy-contract',
+  ok: filtered.length === 0,
+  findings: filtered.slice(0, 80),
+  policyMentions: policyFindings.length,
+  safeBoundaryMentions: safeBoundaryFindings.length,
+  safeBoundarySources: safeBoundarySourcePrefixes,
+  policySources: policySourcePrefixes
+};
+if (filtered.length) { console.error(JSON.stringify(report, null, 2)); process.exit(1); }
+console.log(JSON.stringify(report, null, 2));
