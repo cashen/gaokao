@@ -93,7 +93,7 @@ try {
       await scopeSchool.click();
       await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'idle');
       await scopeMajor.click();
-      await page.waitForFunction(() => new URL(page.url()).searchParams.get('scope') === 'major');
+      await page.waitForFunction(() => new URL(location.href).searchParams.get('scope') === 'major');
 
       await input.fill('080601');
       await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
