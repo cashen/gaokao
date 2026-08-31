@@ -47,7 +47,7 @@ try {
       const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
       const supportLinks = [...document.querySelectorAll('.tool-groups .tool-link')];
-      const groups = [...document.querySelectorAll('details[data-tool-group]')];
+      const groups = [...document.querySelectorAll('[data-tool-group]')];
       return {
         bodyRelease: document.body.dataset.release,
         htmlRelease: document.documentElement.dataset.release,
@@ -65,7 +65,8 @@ try {
         homeLayout: document.querySelector('.shell')?.dataset.homeLayout,
         primaryActionCount: document.querySelectorAll('#homePrimaryAction').length,
         toolGroupCount: groups.length,
-        openToolGroups: groups.filter(group => group.open).map(group => group.dataset.toolGroup),
+        openToolGroups: groups.filter(group => group.dataset.open === 'true').map(group => group.dataset.toolGroup),
+        toolToggleCount: document.querySelectorAll('.tool-toggle').length,
         toolLinkCount: supportLinks.length,
         majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
         majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
@@ -104,6 +105,7 @@ try {
     assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker`);
     assert.equal(state.primaryActionCount, 1, `${device.name}: one primary action`);
     assert.equal(state.toolGroupCount, 4, `${device.name}: four grouped tool areas`);
+    assert.equal(state.toolToggleCount, 4, `${device.name}: four explicit disclosure controls`);
     assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline group open initially`);
     assert.equal(state.toolLinkCount, 8, `${device.name}: all existing tool links retained`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3990_3\.js$/);
@@ -117,8 +119,8 @@ try {
     assert.ok(state.styles.some(src => src.includes('/shared/ui/shell/family-shell.v3972_5.css?v=3972_5')), `${device.name}: stable shell CSS`);
     assert.ok(state.styles.some(src => src.includes('/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5')), `${device.name}: stable family entry CSS`);
     assert.match(state.title || '', /家庭方案/);
-    assert.equal(state.action, '继续检查家庭方案');
-    assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
+    assert.equal(state.action, '开始专业初选');
+    assert.equal(state.actionHref, '/ln-rank/');
     assert.equal(state.majorPathEntryCount, 1, `${device.name}: one major path entry`);
     assert.equal(state.majorPathTitle, '专业升学地图', `${device.name}: major path title`);
     assert.equal(state.majorPathHref, '/major-path/', `${device.name}: major path route`);
@@ -157,8 +159,21 @@ try {
     const screenshot = path.join(artifactDir, `${device.name}.png`);
     await page.screenshot({ path: screenshot, fullPage: true });
 
-    await page.locator('details[data-tool-group="understand"] > summary').click();
-    assert.ok(await page.locator('details[data-tool-group="understand"]').getAttribute('open') !== null, `${device.name}: understand group expands before navigation`);
+    const understandToggle = page.locator('[data-tool-group="understand"] > .tool-toggle');
+    await understandToggle.scrollIntoViewIfNeeded();
+    const scrollBeforeDisclosure = await page.evaluate(() => window.scrollY);
+    await understandToggle.click();
+    await page.waitForTimeout(50);
+    const disclosureState = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      groupOpen: document.querySelector('[data-tool-group="understand"]')?.dataset.open,
+      expanded: document.querySelector('[data-tool-group="understand"] > .tool-toggle')?.getAttribute('aria-expanded'),
+      panelHidden: document.getElementById('tool-panel-understand')?.hidden
+    }));
+    assert.equal(disclosureState.groupOpen, 'true', `${device.name}: understand group expands before navigation`);
+    assert.equal(disclosureState.expanded, 'true', `${device.name}: understand button announces expansion`);
+    assert.equal(disclosureState.panelHidden, false, `${device.name}: understand panel becomes visible`);
+    assert.ok(Math.abs(disclosureState.scrollY - scrollBeforeDisclosure) <= 2, `${device.name}: disclosure preserves scroll position`);
     await Promise.all([
       page.waitForURL(url => url.pathname === '/major-path/' || url.pathname === '/major-path/index.html'),
       page.locator('[data-home-major-path-entry]').click()
