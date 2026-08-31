@@ -119,8 +119,8 @@ try {
     assert.ok(state.styles.some(src => src.includes('/shared/ui/shell/family-shell.v3972_5.css?v=3972_5')), `${device.name}: stable shell CSS`);
     assert.ok(state.styles.some(src => src.includes('/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5')), `${device.name}: stable family entry CSS`);
     assert.match(state.title || '', /家庭方案/);
-    assert.equal(state.action, '开始专业初选');
-    assert.equal(state.actionHref, '/ln-rank/');
+    assert.equal(state.action, '继续检查家庭方案');
+    assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
     assert.equal(state.majorPathEntryCount, 1, `${device.name}: one major path entry`);
     assert.equal(state.majorPathTitle, '专业升学地图', `${device.name}: major path title`);
     assert.equal(state.majorPathHref, '/major-path/', `${device.name}: major path route`);
