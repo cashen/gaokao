@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "b8fafcf727991521679b9cb967256556553c5172",
+  "currentHeadSha": "20b89ce651f23f2051b35e8c506e7a4d8df746d9",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -43,7 +43,8 @@
     "tongxue-api-route-fixture-fixed",
     "tongxue-post-scope-click-diagnostic-added",
     "tongxue-click-target-diagnostic-expanded",
-    "tongxue-click-event-path-diagnostic-added"
+    "tongxue-click-event-path-diagnostic-added",
+    "tongxue-click-scroll-stabilization-added"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -57,8 +58,8 @@
     "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
-    "treeIntegrity": "rerun required on current candidate after Tongxue diagnostics",
-    "ci": "rerun required: candidate ea6134f had Tongxue post-scope natural click with document click but no button click; expanded target/path diagnostics in b8fafcf."
+    "treeIntegrity": "rerun required on current candidate after Tongxue click diagnostics",
+    "ci": "rerun required: candidate bce4ced had a mobile click path target .search-box instead of #queryButton; test now scrolls target into view and waits 120ms before exact pointer click."
   },
   "blockers": [
     {
@@ -69,7 +70,7 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "正在确认 Tongxue 点击事件实际 target/path；所有 37 项 exact-head 检查全绿后才可合并。"
+      "detail": "当前候选需验证滚动稳定等待是否消除移动点击命中偏移，并完成全部 37 项 exact-head 检查。"
     }
   ],
   "knownHistoricalFindings": [
@@ -77,11 +78,11 @@
     "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，后续候选需继续观察是否瞬态。"
   ],
   "lastFailure": {
-    "runId": 33363747303,
-    "jobId": 99400076504,
-    "headSha": "ea6134f95e23ddd6c6c1864ff59f84f4f0fd8dd2",
-    "cause": "Tongxue post-scope natural click timed out; document click count was 1 but button listeners were 0; button identity/connection/count and hitTarget diagnostics were added.",
-    "correctionCommit": "b8fafcf727991521679b9cb967256556553c5172"
+    "runId": 33364178694,
+    "jobId": 99401323394,
+    "headSha": "bce4cede35628fbd04a06c2aaf9c8fd222f38c97",
+    "cause": "mobile Chromium natural click event target was .search-box rather than #queryButton; no button listener event. Button remained connected and hit-testable after click.",
+    "correctionCommit": "20b89ce651f23f2051b35e8c506e7a4d8df746d9"
   },
-  "updatedAt": "2026-08-31T06:27:00.000Z"
+  "updatedAt": "2026-08-31T06:33:00.000Z"
 }
