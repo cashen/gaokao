@@ -15,7 +15,6 @@ const activePages = Object.freeze([
   'ln-rank/211-mainline.html',
   'ln-rank/major-trend-2025.html',
   'ln2026.html',
-  'zy2026.html',
   'zy2026/index.html',
   'major-path/index.html',
   'Public_company/index.html',
@@ -31,6 +30,9 @@ const staleRelease = /v3\.9\.(?:50\.0|67\.0|68\.0|71\.2|90\.0)\b/;
 const stablePageReleases = Object.freeze({
   'ln-rank/local-mainline.html': 'v3.9.71.2',
   'ln-rank/211-mainline.html': 'v3.9.90.0'
+});
+const compatibilityAliases = Object.freeze({
+  'zy2026.html': '/zy2026/'
 });
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.90.3');
@@ -68,6 +70,13 @@ for (const file of activePages) {
   assert.ok(foot.includes('href="/changelog.html"'), `${file}: canonical log href`);
   if (!stablePageReleases[file]) assert.ok(!staleRelease.test(body), `${file}: stale body release marker`);
   assert.ok(!staleRelease.test(foot), `${file}: stale footer release marker`);
+}
+
+for (const [file, target] of Object.entries(compatibilityAliases)) {
+  const html = read(file);
+  assert.ok(html.includes(\`href="\${target}"\`), \`\${file}: fallback href\`);
+  assert.ok(html.includes(\`url=\${target}\`), \`\${file}: meta refresh target\`);
+  assert.ok(html.includes(\`location.replace('\${target}')\`), \`\${file}: script fallback\`);
 }
 
 const releaseFooter = read('shared/resources/release/release-footer.v3990_3.js');
