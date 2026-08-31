@@ -25,7 +25,7 @@ for (const marker of [
   'data-score-equivalence-entry="home"',
   'data-home-industry-map-entry',
   'href="/ln-rank/"',
-  'href="/ln-rank/selection-pool.html"',
+  'href="/ln-rank/selection-pool"',
   'href="/major-path/"',
   'href="/tongxue/"',
   'href="/Public_company/"'
@@ -44,7 +44,7 @@ for (const group of ['understand', 'evidence', 'industry']) {
 assert.equal((home.match(/data-home-major-path-entry/g) || []).length, 1, 'major path must have one homepage owner');
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map must have one homepage owner');
 assert.ok(home.indexOf('data-home-major-path-entry') < home.indexOf('data-score-equivalence-entry="home"'), 'major path must precede score history in DOM');
-assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool.html"'), 'score history must precede family plan in DOM');
+assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool"'), 'score history must precede family plan in DOM');
 assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('data-home-industry-map-entry'), 'score history must precede industry map in DOM');
 assert.ok(!home.includes('今日建议'), 'homepage must not invent a generic daily recommendation');
 assert.ok(!home.includes('更多入口'), 'homepage must not use a flat more-entries section');
@@ -65,5 +65,5 @@ console.log(JSON.stringify({
   toolGroups: 4,
   countdownCells: 4,
   primaryActions: 1,
-  preservedRoutes: ['/ln-rank/', '/ln-rank/selection-pool.html', '/major-path/', '/tongxue/', '/Public_company/']
+  preservedRoutes: ['/ln-rank/', '/ln-rank/selection-pool', '/major-path/', '/tongxue/', '/Public_company/']
 }, null, 2));
