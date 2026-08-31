@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "894b2bceeaf7017c59e1c20bba297f56bc2d0036",
+  "currentHeadSha": "6fcdc0540f1d60e386ad3eb1ed6c0f1cb2925f78",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -36,7 +36,9 @@
     "homepage-runtime-cache-bust-static-checked",
     "browser-matrix-current-head-passed",
     "tongxue-live-failure-diagnosed",
-    "tongxue-scope-test-fixed"
+    "tongxue-scope-test-fixed",
+    "tongxue-scope-callback-failure-diagnosed",
+    "tongxue-scope-callback-fixed"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -51,7 +53,7 @@
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
     "treeIntegrity": "rerun required on current candidate after Tongxue test-only fix",
-    "ci": "rerun required: 3a05f998 had 1 failure caused by browser-tongxue-major-scope-v001.mjs reading location in Node scope; corrected to page.url() in 894b2bce."
+    "ci": "rerun required: candidate 8a7048d failed only because browser-tongxue-major-scope-v001.mjs referenced Node variable page inside waitForFunction at line 96; corrected to browser location.href in 6fcdc054."
   },
   "blockers": [
     {
@@ -62,18 +64,18 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "修正 Tongxue 浏览器测试后，当前候选需要重新跑完整 exact-head workflow matrix。"
+      "detail": "第二处 Tongxue 测试回调作用域问题已修正，当前候选需要重新跑完整 exact-head workflow matrix。"
     }
   ],
   "knownHistoricalFindings": [
     "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。"
   ],
   "lastFailure": {
-    "runId": 33362312523,
-    "jobId": 99395906931,
-    "headSha": "3a05f998f8a3b0e4477b1273a55d8faa4b3dfe22",
-    "cause": "test harness ReferenceError: location is not defined at tools/browser-tongxue-major-scope-v001.mjs:75",
-    "correctionCommit": "894b2bceeaf7017c59e1c20bba297f56bc2d0036"
+    "runId": 33362615048,
+    "jobId": 99396797646,
+    "headSha": "8a7048d46d68f1541df3c34054779ac59af46ce8",
+    "cause": "test harness ReferenceError: page is not defined inside waitForFunction callback at tools/browser-tongxue-major-scope-v001.mjs:96",
+    "correctionCommit": "6fcdc0540f1d60e386ad3eb1ed6c0f1cb2925f78"
   },
-  "updatedAt": "2026-08-31T06:02:00.000Z"
+  "updatedAt": "2026-08-31T06:05:00.000Z"
 }
