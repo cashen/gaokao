@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "db262d2a5472402b9ee3f72d190a3f83e17bee03",
+  "currentHeadSha": "c7df4558e9a1c255e7fc4d13bd36fc6c0a55142e",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -33,15 +33,14 @@
     "audit-report-r003-plan-updated",
     "audit-r003-remote-static-contract-passed",
     "homepage-runtime-cache-bust-implemented",
-    "homepage-runtime-cache-bust-static-checked"
+    "homepage-runtime-cache-bust-static-checked",
+    "browser-matrix-current-head-passed",
+    "ci-current-head-all-checks-passed"
   ],
-  "inProgress": "real-browser-matrix",
+  "inProgress": "pre-merge-live-gate",
   "pending": [
-    "exact-head-preview-rerun",
-    "real-browser-matrix",
     "alook-device-acceptance",
-    "ci-required-checks",
-    "ready-and-merge",
+    "merge-to-main",
     "post-merge-production-recheck"
   ],
   "tests": {
@@ -49,8 +48,9 @@
     "source": "passed: homepage explicit disclosure contract; runtime and browser audit tool node syntax; audit r003 remote static contract; previous handoff/navigation/architecture/human-copy contracts remain passed",
     "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
     "humanCopy": "passed: audit-human-copy-v001",
-    "browser": "previous exact-head Preview evidence invalidated by disclosure changes; current final code head db262d2a requires a fresh Pages Preview and repeat route/disclosure clicks. Cloud browser is not Alook.",
-    "treeIntegrity": "passed locally before final disclosure/cache-bust commits; rerun against final PR head"
+    "browser": "passed: current exact-head checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Separate Alook runtime is unavailable and remains an explicit device acceptance gate.",
+    "treeIntegrity": "passed locally before final disclosure/cache-bust commits; rerun against final PR head",
+    "ci": "passed: 37/37 current-head workflow runs success at c7df4558e9a1c255e7fc4d13bd36fc6c0a55142e; earlier failures were fixed and rerun."
   },
   "blockers": [
     {
@@ -60,13 +60,13 @@
     },
     {
       "id": "github-actions-runner-queue",
-      "status": "open",
-      "detail": "当前 PR head 的工作流仍大量 queued/pending，需等待真实结论，不能把 pending 记为绿色。"
+      "status": "resolved",
+      "detail": "current head c7df4558e9a1c255e7fc4d13bd36fc6c0a55142e has 37/37 successful workflow runs."
     }
   ],
   "knownHistoricalFindings": [
     "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。"
   ],
   "lastFailure": null,
-  "updatedAt": "2026-08-31T00:28:00Z"
+  "updatedAt": "2026-08-31T05:47:06.016Z"
 }
