@@ -21,6 +21,11 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     releaseFooterStyles: entry(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, 'current-generation'),
     releaseLog: CURRENT_RELEASE.resourceOwners.releaseLog
   }),
+  browserCompatibilityAudit: entry(CURRENT_RELEASE.resourceOwners.browserCompatibilityAudit, 'current-generation', {
+    featureVersion: CURRENT_RELEASE.browserCompatibilityAuditVersion,
+    revision: CURRENT_RELEASE.browserCompatibilityAuditRevision,
+    contract: 'static-report-offline-safe-native-navigation-v001'
+  }),
   lnRankHumanQueryInput: entry(CURRENT_RELEASE.resourceOwners.lnRankHumanQueryInput, 'current-generation', {
     featureVersion: CURRENT_RELEASE.lnRankHumanQueryInputVersion,
     revision: CURRENT_RELEASE.lnRankCacheRevision,

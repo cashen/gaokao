@@ -9,7 +9,8 @@ export const MAJOR_PATH_NAVIGATION_META = Object.freeze({
   version: 'major-path-navigation-v0.03',
   targetPath: '/major-path/',
   sourcePath: '/ln-rank/',
-  policy: 'canonical-major-code-direct-entry-same-origin-return-only'
+  policy: 'canonical-major-code-direct-entry-same-origin-return-only',
+  maxUrlLength: 1800
 });
 
 function text(value = '') {
@@ -61,7 +62,12 @@ export function buildMajorPathHref({
   params.set('returnTo', sanitizeMajorPathReturnTarget(returnTo));
   const normalizedContext = decisionContext ? validateDecisionContext(decisionContext) : null;
   const encodedContext = normalizedContext ? encodeDecisionContext(normalizedContext) : '';
-  if (encodedContext) params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
+  if (encodedContext) {
+    params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
+    if (`${MAJOR_PATH_NAVIGATION_META.targetPath}?${params.toString()}`.length > MAJOR_PATH_NAVIGATION_META.maxUrlLength) {
+      params.delete(DECISION_CONTEXT_QUERY_KEY);
+    }
+  }
   return `${MAJOR_PATH_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
 

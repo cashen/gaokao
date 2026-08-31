@@ -151,7 +151,7 @@ for (const [document, placement, copy] of entryCases) {
 }
 assert.ok(home.indexOf('data-home-major-path-entry') < home.indexOf('data-score-equivalence-entry="home"'), 'home score entry must follow major path');
 assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('data-home-industry-map-entry'), 'home score entry must precede industry map');
-assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool.html"'), 'home entry must precede family plan');
+assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool"'), 'home entry must precede family plan');
 assert.match(selection, /<div class="score-box">[\s\S]*data-score-equivalence-entry="selection"[\s\S]*<\/div>/, 'selection entry must stay in score box');
 assert.match(difficulty, /id="scoreBandPanel"[\s\S]*data-score-equivalence-entry="difficulty"[\s\S]*<\/section>/, 'difficulty entry must stay in score-band context');
 assert.ok(!home.includes('data-ui-route="score-equivalence"'), 'score converter must not become a global primary route');

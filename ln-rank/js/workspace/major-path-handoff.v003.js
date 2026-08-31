@@ -96,18 +96,18 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
     decisionContext: makeDecisionContext(target, { sourceAction:'view_major_path', sourceKey, sourceMajor, school })
   });
   if (!href) return null;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = compact ? 'major-path-entry major-path-entry--compact' : 'major-path-entry';
-  button.dataset.uiNavigation = 'major-path';
-  button.dataset.uiNavigationTarget = href;
-  button.dataset.majorPathEntry = target.code;
-  button.dataset.majorPathSourceKey = sourceKey || '';
-  button.setAttribute('aria-label', `了解${target.name}的专业关系和读研方向`);
-  button.innerHTML = compact
+  const link = document.createElement('a');
+  link.href = href;
+  link.className = compact ? 'major-path-entry major-path-entry--compact' : 'major-path-entry';
+  link.dataset.uiNavigation = 'major-path';
+  link.dataset.uiNavigationTarget = href;
+  link.dataset.majorPathEntry = target.code;
+  link.dataset.majorPathSourceKey = sourceKey || '';
+  link.setAttribute('aria-label', `了解${target.name}的专业关系和读研方向`);
+  link.innerHTML = compact
     ? `<span>专业升学路径</span><small>了解这个专业的关系与读研方向</small><b aria-hidden="true">→</b>`
     : `<span class="major-path-entry__brand">专业升学路径</span><span class="major-path-entry__text"><strong>了解这个专业</strong><small>专业关系 · 相邻专业 · 读研方向</small></span><b class="major-path-entry__arrow" aria-hidden="true">→</b>`;
-  return button;
+  return link;
 }
 
 function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', school = '', compact = false } = {}) {
@@ -120,19 +120,19 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
     decisionContext: makeDecisionContext(target, { sourceAction:'view_student_voice', sourceKey, sourceMajor, school })
   });
   if (!href) return null;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = compact ? 'student-voice-entry student-voice-entry--compact' : 'student-voice-entry';
-  button.dataset.uiNavigation = 'student-voice';
-  button.dataset.uiNavigationTarget = href;
-  button.dataset.studentVoiceEntry = target.code;
-  button.dataset.studentVoiceScope = 'major';
-  button.setAttribute('aria-label', `查看不同学校学生对${target.name}的公开体验`);
-  button.title = '这里是跨学校专业体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
-  button.innerHTML = compact
+  const link = document.createElement('a');
+  link.href = href;
+  link.className = compact ? 'student-voice-entry student-voice-entry--compact' : 'student-voice-entry';
+  link.dataset.uiNavigation = 'student-voice';
+  link.dataset.uiNavigationTarget = href;
+  link.dataset.studentVoiceEntry = target.code;
+  link.dataset.studentVoiceScope = 'major';
+  link.setAttribute('aria-label', `查看不同学校学生对${target.name}的公开体验`);
+  link.title = '这里是跨学校专业体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
+  link.innerHTML = compact
     ? `<span>大学生说专业</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
     : `<span class="student-voice-entry__brand">大学生说专业</span><span class="student-voice-entry__text"><strong>了解专业体验</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
-  return button;
+  return link;
 }
 
 function normalizeSchoolExperienceEntry(card) {

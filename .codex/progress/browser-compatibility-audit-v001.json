@@ -1,0 +1,90 @@
+{
+  "task": "browser-compatibility-audit-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/browser-compatible-navigation-audit-v001",
+  "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
+  "pr": 259,
+  "currentHeadSha": "38401d502295ead004237d3b86ccf9ec3c59c870",
+  "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
+  "completed": [
+    "live-main-reconciled",
+    "required-skills-read",
+    "branch-created",
+    "plan-written",
+    "draft-pr-created",
+    "native-link-fallback-implemented",
+    "native-link-source-contract-tested",
+    "canonical-routes-implemented",
+    "canonical-route-contract-tested",
+    "audit-report-page-implemented",
+    "audit-report-page-contract-tested",
+    "release-audit-capability-version-registered",
+    "url-budget-fallback-implemented",
+    "url-budget-fixture-fixed",
+    "browser-audit-static-contract-passed",
+    "current-architecture-audit-passed",
+    "human-copy-audit-passed",
+    "tree-integrity-audit-passed",
+    "relevant-navigation-contracts-passed",
+    "preview-route-smoke-passed",
+    "homepage-disclosure-stability-implemented",
+    "homepage-disclosure-static-contract-passed",
+    "active-disclosure-inventory-recorded",
+    "audit-report-r003-plan-updated",
+    "audit-r003-remote-static-contract-passed",
+    "homepage-runtime-cache-bust-implemented",
+    "homepage-runtime-cache-bust-static-checked",
+    "browser-matrix-current-head-passed",
+    "tongxue-live-failure-diagnosed",
+    "tongxue-scope-test-fixed",
+    "tongxue-scope-callback-failure-diagnosed",
+    "tongxue-scope-callback-fixed",
+    "tongxue-api-route-fixture-failure-diagnosed",
+    "tongxue-api-route-fixture-fixed",
+    "tongxue-post-scope-click-diagnostic-added",
+    "tongxue-click-target-diagnostic-expanded",
+    "tongxue-click-event-path-diagnostic-added",
+    "tongxue-click-scroll-stabilization-added",
+    "tongxue-pointerdown-layout-race-fixed"
+  ],
+  "inProgress": "current-head-ci",
+  "pending": [
+    "alook-device-acceptance",
+    "merge-to-main",
+    "post-merge-production-recheck"
+  ],
+  "tests": {
+    "plan": "written-to-pr; release identity corrected after source-of-truth verification",
+    "source": "passed: homepage explicit disclosure contract; runtime and browser audit tool node syntax; audit r003 remote static contract; previous handoff/navigation/architecture/human-copy contracts remain passed",
+    "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
+    "humanCopy": "passed: audit-human-copy-v001",
+    "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
+    "treeIntegrity": "rerun required on current candidate after Tongxue click diagnostics",
+    "ci": "pending on exact code head 38401d502295ead004237d3b86ccf9ec3c59c870; previous failure diagnosed as static mobile suggestion reflow race",
+    "tongxue": "product fix committed: document pointerdown no longer closes static suggestions before #queryButton activation; exact-head CI pending"
+  },
+  "blockers": [
+    {
+      "id": "alook-runtime-unavailable",
+      "status": "open",
+      "detail": "当前执行环境没有 Alook 真机/运行时；最终验收必须由真实 Alook 设备打开报告页、首页四个展开入口和关键跨模块入口，不能用桌面 Chrome 或 Android Chrome 冒充。"
+    },
+    {
+      "id": "exact-head-ci-pending",
+      "status": "open",
+      "detail": "修复后必须完成同一 SHA 的完整 required checks；旧 head 绿灯不能复用。"
+    }
+  ],
+  "knownHistoricalFindings": [
+    "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。",
+    "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，后续候选需继续观察是否瞬态。"
+  ],
+  "lastFailure": {
+    "runId": 33364522301,
+    "jobId": 99402320897,
+    "headSha": "9ecdf7ba40e57c725b5c7a618da4afc358089e80",
+    "cause": "mobile Chromium click caused by document pointerdown closing static suggestions and reflowing #queryButton before synthesized click",
+    "correctionCommit": "38401d502295ead004237d3b86ccf9ec3c59c870"
+  },
+  "updatedAt": "2026-08-31T06:45:00.000Z"
+}

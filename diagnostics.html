@@ -1,83 +1,16 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>V2.9.5.4.fix3｜Pages Function 服务端访问保护版 模块诊断</title>
-<style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}.wrap{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.06)}.ok{color:#047857}.bad{color:#b91c1c}code{background:#f1f5f9;padding:2px 6px;border-radius:6px}.row{display:flex;gap:16px;justify-content:space-between;border-bottom:1px dashed #e2e8f0;padding:8px 0}.row:last-child{border-bottom:0}.small{color:#64748b;font-size:13px;word-break:break-all}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="refresh" content="0;url=/browser-audit/">
+  <link rel="canonical" href="https://gaokao.powers.org.cn/browser-audit/">
+  <title>正在前往全站浏览器兼容性审计</title>
 </head>
 <body>
-<div class="wrap">
-<h1>V2.9.5.4.fix3｜Pages Function 服务端访问保护版 模块诊断</h1>
-<p class="small">这个页面检查脚本是否真正加载、全局模块是否存在；不执行完整筛选。</p>
-<div class="card" id="errors"><b>运行时错误</b><div id="errorList" class="small">等待检测...</div></div>
-<div class="card"><b>脚本加载来源</b><div id="loadList" class="small">等待检测...</div></div>
-<div class="card"><b>模块状态</b><div id="moduleList"></div></div>
-<div class="card"><b>建议</b><p class="small">如果脚本加载来源出现红色，优先检查 GitHub/Cloudflare 上传后是否包含对应 assets 文件；如果模块状态出现红色，说明对应脚本虽被请求但没有完成全局挂载。</p></div>
-</div>
-<script>
-window.__DIAG_ERRORS__=[];
-window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:String(msg),src:src||'',line:line||0,col:col||0});};
-</script>
-<script>
-(function(){
-  const VERSION='2954fix3-20260509c';
-  const files=["assets/config.v2954fix3.js", "assets/rules.v2954fix3.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v2954fix3.js", "assets/filter-engine.v2954fix3.js", "assets/plan-engine.v2954fix3.js", "assets/render.v2954fix3.js", "assets/selection.v2954fix3.js", "assets/export.v2954fix3.js"];
-  const required=[
-    ['LN_CONFIG',()=>!!window.LN_CONFIG],
-    ['LN_GAOKAO_RULES_V2953',()=>!!window.LN_GAOKAO_RULES_V2953],
-    ['LN_DATA_ENGINE',()=>!!window.LN_DATA_ENGINE],
-    ['LN_FILTER_ENGINE',()=>!!window.LN_FILTER_ENGINE],
-    ['LN_PLAN_ENGINE',()=>!!window.LN_PLAN_ENGINE],
-    ['LN_RENDER',()=>!!window.LN_RENDER],
-    ['LN_SELECTION',()=>!!window.LN_SELECTION],
-    ['LN_EXPORT',()=>!!window.LN_EXPORT && window.LN_EXPORT.ready===true],
-    ['loadMajorNameModelV2944',()=>typeof window.loadMajorNameModelV2944==='function'],
-    ['loadConfusableMajorModelV2946',()=>typeof window.loadConfusableMajorModelV2946==='function']
-  ];
-  window.__LN_BOOT_LOADS__=[];
-  function uniq(arr){return [...new Set(arr.filter(Boolean))];}
-  function candidateBases(){
-    const path=location.pathname || '/';
-    const dir=path.endsWith('/') ? path : path.replace(/\/[^\/]*$/, '/');
-    return uniq(['./', dir, '/fenxi/', '/']);
-  }
-  function join(base,file){if(!base.endsWith('/')) base+='/'; return base + file.replace(/^\.\//,'') + '?v=' + VERSION;}
-  function loadScript(base,file){
-    return new Promise((resolve,reject)=>{
-      window.__LN_ASSET_BASE=base;
-      const s=document.createElement('script');
-      s.src=join(base,file); s.async=false;
-      s.onload=()=>{window.__LN_BOOT_LOADS__.push({file,base,ok:true,src:s.src}); resolve({base,src:s.src});};
-      s.onerror=()=>{window.__LN_BOOT_LOADS__.push({file,base,ok:false,src:s.src}); s.remove(); reject(new Error('脚本加载失败：'+s.src));};
-      document.body.appendChild(s);
-    });
-  }
-  async function loadWithFallback(file,bases,preferred){
-    const ordered=uniq([preferred, ...bases]); let last=null;
-    for(const base of ordered){try{return await loadScript(base,file);}catch(e){last=e;}}
-    throw last || new Error('脚本加载失败：'+file);
-  }
-  function renderDiag(finalError){
-    const list=document.getElementById('moduleList');
-    list.innerHTML=required.map(([name,fn])=>{let ok=false;try{ok=!!fn();}catch(e){}return `<div class="row"><span><code>${name}</code></span><b class="${ok?'ok':'bad'}">${ok?'通过':'失败'}</b></div>`;}).join('');
-    const loadBox=document.getElementById('loadList');
-    loadBox.innerHTML=(window.__LN_BOOT_LOADS__||[]).map(x=>`<div class="row"><span><code>${x.file}</code><br><span class="small">${x.src}</span></span><b class="${x.ok?'ok':'bad'}">${x.ok?'已加载':'加载失败'}</b></div>`).join('') || '<span class="bad">尚未记录到脚本加载结果。</span>';
-    const errs=[...(window.__DIAG_ERRORS__||[])];
-    if(finalError) errs.push({msg:String(finalError.message||finalError),src:'loader',line:0});
-    document.getElementById('errorList').innerHTML=errs.length?errs.map(e=>`<div class="bad">${e.msg} <span class="small">${e.src}:${e.line}</span></div>`).join(''):'<span class="ok">没有捕获到脚本运行错误。</span>';
-  }
-  async function boot(){
-    const bases=candidateBases();
-    const first=await loadWithFallback(files[0],bases);
-    const activeBase=first.base;
-    for(const file of files.slice(1)){ await loadWithFallback(file,bases,activeBase); }
-    renderDiag(null);
-  }
-  boot().catch(e=>renderDiag(e));
-})();
-</script>
+  <main>
+    <p>旧版诊断页已归并。<a href="/browser-audit/">查看全站浏览器兼容性审计</a></p>
+  </main>
+  <script>location.replace('/browser-audit/');</script>
 </body>
 </html>

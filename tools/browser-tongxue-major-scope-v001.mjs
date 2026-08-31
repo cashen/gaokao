@@ -90,10 +90,36 @@ try {
       await page.waitForFunction(() => document.getElementById('resultTitle')?.textContent?.includes('一次查看一个专业'));
       assert.equal(apiRequests.length, 0, `${testCase.name}: multi-major input queried`);
       assert.match(await page.locator('#result').textContent(), /不会合并查询多个专业/);
+      await scopeSchool.click();
+      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'idle');
+      await scopeMajor.click();
+      await page.waitForFunction(() => new URL(location.href).searchParams.get('scope') === 'major');
 
       await input.fill('080601');
+      const queryButton = page.locator('#queryButton');
+      await queryButton.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(120);
+      await page.evaluate(() => {
+        const button = document.getElementById('queryButton');
+        globalThis.__scopeButtonRef = button;
+        globalThis.__scopeButtonEvents = { capture:0, bubble:0 };
+        globalThis.__scopeDocumentEvents = { capture:0, bubble:0, targets:[] };
+        const recordDocumentClick = event => {
+          globalThis.__scopeDocumentEvents.targets.push({
+            phase:event.eventPhase,
+            targetTag:event.target?.tagName || '',
+            targetId:event.target?.id || '',
+            targetClass:event.target?.className || '',
+            path:(event.composedPath?.() || []).slice(0,5).map(node => ({ tag:node?.tagName || '', id:node?.id || '', className:node?.className || '' }))
+          });
+        };
+        document.addEventListener('click', event => { globalThis.__scopeDocumentEvents.capture += 1; recordDocumentClick(event); }, { capture:true });
+        document.addEventListener('click', event => { globalThis.__scopeDocumentEvents.bubble += 1; recordDocumentClick(event); });
+        button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.capture += 1; }, { capture:true });
+        button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.bubble += 1; });
+      });
       await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
-      await input.press('Enter');
+      await page.locator('#queryButton').click();
       try {
         await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
       } catch (error) {
@@ -103,7 +129,14 @@ try {
           resultText:document.getElementById('result')?.textContent || '',
           input:(document.getElementById('school'))?.value || '',
           buttonDisabled:Boolean(document.getElementById('queryButton')?.disabled),
-          state:globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null
+          state:globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null,
+          buttonEvents:globalThis.__scopeButtonEvents || null,
+          documentEvents:globalThis.__scopeDocumentEvents || null,
+          buttonIdentityUnchanged:globalThis.__scopeButtonRef === document.getElementById('queryButton'),
+          buttonConnected:Boolean(globalThis.__scopeButtonRef?.isConnected),
+          buttonCount:document.querySelectorAll('#queryButton').length,
+          buttonRect:(() => { const r=document.getElementById('queryButton')?.getBoundingClientRect(); return r ? {x:r.x,y:r.y,width:r.width,height:r.height} : null; })(),
+          hitTarget:(() => { const b=document.getElementById('queryButton'); if(!b) return null; const r=b.getBoundingClientRect(); const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2); return e ? {tag:e.tagName,id:e.id,className:e.className} : null; })()
         }));
         throw new Error(`${String(error?.message || error)}\n${JSON.stringify({ apiRequests, diagnostic })}`);
       }

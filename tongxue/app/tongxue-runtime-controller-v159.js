@@ -336,7 +336,8 @@ function bindEvents(ui, state, searchView, resultView) {
     chooseSuggestion(ui, state, searchView, state.suggestions[Number(button.dataset.suggestionIndex)]);
   });
   on(document, 'pointerdown', event => {
-    if (!event.target.closest('.input-wrap')) searchView.closeSuggestions();
+    if (event.target.closest('.input-wrap, #queryButton')) return;
+    searchView.closeSuggestions();
   });
   ui.scopeSwitches?.forEach(button => on(button, 'click', () => {
     switchScope(ui, state, searchView, button.dataset.scopeSwitch);
