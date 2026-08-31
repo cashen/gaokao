@@ -96,7 +96,9 @@ try {
       await page.waitForFunction(() => new URL(location.href).searchParams.get('scope') === 'major');
 
       await input.fill('080601');
-      await page.waitForTimeout(80);
+      const queryButton = page.locator('#queryButton');
+      await queryButton.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(120);
       await page.evaluate(() => {
         const button = document.getElementById('queryButton');
         globalThis.__scopeButtonRef = button;
