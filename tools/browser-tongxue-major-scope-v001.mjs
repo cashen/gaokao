@@ -93,7 +93,7 @@ try {
 
       await input.fill('080601');
       await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
-      await input.press('Enter');
+      await page.locator('#queryButton').click();
       try {
         await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'success', null, { timeout:20000 });
       } catch (error) {
