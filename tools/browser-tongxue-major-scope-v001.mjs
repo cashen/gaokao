@@ -59,7 +59,7 @@ try {
         retrievedAt:'2026-08-24'
       } : null; }`
     }));
-    await context.route('**/api/tongxue-summary', route => {
+    await context.route('**/api/tongxue-summary**', route => {
       const url = new URL(route.request().url());
       apiRequests.push(Object.fromEntries(url.searchParams.entries()));
       return route.fulfill({ status:200, contentType:'application/json; charset=utf-8', body:JSON.stringify(majorResponse) });
