@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "20b89ce651f23f2051b35e8c506e7a4d8df746d9",
+  "currentHeadSha": "38401d502295ead004237d3b86ccf9ec3c59c870",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -44,7 +44,8 @@
     "tongxue-post-scope-click-diagnostic-added",
     "tongxue-click-target-diagnostic-expanded",
     "tongxue-click-event-path-diagnostic-added",
-    "tongxue-click-scroll-stabilization-added"
+    "tongxue-click-scroll-stabilization-added",
+    "tongxue-pointerdown-layout-race-fixed"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -59,7 +60,8 @@
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
     "treeIntegrity": "rerun required on current candidate after Tongxue click diagnostics",
-    "ci": "rerun required: candidate bce4ced had a mobile click path target .search-box instead of #queryButton; test now scrolls target into view and waits 120ms before exact pointer click."
+    "ci": "pending on exact code head 38401d502295ead004237d3b86ccf9ec3c59c870; previous failure diagnosed as static mobile suggestion reflow race",
+    "tongxue": "product fix committed: document pointerdown no longer closes static suggestions before #queryButton activation; exact-head CI pending"
   },
   "blockers": [
     {
@@ -68,9 +70,9 @@
       "detail": "当前执行环境没有 Alook 真机/运行时；最终验收必须由真实 Alook 设备打开报告页、首页四个展开入口和关键跨模块入口，不能用桌面 Chrome 或 Android Chrome 冒充。"
     },
     {
-      "id": "github-actions-runner-queue",
+      "id": "exact-head-ci-pending",
       "status": "open",
-      "detail": "当前候选需验证滚动稳定等待是否消除移动点击命中偏移，并完成全部 37 项 exact-head 检查。"
+      "detail": "修复后必须完成同一 SHA 的完整 required checks；旧 head 绿灯不能复用。"
     }
   ],
   "knownHistoricalFindings": [
@@ -78,11 +80,11 @@
     "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，后续候选需继续观察是否瞬态。"
   ],
   "lastFailure": {
-    "runId": 33364178694,
-    "jobId": 99401323394,
-    "headSha": "bce4cede35628fbd04a06c2aaf9c8fd222f38c97",
-    "cause": "mobile Chromium natural click event target was .search-box rather than #queryButton; no button listener event. Button remained connected and hit-testable after click.",
-    "correctionCommit": "20b89ce651f23f2051b35e8c506e7a4d8df746d9"
+    "runId": 33364522301,
+    "jobId": 99402320897,
+    "headSha": "9ecdf7ba40e57c725b5c7a618da4afc358089e80",
+    "cause": "mobile Chromium click caused by document pointerdown closing static suggestions and reflowing #queryButton before synthesized click",
+    "correctionCommit": "38401d502295ead004237d3b86ccf9ec3c59c870"
   },
-  "updatedAt": "2026-08-31T06:33:00.000Z"
+  "updatedAt": "2026-08-31T06:45:00.000Z"
 }
