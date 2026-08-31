@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "5b88b31daae3f3def334cf980dd5611337925702",
+  "currentHeadSha": "b8fafcf727991521679b9cb967256556553c5172",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -42,7 +42,8 @@
     "tongxue-api-route-fixture-failure-diagnosed",
     "tongxue-api-route-fixture-fixed",
     "tongxue-post-scope-click-diagnostic-added",
-    "tongxue-click-target-diagnostic-expanded"
+    "tongxue-click-target-diagnostic-expanded",
+    "tongxue-click-event-path-diagnostic-added"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -57,7 +58,7 @@
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
     "treeIntegrity": "rerun required on current candidate after Tongxue diagnostics",
-    "ci": "rerun required: candidate 1c6c4c8 had a separate Worker Preview 502 and Tongxue post-scope pointer diagnostics showed buttonEvents/documentEvents=0; diagnostic expanded in 5b88b31d."
+    "ci": "rerun required: candidate ea6134f had Tongxue post-scope natural click with document click but no button click; expanded target/path diagnostics in b8fafcf."
   },
   "blockers": [
     {
@@ -68,19 +69,19 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "需完成当前候选的点击命中诊断，并在所有 37 项 exact-head 检查全绿后才可合并。"
+      "detail": "正在确认 Tongxue 点击事件实际 target/path；所有 37 项 exact-head 检查全绿后才可合并。"
     }
   ],
   "knownHistoricalFindings": [
     "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。",
-    "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，需在后续 exact-head 重跑中确认是否瞬态。"
+    "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，后续候选需继续观察是否瞬态。"
   ],
   "lastFailure": {
-    "runId": 33363327278,
-    "jobId": 99398859853,
-    "headSha": "6c14df489782caaf56b608eb72636d1346d360d3",
-    "cause": "Tongxue post-scope natural click timed out; current button remained idle, pointer/document click counters were both 0. Worker Preview independently returned HTTP 502 for mixed-ai-school-history-1.",
-    "correctionCommit": "5b88b31daae3f3def334cf980dd5611337925702"
+    "runId": 33363747303,
+    "jobId": 99400076504,
+    "headSha": "ea6134f95e23ddd6c6c1864ff59f84f4f0fd8dd2",
+    "cause": "Tongxue post-scope natural click timed out; document click count was 1 but button listeners were 0; button identity/connection/count and hitTarget diagnostics were added.",
+    "correctionCommit": "b8fafcf727991521679b9cb967256556553c5172"
   },
-  "updatedAt": "2026-08-31T06:21:00.000Z"
+  "updatedAt": "2026-08-31T06:27:00.000Z"
 }
