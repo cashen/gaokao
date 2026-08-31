@@ -90,6 +90,10 @@ try {
       await page.waitForFunction(() => document.getElementById('resultTitle')?.textContent?.includes('一次查看一个专业'));
       assert.equal(apiRequests.length, 0, `${testCase.name}: multi-major input queried`);
       assert.match(await page.locator('#result').textContent(), /不会合并查询多个专业/);
+      await scopeSchool.click();
+      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'idle');
+      await scopeMajor.click();
+      await page.waitForFunction(() => new URL(page.url()).searchParams.get('scope') === 'major');
 
       await input.fill('080601');
       await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
