@@ -74,9 +74,9 @@ for (const file of activePages) {
 
 for (const [file, target] of Object.entries(compatibilityAliases)) {
   const html = read(file);
-  assert.ok(html.includes(\`href="\${target}"\`), \`\${file}: fallback href\`);
-  assert.ok(html.includes(\`url=\${target}\`), \`\${file}: meta refresh target\`);
-  assert.ok(html.includes(\`location.replace('\${target}')\`), \`\${file}: script fallback\`);
+  assert.ok(html.includes('href="' + target + '"'), file + ': fallback href');
+  assert.ok(html.includes('url=' + target), file + ': meta refresh target');
+  assert.ok(html.includes("location.replace('" + target + "')"), file + ': script fallback');
 }
 
 const releaseFooter = read('shared/resources/release/release-footer.v3990_3.js');
