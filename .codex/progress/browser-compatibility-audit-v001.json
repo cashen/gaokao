@@ -1,10 +1,10 @@
 {
   "task": "browser-compatibility-audit-v001",
   "repository": "cashen/gaokao",
-  "branch": "fix/browser-compatible-navigation-audit-v001",
+  "branch": "main",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "38401d502295ead004237d3b86ccf9ec3c59c870",
+  "currentHeadSha": "773ef239bf83c3d8a782ac96cec681543d5742b2",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -45,13 +45,14 @@
     "tongxue-click-target-diagnostic-expanded",
     "tongxue-click-event-path-diagnostic-added",
     "tongxue-click-scroll-stabilization-added",
-    "tongxue-pointerdown-layout-race-fixed"
-  ],
-  "inProgress": "current-head-ci",
-  "pending": [
-    "alook-device-acceptance",
+    "tongxue-pointerdown-layout-race-fixed",
     "merge-to-main",
+    "post-merge-main-verified",
     "post-merge-production-recheck"
+  ],
+  "inProgress": "alook-device-acceptance",
+  "pending": [
+    "alook-device-acceptance"
   ],
   "tests": {
     "plan": "written-to-pr; release identity corrected after source-of-truth verification",
@@ -60,19 +61,15 @@
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
     "treeIntegrity": "rerun required on current candidate after Tongxue click diagnostics",
-    "ci": "pending on exact code head 38401d502295ead004237d3b86ccf9ec3c59c870; previous failure diagnosed as static mobile suggestion reflow race",
-    "tongxue": "product fix committed: document pointerdown no longer closes static suggestions before #queryButton activation; exact-head CI pending"
+    "ci": "passed: exact PR head 8947445a5262b9269fe54aa413dcdd0ab8746eb2, 37/37 workflow checks successful before merge",
+    "tongxue": "passed: natural mobile Chromium touch matrix PC/Pad/Android 390/compact 360; all apiRequests=1 and overflow=0 after pointerdown layout-race fix",
+    "postMerge": "passed: main contains pointerdown fix and browser-audit report; production custom domain report page, homepage disclosure buttons, and /tongxue/ runtime verified"
   },
   "blockers": [
     {
       "id": "alook-runtime-unavailable",
       "status": "open",
-      "detail": "当前执行环境没有 Alook 真机/运行时；最终验收必须由真实 Alook 设备打开报告页、首页四个展开入口和关键跨模块入口，不能用桌面 Chrome 或 Android Chrome 冒充。"
-    },
-    {
-      "id": "exact-head-ci-pending",
-      "status": "open",
-      "detail": "修复后必须完成同一 SHA 的完整 required checks；旧 head 绿灯不能复用。"
+      "detail": "当前执行环境没有 Alook 真机/运行时；代码已合并并通过 Android Chromium 与线上复查，但仍不能把 Chrome 结果写成 Alook 通过。"
     }
   ],
   "knownHistoricalFindings": [
@@ -86,5 +83,6 @@
     "cause": "mobile Chromium click caused by document pointerdown closing static suggestions and reflowing #queryButton before synthesized click",
     "correctionCommit": "38401d502295ead004237d3b86ccf9ec3c59c870"
   },
-  "updatedAt": "2026-08-31T06:45:00.000Z"
+  "updatedAt": "2026-08-31T06:55:00.000Z",
+  "mergeCommitSha": "773ef239bf83c3d8a782ac96cec681543d5742b2"
 }
