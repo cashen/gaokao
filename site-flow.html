@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="辽宁高考家庭工具全站页面、参数、API 与风险关系图。">
+  <title>全站页面与链接地图｜辽宁高考家庭工具</title>
+  <style>
+    :root{--ink:#172033;--muted:#667085;--line:#dbe5ef;--bg:#f6f9fc;--card:#fff;--blue:#2563a8;--blue-soft:#e9f2ff;--green:#2f855a;--green-soft:#eaf8f0;--amber:#a66b08;--amber-soft:#fff6df;--purple:#7654bc;--purple-soft:#f3edff;--red:#b54747;--red-soft:#fff0f0;--shadow:0 12px 32px rgba(28,58,92,.08)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1440px;margin:auto;padding:28px 22px 64px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:22px}.eyebrow{color:var(--blue);font-weight:700;letter-spacing:.04em}.hero h1{margin:4px 0 8px;font-size:clamp(26px,4vw,44px);line-height:1.18}.hero p{margin:0;color:var(--muted);max-width:820px}.release{white-space:nowrap;color:var(--muted);font-size:13px}.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin:18px 0;padding:20px}.panel h2{font-size:22px;margin:0 0 5px}.panel h3{font-size:17px;margin:0 0 8px}.sub{color:var(--muted);margin:0 0 16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;font:inherit}.tab[aria-selected=true]{background:var(--blue);border-color:var(--blue);color:#fff}.tab-panel[hidden]{display:none}.canvas{overflow:auto;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#fbfdff,#f4f8fc);padding:12px}.flow{display:block;min-width:1120px;width:100%;height:auto}.flow text{font-family:inherit;fill:var(--ink)}.flow .title{font-weight:700;font-size:17px}.flow .path{font-size:12px;fill:#52677a}.flow .small{font-size:11px;fill:#667085}.flow .node{cursor:pointer}.flow .node rect,.flow .node ellipse{stroke-width:1.6}.flow .main rect{fill:var(--blue-soft);stroke:#6c8ebf}.flow .module rect{fill:var(--green-soft);stroke:#82b366}.flow .aux rect{fill:var(--amber-soft);stroke:#d6b656}.flow .service rect{fill:#fff0df;stroke:#d79b00}.flow .risk rect{fill:var(--red-soft);stroke:#b85450}.flow .external rect{fill:#f5f5f5;stroke:#8a98a8;stroke-dasharray:7 5}.flow line,.flow path{fill:none;stroke:#7d91a5;stroke-width:1.7;marker-end:url(#arrow)}.flow .dashed{stroke-dasharray:7 5}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:12px}.legend span{display:inline-flex;align-items:center;gap:6px}.swatch{width:13px;height:13px;border-radius:4px;border:1px solid}.swatch.main{background:var(--blue-soft);border-color:#6c8ebf}.swatch.module{background:var(--green-soft);border-color:#82b366}.swatch.aux{background:var(--amber-soft);border-color:#d6b656}.swatch.service{background:#fff0df;border-color:#d79b00}.swatch.risk{background:var(--red-soft);border-color:#b85450}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff}.card p{margin:6px 0 0;color:var(--muted)}.card.risk{border-color:#efc2c2;background:var(--red-soft)}.card.aux{border-color:#f1d994;background:var(--amber-soft)}.card.module{border-color:#b7dfc6;background:var(--green-soft)}.route-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.route{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fff}.route code,.contract code,.api code{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#34495e;overflow-wrap:anywhere}.route small{color:var(--muted);text-align:right}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:11px 10px}th{color:#425466;background:#f8fafc;font-size:13px}td{font-size:14px}.search{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;margin:5px 0 12px}.note{border-left:4px solid var(--blue);background:var(--blue-soft);padding:12px 14px;border-radius:8px;color:#334e68}.footer{color:var(--muted);font-size:13px;text-align:center;margin-top:24px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:800px){.wrap{padding:18px 12px 48px}.hero{display:block}.release{margin-top:12px}.grid,.route-grid{grid-template-columns:1fr}.panel{padding:15px;border-radius:14px}.panel h2{font-size:20px}.flow{min-width:980px}}
+  </style>
+</head>
+<body data-ui-page="site-flow" data-release="v3.9.90.3" data-site-runtime-generation="v3990_3">
+  <main class="wrap">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">全站关系图 · 给维护者和家长看的入口地图</div>
+        <h1>每个入口，最后会把人带到哪里？</h1>
+        <p>把页面地址、查询参数、服务接口、返回路径和仍需核对的风险放在同一张图里。点击图中的页面节点，可以打开对应的生产地址。</p>
+      </div>
+      <div class="release">当前发布：v3.9.90.3<br>运行代号：v3990_3</div>
+    </header>
+
+    <section class="panel" aria-labelledby="flowTitle">
+      <h2 id="flowTitle">全站用户路径</h2>
+      <p class="sub">流程图分为 6 个视角：用户主线、ln-rank、专业与同学、AIPLuS 与 fenxi、证据与独立入口、运行时与部署。</p>
+      <div class="tabs" role="tablist" aria-label="流程图视角">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="tab-main" data-tab="tab-main">全站主线</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-rank" data-tab="tab-rank">ln-rank</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-voice" data-tab="tab-voice">专业与同学</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-ai" data-tab="tab-ai">AIPLuS / fenxi</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-evidence" data-tab="tab-evidence">证据与独立入口</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-runtime" data-tab="tab-runtime">运行时与部署</button>
+      </div>
+      <div class="tab-panel" id="tab-main" role="tabpanel">
+        <div class="canvas">
+          <svg class="flow" viewBox="0 0 1220 650" role="img" aria-labelledby="mainSvgTitle mainSvgDesc">
+            <title id="mainSvgTitle">全站主线流程</title><desc id="mainSvgDesc">从家庭首页进入专业初选，再分流到家庭方案、专业路径、同学你好、AI家庭决策和产业地图。</desc>
+            <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7d91a5"/></marker></defs>
+            <path d="M175 315 H260"/><path d="M440 315 H535 V115 H620"/><path d="M440 315 H535 V215 H620"/><path d="M440 315 H535 V315 H620"/><path d="M440 315 H535 V415 H620"/><path d="M440 315 H535 V515 H620"/>
+            <path d="M820 115 H930 V115 H1010"/><path d="M820 215 H930 V215 H1010"/><path d="M820 315 H930 V315 H1010"/><path d="M820 415 H930 V415 H1010"/><path d="M820 515 H930 V515 H1010"/>
+            <g class="node external" tabindex="0" role="link" data-url="/"><rect x="35" y="280" width="140" height="70" rx="12"/><text x="105" y="310" text-anchor="middle" class="title">浏览器 / 家长</text><text x="105" y="335" text-anchor="middle" class="path">进入站点</text></g>
+            <g class="node main" tabindex="0" role="link" data-url="/"><rect x="260" y="280" width="180" height="70" rx="12"/><text x="350" y="310" text-anchor="middle" class="title">家庭首页</text><text x="350" y="335" text-anchor="middle" class="path">/</text></g>
+            <g class="node main" tabindex="0" role="link" data-url="/ln-rank/"><rect x="620" y="80" width="200" height="70" rx="12"/><text x="720" y="110" text-anchor="middle" class="title">专业初选</text><text x="720" y="135" text-anchor="middle" class="path">/ln-rank/</text></g>
+            <g class="node module" tabindex="0" role="link" data-url="/major-path/"><rect x="620" y="180" width="200" height="70" rx="12"/><text x="720" y="210" text-anchor="middle" class="title">专业升学地图</text><text x="720" y="235" text-anchor="middle" class="path">/major-path/</text></g>
+            <g class="node module" tabindex="0" role="link" data-url="/tongxue/"><rect x="620" y="280" width="200" height="70" rx="12"/><text x="720" y="310" text-anchor="middle" class="title">同学你好</text><text x="720" y="335" text-anchor="middle" class="path">/tongxue/</text></g>
+            <g class="node module" tabindex="0" role="link" data-url="/aiplus/"><rect x="620" y="380" width="200" height="70" rx="12"/><text x="720" y="410" text-anchor="middle" class="title">AI 家庭决策</text><text x="720" y="435" text-anchor="middle" class="path">/aiplus/</text></g>
+            <g class="node module" tabindex="0" role="link" data-url="/Public_company/"><rect x="620" y="480" width="200" height="70" rx="12"/><text x="720" y="510" text-anchor="middle" class="title">产业落地观察</text><text x="720" y="535" text-anchor="middle" class="path">/Public_company/</text></g>
+            <g class="node module" tabindex="0" role="link" data-url="/ln-rank/selection-pool"><rect x="1010" y="80" width="180" height="70" rx="12"/><text x="1100" y="110" text-anchor="middle" class="title">家庭方案</text><text x="1100" y="135" text-anchor="middle" class="path">/ln-rank/selection-pool</text></g>
+            <g class="node aux" tabindex="0" role="link" data-url="/ln-rank/score-converter/"><rect x="1010" y="180" width="180" height="70" rx="12"/><text x="1100" y="210" text-anchor="middle" class="title">历史位次对照</text><text x="1100" y="235" text-anchor="middle" class="path">/ln-rank/score-converter/</text></g>
+            <g class="node aux" tabindex="0" role="link" data-url="/ln2026"><rect x="1010" y="280" width="180" height="70" rx="12"/><text x="1100" y="310" text-anchor="middle" class="title">招生变化</text><text x="1100" y="335" text-anchor="middle" class="path">/ln2026</text></g>
+            <g class="node aux" tabindex="0" role="link" data-url="/zy2026/"><rect x="1010" y="380" width="180" height="70" rx="12"/><text x="1100" y="410" text-anchor="middle" class="title">招生结构</text><text x="1100" y="435" text-anchor="middle" class="path">/zy2026/</text></g>
+            <g class="node service" tabindex="0" role="link" data-url="/browser-audit/"><rect x="1010" y="480" width="180" height="70" rx="12"/><text x="1100" y="510" text-anchor="middle" class="title">浏览器审计</text><text x="1100" y="535" text-anchor="middle" class="path">/browser-audit/</text></g>
+          </svg>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-rank" role="tabpanel" hidden>
+        <div class="canvas"><svg class="flow" viewBox="0 0 1220 430" role="img" aria-label="ln-rank三种查询模式与返回路径"><defs><marker id="arrow-rank" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d91a5"/></marker></defs><path marker-end="url(#arrow-rank)" d="M180 210H290"/><path marker-end="url(#arrow-rank)" d="M470 210H560V90H650"/><path marker-end="url(#arrow-rank)" d="M470 210H650"/><path marker-end="url(#arrow-rank)" d="M470 210H560V330H650"/><path marker-end="url(#arrow-rank)" d="M850 90H950"/><path marker-end="url(#arrow-rank)" d="M850 210H950"/><path marker-end="url(#arrow-rank)" d="M850 330H950"/><path marker-end="url(#arrow-rank)" d="M1130 210H1180V90"/><path marker-end="url(#arrow-rank)" d="M1130 210H1180V210"/><path marker-end="url(#arrow-rank)" d="M1130 210H1180V330"/><g class="node main" tabindex="0" role="link" data-url="/ln-rank/"><rect x="20" y="175" width="160" height="70" rx="12"/><text x="100" y="205" text-anchor="middle" class="title">入口</text><text x="100" y="230" text-anchor="middle" class="path">/ln-rank/</text></g><g class="node main"><rect x="290" y="175" width="180" height="70" rx="12"/><text x="380" y="205" text-anchor="middle" class="title">提交查询条件</text><text x="380" y="230" text-anchor="middle" class="path">分数 / 学校 / 专业</text></g><g class="node main"><rect x="650" y="55" width="200" height="70" rx="12"/><text x="750" y="85" text-anchor="middle" class="title">分数模式</text><text x="750" y="110" text-anchor="middle" class="path">/api/major-bands</text></g><g class="node main"><rect x="650" y="175" width="200" height="70" rx="12"/><text x="750" y="205" text-anchor="middle" class="title">学校模式</text><text x="750" y="230" text-anchor="middle" class="path">/api/school-majors</text></g><g class="node main"><rect x="650" y="295" width="200" height="70" rx="12"/><text x="750" y="325" text-anchor="middle" class="title">专业模式</text><text x="750" y="350" text-anchor="middle" class="path">/api/ai/major-history</text></g><g class="node service"><rect x="950" y="175" width="180" height="70" rx="12"/><text x="1040" y="205" text-anchor="middle" class="title">结果卡片</text><text x="1040" y="230" text-anchor="middle" class="path">排序 / 分页 / 历史</text></g><g class="node module" tabindex="0" role="link" data-url="/major-path/"><rect x="970" y="55" width="210" height="55" rx="12"/><text x="1075" y="78" text-anchor="middle" class="small">/major-path/?majorCode=…</text><text x="1075" y="98" text-anchor="middle" class="small">returnTo=/ln-rank/</text></g><g class="node module" tabindex="0" role="link" data-url="/tongxue/"><rect x="970" y="300" width="210" height="55" rx="12"/><text x="1075" y="323" text-anchor="middle" class="small">/tongxue/?school=…&amp;entity=…</text><text x="1075" y="343" text-anchor="middle" class="small">学校实体先统一</text></g><g class="node module" tabindex="0" role="link" data-url="/ln-rank/selection-pool"><rect x="970" y="390" width="210" height="30" rx="12"/><text x="1075" y="410" text-anchor="middle" class="small">/ln-rank/selection-pool</text></g></svg></div>
+      </div>
+      <div class="tab-panel" id="tab-voice" role="tabpanel" hidden>
+        <div class="canvas"><svg class="flow" viewBox="0 0 1220 430" role="img" aria-label="专业升学地图和同学你好互相跳转"><defs><marker id="arrow-voice" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d91a5"/></marker></defs><path marker-end="url(#arrow-voice)" d="M210 210H330"/><path marker-end="url(#arrow-voice)" d="M510 165H640"/><path marker-end="url(#arrow-voice)" d="M510 255H640"/><path marker-end="url(#arrow-voice)" d="M820 165H950"/><path marker-end="url(#arrow-voice)" d="M820 255H950"/><path marker-end="url(#arrow-voice)" d="M1130 165H1190V255H1130"/><g class="node main"><rect x="30" y="175" width="180" height="70" rx="12"/><text x="120" y="205" text-anchor="middle" class="title">结果卡片</text><text x="120" y="230" text-anchor="middle" class="path">学校 / 专业</text></g><g class="node module" tabindex="0" role="link" data-url="/major-path/"><rect x="330" y="130" width="180" height="70" rx="12"/><text x="420" y="160" text-anchor="middle" class="title">专业路径</text><text x="420" y="185" text-anchor="middle" class="path">/major-path/</text></g><g class="node module" tabindex="0" role="link" data-url="/tongxue/"><rect x="330" y="220" width="180" height="70" rx="12"/><text x="420" y="250" text-anchor="middle" class="title">同学你好</text><text x="420" y="275" text-anchor="middle" class="path">/tongxue/</text></g><g class="node aux"><rect x="640" y="130" width="180" height="70" rx="12"/><text x="730" y="160" text-anchor="middle" class="title">背景证据</text><text x="730" y="185" text-anchor="middle" class="path">local-mainline / 211-mainline</text></g><g class="node aux"><rect x="640" y="220" width="180" height="70" rx="12"/><text x="730" y="250" text-anchor="middle" class="title">最低分回路</text><text x="730" y="275" text-anchor="middle" class="path">focus + hash 锚点</text></g><g class="node service"><rect x="950" y="130" width="180" height="70" rx="12"/><text x="1040" y="160" text-anchor="middle" class="title">学生声音摘要</text><text x="1040" y="185" text-anchor="middle" class="path">/api/tongxue-summary</text></g><g class="node external"><rect x="950" y="220" width="180" height="70" rx="12"/><text x="1040" y="250" text-anchor="middle" class="title">来源页面</text><text x="1040" y="275" text-anchor="middle" class="path">新窗口打开</text></g></svg></div>
+      </div>
+      <div class="tab-panel" id="tab-ai" role="tabpanel" hidden>
+        <div class="canvas"><svg class="flow" viewBox="0 0 1220 390" role="img" aria-label="AIPLuS确定性事实查询链和旧版fenxi入口"><defs><marker id="arrow-ai" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d91a5"/></marker></defs><path marker-end="url(#arrow-ai)" d="M210 160H340"/><path marker-end="url(#arrow-ai)" d="M530 160H660"/><path marker-end="url(#arrow-ai)" d="M850 160H980"/><path marker-end="url(#arrow-ai)" d="M210 300H340"/><path marker-end="url(#arrow-ai)" d="M530 300H660"/><g class="node module" tabindex="0" role="link" data-url="/aiplus/"><rect x="30" y="125" width="180" height="70" rx="12"/><text x="120" y="155" text-anchor="middle" class="title">AIPLuS</text><text x="120" y="180" text-anchor="middle" class="path">/aiplus/</text></g><g class="node service"><rect x="340" y="125" width="190" height="70" rx="12"/><text x="435" y="155" text-anchor="middle" class="title">/api/ai/turn</text><text x="435" y="180" text-anchor="middle" class="path">POST：意图与动作</text></g><g class="node main"><rect x="660" y="125" width="190" height="70" rx="12"/><text x="755" y="155" text-anchor="middle" class="title">确定性事实工具</text><text x="755" y="180" text-anchor="middle" class="path">白名单 GET / 缓存 / 预算</text></g><g class="node module"><rect x="980" y="125" width="190" height="70" rx="12"/><text x="1075" y="155" text-anchor="middle" class="title">回答与下一步</text><text x="1075" y="180" text-anchor="middle" class="path">回到主线模块</text></g><g class="node risk" tabindex="0" role="link" data-url="/fenxi/"><rect x="30" y="265" width="180" height="70" rx="12"/><text x="120" y="295" text-anchor="middle" class="title">旧版 fenxi</text><text x="120" y="320" text-anchor="middle" class="path">/fenxi/</text></g><g class="node aux"><rect x="340" y="265" width="190" height="70" rx="12"/><text x="435" y="295" text-anchor="middle" class="title">inline boot</text><text x="435" y="320" text-anchor="middle" class="path">manifest / chunks</text></g><g class="node service"><rect x="660" y="265" width="190" height="70" rx="12"/><text x="755" y="295" text-anchor="middle" class="title">debug / diagnostics</text><text x="755" y="320" text-anchor="middle" class="path">/fenxi/debug.html</text></g></svg></div>
+      </div>
+      <div class="tab-panel" id="tab-evidence" role="tabpanel" hidden>
+        <div class="canvas"><svg class="flow" viewBox="0 0 1220 300" role="img" aria-label="证据、产业和浏览器审计入口"><defs><marker id="arrow-evidence" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d91a5"/></marker></defs><path marker-end="url(#arrow-evidence)" d="M180 150H300"/><path marker-end="url(#arrow-evidence)" d="M470 150H590"/><path marker-end="url(#arrow-evidence)" d="M760 150H880"/><path marker-end="url(#arrow-evidence)" d="M1030 150H1160"/><g class="node aux" tabindex="0" role="link" data-url="/ln2026"><rect x="20" y="115" width="160" height="70" rx="12"/><text x="100" y="145" text-anchor="middle" class="title">招生变化</text><text x="100" y="170" text-anchor="middle" class="path">/ln2026</text></g><g class="node aux" tabindex="0" role="link" data-url="/zy2026/"><rect x="300" y="115" width="170" height="70" rx="12"/><text x="385" y="145" text-anchor="middle" class="title">招生结构</text><text x="385" y="170" text-anchor="middle" class="path">/zy2026/</text></g><g class="node module" tabindex="0" role="link" data-url="/Public_company/"><rect x="590" y="115" width="170" height="70" rx="12"/><text x="675" y="145" text-anchor="middle" class="title">产业地图</text><text x="675" y="170" text-anchor="middle" class="path">/Public_company/</text></g><g class="node service" tabindex="0" role="link" data-url="/browser-audit/"><rect x="880" y="115" width="150" height="70" rx="12"/><text x="955" y="145" text-anchor="middle" class="title">浏览器审计</text><text x="955" y="170" text-anchor="middle" class="path">/browser-audit/</text></g><g class="node service" tabindex="0" role="link" data-url="/changelog.html"><rect x="1030" y="115" width="170" height="70" rx="12"/><text x="1115" y="145" text-anchor="middle" class="title">更新记录</text><text x="1115" y="170" text-anchor="middle" class="path">/changelog.html</text></g></svg></div>
+      </div>
+      <div class="tab-panel" id="tab-runtime" role="tabpanel" hidden>
+        <div class="canvas"><svg class="flow" viewBox="0 0 1220 340" role="img" aria-label="浏览器到Cloudflare Pages、Functions和数据的运行时关系"><defs><marker id="arrow-runtime" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d91a5"/></marker></defs><path marker-end="url(#arrow-runtime)" d="M200 170H330"/><path marker-end="url(#arrow-runtime)" d="M510 170H640"/><path marker-end="url(#arrow-runtime)" d="M820 170H950"/><path marker-end="url(#arrow-runtime)" d="M510 260H640"/><g class="node external"><rect x="20" y="135" width="180" height="70" rx="12"/><text x="110" y="165" text-anchor="middle" class="title">浏览器终端</text><text x="110" y="190" text-anchor="middle" class="path">Chrome / Android / Pad</text></g><g class="node main"><rect x="330" y="135" width="180" height="70" rx="12"/><text x="420" y="165" text-anchor="middle" class="title">Cloudflare Pages</text><text x="420" y="190" text-anchor="middle" class="path">HTML / JS / CSS / JSON</text></g><g class="node service"><rect x="640" y="135" width="180" height="70" rx="12"/><text x="730" y="165" text-anchor="middle" class="title">functions/api</text><text x="730" y="190" text-anchor="middle" class="path">28 个 API 路由</text></g><g class="node service"><rect x="950" y="135" width="180" height="70" rx="12"/><text x="1040" y="165" text-anchor="middle" class="title">functions/_lib</text><text x="1040" y="190" text-anchor="middle" class="path">provider / engine / KB</text></g><g class="node module"><rect x="640" y="225" width="180" height="70" rx="12"/><text x="730" y="255" text-anchor="middle" class="title">静态数据与生成 KB</text><text x="730" y="280" text-anchor="middle" class="path">ln-rank / tongxue / zy2026</text></g></svg></div>
+      </div>
+      <div class="legend"><span><i class="swatch main"></i>主线页面</span><span><i class="swatch module"></i>核心模块</span><span><i class="swatch aux"></i>辅助证据</span><span><i class="swatch service"></i>服务/审计</span><span><i class="swatch risk"></i>旧入口或风险</span></div>
+    </section>
+
+    <section class="panel" aria-labelledby="routesTitle">
+      <h2 id="routesTitle">页面地址清单</h2>
+      <p class="sub">这里列出主线和仍然可直接访问的独立页面；静态资源文件不单独展开。</p>
+      <input class="search" type="search" placeholder="搜索页面地址或用途，例如 tongxue、招生、审计" aria-label="搜索页面地址" data-route-search>
+      <div class="route-grid" data-route-list>
+        <a class="route" href="/"><span><code>/</code><br>家庭首页</span><small>主线</small></a>
+        <a class="route" href="/ln-rank/"><span><code>/ln-rank/</code><br>专业初选</span><small>主线</small></a>
+        <a class="route" href="/ln-rank/selection-pool"><span><code>/ln-rank/selection-pool</code><br>家庭方案</span><small>主线</small></a>
+        <a class="route" href="/major-path/"><span><code>/major-path/</code><br>专业升学地图</span><small>主线</small></a>
+        <a class="route" href="/tongxue/"><span><code>/tongxue/</code><br>同学你好</span><small>主线</small></a>
+        <a class="route" href="/aiplus/"><span><code>/aiplus/</code><br>AI 家庭决策</span><small>主线</small></a>
+        <a class="route" href="/ln-rank/score-converter/"><span><code>/ln-rank/score-converter/</code><br>历史同位次分数</span><small>辅助</small></a>
+        <a class="route" href="/ln-rank/local-mainline"><span><code>/ln-rank/local-mainline</code><br>省内学校专业背景</span><small>辅助</small></a>
+        <a class="route" href="/ln-rank/211-mainline"><span><code>/ln-rank/211-mainline</code><br>全国 211 背景</span><small>辅助</small></a>
+        <a class="route" href="/ln2026"><span><code>/ln2026</code></span><small>证据</small></a>
+        <a class="route" href="/zy2026/"><span><code>/zy2026/</code><br>招生结构变化</span><small>证据</small></a>
+        <a class="route" href="/Public_company/"><span><code>/Public_company/</code><br>产业落地图</span><small>模块</small></a>
+        <a class="route" href="/browser-audit/"><span><code>/browser-audit/</code><br>浏览器兼容性审计</span><small>审计</small></a>
+        <a class="route" href="/changelog.html"><span><code>/changelog.html</code><br>全站更新记录</span><small>审计</small></a>
+        <a class="route" href="/fenxi/"><span><code>/fenxi/</code><br>旧版志愿初选</span><small>独立入口</small></a>
+        <a class="route" href="/gaokao-confusable-major-guide.html"><span><code>/gaokao-confusable-major-guide.html</code><br>专业辨析指南</span><small>专题</small></a>
+        <a class="route" href="/just_for_liaoning.html"><span><code>/just_for_liaoning.html</code><br>辽宁重点学科清单</span><small>独立入口</small></a>
+        <a class="route" href="/Liaoning_Universit_Dorm_AC_Field_Guide.html"><span><code>/Liaoning_Universit_Dorm_AC_Field_Guide.html</code><br>学校食宿资料</span><small>专题</small></a>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="contractTitle">
+      <h2 id="contractTitle">跨模块参数契约</h2>
+      <p class="sub">这些参数决定“点击后是否能直达正确内容”，不是普通展示文案。</p>
+      <div class="table-wrap"><table class="contract"><thead><tr><th>来源</th><th>目标</th><th>关键参数 / 锚点</th><th>应该保证什么</th></tr></thead><tbody>
+        <tr><td>ln-rank 结果</td><td><code>/major-path/</code></td><td><code>majorCode, major, context, sourceKey, sourceSurface, returnTo</code></td><td>回到原查询时，原条件仍可恢复。</td></tr>
+        <tr><td>ln-rank 学校卡</td><td><code>/tongxue/</code></td><td><code>school, entity</code></td><td>先统一学校实体，避免学校名称和实体 ID 不一致。</td></tr>
+        <tr><td>专业结果卡</td><td><code>/ln-rank/?mode=school-all</code></td><td><code>school, schoolEntity, focus=school-all#schoolAllResultsPanel</code></td><td>点击后直接落到“这所学校在辽宁的专业”位置。</td></tr>
+        <tr><td>专业最低分入口</td><td><code>/ln-rank/?mode=major-all</code></td><td><code>majorKeyword, majorCode, autoQuery=1, focus=major-all#majorAllResultsPanel</code></td><td>异步结果出来后仍能定位到目标面板。</td></tr>
+        <tr><td>major-path</td><td><code>/tongxue/</code></td><td><code>scope=major, majorCode, major, topic, sourceKey, context, returnTo</code></td><td>专业声音和原专业上下文不丢失；过长的可选上下文可安全舍弃。</td></tr>
+        <tr><td>背景页</td><td><code>/ln-rank/local-mainline</code> / <code>/ln-rank/211-mainline</code></td><td><code>view, majorCode, canonicalName, school, from, returnTo</code></td><td>只允许同源返回，不接受外部地址注入。</td></tr>
+        <tr><td>旧入口</td><td>规范路径</td><td><code>_redirects 301</code></td><td><code>/ai</code>、<code>/zy.html</code>、<code>/ln-rank</code> 等旧地址仍能落到规范路径。</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="panel" aria-labelledby="apiTitle">
+      <h2 id="apiTitle">API 服务面</h2>
+      <p class="sub">浏览器看到的是页面；真正决定数据和降级边界的是这些接口及其内部 provider / engine。</p>
+      <div class="table-wrap"><table class="api"><thead><tr><th>接口</th><th>服务内容</th><th>主要调用页面</th><th>关系</th></tr></thead><tbody>
+        <tr><td><code>/api/major-bands</code></td><td>分数对应的专业候选、分段、位次窗口</td><td><code>/ln-rank/</code>、<code>/aiplus/</code></td><td>确定性招生事实，受分页和资源预算约束。</td></tr>
+        <tr><td><code>/api/school-majors</code></td><td>学校在辽宁的专业记录</td><td><code>/ln-rank/</code></td><td>学校模式，支持学校实体和聚焦参数。</td></tr>
+        <tr><td><code>/api/ai/major-history</code></td><td>专业在各校的历史投档记录</td><td><code>/ln-rank/</code>、<code>/aiplus/</code></td><td>专业模式的核心事实来源。</td></tr>
+        <tr><td><code>/api/ai/turn</code></td><td>AI 家庭顾问的一轮对话</td><td><code>/aiplus/</code></td><td>模型负责理解和组织，不替代分数、位次和学校事实 owner。</td></tr>
+        <tr><td><code>/api/tongxue-summary</code>、<code>/api/tongxue-school-portrait</code></td><td>学校体验摘要与画像</td><td><code>/tongxue/</code>、<code>/aiplus/</code></td><td>学校实体不一致时必须 fail-closed。</td></tr>
+        <tr><td><code>/api/score-equivalence</code></td><td>同位次历史分数对照</td><td><code>/ln-rank/score-converter/</code></td><td>只作历史参考，不生成未来录取结论。</td></tr>
+        <tr><td><code>/api/path-analysis</code>、<code>/api/feishu-*</code></td><td>家庭方案路径分析与报告</td><td><code>/ln-rank/selection-pool</code></td><td>报告建立在已选记录上，不建立第二份招生事实。</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="panel" aria-labelledby="riskTitle">
+      <h2 id="riskTitle">当前审计风险与判断</h2>
+      <p class="sub">这些不是“页面一定坏了”的结论，而是从代码关系中推导出的必须持续验证的点。</p>
+      <div class="grid">
+        <article class="card risk"><h3>版本标识不一致</h3><p><code>VERSION.txt</code> 为 <code>v3.9.90.0</code>，而 canonical release 与多个页面 runtime 为 <code>v3.9.90.3</code>。根版本文件是历史标记还是仍有消费者，需要持续确认。</p></article>
+        <article class="card risk"><h3>锚点不能只靠动画滚动</h3><p><code>#schoolAllResultsPanel</code> 和 <code>#majorAllResultsPanel</code> 是跨模块直达契约。Android、Alook 和弱网场景需要验证“参数、异步结果、定位”三者同时成立。</p></article>
+        <article class="card risk"><h3>学校实体必须先统一</h3><p><code>school + entity</code> 共同决定同学你好请求的身份。名称可显示，不代表实体一定有效；错误实体不能扩散成整页失败。</p></article>
+        <article class="card aux"><h3>独立入口不能被漏审</h3><p><code>/fenxi/</code>、历史页和专题页没有全部出现在主导航，但仍可由 URL 直接访问。它们需要明确保留、迁移或退役。</p></article>
+        <article class="card module"><h3>返回不是同一件事</h3><p>模块根目录、返回上一个模块、恢复原查询和跳到结果锚点分别属于不同契约，不能用一个“返回首页”替代。</p></article>
+        <article class="card aux"><h3>版本化资源要看 owner</h3><p>文件名较旧不代表它是错误版本；应以 release center、active manifest、页面实际加载关系和测试证据判断。</p></article>
+      </div>
+    </section>
+
+    <div class="note"><strong>使用说明：</strong>这是根目录下的静态审计页，不参与招生计算，也不改变现有模块导航。流程图节点点击会打开相应生产地址；手机上流程图可横向滑动。</div>
+    <footer class="footer">全站发布：v3.9.90.3 · 页面：site-flow.html · <a href="/changelog.html">查看全站更新记录</a></footer>
+  </main>
+  <script>
+    (() => {
+      const tabs = [...document.querySelectorAll('[data-tab]')];
+      const panels = [...document.querySelectorAll('.tab-panel')];
+      const select = (id) => {
+        tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.tab === id)));
+        panels.forEach(panel => { panel.hidden = panel.id !== id; });
+      };
+      tabs.forEach(tab => tab.addEventListener('click', () => select(tab.dataset.tab)));
+      tabs.forEach(tab => tab.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const index = tabs.indexOf(tab);
+        const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length : (index - 1 + tabs.length) % tabs.length;
+        tabs[next].focus();
+        select(tabs[next].dataset.tab);
+      }));
+      document.querySelectorAll('.flow .node[data-url]').forEach(node => {
+        const go = () => { window.location.assign(node.dataset.url); };
+        node.addEventListener('click', go);
+        node.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); go(); } });
+      });
+      const search = document.querySelector('[data-route-search]');
+      const routes = [...document.querySelectorAll('[data-route-list] .route')];
+      search?.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        routes.forEach(route => { route.hidden = query && !route.textContent.toLowerCase().includes(query); });
+      });
+    })();
+  </script>
+</body>
+</html>
