@@ -4,7 +4,7 @@
   "branch": "fix/browser-compatible-navigation-audit-v001",
   "baseSha": "229f65ef7dd13c3c241498110456b3db0d49e0bc",
   "pr": 259,
-  "currentHeadSha": "995757c5cb952537d43582ab1163545a7b20879d",
+  "currentHeadSha": "5b88b31daae3f3def334cf980dd5611337925702",
   "releaseTarget": "v3.9.90.3 / v3990_3 preserved; browser-compatibility-audit-v001 r003 is the additive capability revision",
   "completed": [
     "live-main-reconciled",
@@ -41,7 +41,8 @@
     "tongxue-scope-callback-fixed",
     "tongxue-api-route-fixture-failure-diagnosed",
     "tongxue-api-route-fixture-fixed",
-    "tongxue-post-scope-click-diagnostic-added"
+    "tongxue-post-scope-click-diagnostic-added",
+    "tongxue-click-target-diagnostic-expanded"
   ],
   "inProgress": "current-head-ci",
   "pending": [
@@ -55,8 +56,8 @@
     "architecture": "passed: audit-architecture-handoff-v3990_3, audit-canonical-release-version-v3990_3, audit-site-runtime-generation-v3990_3, audit-unified-resource-graph-v3990_3",
     "humanCopy": "passed: audit-human-copy-v001",
     "browser": "passed on exact code head 3a05f998: checkout Chromium matrix on Android 360/390, iPad 768, desktop 1280; homepage disclosure click preserves scroll and reaches /major-path/. Alook runtime unavailable and remains an explicit device acceptance gate.",
-    "treeIntegrity": "rerun required on current candidate after Tongxue test-only diagnostics",
-    "ci": "rerun required: candidate 1c6c4c8 reached the API, but after school→major reset the query button path remained idle; diagnostic instrumentation added in 995757c5."
+    "treeIntegrity": "rerun required on current candidate after Tongxue diagnostics",
+    "ci": "rerun required: candidate 1c6c4c8 had a separate Worker Preview 502 and Tongxue post-scope pointer diagnostics showed buttonEvents/documentEvents=0; diagnostic expanded in 5b88b31d."
   },
   "blockers": [
     {
@@ -67,18 +68,19 @@
     {
       "id": "github-actions-runner-queue",
       "status": "open",
-      "detail": "正在通过指针事件计数定位 Tongxue 切换后按钮保持 idle 的原因。"
+      "detail": "需完成当前候选的点击命中诊断，并在所有 37 项 exact-head 检查全绿后才可合并。"
     }
   ],
   "knownHistoricalFindings": [
-    "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。"
+    "tools/audit-architecture-handoff-v3990_2.mjs、tools/verify-major-path-handoff-v003.mjs、tools/verify-module-navigation-v001.mjs 仍断言已退休的 v3990_2/v0.04 标记；它们不属于当前工作流 owner，不能作为当前发布失败依据。",
+    "Worker resource vNext Preview 在 6c14df4 出现一次混合负载 HTTP 502，需在后续 exact-head 重跑中确认是否瞬态。"
   ],
   "lastFailure": {
-    "runId": 33363014274,
-    "jobId": 99397953512,
-    "headSha": "1c6c4c8282c21e5c1cc4505364a0585a2d34b907",
-    "cause": "after school→major reset, the exact-code click left result idle with currentMajorCode empty and apiRequests=0; diagnostic added to distinguish event delivery from runtime handling.",
-    "correctionCommit": "995757c5cb952537d43582ab1163545a7b20879d"
+    "runId": 33363327278,
+    "jobId": 99398859853,
+    "headSha": "6c14df489782caaf56b608eb72636d1346d360d3",
+    "cause": "Tongxue post-scope natural click timed out; current button remained idle, pointer/document click counters were both 0. Worker Preview independently returned HTTP 502 for mixed-ai-school-history-1.",
+    "correctionCommit": "5b88b31daae3f3def334cf980dd5611337925702"
   },
-  "updatedAt": "2026-08-31T06:15:00.000Z"
+  "updatedAt": "2026-08-31T06:21:00.000Z"
 }
