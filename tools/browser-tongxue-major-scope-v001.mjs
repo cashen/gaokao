@@ -72,7 +72,7 @@ try {
       assert.equal(await scopeMajor.count(), 1, `${testCase.name}: major scope switch missing`);
       assert.equal(await scopeSchool.getAttribute('aria-selected'), 'true', `${testCase.name}: school should start selected`);
       await scopeMajor.click();
-      assert.equal(new URL(page.url()).searchParams.get('scope'), 'major');
+      assert.equal(new URL(location.href).searchParams.get('scope'), 'major');
       assert.equal(await page.locator('body').getAttribute('data-tongxue-scope'), 'major');
       assert.equal(await page.locator('#school').getAttribute('placeholder'), '输入专业名称、简称或代码');
       assert.equal(await page.locator('[data-scope-examples="major"]').isVisible(), true);
