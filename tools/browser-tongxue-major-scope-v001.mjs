@@ -101,9 +101,18 @@ try {
         const button = document.getElementById('queryButton');
         globalThis.__scopeButtonRef = button;
         globalThis.__scopeButtonEvents = { capture:0, bubble:0 };
-        globalThis.__scopeDocumentEvents = { capture:0, bubble:0 };
-        document.addEventListener('click', () => { globalThis.__scopeDocumentEvents.capture += 1; }, { capture:true });
-        document.addEventListener('click', () => { globalThis.__scopeDocumentEvents.bubble += 1; });
+        globalThis.__scopeDocumentEvents = { capture:0, bubble:0, targets:[] };
+        const recordDocumentClick = event => {
+          globalThis.__scopeDocumentEvents.targets.push({
+            phase:event.eventPhase,
+            targetTag:event.target?.tagName || '',
+            targetId:event.target?.id || '',
+            targetClass:event.target?.className || '',
+            path:(event.composedPath?.() || []).slice(0,5).map(node => ({ tag:node?.tagName || '', id:node?.id || '', className:node?.className || '' }))
+          });
+        };
+        document.addEventListener('click', event => { globalThis.__scopeDocumentEvents.capture += 1; recordDocumentClick(event); }, { capture:true });
+        document.addEventListener('click', event => { globalThis.__scopeDocumentEvents.bubble += 1; recordDocumentClick(event); });
         button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.capture += 1; }, { capture:true });
         button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.bubble += 1; });
       });
