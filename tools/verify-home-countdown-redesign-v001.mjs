@@ -39,7 +39,7 @@ assert.equal((home.match(/id="tool-panel-[^"]+" class="tool-list"/g) || []).leng
 assert.ok(!/<details\b/i.test(home), 'homepage must not rely on native details disclosure');
 assert.ok(!/<summary\b/i.test(home), 'homepage must not rely on native summary activation');
 for (const group of ['understand', 'evidence', 'industry']) {
-  assert.ok(home.includes(\`id="tool-panel-\${group}" class="tool-list" hidden\`), \`\${group} panel must start closed\`);
+  assert.ok(home.includes('id="tool-panel-' + group + '" class="tool-list" hidden'), group + ' panel must start closed');
 }
 assert.equal((home.match(/data-home-major-path-entry/g) || []).length, 1, 'major path must have one homepage owner');
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map must have one homepage owner');
