@@ -96,6 +96,13 @@ try {
       await page.waitForFunction(() => new URL(location.href).searchParams.get('scope') === 'major');
 
       await input.fill('080601');
+      await page.waitForTimeout(80);
+      await page.evaluate(() => {
+        const button = document.getElementById('queryButton');
+        globalThis.__scopeButtonEvents = { capture:0, bubble:0 };
+        button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.capture += 1; }, { capture:true });
+        button?.addEventListener('click', () => { globalThis.__scopeButtonEvents.bubble += 1; });
+      });
       await page.waitForFunction(() => document.getElementById('queryButton')?.disabled === false);
       await page.locator('#queryButton').click();
       try {
@@ -107,7 +114,8 @@ try {
           resultText:document.getElementById('result')?.textContent || '',
           input:(document.getElementById('school'))?.value || '',
           buttonDisabled:Boolean(document.getElementById('queryButton')?.disabled),
-          state:globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null
+          state:globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null,
+          buttonEvents:globalThis.__scopeButtonEvents || null
         }));
         throw new Error(`${String(error?.message || error)}\n${JSON.stringify({ apiRequests, diagnostic })}`);
       }
