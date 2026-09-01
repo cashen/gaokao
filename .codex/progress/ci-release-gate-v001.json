@@ -2,12 +2,12 @@
   "task": "ci-release-gate-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ci-release-gate-v3990_4",
-  "headSha": "f7bad847500fb2e68c6ad726f58c2069ee472f48",
+  "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
   "pr": {
     "number": 262,
     "url": "https://github.com/cashen/gaokao/pull/262",
-    "headSha": "f7bad847500fb2e68c6ad726f58c2069ee472f48",
+    "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
     "draft": true
   },
   "completed": [
@@ -17,11 +17,12 @@
     "workflow-trigger-repair-authored",
     "local-source-audit",
     "commit-and-push",
-    "draft-pr"
-  ],
-  "inProgress": "exact-head-preview",
-  "pending": [
+    "draft-pr",
     "pr-ci-preview",
+    "exact-head-preview"
+  ],
+  "inProgress": "ready-same-sha",
+  "pending": [
     "ready-same-sha",
     "merge-main",
     "post-merge-production-recheck"
@@ -34,7 +35,13 @@
     "attempts": 2,
     "sample": "standard-508-near",
     "cloudflare1102": true,
-    "message": "two Preview attempts used Branch Preview and observed timeout then HTTP 503 Error 1102; immutable Preview selection is corrected before retry"
+    "resolvedBy": {
+      "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
+      "immutablePreview": "https://78943e6d.gaokao-4y9.pages.dev",
+      "previewConcurrency": "success",
+      "localConcurrency": "success"
+    },
+    "message": "two earlier Branch Preview attempts observed timeout then HTTP 503 Error 1102; the corrected immutable Preview run passed both concurrency gates"
   },
-  "verifiedAt": "2026-09-01T22:57:33Z"
+  "verifiedAt": "2026-09-01T23:03:22Z"
 }
