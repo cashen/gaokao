@@ -73,9 +73,12 @@ jobs:
             echo 'protected path changed'
             exit 1
           fi
-          stable_business_changes="$(grep -E '^(ln-rank/data/local-strength/|ln-rank/data/211-static/|ln-rank/data/major-bands-static-v3972_2/|functions/api/major-bands-bucket[.]js$|functions/_lib/major-bands-bucket-(orchestrator|cache|transfer)[.]v3972_5[.]js$)' /tmp/v3990-1-changed-files.txt || true)"
-          stable_business_changes="$stable_business_changes
-          $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true)"
+          stable_business_changes="$(
+            {
+              grep -E '^(ln-rank/data/local-strength/|ln-rank/data/211-static/|ln-rank/data/major-bands-static-v3972_2/|functions/api/major-bands-bucket[.]js$|functions/_lib/major-bands-bucket-(orchestrator|cache|transfer)[.]v3972_5[.]js$)' /tmp/v3990-1-changed-files.txt || true
+              grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true
+            }
+          )"
           if [ -n "$stable_business_changes" ]; then
             echo "$stable_business_changes"
             echo 'declared stable business dependency changed'

@@ -3,11 +3,11 @@
   "repository": "cashen/gaokao",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
   "branch": "fix/ci-release-gate-v3990_4",
-  "headSha": "2fcf1004bc86aca5f70a1e4421fefc0fca6eb88c",
+  "headSha": "529d651764d57f3492f2b0aa5868f99d51d2aac6",
   "pr": {
     "number": 262,
     "url": "https://github.com/cashen/gaokao/pull/262",
-    "headSha": "91543ea9d64f1ed661976c5bb02c92f2f84bff08",
+    "headSha": "529d651764d57f3492f2b0aa5868f99d51d2aac6",
     "draft": true
   },
   "release": "v3.9.90.3",
@@ -33,9 +33,11 @@
     "post-merge-production-and-zero-job-recheck"
   ],
   "lastFailure": {
-    "kind": "workflow-zero-job",
-    "runId": 33446423115,
-    "message": "push event concluded failure with no jobs"
+    "kind": "pr-source-audit",
+    "runId": 33567948577,
+    "jobs": 3,
+    "failedStep": "Verify protected paths and immutable stable dependencies",
+    "message": "source audit treated an empty stable-business grep result as non-empty because of a literal newline"
   },
-  "verifiedAt": "2026-09-01T22:46:29Z"
+  "verifiedAt": "2026-09-01T22:48:08Z"
 }
