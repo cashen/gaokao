@@ -271,7 +271,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Resolve exact-SHA Cloudflare branch Preview
+      - name: Resolve exact-SHA Cloudflare immutable Preview
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPOSITORY: ${{ github.repository }}
@@ -288,7 +288,7 @@ jobs:
               comments="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
               body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
               if grep -q "$short_sha" <<<"$body"; then
-                target="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | tail -n1 || true)"
+                target="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | head -n1 || true)"
               fi
               [ -n "$target" ] && break
             fi
