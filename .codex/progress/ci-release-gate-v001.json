@@ -4,18 +4,23 @@
   "branch": "fix/ci-release-gate-v3990_4",
   "headSha": "2fcf1004bc86aca5f70a1e4421fefc0fca6eb88c",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
-  "pr": null,
+  "pr": {
+    "number": 262,
+    "url": "https://github.com/cashen/gaokao/pull/262",
+    "headSha": "91543ea9d64f1ed661976c5bb02c92f2f84bff08",
+    "draft": true
+  },
   "completed": [
     "live-main-reconciled",
     "zero-job-failure-reproduced",
     "isolated-branch-created",
     "workflow-trigger-repair-authored",
     "local-source-audit",
-    "commit-and-push"
+    "commit-and-push",
+    "draft-pr"
   ],
-  "inProgress": "draft-pr",
+  "inProgress": "pr-ci-preview",
   "pending": [
-    "draft-pr",
     "pr-ci-preview",
     "ready-same-sha",
     "merge-main",
@@ -26,5 +31,5 @@
     "jobCount": 0,
     "conclusion": "failure"
   },
-  "verifiedAt": "2026-09-01T22:45:32Z"
+  "verifiedAt": "2026-09-01T22:46:29Z"
 }
