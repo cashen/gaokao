@@ -1,0 +1,51 @@
+{
+  "task": "ci-release-gate-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
+  "branch": "fix/ci-release-gate-v3990_4",
+  "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
+  "pr": {
+    "number": 262,
+    "url": "https://github.com/cashen/gaokao/pull/262",
+    "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
+    "draft": true
+  },
+  "release": "v3.9.90.3",
+  "generation": "v3990_3",
+  "revision": "r047-ci-release-gate-recovery",
+  "scope": "bounded-fanout workflow trigger observability only",
+  "boundedFanoutBaseline": {
+    "runId": 33446423115,
+    "headSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
+    "event": "push",
+    "conclusion": "failure",
+    "jobs": 0,
+    "artifacts": 0
+  },
+  "runtimeScopeUnchanged": true,
+  "protectedPathsUntouched": true,
+  "inProgress": "ready-same-sha",
+  "pending": [
+    "pr-ci",
+    "ready-same-sha",
+    "merge-main",
+    "post-merge-production-and-zero-job-recheck"
+  ],
+  "lastFailure": {
+    "kind": "pr-preview-concurrency",
+    "runId": 33568096965,
+    "jobs": 3,
+    "failedStep": "Verify Preview real concurrency and paced exhaustive pagination",
+    "attempts": 2,
+    "sample": "standard-508-near",
+    "cloudflare1102": true,
+    "resolvedBy": {
+      "headSha": "0dd8d2b33934bb08e6e21ae794b75aea1d66db26",
+      "immutablePreview": "https://78943e6d.gaokao-4y9.pages.dev",
+      "previewConcurrency": "success",
+      "localConcurrency": "success"
+    },
+    "message": "two earlier Branch Preview attempts observed timeout then HTTP 503 Error 1102; corrected immutable Preview run passed both concurrency gates"
+  },
+  "verifiedAt": "2026-09-01T23:03:22Z"
+}
