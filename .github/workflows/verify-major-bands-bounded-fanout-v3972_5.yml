@@ -1,6 +1,12 @@
-name: Verify major-bands rank kernel v3990.1
+name: Verify major-bands rank kernel v3990.3
 
 on:
+  # Keep the main-push path explicit. GitHub has continued creating push
+  # runs for this workflow after the old trigger was removed; an explicit
+  # source-audit job makes that event observable instead of ending as a
+  # zero-job failure. Local/Preview stress jobs remain PR-only below.
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
@@ -31,7 +37,8 @@ on:
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
       - 'docs/plans/major-bands-bounded-fanout-gate-recovery-v001.md'
       - 'docs/status/major-bands-bounded-fanout-gate-recovery-v001-status.json'
-  # BF-02: this verification gate is PR/manual only; main is covered by production checks.
+  # BF-02: main push runs execute the source audit only; PRs retain the full
+  # source, local-concurrency, Preview-concurrency and artifact gates.
   workflow_dispatch:
 
 permissions:
@@ -68,7 +75,7 @@ jobs:
           fi
           stable_business_changes="$(grep -E '^(ln-rank/data/local-strength/|ln-rank/data/211-static/|ln-rank/data/major-bands-static-v3972_2/|functions/api/major-bands-bucket[.]js$|functions/_lib/major-bands-bucket-(orchestrator|cache|transfer)[.]v3972_5[.]js$)' /tmp/v3990-1-changed-files.txt || true)"
           stable_business_changes="$stable_business_changes
-$(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true)"
+          $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true)"
           if [ -n "$stable_business_changes" ]; then
             echo "$stable_business_changes"
             echo 'declared stable business dependency changed'

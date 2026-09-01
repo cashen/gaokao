@@ -1,0 +1,35 @@
+{
+  "task": "ci-release-gate-v001",
+  "repository": "cashen/gaokao",
+  "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
+  "branch": "fix/ci-release-gate-v3990_4",
+  "release": "v3.9.90.3",
+  "generation": "v3990_3",
+  "revision": "r047-ci-release-gate-recovery",
+  "scope": "bounded-fanout workflow trigger observability only",
+  "boundedFanoutBaseline": {
+    "runId": 33446423115,
+    "headSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
+    "event": "push",
+    "conclusion": "failure",
+    "jobs": 0,
+    "artifacts": 0
+  },
+  "runtimeScopeUnchanged": true,
+  "protectedPathsUntouched": true,
+  "inProgress": "commit-and-push",
+  "pending": [
+    "draft-pr",
+    "pr-ci",
+    "exact-head-preview",
+    "ready-same-sha",
+    "merge-main",
+    "post-merge-production-and-zero-job-recheck"
+  ],
+  "lastFailure": {
+    "kind": "workflow-zero-job",
+    "runId": 33446423115,
+    "message": "push event concluded failure with no jobs"
+  },
+  "verifiedAt": "2026-09-01T22:43:52Z"
+}

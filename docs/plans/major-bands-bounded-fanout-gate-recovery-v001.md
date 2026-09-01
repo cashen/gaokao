@@ -3,8 +3,10 @@
 ## Scope
 
 This PR addresses only the verification workflow failure where the push-triggered
-run completed with zero jobs. It does not change the major-bands runtime, query
-semantics, data, cache behavior, concurrency limits, or Tongxue.
+run completed with zero jobs. Main push now has an explicit source-audit path;
+Pull Request runs retain the full bounded-fanout gate. It does not change the
+major-bands runtime, query semantics, data, cache behavior, concurrency limits,
+or Tongxue.
 
 The separate live distinct-50 stress result with HTTP 503 remains an independent
 runtime/performance gate and is not claimed fixed by this PR.
@@ -13,10 +15,12 @@ runtime/performance gate and is not claimed fixed by this PR.
 
 - Repository: `cashen/gaokao`
 - Base branch: `main`
-- Base SHA: `c3a0f958f44963f931dc94ec4407cf855c8bbac8`
+- Base SHA: `c93ed2757e3dfe483ee17def3738fd8171d8a6af`
 - Workflow: `.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml`
-- Push-triggered runs: `32819091211`, `32819259219`
-- Observed state: both runs returned zero jobs.
+- Current push-triggered run: `33446423115`
+- Observed state: `failure` with zero jobs; the checked-in workflow had only
+  PR/manual triggers, so the event registration and source configuration were
+  inconsistent.
 - Related production-resource run `32819092504`: source-contract passed;
   production-graph failed only on the unrelated distinct-50 HTTP 503 stress sample.
 
@@ -27,9 +31,9 @@ runtime/performance gate and is not claimed fixed by this PR.
      branch/head, workflow source, and the recorded run/job evidence.
    - Preserve the boundary between workflow recovery and the runtime 503 issue.
 2. **BF-02 — Remove the zero-job push path**
-   - Stop the bounded-fanout PR/Preview gate from running as an unconditional
-     push-to-main workflow.
-   - Keep pull-request path filtering and manual dispatch available.
+   - Keep Pull Request path filtering and manual dispatch available.
+   - Add an explicit main push source-audit path so a push event cannot finish
+     as a zero-job failure.
    - Preserve all existing source, local, Preview, pagination, and concurrency
      jobs for pull requests.
    - Main production verification remains owned by the existing production
@@ -54,7 +58,8 @@ runtime/performance gate and is not claimed fixed by this PR.
 
 ## Acceptance contract
 
-- No new zero-job push-triggered bounded-fanout run is created by a main merge.
+- A main push run has at least one evaluated source-audit job and cannot finish
+  as a zero-job failure.
 - Pull-request runs retain the source audit, local concurrency, Preview
   concurrency, and artifact publication jobs.
 - Runtime behavior and fail-closed data semantics are unchanged.

@@ -15,6 +15,8 @@ export const CURRENT_RELEASE = Object.freeze({
   releaseLogHref: '/changelog.html',
   releaseLogLabel: '查看全站更新记录',
   releaseFooterContractVersion: 'release-footer-contract-v3990_3',
+  releaseRevision: 'r047-ci-release-gate-recovery',
+  releaseGateVersion: 'ci-release-gate-v001',
   label: 'home-countdown-seconds',
   homeEntryVersion: 'family-home-runtime-v3990_3-r031',
   homeUiRevision: 'r031-home-redesign',

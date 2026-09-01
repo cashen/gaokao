@@ -20,6 +20,7 @@
       <h2>v3.9.90.3</h2>
       <p>统一全站发布版本、运行时 generation、资源查询版本与 footer 更新入口。模块能力版本继续按各自合同维护，不与全站发布版本混用。</p>
       <div class="release-meta"><span class="badge">运行时 v3990_3</span><span class="badge">资源查询 3990_3</span><span class="badge">ln-rank 入口 r029</span></div>
+      <p>本次 r047：修复 bounded-fanout 门禁在 main push 事件下出现“无 job 但 failure”的触发状态。main push 现在明确执行源码审计，Pull Request 继续执行完整本地并发、Preview 并发、分页与 artifact 检查；不改变招生数据、查询运行时、缓存策略或用户页面行为。</p>
       <p>本次 browser-compatibility-audit-v001：全站新增浏览器兼容性审计报告页，记录 PC、Pad、Android Chrome 与 Alook 的检查边界；专业升学路径和大学生说专业入口改为原生 href，旧地址统一为单跳兼容。报告页：<a href="/browser-audit/">全站浏览器兼容性审计</a>。Alook 真机仍需单独验收，不能用其他浏览器代替。</p>
       <p>本次 r031：重构首页与倒计时的阅读路径；倒计时成为唯一视觉主角，主动作收敛为“开始专业初选”，现有入口按主线、了解、证据、产业分组并按需展开，保留原有路由、家庭方案状态和事实边界；PC 使用双栏，Pad 使用单列，Android 使用文档流布局，避免入口平铺、横向溢出和无意义的额外文案。首页运行时版本为 family-home-runtime-v3990_3-r031，缓存修订为 r031-home-redesign。此前 r030 的统一专业解析、历史恢复、多专业状态和三入口文案修复继续保留。</p>
       <p>本次 r032：修复 ln-rank 输入源优先级。输入框已经挂载时始终以实时内容为准，清空专业或学校条件不会再被旧 state 恢复；浏览器前进/返回遇到缺失的 URL 参数时，也会同步清空可见输入。专业筛选上下文为 major-filter-context-v003，缓存修订为 r032-input-clear-state；全站发布版本与 generation 保持 v3.9.90.3 / v3990_3。</p>
