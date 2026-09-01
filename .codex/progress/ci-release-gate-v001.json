@@ -2,7 +2,7 @@
   "task": "ci-release-gate-v001",
   "repository": "cashen/gaokao",
   "branch": "fix/ci-release-gate-v3990_4",
-  "headSha": null,
+  "headSha": "2fcf1004bc86aca5f70a1e4421fefc0fca6eb88c",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
   "pr": null,
   "completed": [
@@ -10,11 +10,11 @@
     "zero-job-failure-reproduced",
     "isolated-branch-created",
     "workflow-trigger-repair-authored",
-    "local-source-audit"
+    "local-source-audit",
+    "commit-and-push"
   ],
-  "inProgress": "commit-and-push",
+  "inProgress": "draft-pr",
   "pending": [
-    "commit-and-push",
     "draft-pr",
     "pr-ci-preview",
     "ready-same-sha",
@@ -26,5 +26,5 @@
     "jobCount": 0,
     "conclusion": "failure"
   },
-  "verifiedAt": "2026-09-01T22:43:52Z"
+  "verifiedAt": "2026-09-01T22:45:32Z"
 }

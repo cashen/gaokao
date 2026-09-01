@@ -3,6 +3,7 @@
   "repository": "cashen/gaokao",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
   "branch": "fix/ci-release-gate-v3990_4",
+  "headSha": "2fcf1004bc86aca5f70a1e4421fefc0fca6eb88c",
   "release": "v3.9.90.3",
   "generation": "v3990_3",
   "revision": "r047-ci-release-gate-recovery",
@@ -17,7 +18,7 @@
   },
   "runtimeScopeUnchanged": true,
   "protectedPathsUntouched": true,
-  "inProgress": "commit-and-push",
+  "inProgress": "draft-pr",
   "pending": [
     "draft-pr",
     "pr-ci",
@@ -31,5 +32,5 @@
     "runId": 33446423115,
     "message": "push event concluded failure with no jobs"
   },
-  "verifiedAt": "2026-09-01T22:43:52Z"
+  "verifiedAt": "2026-09-01T22:45:32Z"
 }
