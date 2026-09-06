@@ -1,6 +1,6 @@
-# 专业升学地图 v0.05 · durable status
+# 专业升学地图 v0.06 · durable status
 
-本文件是 `/major-path/` 当前总入口账本。v0.05 收敛 presentation / viewport / 搜索交互；专业事实、搜索、研究生导航和 SVG 关系图仍由同一组 canonical owners 提供。
+本文件是 `/major-path/` 当前总入口账本。v0.06 收敛来源、返回、上下文隔离、presentation / viewport / 搜索交互；专业事实、搜索、研究生导航和 SVG 关系图仍由同一组 canonical owners 提供。
 
 ## Product job
 
@@ -79,23 +79,23 @@ v0.05 的默认信息顺序是：
 活动入口：
 
 - `major-path/index.html`
-- `major-path/app.v005.js`
-- `major-path/major-path-human.v005.css`
+- `major-path/app.v006.js`
+- `major-path/major-path-human.v006.css`
 
 稳定 core runtime：
 
-- `major-path/app-core.v005.js`
+- `major-path/app-core.v006.js`
 - `major-path/major-path.v001.css`
 - `major-path/major-path-graph.v002.css`
 
-v0.05 `app.v005.js` 直接 import `app-core.v005.js`。历史 `app.v003.js` / `major-path-direct.v003.css` 不再由 HTML 加载，避免 wrapper chain。
+v0.06 `app.v006.js` 直接 import `app-core.v006.js`。历史 `app.v003.js` / `major-path-direct.v003.css` 不再由 HTML 加载，避免 wrapper chain。
 
 版本边界：
 
-- visible product：`major-path-v0.05`
-- truth/search/graph core runtime：`major-path-core-v0.05`
+- visible product：`major-path-v0.06`
+- truth/search/graph core runtime：`major-path-core-v0.06`
 - ln-rank handoff：`major-path-handoff-v0.03`
-- human presentation：`major-path-human-v0.05`
+- human presentation：`major-path-human-v0.06`
 
 ## Search contract
 
@@ -155,7 +155,7 @@ v0.05 `app.v005.js` 直接 import `app-core.v005.js`。历史 `app.v003.js` / `m
 - `.github/workflows/verify-major-path-v001.yml`
   - 历史文件名继续作为唯一活动 major-path workflow owner。
 
-Production durable status：`production/major-path-v0.05`。
+Production durable status：`production/major-path-v0.06`（待本 PR 合并后写入）。
 
 ## Release protocol
 

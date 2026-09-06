@@ -1,6 +1,6 @@
-# 专业升学地图 v0.05 · human-first durable status
+# 专业升学地图 v0.06 · human-first durable status
 
-本文件记录 `/major-path/` v0.05 的人类信息架构、presentation ownership 与 viewport contract。它不替代 `MAJOR-PATH-STATUS.md` 的专业事实/关系图 truth，也不替代 `MAJOR-PATH-HANDOFF-STATUS.md` 的 ln-rank 跨页返回合同。
+本文件记录 `/major-path/` v0.06 的人类信息架构、presentation ownership 与 viewport contract。它不替代 `MAJOR-PATH-STATUS.md` 的专业事实/关系图 truth，也不替代 `MAJOR-PATH-HANDOFF-STATUS.md` 的 ln-rank 跨页返回合同。
 
 ## Product job
 
@@ -16,36 +16,36 @@ v0.05 解决的不是“增加更多专业知识”，而是把现有可靠事�
 
 ## Preserved truth owners
 
-v0.05 不新建专业事实、研究生事实、搜索、关系图或 handoff 状态：
+v0.06 不新建专业事实、研究生事实、搜索、关系图或 handoff 状态：
 
 - 本科专业事实 / 搜索解释：继续复用 major-path 的 canonical owners；
 - 本科→研究生导航：`undergrad-graduate-pathway.v001.js`；
 - SVG 关系图：`major-relationship-graph.v002.js`；
 - ln-rank 具体专业 gate / return snapshot：继续使用 `major-path-handoff.v003.js`；
-- URL / same-origin return：继续使用 `major-path-navigation.v003.js`。
+- URL / same-origin return：使用 `major-path-navigation.v004.js`，并显式记录来源与返回状态。
 
 ## Runtime boundary
 
 活动页面入口：
 
 - `major-path/index.html`
-- `major-path/app.v005.js`
-- `major-path/major-path-human.v005.css`
+- `major-path/app.v006.js`
+- `major-path/major-path-human.v006.css`
 
 稳定事实/搜索/图谱 core runtime：
 
-- `major-path/app-core.v005.js`
+- `major-path/app-core.v006.js`
 
-历史 `major-path/app.v003.js` 与 `major-path-direct.v003.css` 不再由页面加载。v0.05 直接 import v0.02 core，不形成 `v0.05 → v0.03 → v0.02` wrapper chain。
+历史 `major-path/app.v003.js` 与 `major-path-direct.v003.css` 不再由页面加载。v0.06 直接 import v0.06 core，不形成 wrapper chain。
 
-Visible product identity：`major-path-v0.05`。
-Stable core identity：`major-path-core-v0.05`。
+Visible product identity：`major-path-v0.06`。
+Stable core identity：`major-path-core-v0.06`。
 Cross-page handoff identity：`major-path-handoff-v0.03`。
-Human presentation identity：`major-path-human-v0.05`。
+Human presentation identity：`major-path-human-v0.06`。
 
 ## Presentation / viewport ownership
 
-v0.05 core runtime 继续负责事实、搜索语义、SVG 与 raw result HTML；v0.05 human shell 负责把 raw result 转成人类信息顺序，并拥有最终可见 landing。
+v0.06 core runtime 继续负责事实、搜索语义、SVG 与 raw result HTML；v0.06 human shell 负责把 raw result 转成人类信息顺序，并拥有最终可见 landing。
 
 ### Core-ready boundary
 

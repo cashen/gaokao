@@ -178,7 +178,7 @@ try {
       page.waitForURL(url => url.pathname === '/major-path/' || url.pathname === '/major-path/index.html'),
       page.locator('[data-home-major-path-entry]').click()
     ]);
-    await page.waitForSelector('[data-major-path-version="major-path-v0.05"]');
+    await page.waitForSelector('[data-major-path-version="major-path-v0.06"]');
     assert.match(await page.title(), /专业升学地图/, `${device.name}: destination title`);
     assert.equal(errors.length, 0, `${device.name}: destination ${errors.join(' | ')}`);
 

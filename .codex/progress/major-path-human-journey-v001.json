@@ -1,0 +1,21 @@
+{
+  "task": "major-path-human-journey-ui-audit-v001",
+  "repository": "local checkout of gaokao-site",
+  "branch": "fix/major-path-human-journey-continuity-v001",
+  "headSha": "3248aa7dcd8848d678839fe67b85722a8cd35ccd",
+  "baseSha": "2f36a067990c8a1a6fc2f19f9b10c27322730e71",
+  "pr": null,
+  "completed": [
+    "baseline-main-release-read",
+    "static-major-catalog-and-human-verifiers",
+    "cross-module-and-background-contract-verifiers",
+    "feature-branch-created",
+    "plan-written",
+    "source-return-context-isolation-implementation",
+    "static-continuity-and-regression-tests"
+  ],
+  "inProgress": "create-remote-commit-and-open-draft-pr",
+  "pending": ["ci-preview-production", "merge-main"],
+  "lastFailure": "local browser journey remains unverified until CI installs the pinned Chromium executable",
+  "verifiedAt": "2026-09-06T00:00:00Z"
+}
