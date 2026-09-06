@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-human-journey-ui-v001",
   "baseSha": "d6aa462245c7e8b88a6355438c3fd68bee727616",
-  "headSha": "66f7481a9871a670d3badbc992c58adea7fc54e7",
+  "headSha": "e2b2159dd135b54377e3a5b571740cf1463397d8",
   "status": "in_progress",
   "completed": [
     "live-state-reconcile",
@@ -13,9 +13,10 @@
     "implementation",
     "local-static-contract-tests",
     "local-browser-acceptance",
-    "local-network-boundary-tests"
+    "local-network-boundary-tests",
+    "pr-ci-preview"
   ],
-  "inProgress": "pr-ci-preview",
+  "inProgress": "ready-same-sha",
   "pending": [
     "pr-ci-preview",
     "ready-same-sha",
@@ -32,7 +33,7 @@
   "pullRequest": {
     "number": 264,
     "url": "https://github.com/cashen/gaokao/pull/264",
-    "headSha": "66f7481a9871a670d3badbc992c58adea7fc54e7",
+    "headSha": "e2b2159dd135b54377e3a5b571740cf1463397d8",
     "draft": true
   },
   "releaseBaseline": {
