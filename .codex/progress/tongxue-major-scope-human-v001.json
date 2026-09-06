@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-major-scope-human-v001",
   "baseSha": "242902cb43c33b6045aa1e062e8e82059ce5797f",
-  "headSha": "f1a554bca973bf4d6e0fb13b78bbffd97dd33057",
+  "headSha": "1ed30274b0c7efccc13ee557fdc755a987c06991",
   "pr": 266,
   "completed": [
     "baseline-main-verified",
@@ -16,10 +16,11 @@
     "static-regression-suite",
     "browser-regression-four-viewports",
     "create-commit",
-    "publish-pr"
+    "publish-pr",
+    "ci-failure-fixed-context-title-contract"
   ],
   "inProgress": "ci-verify",
   "pending": ["ci-verify", "merge-main", "post-merge-verify"],
-  "lastFailure": null,
+  "lastFailure": "PR 266 run 34008258183 failed because an existing test still expected the retired 专业初选 title; updated it to the scope-accurate 学校专业列表 contract and synced exact head.",
   "verifiedAt": "2026-09-06T00:00:00Z"
 }
