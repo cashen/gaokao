@@ -2,7 +2,7 @@
   "task": "major-path-human-journey-ui-audit-v001",
   "repository": "local checkout of gaokao-site",
   "branch": "fix/major-path-human-journey-continuity-v001",
-  "headSha": "186433b904dbf808e2a542f500bd558ba6c1a4e8",
+  "headSha": "fd53bdc7462402744464468d5dc4c31a2380325b",
   "baseSha": "2f36a067990c8a1a6fc2f19f9b10c27322730e71",
   "pr": 265,
   "completed": [
@@ -15,10 +15,11 @@
     "static-continuity-and-regression-tests",
     "remote-branch-and-draft-pr-created",
     "checkpoint-synced-to-pr",
-    "android-background-verifier-fix-local"
+    "android-background-verifier-fix-local",
+    "android-background-verifier-fix-synced"
   ],
-  "inProgress": "sync-android-background-verifier-fix-to-pr",
+  "inProgress": "wait-for-pr-ci-preview-and-browser-journeys",
   "pending": ["ci-preview-production", "merge-main"],
-  "lastFailure": "PR CI run 34005610810 failed because the Android background verifier still expected major-path v0.05/app.v005; local verifier now targets v0.06/app.v006 and passes",
-  "verifiedAt": "2026-09-06T02:15:00Z"
+  "lastFailure": "Previous PR CI run 34005610810 failed on stale major-path v0.05/app.v005 expectation; verifier fix is now on remote head fd53bdc and local checks pass. New CI is required.",
+  "verifiedAt": "2026-09-06T02:18:00Z"
 }
