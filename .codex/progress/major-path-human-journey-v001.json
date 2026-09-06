@@ -2,7 +2,7 @@
   "task": "major-path-human-journey-ui-audit-v001",
   "repository": "local checkout of gaokao-site",
   "branch": "fix/major-path-human-journey-continuity-v001",
-  "headSha": "754526e0e118481c8a48c4f1754963a42d992014",
+  "headSha": "8ed3acfa11a4692875885e0d2091104f94aaca3d",
   "baseSha": "2f36a067990c8a1a6fc2f19f9b10c27322730e71",
   "pr": 265,
   "completed": [
@@ -13,7 +13,8 @@
     "plan-written",
     "source-return-context-isolation-implementation",
     "static-continuity-and-regression-tests",
-    "remote-branch-and-draft-pr-created"
+    "remote-branch-and-draft-pr-created",
+    "checkpoint-synced-to-pr"
   ],
   "inProgress": "wait-for-pr-ci-preview-and-browser-journeys",
   "pending": ["ci-preview-production", "merge-main"],
