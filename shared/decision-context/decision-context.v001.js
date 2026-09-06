@@ -110,6 +110,9 @@ export function validateDecisionContext(input = {}) {
     track: clean(raw.track, 60),
     score: finiteNumber(raw.score, 0, 1000),
     rank: finiteNumber(raw.rank, 1, 100000000),
+    resultMode: clean(raw.resultMode, 40),
+    returnAnchor: clean(raw.returnAnchor, 100),
+    returnSnapshotKey: clean(raw.returnSnapshotKey, 80),
     regionKeys: cleanArray(raw.regionKeys, item => clean(item, 50), 8),
     regionLabel: clean(raw.regionLabel, 100),
     school: clean(raw.school),
@@ -146,6 +149,8 @@ export function contextKey(input = {}) {
     raw.track || '',
     raw.score ?? '',
     raw.rank ?? '',
+    raw.resultMode || '',
+    raw.returnAnchor || '',
     raw.regionLabel || '',
     raw.schoolCode || raw.school || '',
     raw.majorCode || raw.major || '',
@@ -231,10 +236,17 @@ export function summarizeDecisionContext(context = null, { surface = '' } = {}) 
         : '';
   const lines = [location, subject, position, project].filter(Boolean);
   const presentationSurface = surface || normalized.sourceSurface;
+  const title = normalized.sourceSurface === 'ln-rank'
+    ? '来自刚才的专业初选'
+    : normalized.sourceSurface === 'major-path'
+      ? '来自刚才的专业升学地图'
+      : normalized.sourceSurface === 'tongxue'
+        ? '来自刚才的同学体验'
+        : '你刚才带着这些条件过来';
   const note = presentationSurface === 'tongxue'
     ? '同学你好：一次查看一个具体专业'
     : presentationSurface === 'ln-rank'
       ? '来自专业初选：当前支持多个已确认专业'
       : '本轮只读上下文，不自动修改家庭方案';
-  return Object.freeze({ title: '你刚才带着这些条件过来', lines, note });
+  return Object.freeze({ title, lines, note });
 }

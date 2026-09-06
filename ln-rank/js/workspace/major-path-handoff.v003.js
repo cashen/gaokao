@@ -1,6 +1,7 @@
 import { state } from '../state/app-state.v3963_1.js?v=3963_1';
 import { resolveMajorUnderstanding } from '../knowledge/major-understanding-resolver.js?v=3949_0';
 import { createDecisionContext } from '../../../shared/decision-context/decision-context.v001.js';
+import { captureCurrentReturnSnapshot } from '../../../shared/decision-context/return-snapshot.v001.js';
 import { scrollToExplicitTarget } from './scroll-policy.v3961_0.js?v=3961_0';
 import {
   MAJOR_PATH_NAVIGATION_META,
@@ -51,7 +52,31 @@ function concreteMajorFromRendered({ code = '', name = '' } = {}) {
 }
 
 function currentReturnTarget() {
-  return `${location.pathname}${location.search}${location.hash}`;
+  const url = new URL(location.href);
+  if (!url.hash) {
+    url.hash = state.resultMode === 'school-all'
+      ? 'schoolAllResultsPanel'
+      : state.resultMode === 'major-all'
+        ? 'majorAllResultsPanel'
+        : 'resultsPanel';
+  }
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function rememberBeforeNavigate(link, context, anchorId = 'resultsPanel', recordKey = '') {
+  if (!link || !context?.contextId || link.dataset.returnSnapshotBound === '1') return;
+  link.dataset.returnSnapshotBound = '1';
+  link.addEventListener('click', () => {
+    captureCurrentReturnSnapshot({
+      contextId: context.contextId,
+      returnTo: context.returnTo,
+      sourceSurface: context.sourceSurface,
+      resultMode: context.resultMode,
+      anchorId: context.returnAnchor || anchorId,
+      recordKey,
+      focusId: context.returnAnchor || anchorId
+    });
+  }, { passive: true });
 }
 
 function makeDecisionContext(target, {
@@ -67,6 +92,8 @@ function makeDecisionContext(target, {
     sourceSurface: 'ln-rank',
     sourceAction,
     returnTo: currentReturnTarget(),
+    resultMode: state.resultMode || 'score-bands',
+    returnAnchor: state.resultMode === 'school-all' ? 'schoolAllResultsPanel' : state.resultMode === 'major-all' ? 'majorAllResultsPanel' : 'resultsPanel',
     province: '辽宁',
     admissionYear: 2026,
     track: '物理类',
@@ -85,6 +112,7 @@ function makeDecisionContext(target, {
 }
 
 function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compact = false } = {}) {
+  const decisionContext = makeDecisionContext(target, { sourceAction:'view_major_path', sourceKey, sourceMajor, school });
   const href = buildMajorPathHref({
     majorCode: target.code,
     canonicalName: target.name,
@@ -93,7 +121,7 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
     sourceMajor,
     school,
     returnTo: currentReturnTarget(),
-    decisionContext: makeDecisionContext(target, { sourceAction:'view_major_path', sourceKey, sourceMajor, school })
+    decisionContext
   });
   if (!href) return null;
   const link = document.createElement('a');
@@ -107,17 +135,19 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   link.innerHTML = compact
     ? `<span>专业升学路径</span><small>了解这个专业的关系与读研方向</small><b aria-hidden="true">→</b>`
     : `<span class="major-path-entry__brand">专业升学路径</span><span class="major-path-entry__text"><strong>了解这个专业</strong><small>专业关系 · 相邻专业 · 读研方向</small></span><b class="major-path-entry__arrow" aria-hidden="true">→</b>`;
+  rememberBeforeNavigate(link, decisionContext, 'resultsPanel', sourceKey);
   return link;
 }
 
 function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', school = '', compact = false } = {}) {
+  const decisionContext = makeDecisionContext(target, { sourceAction:'view_student_voice', sourceKey, sourceMajor, school });
   const href = buildStudentVoiceMajorHref({
     majorCode:target.code,
     canonicalName:target.name,
     sourceKey,
     context,
     returnTo:currentReturnTarget(),
-    decisionContext: makeDecisionContext(target, { sourceAction:'view_student_voice', sourceKey, sourceMajor, school })
+    decisionContext
   });
   if (!href) return null;
   const link = document.createElement('a');
@@ -132,6 +162,7 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
   link.innerHTML = compact
     ? `<span>大学生说专业</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
     : `<span class="student-voice-entry__brand">大学生说专业</span><span class="student-voice-entry__text"><strong>了解专业体验</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
+  rememberBeforeNavigate(link, decisionContext, 'resultsPanel', sourceKey);
   return link;
 }
 

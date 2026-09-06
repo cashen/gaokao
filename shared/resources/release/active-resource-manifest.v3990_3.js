@@ -21,6 +21,11 @@ export const ACTIVE_RESOURCE_MANIFEST = Object.freeze({
     releaseFooterStyles: entry(CURRENT_RELEASE.resourceOwners.releaseFooterStyles, 'current-generation'),
     releaseLog: CURRENT_RELEASE.resourceOwners.releaseLog
   }),
+  crossModuleContextHandoff: entry(CURRENT_RELEASE.resourceOwners.returnSnapshot, 'current-generation', {
+    featureVersion: CURRENT_RELEASE.crossModuleContextHandoffVersion,
+    revision: CURRENT_RELEASE.crossModuleContextHandoffRevision,
+    contract: 'same-origin-bounded-readonly-context-and-return-snapshot-v001'
+  }),
   browserCompatibilityAudit: entry(CURRENT_RELEASE.resourceOwners.browserCompatibilityAudit, 'current-generation', {
     featureVersion: CURRENT_RELEASE.browserCompatibilityAuditVersion,
     revision: CURRENT_RELEASE.browserCompatibilityAuditRevision,

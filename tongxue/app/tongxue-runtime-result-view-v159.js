@@ -60,7 +60,7 @@ export function createTongxueResultView(ui, state, searchView) {
     if (context.returnTo) {
       const link = document.createElement('a');
       link.href = context.returnTo;
-      link.textContent = '返回原查询';
+      link.textContent = '返回刚才的查询';
       link.className = 'decision-context-return';
       strip.append(link);
     }
