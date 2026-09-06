@@ -1,5 +1,6 @@
 import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_3.js?v=3990_3&r=r046-ln-rank-dynamic-focus-scroll';
 import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0&r=r046-ln-rank-dynamic-focus-scroll';
+import { readReturnSnapshotForLocation, restoreReturnSnapshot, forgetReturnSnapshot } from '../../shared/decision-context/return-snapshot.v001.js';
 
 const RUNTIME_VERSION = 'resource-execution-v3990_3';
 const CONTROL_SELECTOR = '[data-runtime-control]';
@@ -10,6 +11,27 @@ const MIN_SCORE_HANDOFF_TARGETS = Object.freeze({
   'school-all': 'schoolAllResultsPanel',
   'major-all': 'majorAllResultsPanel'
 });
+
+function mountReturnSnapshotRestoration() {
+  const snapshot = readReturnSnapshotForLocation(location);
+  if (!snapshot) return null;
+  let attempts = 0;
+  let restored = false;
+  let userMoved = false;
+  const markUserMoved = () => { userMoved = true; };
+  ['wheel', 'touchmove', 'pointerdown'].forEach(type => globalThis.addEventListener(type, markUserMoved, { passive: true, capture: true, once: true }));
+  const tryRestore = () => {
+    if (restored || userMoved || attempts++ > 8) return;
+    const target = snapshot.anchorId && byId(snapshot.anchorId);
+    if (!target && !snapshot.focusId) return;
+    restored = restoreReturnSnapshot(snapshot, { documentLike: document, windowLike: globalThis });
+    if (restored) forgetReturnSnapshot(snapshot.contextId);
+    else requestAnimationFrame(() => requestAnimationFrame(tryRestore));
+  };
+  ['gaokao:workspace-state', 'gaokao:school-result-render', 'gaokao:major-result-render', 'gaokao:runtime-state'].forEach(type => document.addEventListener(type, tryRestore));
+  requestAnimationFrame(() => requestAnimationFrame(tryRestore));
+  return Object.freeze({ contextId: snapshot.contextId, tryRestore });
+}
 
 function mountMinScoreHandoff() {
   const focus = new URLSearchParams(location.search).get('focus');
@@ -115,6 +137,7 @@ try {
   const runtime = await import('./app-runtime.v3990_3.js?v=3990_3-nav003&r=r046-ln-rank-dynamic-focus-scroll');
   await runtime.startLnRankRuntime();
   mountMajorPathHandoff();
+  mountReturnSnapshotRestoration();
   currentState = 'ready';
   unlockRuntimeControls();
   setRuntimeState('ready');

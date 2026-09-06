@@ -1,0 +1,31 @@
+{
+  "task": "unified-cross-module-context-handoff-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/unified-cross-module-context-v001",
+  "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
+  "headSha": null,
+  "pr": null,
+  "completed": [
+    "live-main-reconciled",
+    "required-skills-read",
+    "isolated-branch-created",
+    "plan-written",
+    "shared-context-fields-added",
+    "return-snapshot-owner-added",
+    "school-and-major-handoff-wiring-added",
+    "source-contract-tests",
+    "browser-local-tests",
+    "offline-and-failure-tests"
+  ],
+  "inProgress": "commit-and-push",
+  "pending": [
+    "commit-and-push",
+    "draft-pr",
+    "pr-ci-preview",
+    "ready-same-sha",
+    "merge-main",
+    "post-merge-production-recheck"
+  ],
+  "lastFailure": "production-resource-graph custom safe pagination returned HTTP 0 during external audit; standard/main endpoints healthy; retry after PR checks",
+  "verifiedAt": "2026-09-05T23:57:52.828676+00:00"
+}

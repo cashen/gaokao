@@ -135,6 +135,10 @@ The consistency verifier must prove that the browser import graph, release contr
 
 `functions/_lib/ai/intent-interpreter.js` remains in the repository, but the architecture audit verifies that current production roots do not import it. Do not reactivate it as a second intent owner. Current AIPLuS atomic intent/task behavior is governed by the current command/task contracts; parent-decision composition is owned by the turn orchestrator and must not fork that atomic parser.
 
+### Cross-module query handoff
+
+`shared/decision-context/decision-context.v001.js` remains the single read-only context owner for `ln-rank`, Tongxue and `major-path`. `shared/decision-context/return-snapshot.v001.js` stores only a bounded, short-lived same-tab viewport snapshot keyed by `contextId`; it never owns admission facts, filters or the family plan. Cross-module links must use the existing navigation builders and carry canonical school entity IDs or major codes. A return must restore the URL-owned query first, then perform at most one anchor/scroll restoration after the destination runtime is ready.
+
 ### Cloudflare production verifier compatibility
 
 **KNOWN-COMPAT:CLOUDFLARE-VERIFIER-MAP**

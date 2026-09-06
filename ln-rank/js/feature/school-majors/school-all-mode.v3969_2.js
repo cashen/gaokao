@@ -9,6 +9,8 @@ import {
 } from '../selection-pool/index.v3964_0.js?v=3964_0';
 import { compactHistoryScoreText, renderCurrentScoreRank, renderThreeYearEvidenceDetail } from '../major-pool/history-score-render.v3967_0.js?v=3967_0';
 import { scoreQueryValue } from '../../query/human-query-input-protocol.v001.js?v=3990_2';
+import { createDecisionContext, decodeDecisionContext } from '../../../../shared/decision-context/decision-context.v001.js';
+import { captureCurrentReturnSnapshot } from '../../../../shared/decision-context/return-snapshot.v001.js';
 
 const MODE_SCHOOL = 'school-all';
 const API_PATH = '/api/school-majors';
@@ -68,6 +70,35 @@ function currentSchoolInput() {
 
 function currentMajorKeyword() {
   return liveFieldValue('majorKeyword', state.filters.majorKeyword);
+}
+
+function currentReturnTarget() {
+  const url = new URL(location.href);
+  url.hash = 'schoolAllResultsPanel';
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function schoolDecisionContext(record = null) {
+  const entity = record?.schoolEntity || {};
+  const school = String(entity.displayName || record?.school || state.schoolSelection?.displayName || currentSchoolInput()).trim();
+  const context = createDecisionContext({
+    sourceSurface: 'ln-rank',
+    sourceAction: 'view_student_voice',
+    returnTo: currentReturnTarget(),
+    resultMode: MODE_SCHOOL,
+    returnAnchor: 'schoolAllResultsPanel',
+    province: '辽宁',
+    admissionYear: 2026,
+    track: '物理类',
+    score: currentScore(),
+    regionLabel: String(state.filters?.region || '').trim(),
+    projectMode: String(state.filters?.projectMode || 'all').trim(),
+    school,
+    schoolCode: String(record?.schoolCode2026 || '').trim(),
+    candidateIds: [record ? recordKey(record) : ''].filter(Boolean),
+    evidenceRefs: [{ kind: 'ln-rank-school-record', label: '当前学校专业记录', ref: record ? recordKey(record) : '' }]
+  });
+  return context;
 }
 
 function currentScore() {
@@ -153,7 +184,11 @@ function renderRecord(record) {
   const verify = reviewPoints(record);
   const tongxueHref = buildTongxueSchoolHref({
     school: record.school,
-    entityId: record.schoolEntity?.entityId || state.schoolSelection?.entityId || ''
+    entityId: record.schoolEntity?.entityId || state.schoolSelection?.entityId || '',
+    returnTo: currentReturnTarget(),
+    resultMode: MODE_SCHOOL,
+    returnAnchor: 'schoolAllResultsPanel',
+    decisionContext: schoolDecisionContext(record)
   });
   const why = record.matchReason
     ? `<p class="school-major-detail-wide"><b>为什么出现</b><span>${escapeHtml(record.matchReason)}</span></p>`
@@ -498,6 +533,24 @@ function chooseCandidate(name, candidate = null) {
 
 function bindEvents() {
   byId('schoolAllContent')?.addEventListener('click', event => {
+    const navigation = event.target.closest('a[href]');
+    if (navigation && /\/tongxue\//.test(navigation.getAttribute('href') || '')) {
+      let contextId = '';
+      try {
+        contextId = decodeDecisionContext(new URL(navigation.href).searchParams.get('dc'))?.contextId || '';
+      } catch {}
+      if (contextId) {
+        captureCurrentReturnSnapshot({
+          contextId,
+          returnTo: currentReturnTarget(),
+          sourceSurface: 'ln-rank',
+          resultMode: MODE_SCHOOL,
+          anchorId: 'schoolAllResultsPanel',
+          recordKey: navigation.closest('[data-school-record]')?.dataset.schoolRecord || '',
+          focusId: 'schoolAllResultsPanel'
+        });
+      }
+    }
     const candidate = event.target.closest('[data-school-candidate]');
     if (candidate) {
       event.preventDefault();

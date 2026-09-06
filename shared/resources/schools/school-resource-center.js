@@ -4,6 +4,11 @@ import {
   publicSchoolEntity,
   isEntitySourceAvailable
 } from './school-identity-center.js';
+import {
+  DECISION_CONTEXT_QUERY_KEY,
+  encodeDecisionContext,
+  validateDecisionContext
+} from '../../decision-context/decision-context.v001.js';
 
 export const SCHOOL_RESOURCE_PATHS = Object.freeze({
   tongxueDirectoryModule: '/tongxue/data/school-name-resolver-v150.js',
@@ -113,12 +118,25 @@ function canonicalSchoolEntity(school, entityId = '') {
   return requestedEntity || findSchoolEntityByName(String(school || '').trim()) || null;
 }
 
-export function buildTongxueSchoolHref({ school, entityId = '' } = {}) {
+export function buildTongxueSchoolHref({
+  school,
+  entityId = '',
+  returnTo = '',
+  decisionContext = null,
+  resultMode = '',
+  returnAnchor = ''
+} = {}) {
   const name = String(school || '').trim();
   if (!name) return '';
   const entity = canonicalSchoolEntity(name, entityId);
   const params = new URLSearchParams({ school: entity?.displayName || name });
   if (entity?.entityId) params.set('entity', entity.entityId);
+  if (returnTo) params.set('returnTo', String(returnTo).trim());
+  if (resultMode) params.set('resultMode', String(resultMode).trim());
+  if (returnAnchor) params.set('returnAnchor', String(returnAnchor).trim());
+  const context = decisionContext ? validateDecisionContext(decisionContext) : null;
+  const encoded = context ? encodeDecisionContext(context) : '';
+  if (encoded) params.set(DECISION_CONTEXT_QUERY_KEY, encoded);
   return `/tongxue/?${params.toString()}`;
 }
 

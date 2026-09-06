@@ -4,8 +4,11 @@ import {
 } from '../../../shared/resources/schools/school-resource-center.js?v=3961_0';
 import {
   FAMILY_LANGUAGE,
+  readFamilyCandidateScore,
   tongxueEntryCopy
 } from '../domain/family-decision-contract.v3955_0.js?v=3961_0';
+import { createDecisionContext } from '../../../shared/decision-context/decision-context.v001.js';
+import { captureCurrentReturnSnapshot } from '../../../shared/decision-context/return-snapshot.v001.js';
 
 function parseNumber(value) {
   const matched = String(value || '').replace(/[，,\s]/g, '').match(/-?\d+(?:\.\d+)?/);
@@ -24,6 +27,12 @@ function numberAfter(text, pattern) {
 
 function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function currentReturnTarget() {
+  const url = new URL(location.href);
+  if (!url.hash) url.hash = 'resultsPanel';
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function findText(root, selector, includes) {
@@ -140,13 +149,44 @@ function ensureTongxueEntry(card) {
   if (card.querySelector('.tongxue-card-entry')) return;
   const target = resolveCardSchoolResource(schoolCandidates(card));
   if (!target) return;
-  const href = buildTongxueSchoolHref(target);
+  const decisionContext = createDecisionContext({
+    sourceSurface: 'ln-rank',
+    sourceAction: 'view_student_voice',
+    returnTo: currentReturnTarget(),
+    resultMode: 'score-bands',
+    returnAnchor: 'resultsPanel',
+    province: '辽宁',
+    admissionYear: 2026,
+    track: '物理类',
+    score: readFamilyCandidateScore(),
+    school: target.school,
+    schoolCode: target.entityId,
+    evidenceRefs: [{ kind: 'ln-rank-result', label: '当前学校结果', ref: target.entityId }]
+  });
+  const href = buildTongxueSchoolHref({
+    ...target,
+    returnTo: decisionContext.returnTo,
+    resultMode: decisionContext.resultMode,
+    returnAnchor: decisionContext.returnAnchor,
+    decisionContext
+  });
   if (!href) return;
   const link = document.createElement('a');
   link.className = 'tongxue-card-entry';
   link.href = href;
   link.setAttribute('aria-label', `查看${target.school}的大学生怎么说`);
   link.title = '这里是学生分享，不代表学校官方结论。';
+  link.addEventListener('click', () => {
+    captureCurrentReturnSnapshot({
+      contextId: decisionContext.contextId,
+      returnTo: decisionContext.returnTo,
+      sourceSurface: decisionContext.sourceSurface,
+      resultMode: decisionContext.resultMode,
+      anchorId: decisionContext.returnAnchor,
+      focusId: decisionContext.returnAnchor,
+      recordKey: target.entityId
+    });
+  }, { passive: true });
   link.innerHTML = `<span class="tongxue-card-entry__brand">大学生说学校</span><span class="tongxue-card-entry__text">看看这所学校的大学生怎么说</span><span class="tongxue-card-entry__arrow" aria-hidden="true">→</span>`;
   const hint = card.querySelector('.pool-add-hint');
   if (hint) hint.before(link);

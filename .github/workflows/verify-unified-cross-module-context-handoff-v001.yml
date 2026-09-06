@@ -1,0 +1,101 @@
+name: Verify unified cross-module context handoff v001
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/decision-context/**'
+      - 'shared/resources/schools/school-resource-center.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - 'ln-rank/js/app.v3990_3.js'
+      - 'ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'
+      - 'ln-rank/js/workspace/family-card-presenter.v3967_0.js'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'major-path/student-voice.v001.js'
+      - 'tongxue/app/tongxue-runtime-result-view-v159.js'
+      - 'docs/plans/unified-cross-module-context-handoff-v001.md'
+      - 'docs/status/unified-cross-module-context-handoff-v001-status.json'
+      - 'tools/test-unified-cross-module-context-handoff-v001.mjs'
+      - 'tools/verify-unified-cross-module-context-handoff-v001.mjs'
+      - 'tools/browser-unified-cross-module-context-handoff-v001.mjs'
+      - '.github/workflows/verify-unified-cross-module-context-handoff-v001.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/decision-context/**'
+      - 'shared/resources/schools/school-resource-center.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/active-resource-manifest.v3990_3.js'
+      - 'ln-rank/js/app.v3990_3.js'
+      - 'ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'
+      - 'ln-rank/js/workspace/family-card-presenter.v3967_0.js'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'major-path/student-voice.v001.js'
+      - 'tongxue/app/tongxue-runtime-result-view-v159.js'
+      - 'docs/plans/unified-cross-module-context-handoff-v001.md'
+      - 'docs/status/unified-cross-module-context-handoff-v001-status.json'
+      - 'tools/test-unified-cross-module-context-handoff-v001.mjs'
+      - 'tools/verify-unified-cross-module-context-handoff-v001.mjs'
+      - 'tools/browser-unified-cross-module-context-handoff-v001.mjs'
+      - '.github/workflows/verify-unified-cross-module-context-handoff-v001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: unified-cross-module-context-handoff-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check changed JavaScript syntax
+        run: |
+          set -euo pipefail
+          for file in \
+            shared/decision-context/return-snapshot.v001.js \
+            shared/decision-context/decision-context.v001.js \
+            shared/resources/schools/school-resource-center.js \
+            ln-rank/js/app.v3990_3.js \
+            ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js \
+            ln-rank/js/workspace/family-card-presenter.v3967_0.js \
+            ln-rank/js/workspace/major-path-handoff.v003.js \
+            major-path/student-voice.v001.js \
+            tongxue/app/tongxue-runtime-result-view-v159.js \
+            tools/test-unified-cross-module-context-handoff-v001.mjs \
+            tools/verify-unified-cross-module-context-handoff-v001.mjs \
+            tools/browser-unified-cross-module-context-handoff-v001.mjs; do
+            node --check "$file"
+          done
+      - name: Verify cross-module context and bounded return snapshot
+        run: |
+          set -euo pipefail
+          node tools/test-unified-cross-module-context-handoff-v001.mjs
+          node tools/verify-unified-cross-module-context-handoff-v001.mjs
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
+      - name: Start local source preview
+        run: |
+          python3 -m http.server 8766 --directory . >/tmp/unified-context-http.log 2>&1 &
+          echo "$!" > /tmp/unified-context-http.pid
+      - name: Verify browser handoff and offline snapshot recovery
+        env:
+          UNIFIED_CONTEXT_BASE: http://127.0.0.1:8766
+        run: node tools/browser-unified-cross-module-context-handoff-v001.mjs
+      - name: Stop local source preview
+        if: always()
+        run: |
+          if [ -f /tmp/unified-context-http.pid ]; then
+            kill "$(cat /tmp/unified-context-http.pid)" || true
+          fi

@@ -2,11 +2,14 @@ import {
   STUDENT_VOICE_NAVIGATION_VERSION,
   buildStudentVoiceMajorHref
 } from '../shared/resources/experience/student-voice-navigation.v001.js';
+import { captureCurrentReturnSnapshot } from '../shared/decision-context/return-snapshot.v001.js';
 
 export const MAJOR_PATH_STUDENT_VOICE_VERSION = 'major-path-student-voice-v0.01';
 
 function pageReturnTarget() {
-  return `${location.pathname}${location.search}${location.hash}`;
+  const url = new URL(location.href);
+  if (!url.hash) url.hash = 'result';
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function node(tag, className = '', text = '') {
@@ -23,7 +26,11 @@ export function mountMajorPathStudentVoice({ shell, major, anchor, sourceContext
   const href = buildStudentVoiceMajorHref({
     majorCode:major.code,
     canonicalName:major.name,
-    returnTo:pageReturnTarget()
+    context: sourceContext.context || 'score',
+    sourceKey: sourceContext.sourceKey || '',
+    school: sourceContext.school || '',
+    returnTo:pageReturnTarget(),
+    decisionContext: sourceContext.decisionContext || null
   });
   if (!href) return null;
 
@@ -41,6 +48,18 @@ export function mountMajorPathStudentVoice({ shell, major, anchor, sourceContext
   const link = node('a', 'major-background-link', '看大学生怎么说 →');
   link.href = href;
   link.dataset.studentVoiceMajorLink = major.code;
+  link.addEventListener('click', () => {
+    const contextId = sourceContext.decisionContext?.contextId;
+    if (!contextId) return;
+    captureCurrentReturnSnapshot({
+      contextId,
+      returnTo: pageReturnTarget(),
+      sourceSurface: sourceContext.decisionContext?.sourceSurface || 'major-path',
+      resultMode: sourceContext.decisionContext?.resultMode || '',
+      anchorId: 'result',
+      focusId: 'result'
+    });
+  }, { passive: true });
   link.title = '跨学校专业体验，不是就业率、薪资统计或专业强弱结论。';
   actions.append(link);
   section.append(actions);
