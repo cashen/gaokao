@@ -7,7 +7,7 @@ const selection = read('ln-rank/index.html');
 const local = read('ln-rank/local-mainline.html');
 const all211 = read('ln-rank/211-mainline.html');
 const majorPath = read('major-path/index.html');
-const majorContext = read('major-path/background-context.v001.js');
+const majorContext = read('major-path/background-context.v002.js');
 const directContext = read('ln-rank/js/academic-background/background-context-direct.v001.js');
 const canonicalizer = read('ln-rank/js/navigation/background-link-canonicalizer.v001.js');
 const release = read('shared/resources/release/current-release.js');
@@ -20,7 +20,7 @@ assert.match(local, /background-context-direct\.v001\.js\?v=001_0&r=r028-android
 assert.match(all211, /background-context-direct\.v001\.js\?v=001_0&r=r028-android-links/);
 assert.match(all211, /href="\/ln-rank\/local-mainline"/);
 assert.match(all211, /href="\/ln-rank\/211-mainline"/);
-assert.match(majorPath, /app\.v005\.js\?v=005_0&r=r042-direct-min-score-handoff/);
+assert.match(majorPath, /app\.v006\.js\?v=006_0&r=r050-human-journey-continuity/);
 assert.match(majorContext, /academic-background-navigation\.v002\.js\?v=002_0&r=r028-android-links/);
 assert.match(directContext, /academic-background-navigation\.v002\.js\?v=002_0&r=r028-android-links/);
 assert.match(canonicalizer, /\/ln-rank\/local-mainline\.html': '\/ln-rank\/local-mainline'/);

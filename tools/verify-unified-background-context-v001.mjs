@@ -187,13 +187,13 @@ assert(claims.every(claim => claim.subject.includes(one211.schoolIdentity || one
 
 // Entrypoints and owners: files existing is insufficient; active HTML/runtime must actually load/call them.
 const majorHtml = read('major-path/index.html');
-const majorApp = read('major-path/app.v004.js');
+const majorApp = read('major-path/app.v006.js');
 const localHtml = read('ln-rank/local-mainline.html');
 const all211Html = read('ln-rank/211-mainline.html');
 const directAdapter = read('ln-rank/js/academic-background/background-context-direct.v001.js');
 const handoff = read('ln-rank/js/workspace/major-path-handoff.v003.js');
 assert(majorHtml.includes('/major-path/background-context.v001.css?v=001_0'));
-assert(majorApp.includes("from './background-context.v001.js'"));
+assert(majorApp.includes("from './background-context.v002.js'"));
 assert(majorApp.includes('mountMajorPathBackgroundContext({ shell, major, focus, sourceContext'));
 assert(localHtml.includes('/ln-rank/js/academic-background/background-context-direct.v001.js?v=001_0'));
 assert(all211Html.includes('/ln-rank/js/academic-background/background-context-direct.v001.js?v=001_0'));

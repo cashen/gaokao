@@ -48,7 +48,7 @@ jobs:
           node --check shared/resources/admissions/min-score-navigation.v001.js
           node --check shared/resources/schools/school-resource-center.js
           node --check shared/resources/majors/undergrad-graduate-pathway-view.v001.js
-          node --check major-path/app.v005.js
+          node --check major-path/app.v006.js
           node --check tongxue/app/tongxue-runtime-result-view-v159.js
           node --check ln-rank/js/feature/major-all/major-all-mode.v001.js
           node --check ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js

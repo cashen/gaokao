@@ -51,7 +51,7 @@ assert.equal(sanitizeMinScoreReturnTarget('/tongxue/?school=测试大学'), '/to
 assert.equal(buildMinScoreEntryModel({ kind: 'major', majorCode: '080601' }).label, '查这个专业在辽宁各校的最低分');
 assert.equal(buildMinScoreEntryModel({ kind: 'school', school: '测试大学' }).label, '查这所学校在辽宁各专业的最低分');
 
-const majorPath = read('major-path/app.v005.js');
+const majorPath = read('major-path/app.v006.js');
 const majorPathView = read('shared/resources/majors/undergrad-graduate-pathway-view.v001.js');
 const tongxue = read('tongxue/app/tongxue-runtime-result-view-v159.js');
 const majorAll = read('ln-rank/js/feature/major-all/major-all-mode.v001.js');

@@ -102,6 +102,8 @@ export const CURRENT_RELEASE = Object.freeze({
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
   tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v001',
   tongxueHumanJourneyUiRevision: 'r049-tongxue-human-journey-ui',
+  majorPathHumanJourneyVersion: 'major-path-human-journey-v001',
+  majorPathHumanJourneyRevision: 'r050-major-path-human-journey-continuity',
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v002',
   lnRankHumanQueryInputRevision: 'r032-input-clear-state',
   lnRankCardEntryVersion: 'ln-rank-three-card-entries-v005',
@@ -260,4 +262,3 @@ export const CURRENT_RELEASE = Object.freeze({
 
 export function getCurrentRelease() { return CURRENT_RELEASE; }
 export function currentAssetQuery() { return CURRENT_RELEASE.assetVersion; }
-

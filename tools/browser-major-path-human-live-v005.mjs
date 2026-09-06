@@ -44,7 +44,7 @@ async function direct(page,name,params){
       source:focus.querySelector('[data-major-path-source-boundary]')?.innerText||''
     };
   });
-  assert(state.version==='major-path-v0.05'&&state.core==='major-path-core-v0.05'&&state.human==='major-path-human-v0.05',`${MODE}/${name}: version boundary wrong`);
+  assert(state.version==='major-path-v0.06'&&state.core==='major-path-core-v0.06'&&state.human==='major-path-human-v0.06',`${MODE}/${name}: version boundary wrong`);
   assert(state.focusTop>=state.topbar-2&&state.focusTop<=state.topbar+40,`${MODE}/${name}: direct pathway landing wrong`);
   assert(state.graduateTop<state.viewport,`${MODE}/${name}: graduate route not in first direct viewport`);
   assert(state.explore===false&&state.evidence===false,`${MODE}/${name}: progressive disclosure opened by default`);

@@ -95,10 +95,10 @@ jobs:
           node --check tools/browser-tongxue-major-direct-v001.mjs
           node --check tools/audit-tongxue-major-pathway-v001.mjs
           node --check shared/resources/majors/undergrad-graduate-pathway-view.v001.js
-          node --check shared/resources/majors/major-path-navigation.v003.js
+          node --check shared/resources/majors/major-path-navigation.v004.js
           node --check tongxue/app/tongxue-runtime-controller-v159.js
           node --check tongxue/app/tongxue-runtime-result-view-v159.js
-          node --check major-path/app.v004.js
+          node --check major-path/app.v006.js
       - name: Readonly decision context contract
         run: node tools/verify-decision-context-v001.mjs
       - name: UEC deterministic contract
