@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "branch": "fix/unified-cross-module-context-v001",
   "baseSha": "c93ed2757e3dfe483ee17def3738fd8171d8a6af",
-  "headSha": null,
-  "pr": null,
+  "headSha": "462b4bf6272704e8f92801142d1c34429d6f344c",
+  "pr": 263,
   "completed": [
     "live-main-reconciled",
     "required-skills-read",
@@ -15,17 +15,17 @@
     "school-and-major-handoff-wiring-added",
     "source-contract-tests",
     "browser-local-tests",
-    "offline-and-failure-tests"
-  ],
-  "inProgress": "commit-and-push",
-  "pending": [
+    "offline-and-failure-tests",
     "commit-and-push",
-    "draft-pr",
+    "draft-pr"
+  ],
+  "inProgress": "pr-ci-preview",
+  "pending": [
     "pr-ci-preview",
     "ready-same-sha",
     "merge-main",
     "post-merge-production-recheck"
   ],
   "lastFailure": "production-resource-graph custom safe pagination returned HTTP 0 during external audit; standard/main endpoints healthy; retry after PR checks",
-  "verifiedAt": "2026-09-05T23:57:52.828676+00:00"
+  "verifiedAt": "2026-09-06T00:02:12.765577+00:00"
 }
