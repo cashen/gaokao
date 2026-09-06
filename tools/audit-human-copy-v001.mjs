@@ -52,7 +52,7 @@ for (const phrase of ['先看这两件事', '这些概括从哪来？', '几条�
   assert.ok(tongxueView.includes(phrase), `Tongxue human copy marker missing: ${phrase}`);
 }
 assert.match(tongxueHtml, /tongxue-runtime-result-view-v159\.js\?v=159-flow006/, 'Tongxue result view must use the new immutable copy identity');
-assert.match(tongxueHtml, /整理学生公开留言，帮你了解学习、生活和就业体验/, 'Tongxue landing copy must describe the user benefit, not the implementation');
+assert.match(tongxueHtml, /先选清楚你要了解的对象：一所学校，或一个具体本科专业在不同学校的学习体验/, 'Tongxue landing copy must describe the user benefit, not the implementation');
 
 const hardAssistantPhrases = [
   '作为AI', '作为 AI', '截至我的知识', '希望这能帮助你', '接下来我们将', '下面我们来看', '让我们先', '敲黑板', '划重点'

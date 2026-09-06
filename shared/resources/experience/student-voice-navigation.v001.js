@@ -5,12 +5,13 @@ import {
   validateDecisionContext
 } from '../../decision-context/decision-context.v001.js';
 
-export const STUDENT_VOICE_NAVIGATION_VERSION = 'student-voice-navigation-v0.01';
+export const STUDENT_VOICE_NAVIGATION_VERSION = 'student-voice-navigation-v0.02';
 export const STUDENT_VOICE_NAVIGATION_META = Object.freeze({
   version:STUDENT_VOICE_NAVIGATION_VERSION,
   targetPath:'/tongxue/',
   scope:'major',
-  maxUrlLength:1800
+  maxUrlLength:1800,
+  contextStates:Object.freeze(['available','partial','none'])
 });
 
 function clean(value = '') {
@@ -27,6 +28,11 @@ function cleanContext(value = '') {
   return text === 'school' ? 'school' : (text === 'score' ? 'score' : '');
 }
 
+function cleanSourceSurface(value = '') {
+  const surface = clean(value);
+  return ['ln-rank-score','ln-rank-school','ln-rank-major','tongxue-major','major-path','direct','share'].includes(surface) ? surface : '';
+}
+
 function cleanReturnTo(value = '') {
   const text = String(value || '').trim();
   if (!text.startsWith('/') || text.startsWith('//')) return '';
@@ -39,7 +45,7 @@ function cleanReturnTo(value = '') {
   }
 }
 
-export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', sourceKey='', context='', returnTo='', decisionContext=null } = {}) {
+export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', sourceKey='', context='', sourceSurface='', returnTo='', decisionContext=null } = {}) {
   const code = cleanCode(majorCode);
   const name = clean(canonicalName);
   if (!code || !name) return '';
@@ -50,23 +56,28 @@ export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', top
   if (key) params.set('sourceKey', key);
   const sourceContext = cleanContext(context);
   if (sourceContext) params.set('context', sourceContext);
+  const surface = cleanSourceSurface(sourceSurface);
+  if (surface) params.set('sourceSurface', surface);
   const returnTarget = cleanReturnTo(returnTo);
   if (returnTarget) params.set('returnTo', returnTarget);
   const normalizedContext = decisionContext ? validateDecisionContext(decisionContext) : null;
   const encodedContext = normalizedContext ? encodeDecisionContext(normalizedContext) : '';
+  let contextState = encodedContext ? 'available' : (returnTarget || surface ? 'partial' : 'none');
   if (encodedContext) {
     params.set(DECISION_CONTEXT_QUERY_KEY, encodedContext);
     if (`${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`.length > STUDENT_VOICE_NAVIGATION_META.maxUrlLength) {
       params.delete(DECISION_CONTEXT_QUERY_KEY);
+      contextState = 'partial';
     }
   }
+  params.set('contextState', contextState);
   return `${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`;
 }
 
 export function readStudentVoiceMajorContext(locationLike = globalThis.location) {
   const href = locationLike?.href || String(locationLike || '');
   let url;
-  try { url = new URL(href, 'https://same-origin.invalid'); } catch { return Object.freeze({ scope:'', majorCode:'', major:'', topic:'general', sourceKey:'', context:'', returnTo:'' }); }
+  try { url = new URL(href, 'https://same-origin.invalid'); } catch { return Object.freeze({ scope:'', majorCode:'', major:'', topic:'general', sourceKey:'', context:'', sourceSurface:'', contextState:'none', returnTo:'' }); }
   const scope = url.searchParams.get('scope') === 'major' ? 'major' : '';
   const decisionContext = decodeDecisionContext(url.searchParams.get(DECISION_CONTEXT_QUERY_KEY));
   return Object.freeze({
@@ -76,6 +87,8 @@ export function readStudentVoiceMajorContext(locationLike = globalThis.location)
     topic:scope && /^[a-z_]{1,40}$/.test(clean(url.searchParams.get('topic'))) ? clean(url.searchParams.get('topic')) : 'general',
     sourceKey:scope ? clean(url.searchParams.get('sourceKey')).slice(0, 160) : '',
     context:scope ? cleanContext(url.searchParams.get('context')) : '',
+    sourceSurface:scope ? cleanSourceSurface(url.searchParams.get('sourceSurface')) : '',
+    contextState:scope ? (['available','partial','none'].includes(url.searchParams.get('contextState')) ? url.searchParams.get('contextState') : (decisionContext ? 'available' : 'none')) : 'none',
     returnTo:scope ? cleanReturnTo(url.searchParams.get('returnTo')) : '',
     decisionContext:scope ? decisionContext : null
   });

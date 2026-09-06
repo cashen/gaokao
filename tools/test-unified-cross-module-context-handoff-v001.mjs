@@ -36,7 +36,7 @@ const roundTrip = decodeDecisionContext(encoded);
 assert.equal(roundTrip.contextId, context.contextId);
 assert.equal(roundTrip.resultMode, 'school-all');
 assert.equal(roundTrip.returnAnchor, 'schoolAllResultsPanel');
-assert.match(summarizeDecisionContext(roundTrip).title, /专业初选/);
+assert.match(summarizeDecisionContext(roundTrip).title, /学校专业列表/);
 
 const store = new Map();
 globalThis.sessionStorage = {

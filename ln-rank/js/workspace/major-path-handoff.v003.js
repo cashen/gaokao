@@ -6,7 +6,7 @@ import { scrollToExplicitTarget } from './scroll-policy.v3961_0.js?v=3961_0';
 import {
   MAJOR_PATH_NAVIGATION_META,
   buildMajorPathHref
-} from '../../../shared/resources/majors/major-path-navigation.v003.js?v=003_0';
+} from '../../../shared/resources/majors/major-path-navigation.v004.js?v=004_0';
 import {
   STUDENT_VOICE_NAVIGATION_META,
   buildStudentVoiceMajorHref
@@ -120,6 +120,7 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
     sourceKey,
     sourceMajor,
     school,
+    sourceSurface: context === 'school' ? 'ln-rank-school' : context === 'major' ? 'ln-rank-major' : 'ln-rank-score',
     returnTo: currentReturnTarget(),
     decisionContext
   });
@@ -130,6 +131,7 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   link.dataset.uiNavigation = 'major-path';
   link.dataset.uiNavigationTarget = href;
   link.dataset.majorPathEntry = target.code;
+  link.dataset.scopeGroup = 'major';
   link.dataset.majorPathSourceKey = sourceKey || '';
   link.setAttribute('aria-label', `了解${target.name}的专业关系和读研方向`);
   link.innerHTML = compact
@@ -146,6 +148,7 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
     canonicalName:target.name,
     sourceKey,
     context,
+    sourceSurface: context === 'school' ? 'ln-rank-school' : context === 'major' ? 'ln-rank-major' : 'ln-rank-score',
     returnTo:currentReturnTarget(),
     decisionContext
   });
@@ -157,11 +160,12 @@ function makeStudentVoiceEntry(target, { context, sourceKey, sourceMajor = '', s
   link.dataset.uiNavigationTarget = href;
   link.dataset.studentVoiceEntry = target.code;
   link.dataset.studentVoiceScope = 'major';
+  link.dataset.scopeGroup = 'major';
   link.setAttribute('aria-label', `查看不同学校学生对${target.name}的公开体验`);
-  link.title = '这里是跨学校专业体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
+  link.title = '这里是不同学校学生对同一专业的个人体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
   link.innerHTML = compact
-    ? `<span>大学生说专业</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
-    : `<span class="student-voice-entry__brand">大学生说专业</span><span class="student-voice-entry__text"><strong>了解专业体验</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
+    ? `<span>跨校学生留言</span><small>不同学校谈这个专业</small><b aria-hidden="true">→</b>`
+    : `<span class="student-voice-entry__brand">跨校学生留言</span><span class="student-voice-entry__text"><strong>不同学校学生谈这个专业</strong><small>不代表当前学校的专业体验</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
   rememberBeforeNavigate(link, decisionContext, 'resultsPanel', sourceKey);
   return link;
 }
@@ -170,11 +174,12 @@ function normalizeSchoolExperienceEntry(card) {
   const entry = card.querySelector('.tongxue-card-entry');
   if (!entry) return;
   entry.classList.add('tongxue-card-entry--compact');
+  entry.dataset.scopeGroup = 'school';
   const brand = entry.querySelector('.tongxue-card-entry__brand');
   const text = entry.querySelector('.tongxue-card-entry__text');
-  if (brand) brand.textContent = '大学生说学校';
-  if (text) text.textContent = '看看这所学校的大学生怎么说';
-  entry.setAttribute('aria-label', '查看这所学校的大学生怎么说');
+  if (brand) brand.textContent = '学生谈这所学校';
+  if (text) text.textContent = '看看学校整体的学习和生活体验';
+  entry.setAttribute('aria-label', '查看学生对这所学校的整体体验');
   entry.title = '这里是学生分享，不代表学校官方结论。';
 }
 

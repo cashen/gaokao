@@ -58,7 +58,7 @@ try {
     await page.waitForSelector('[data-decision-context-strip="readonly"]', {timeout:20000});
     const tongxueText = await page.locator('[data-decision-context-strip="readonly"]').textContent();
     assert.match(tongxueText,/580分/,`${testCase.name}: Tongxue lost score context`);
-    assert.match(tongxueText,/一次查看一个具体专业/,`${testCase.name}: Tongxue scope boundary missing`);
+    assert.match(tongxueText,/跨校同专业留言，不代表某一所学校/,`${testCase.name}: Tongxue scope boundary missing`);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.ok(overflow <= 1,`${testCase.name}: horizontal overflow ${overflow}`);

@@ -28,6 +28,7 @@ export function mountMajorPathStudentVoice({ shell, major, anchor, sourceContext
     canonicalName:major.name,
     context: sourceContext.context || 'score',
     sourceKey: sourceContext.sourceKey || '',
+    sourceSurface: sourceContext.decisionContext?.sourceSurface || 'major-path',
     school: sourceContext.school || '',
     returnTo:pageReturnTarget(),
     decisionContext: sourceContext.decisionContext || null
@@ -37,15 +38,15 @@ export function mountMajorPathStudentVoice({ shell, major, anchor, sourceContext
   const section = node('section', 'major-background-context major-student-voice-context');
   section.dataset.majorStudentVoice = major.code;
   const heading = node('div', 'major-background-heading');
-  heading.append(node('p', 'eyebrow', '再听听真正读过的人'));
-  heading.append(node('h3', '', `大学生实际读“${major.name}”时在说什么？`));
+  heading.append(node('p', 'eyebrow', '再看看学生留言'));
+  heading.append(node('h3', '', `不同学校的学生怎么说“${major.name}”？`));
   heading.append(node('p', '', sourceContext.school
     ? `下面是不同学校学生围绕这个专业的公开体验，不代表${sourceContext.school}的培养情况。`
     : '下面是不同学校学生围绕这个专业的公开体验，用来补充“学起来是什么感觉”，不替代国家目录和学校培养方案。'));
   section.append(heading);
 
   const actions = node('div', 'major-background-actions');
-  const link = node('a', 'major-background-link', '看大学生怎么说 →');
+  const link = node('a', 'major-background-link', '查看跨校同专业留言 →');
   link.href = href;
   link.dataset.studentVoiceMajorLink = major.code;
   link.addEventListener('click', () => {
@@ -60,7 +61,7 @@ export function mountMajorPathStudentVoice({ shell, major, anchor, sourceContext
       focusId: 'result'
     });
   }, { passive: true });
-  link.title = '跨学校专业体验，不是就业率、薪资统计或专业强弱结论。';
+  link.title = '这是不同学校学生对同一专业的个人体验，不代表当前学校。';
   actions.append(link);
   section.append(actions);
 

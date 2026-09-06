@@ -34,10 +34,10 @@ const [
   readdir('.')
 ]);
 
-requireText(page, '<title>同学你好 - 学校、专业，都可以问问同学怎么说</title>', '页面标题');
+requireText(page, '<title>同学你好 - 学生谈学校，也谈跨校专业</title>', '页面标题');
 requireText(page, './app/tongxue-runtime-v159-r3968.js?v=3968_0', '页面入口');
 forbidText(page, './app/tongxue-runtime-v159.js?v=159', '页面仍加载旧入口');
-requireText(page, '同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.3 · UI 修订 r049 · 查看同学你好更新记录', '页面版本');
+requireText(page, '同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.3 · UI 修订 r051 · 查看同学你好更新记录', '页面版本');
 requireText(page, 'tongxue-v159-single-runtime-owner-20260726', '页面构建标识');
 requireText(page, 'tongxue-logo-primary-v1.webp', '品牌 Logo');
 requireText(page, '<h1 class="sr-only">同学你好</h1>', '隐藏主标题');
@@ -45,7 +45,7 @@ requireText(page, '/tongxue/data/school-name-resolver-v150.js?v=150', 'resolver 
 requireText(page, '/tongxue/data/school-entities-v150.js?v=150', '实体导入映射');
 requireText(page, 'href="./changelog.html"', '更新记录链接');
 requireText(page, 'placeholder="输入学校、简称或地区"', '精简输入提示');
-requireText(page, '>看同学怎么说</button>', '查询按钮文案');
+requireText(page, '>查看学校留言</button>', '查询按钮文案');
 requireText(page, 'data-example="哈尔滨工业大学"', '真实学校快捷示例');
 requireText(page, 'data-example="深圳"', '深圳快捷示例');
 requireText(page, 'https://gaokao.powers.org.cn/tongxue/', 'canonical');
@@ -100,7 +100,7 @@ requireText(controller, "on(window, 'popstate'", '浏览器历史恢复');
 requireText(controller, 'activeQueryController', '请求中止所有权');
 requireText(controller, 'loadMoreController', '加载更多中止所有权');
 requireText(controller, "resolution.status === 'region'", '地域状态路径');
-requireText(controller, "ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说'", '按钮动态文案');
+requireText(controller, "ui.button.textContent = state.requestInFlight ? '正在查找' : (state.scope === 'major' ? '查看跨校专业留言' : '查看学校留言')", '按钮动态文案');
 if ((controller.match(/function bindEvents/g) || []).length !== 1) failures.push('事件绑定所有者不唯一');
 if ((controller.match(/ui\.button, 'click'/g) || []).length !== 1) failures.push('查询按钮重复绑定');
 if ((controller.match(/ui\.result, 'click'/g) || []).length !== 1) failures.push('结果节点重复绑定');
@@ -133,4 +133,3 @@ for (const forbidden of ['v1.6.0', '高频讨论信号', '报考前核验清单'
 
 console.log(`TONGXUE_DIRECTORY_RESULTS ${JSON.stringify({ failures })}`);
 if (failures.length) process.exitCode = 1;
-

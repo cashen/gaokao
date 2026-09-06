@@ -52,28 +52,33 @@ export function createTongxueResultView(ui, state, searchView) {
     const host = ui.result.querySelector('.result-shell, .state-card');
     if (!host || host.querySelector('[data-decision-context-strip]')) return;
     const summary = context ? summarizeDecisionContext(context, { surface:'tongxue' }) : null;
-    const standalone = !context && state.directMode;
-    if (!standalone && !summary?.lines.length) return;
+    const standalone = !context && state.directMode && state.contextState !== 'partial';
+    const partial = !context && state.directMode && state.contextState === 'partial';
+    if (!standalone && !partial && !summary?.lines.length) return;
     const strip = document.createElement('section');
     strip.className = 'decision-context-strip';
     strip.dataset.decisionContextStrip = 'readonly';
     if (standalone) {
       strip.classList.add('standalone');
       strip.innerHTML = '<strong>这是一次独立查询</strong><span>未带入分数、专业筛选或家庭方案</span><small>你可以继续查看学生留言，也可以从顶部回到同学你好首页。</small>';
+    } else if (partial) {
+      strip.classList.add('partial');
+      const sourceLabel = state.sourceSurface === 'major-path' ? '来自刚才的专业升学地图' : state.sourceSurface.startsWith('ln-rank') ? '来自刚才的查询结果' : '来自刚才的模块';
+      strip.innerHTML = `<strong>${html(sourceLabel)}</strong><span>部分筛选条件没有随链接带入，但这不是一次全新的查询。</span><small>学生留言仍按当前确认的对象展示；返回时会尽量恢复原页面。</small>`;
     } else {
-      const returnLabel = context.sourceSurface === 'major-path'
-        ? '回到专业升学地图'
-        : context.sourceSurface === 'ln-rank'
-          ? '回到来源查询（专业初选）'
-          : '回到来源查询';
       strip.innerHTML = `<strong>${html(summary.title)}</strong><span>${html(summary.lines.join(' · '))}</span><small>${html(summary.note)}；不会自动修改家庭方案。</small>`;
-      if (context.returnTo) {
-        const link = document.createElement('a');
-        link.href = context.returnTo;
-        link.textContent = returnLabel;
-        link.className = 'decision-context-return';
-        strip.append(link);
-      }
+    }
+    const returnTarget = context?.returnTo || state.returnTo;
+    if (returnTarget) {
+      const link = document.createElement('a');
+      link.href = returnTarget;
+      link.textContent = context?.sourceSurface === 'major-path' || state.sourceSurface === 'major-path'
+        ? '回到专业升学地图'
+        : context?.sourceSurface === 'ln-rank' || state.sourceSurface.startsWith('ln-rank')
+          ? (context?.resultMode === 'school-all' ? '回到学校专业列表' : context?.resultMode === 'major-all' ? '回到专业最低分结果' : '回到刚才的分数结果')
+          : '回到来源查询';
+      link.className = 'decision-context-return';
+      strip.append(link);
     }
     host.prepend(strip);
   }
@@ -198,7 +203,7 @@ export function createTongxueResultView(ui, state, searchView) {
     const more = active.pagination?.hasMore && active.mode === 'major_reviews'
       ? '<div id="loadMoreWrap" class="load-more-wrap"><button id="loadMoreReviews" class="load-more" type="button">再看一些学生留言</button></div>' : '';
     const topicText = active.topic && active.topic !== 'general' ? topicLabel(active.topic) : '这个专业实际读起来怎么样';
-    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}</h2><span class="badge review">跨学校专业体验</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div>${majorSourceIntroShell(major)}<div class="divider"></div><div class="review-intro"><strong>先看相关留言</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站认证标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
+    searchView.commit('success', `<article class="result-shell" data-student-voice-scope="major" data-major-code="${attr(major.code || '')}"><div class="result-head"><h2 id="resultTitle" tabindex="-1">${html(major.name || '专业体验')}｜跨校同专业留言</h2><span class="badge review">不同学校学生留言</span></div><div class="meta"><span class="meta-chip resolve">本科专业代码 ${html(major.code || '—')}</span>${major.categoryName ? `<span class="meta-chip">${html(major.categoryName)}</span>` : ''}${evidenceChips(active.evidence)}${active.fetchedAt ? `<span class="meta-chip">更新：${html(formatTime(active.fetchedAt))}</span>` : ''}</div><div class="scope-boundary" role="note">这是同一具体专业在不同学校的留言汇总，不代表任何一所学校的这个专业。</div><div class="divider"></div><div class="review-intro"><strong>先看学生怎么说</strong>${html(topicText)}：${html(sampleSentence(active.evidence, active.reviews.length))}</div><div class="section-heading">学生留言</div><div id="reviewGrid" class="review-grid">${cards}</div>${more}<details class="major-supporting-info"><summary>再看专业资料和本科到研究生路径</summary>${majorSourceIntroShell(major)}</details><div class="source-note">这些留言来自不同学校的学生，只能帮助了解“${html(major.name || '该专业')}”常见的学习和生活感受，不能代表某一所学校的培养情况，也不是就业率、薪资或专业强弱的官方结论。来源站账号标记只作来源说明，不参与推荐。</div><a class="link" href="${attr(active.source.url)}" target="_blank" rel="noopener noreferrer">去来源站看这个专业的更多留言 →</a>${technical({}, data, active.source, active.evidence, major)}</article>`);
     searchView.focusResult();
     mountMajorSourceIntro(major);
   }
@@ -271,7 +276,7 @@ export function createTongxueResultView(ui, state, searchView) {
       ? '来源站暂时没有这所学校的独立记录。'
       : (isMajor ? '专业名称已经确认，但学生评价来源现在连接不稳定或没有对应记录。' : '学校名称已经确认，但学生评价来源现在连接不稳定。');
     if (code === 'school_major_source_binding_unavailable') message = '当前专业留言没有学校身份信息，所以不能把不同学校的留言当成这所学校的专业体验。';
-    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时看不了大学生评价</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div>${isMajor ? '' : minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
+    searchView.commit('error', `<div class="state-card error"><h2 id="resultTitle" tabindex="-1">暂时看不了学生留言</h2><p>${html(message)}</p><div class="state-meta">${isMajor && data.major?.code ? `<span class="meta-chip resolve">${html(data.major.name)} · ${html(data.major.code)}</span>` : `${resolutionChip(resolution, school)}${stateMeta(data.schoolMeta || {})}`}</div>${isMajor ? '' : minScoreEntry({ kind:'school', school:actual, entityId:data.entity?.entityId || resolution?.entityId || '', returnTo:location.pathname + location.search + location.hash })}<div class="state-actions"><a class="link" href="${attr(source.url)}" target="_blank" rel="noopener noreferrer">去来源页面看看 →</a>${isMajor ? '<button class="action-button" type="button" data-retry-major>重新读取学生留言</button>' : '<button class="action-button" type="button" data-retry-school>重新尝试</button>'}</div><details><summary>技术诊断（供排查）</summary><div class="diagnostic">${html(`${code}\n${error?.message || ''}`)}</div></details></div>`);
     searchView.focusResult();
   }
 
@@ -386,4 +391,3 @@ export function createTongxueResultView(ui, state, searchView) {
 
   return Object.freeze({ renderResult, renderActiveReviews, appendReviews, updateLoadMore, renderFailure });
 }
-

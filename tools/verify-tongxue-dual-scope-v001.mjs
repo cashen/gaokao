@@ -7,10 +7,10 @@ import { resolveTongxueMajorInput } from '../shared/resources/majors/tongxue-sin
 const controller = await readFile(new URL('../tongxue/app/tongxue-runtime-controller-v159.js', import.meta.url), 'utf8');
 const index = await readFile(new URL('../tongxue/index.html', import.meta.url), 'utf8');
 
-for (const label of ['resolveTongxueMajorInput', 'scope:\'major\'', '专业体验线索', '学校体验线索', '看专业怎么说', '看学校怎么说', "writeLocation('major'"]) {
+for (const label of ['resolveTongxueMajorInput', 'scope:\'major\'', '跨校专业留言', '学校学生留言', '查看跨校专业留言', '查看学校留言', "writeLocation('major'"]) {
   assert.ok(controller.includes(label), label);
 }
-for (const label of ['学校、专业，都可以问问同学怎么说', '输入学校、简称或地区', '看学校体验', '看专业体验', 'data-scope-switch', 'tongxue-runtime-controller-v159.js?v=159-startup001', 'tongxue-runtime-search-view-v159.js?v=159-startup001']) {
+for (const label of ['学生谈学校，也谈跨校专业', '输入学校、简称或地区', '学生谈这所学校', '跨校同专业留言', 'data-scope-switch', 'tongxue-runtime-controller-v159.js?v=159-startup001', 'tongxue-runtime-search-view-v159.js?v=159-startup001']) {
   assert.ok(index.includes(label), label);
 }
 assert.match(controller, /if \(!preferSchool && majorResolution\?\.status === 'resolved'\)/);

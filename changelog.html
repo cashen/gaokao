@@ -30,13 +30,13 @@
       <p>本次 r035：继续修复专业历史入口在 Worker 冷路径加载完整 420KB 专业目录并全量扫描意图，导致有效专业查询触发 error code 1102/HTTP 503 的问题。专业历史现在先使用已加载的 canonical manifest 做精确、别名和有界候选解析，再读取预聚合 shard；保留宽泛输入的 fail-closed 选择状态，禁止公共 origin 自回源。能力版本为 major-history-resource-boundary-v001，缓存修订为 r035-major-history-1102-bounded-api。</p>
       <p>本次 r034：修复学校专业接口丢失 Cloudflare Pages Functions context 的问题。学校查询现在始终使用绑定的 ASSETS 资源，不再在 Worker 内错误回源正式域名，避免有效的 canonical schoolEntityId 查询触发 error code 1102/HTTP 503；专业历史、学校 resolve-only 和完整学校查询均加入资源边界回归验收。能力版本为 worker-resource-boundary-v001、school-query-context-binding-v001，缓存修订为 r034-worker-1102-bounded-api。</p>
       <p>本次 r033：修复专业查询学校卡片缺少原生链接的问题，学校名称现在可以刷新、分享、键盘访问，并保留当前专业和参考分数上下文进入学校查询；同时阻断 admission 临时标识进入 Tongxue canonical entity，旧的辽东学院 handoff 会按学校名称兼容降级，不再在来源请求前误报 invalid_entity。模块版本为 ln-rank-school-entry-v001、tongxue-entity-handoff-v001，缓存修订为 r033-tongxue-school-entry。</p>
-      <p>本次 r050：收敛专业升学地图的人类旅程。major-path 升级到 v0.06，来源类型与返回状态显式化；相关专业切换不再携带原专业的学校、分数或决策上下文；搜索、歧义候选和专业列表增加原生链接/GET 兜底；背景证据区区分离线、超时和读取失败并支持单块重试；同步修复 handoff 测试契约漂移，补足 360px、键盘、减弱动画和 44px 触控目标边界。全站发布版本保持 v3.9.90.3 / v3990_3，major-path 模块版本为 major-path-v0.06、major-path-navigation-v0.04、major-path-background-context-v0.02。</p>
+      <p>本次 r051：明确 Tongxue 的两个查询对象不是同一层级。学校入口只表示学生对整所学校的个人体验；专业入口明确表示不同学校学生对同一具体本科专业的留言，不冒充当前学校的专业评价。ln-rank、major-path 与 Tongxue 的返回上下文增加 partial 状态，长链接删去决策上下文时不再误报“独立查询”；专业留言失败增加页内重试，专业资料和升学路径改为补充信息。全站发布版本保持 v3.9.90.3 / v3990_3。</p>
       <ul class="module-list" aria-label="模块能力版本">
         <li><span>Tongxue · 同学你好</span><span>v1.5.9 / tongxue-runtime-v159-r3968</span></li>
         <li><span>AIPLuS 产品版</span><span>v0.02</span></li>
         <li><span>省内优势背景</span><span>local-strength-static-v3971_2</span></li>
         <li><span>211 背景静态资源</span><span>all-211-static-v3972_0</span></li>
-        <li><span>专业升学地图</span><span>major-path-v0.06 / r050-major-path-human-journey-continuity</span></li>
+        <li><span>专业升学地图</span><span>major-path-v0.06 / r051-major-scope-clarity</span></li>
       </ul>
       <a class="module-link" href="/tongxue/changelog.html">查看同学你好更新记录</a>
     </article>

@@ -1,6 +1,6 @@
 import { buildUndergradGraduatePathway } from './undergrad-graduate-pathway.v001.js';
 import { GRADUATE_CATALOG_SOURCES } from '../graduate/graduate-catalog-2022.v001.js';
-import { buildMajorPathHref } from './major-path-navigation.v003.js';
+import { buildMajorPathHref } from './major-path-navigation.v004.js';
 import { buildMajorMinScoreHref } from '../admissions/min-score-navigation.v001.js?v=001&r=r042-direct-min-score-handoff';
 
 export const UNDERGRAD_GRADUATE_PATHWAY_VIEW_META = Object.freeze({
