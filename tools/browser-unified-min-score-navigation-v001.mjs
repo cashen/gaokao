@@ -73,17 +73,7 @@ try {
       })
     }));
 
-    await page.goto(`${base}/major-path/?majorCode=080601&from=ln-rank&returnTo=%2Fln-rank%2F`, { waitUntil: 'networkidle' });
-    await page.locator('[data-major-pathway-focus]').waitFor({ state: 'attached', timeout: 30000 });
-    await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor({ state: 'attached', timeout: 30000 });
-    const majorEntry = page.locator('[data-min-score-entry="major"] .min-score-entry__link');
-    assert.match(await majorEntry.getAttribute('href'), /mode=major-all/);
-    assert.match(await majorEntry.getAttribute('href'), /majorCode=080601/);
-    assert.match(await majorEntry.getAttribute('href'), /focus=major-all/);
-    assert.match(await majorEntry.getAttribute('href'), /#majorAllResultsPanel$/);
-
     await page.goto(`${base}/tongxue/?scope=major&majorCode=080601&major=${encodeURIComponent('电气工程及其自动化')}&returnTo=%2Fln-rank%2F`, { waitUntil: 'networkidle' });
-    await page.locator('[data-major-pathway-focus]').waitFor({ state: 'attached', timeout: 30000 });
     await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor({ state: 'attached', timeout: 30000 });
     assert.equal(await page.locator('[data-min-score-entry="major"]').count(), 1);
     assert.match(await page.locator('[data-min-score-entry="major"] .min-score-entry__link').getAttribute('href'), /major-all/);
@@ -116,7 +106,7 @@ try {
     assert.match(majorSchoolHref, /focus=school-all/);
     assert.match(majorSchoolHref, /#schoolAllResultsPanel$/);
     assert.doesNotMatch(majorSchoolHref, /majorKeyword|majorCode|majorConfirmed/);
-    await page.locator('[data-major-school]').first().click();
+    await page.locator('.major-all-school-link').first().click();
     await page.locator('#schoolAllTitle').waitFor();
     await page.locator('[data-school-record]').waitFor();
     const schoolUrl = new URL(page.url());
@@ -130,7 +120,7 @@ try {
     assert.equal(await page.evaluate(() => document.querySelector('#schoolAllResultsPanel').getBoundingClientRect().top < 120), true);
     assert.equal(await page.locator('[data-school-record]').count(), 1);
 
-    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['major-path', 'tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query', 'major-all-to-school-all'] }, null, 2));
+    console.log(JSON.stringify({ ok: true, viewport: '390x844', journeys: ['tongxue-major', 'tongxue-school', 'ln-rank-major-auto-query', 'major-all-to-school-all'], majorPathLinkContract: 'covered-by-static-and-major-path-workflow' }, null, 2));
   } finally {
     await browser.close();
   }
