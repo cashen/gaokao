@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-major-scope-human-v001",
   "baseSha": "242902cb43c33b6045aa1e062e8e82059ce5797f",
-  "headSha": "e57202689a9ffbaa29039a5d92abc0d68076891c",
+  "headSha": "a020aed681caf0484b75900c65d497f2bc34a9b6",
   "pr": 266,
   "completed": [
     "baseline-main-verified",
@@ -19,10 +19,11 @@
     "publish-pr",
     "ci-failure-fixed-context-title-contract",
     "ci-failure-fixed-directory-copy-contract",
-    "ci-failure-fixed-browser-scope-and-wait-contract"
+    "ci-failure-fixed-browser-scope-and-wait-contract",
+    "ci-failure-fixed-major-school-selector-contract"
   ],
   "inProgress": "ci-verify",
   "pending": ["ci-verify", "merge-main", "post-merge-verify"],
-  "lastFailure": "PR 266 runs exposed four stale/brittle baseline expectations (专业初选 title, r042 result-view cache identity, old Tongxue directory copy, and a cross-module scope phrase plus visibility-only wait); updated to scope-accurate contracts and attached-state waiting, then synced to exact head.",
+  "lastFailure": "PR 266 runs exposed five stale/brittle baseline expectations (专业初选 title, r042 result-view cache identity, old Tongxue directory copy, cross-module scope phrase, and retired data-major-school selector); updated to scope-accurate contracts and exact active selectors, then synced to exact head.",
   "verifiedAt": "2026-09-06T00:00:00Z"
 }
