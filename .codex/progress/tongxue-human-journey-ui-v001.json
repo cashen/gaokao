@@ -1,0 +1,56 @@
+{
+  "task": "tongxue-human-journey-ui-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/tongxue-human-journey-ui-v001",
+  "baseSha": "d6aa462245c7e8b88a6355438c3fd68bee727616",
+  "headSha": "e2b2159dd135b54377e3a5b571740cf1463397d8",
+  "status": "in_progress",
+  "completed": [
+    "live-state-reconcile",
+    "isolated-branch",
+    "plan-commit",
+    "draft-pr",
+    "implementation",
+    "local-static-contract-tests",
+    "local-browser-acceptance",
+    "local-network-boundary-tests",
+    "pr-ci-preview"
+  ],
+  "inProgress": "ready-same-sha",
+  "pending": [
+    "pr-ci-preview",
+    "ready-same-sha",
+    "merge-main",
+    "post-merge-production-verify"
+  ],
+  "lastFailure": {
+    "runId": 34003218572,
+    "jobId": 101405678325,
+    "cause": "legacy verifier expected 返回刚才的查询",
+    "resolution": "updated verifier and source label to current 回到来源查询 contract",
+    "resolvedLocally": true
+  },
+  "pullRequest": {
+    "number": 264,
+    "url": "https://github.com/cashen/gaokao/pull/264",
+    "headSha": "e2b2159dd135b54377e3a5b571740cf1463397d8",
+    "draft": true
+  },
+  "releaseBaseline": {
+    "site": "v3.9.90.3",
+    "generation": "v3990_3",
+    "revision": "r049-tongxue-human-journey-ui",
+    "mainSha": "d6aa462245c7e8b88a6355438c3fd68bee727616"
+  },
+  "localEvidence": {
+    "staticHumanJourney": "pass",
+    "releaseIdentity": "pass",
+    "architectureHandoff": "pass",
+    "humanCopy": "pass",
+    "browserDevices": ["pc-1366", "pad-820", "android-390", "android-compact-360"],
+    "horizontalOverflow": 0,
+    "networkBoundary": "pass"
+  },
+  "verifiedAt": "2026-09-06T01:10:00Z"
+}
+

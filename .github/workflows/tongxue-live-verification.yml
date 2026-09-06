@@ -26,6 +26,7 @@ on:
       - 'tools/verify-student-voice-evidence-layer-v002.mjs'
       - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/verify-tongxue-startup-status-v001.mjs'
+      - 'tools/tongxue/verify-human-journey-ui-v001.mjs'
       - 'tools/verify-ln-rank-school-entry-tongxue-v001.mjs'
       - 'tools/audit-school-query-v3970.mjs'
       - 'tools/build-school-admission-directory-v3969.mjs'
@@ -87,6 +88,7 @@ jobs:
             node --check "$file"
           done
           node tools/verify-tongxue-startup-status-v001.mjs
+          node tools/tongxue/verify-human-journey-ui-v001.mjs
           python3 -m py_compile \
             tools/schools/school_resource_bundle.py \
             tools/schools/school_resource_artifact_compat.py \
@@ -198,3 +200,4 @@ jobs:
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3
+

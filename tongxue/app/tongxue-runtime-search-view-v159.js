@@ -33,6 +33,9 @@ export function createTongxueSearchView(ui, state) {
     requestAnimationFrame(() => {
       const target = document.getElementById('resultTitle');
       if (!target) return;
+      // A result-internal action owns the viewport. Keep the reader at the
+      // current review instead of pulling focus back to the result heading.
+      if (ui.result?.contains(document.activeElement)) return;
       target.focus({ preventScroll: true });
       if (reveal) target.scrollIntoView({ block: 'start', behavior: 'auto' });
     });
@@ -251,3 +254,4 @@ function matchTypeLabel(type, scope = 'school') {
   if (value.includes('contains')) return '名称相近';
   return '学校候选';
 }
+
