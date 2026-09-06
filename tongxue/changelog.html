@@ -21,6 +21,7 @@
   <div class="topbar"><div class="brand">学校体验线索</div><a class="back" href="./">返回学校查询</a></div>
   <header class="hero"><h1>更新记录</h1><p>版本更新会在这里简单记一笔。</p></header>
   <main class="timeline" aria-label="版本更新时间轴">
+    <article class="release"><div class="release-head"><div><span class="badge">对象边界与跨校专业留言</span><h2>r051-major-scope-clarity</h2></div><time class="date">2026-09-06</time></div><p class="release-note">把“学生谈这所学校”和“不同学校学生谈这个专业”分开表达；专业结果先展示学生留言，专业资料与本科到研究生路径收为补充信息；跨模块链接带上来源和 partial 上下文状态，长链接不再误报独立查询；专业留言失败提供页内重试，弱网时保留已经取得的内容。</p></article>
     <article class="release"><div class="release-head"><div><span class="badge">人类行为与连续阅读</span><h2>r049-tongxue-human-journey-ui</h2></div><time class="date">2026-09-06</time></div><p class="release-note">把学校、专业、地区、分数卡和专业升学地图之间的继续路径说清楚：结果页显示来源和当前对象，返回动作按来源区分；展开、重试和加载更多不会把读者拉回页面顶部；分享链接明确是独立查询。弱网、断网和来源不可用时保留已知内容，不补写学生留言或摘要。</p></article>
     <article class="release"><div class="release-head"><div><span class="badge">人类阅读流修订</span><h2>r040-human-reading-flow</h2></div><time class="date">2026-08-28</time></div><p class="release-note">学校自主查询成功后收起重复的巨大 Hero，保留紧凑搜索轨；专业直达上下文改为可读的来源/范围/返回栏；学校公开体验与跨学校专业体验明确分层。摘要、留言和升学路径改成连续阅读结构，并修复从 Tongxue 进入专业路径时原始返回地址与决策上下文丢失的问题。此次只改 Tongxue 表现与导航合同，不改变招生数据或学生留言事实口径。</p></article>
     <article class="release"><div class="release-head"><div><span class="badge">当前全站发布</span><h2>v3.9.90.3</h2></div><time class="date">2026-08-24</time></div><p class="release-note">全站 canonical release 已统一到 v3.9.90.3 / v3990_3；Tongxue 能力版本 v1.5.9 作为稳定专项能力继续保留，不与全站发布版本混用。全站模块导航样式已更新为 v0.05 / r029-mobile-nav，修复 Android 手机端入口文字叠加。</p></article>
@@ -47,4 +48,3 @@
 <script type="module" src="/shared/resources/release/release-footer.v3990_3.js?v=3990_3&r=r034-worker-1102-bounded-api"></script>
 </body>
 </html>
-

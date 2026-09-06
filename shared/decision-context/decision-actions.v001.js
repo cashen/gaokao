@@ -11,7 +11,7 @@ export const DECISION_ACTION_IDS = Object.freeze([
 const ACTION_COPY = Object.freeze({
   view_major_history: Object.freeze({ label: '看专业历史', target: 'ln-rank', reason: '需要已确认的具体专业' }),
   view_major_path: Object.freeze({ label: '看专业升学地图', target: 'major-path', reason: '需要已确认的具体专业' }),
-  view_student_voice: Object.freeze({ label: '看大学生怎么说', target: 'tongxue', reason: '需要已确认的具体专业' }),
+  view_student_voice: Object.freeze({ label: '看跨校同专业留言', target: 'tongxue', reason: '需要已确认的具体专业' }),
   add_to_family_plan: Object.freeze({ label: '加入家庭方案', target: 'aiplus', reason: '需要可核验的招生记录' }),
   ask_family_advisor: Object.freeze({ label: '带着这些条件问 AIPLuS', target: 'aiplus', reason: '只带只读上下文' }),
   return_to_source: Object.freeze({ label: '回到原查询', target: 'source', reason: '始终保留原查询入口' })

@@ -6,6 +6,7 @@ import {
   resolveTongxueMajorInput
 } from '../../shared/resources/majors/tongxue-single-major-adapter.v001.js?v=001';
 import { decisionContextFromLocation } from '../../shared/decision-context/decision-context.v001.js';
+import { readStudentVoiceMajorContext } from '../../shared/resources/experience/student-voice-navigation.v001.js';
 import {
   TongxueError,
   normalizeSchool,
@@ -83,11 +84,11 @@ function applyScopePresentation(ui, scope = 'school', state = null) {
   const brand = document.querySelector('.topbar .brand');
   const title = ui.hero?.querySelector('.hero-title');
   const description = ui.hero?.querySelector('.hero-description');
-  if (brand) brand.textContent = isMajor ? '专业体验线索' : '学校体验线索';
-  if (title) title.textContent = isMajor ? '找专业，看看大家怎么说' : '找学校，看看大家怎么说';
+  if (brand) brand.textContent = isMajor ? '跨校专业留言' : '学校学生留言';
+  if (title) title.textContent = isMajor ? '不同学校学生怎么谈这个专业' : '学生怎么谈这所学校';
   if (description) description.textContent = isMajor
-    ? '先确认一个具体专业，再看专业资料、升学路径和学生公开留言'
-    : '整理学生公开留言，帮你了解学校的学习、生活和就业体验';
+    ? '先确认一个具体本科专业，再看不同学校学生的学习体验'
+    : '看看学生对整所学校的学习、生活和校园感受';
   if (ui.input) {
     ui.input.placeholder = isMajor ? '输入专业名称、简称或代码' : '输入学校、简称或地区';
     ui.input.setAttribute('aria-label', isMajor ? '专业名称或专业代码' : '学校名称或地区');
@@ -183,6 +184,8 @@ export async function startTongxueRuntime() {
     majorCount:883,
     returnTo:'',
     decisionContext:null,
+    contextState:'none',
+    sourceSurface:'',
     directMode:false,
     requestInFlight:false,
     activeQueryController:null,
@@ -235,6 +238,8 @@ export async function startTongxueRuntime() {
       listenerCount:state.listenerCount,
       submitCount:state.submitCount,
       decisionContext:state.decisionContext,
+      contextState:state.contextState,
+      sourceSurface:state.sourceSurface,
 
       observerCount: 0
     })
@@ -503,7 +508,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     searchView.closeSuggestions();
     searchView.hideResolved();
     applyScopePresentation(ui, 'major', state);
-    writeLocation('major', state.currentMajorName, '', options.historyMode || 'push', { majorCode:state.currentMajorCode, topic:state.currentTopic, returnTo:state.returnTo });
+    writeLocation('major', state.currentMajorName, '', options.historyMode || 'push', { majorCode:state.currentMajorCode, topic:state.currentTopic, returnTo:state.returnTo, contextState:state.directMode ? state.contextState : 'none', sourceSurface:state.directMode ? state.sourceSurface : '' });
     updateButton(ui, state);
     return performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode:state.currentMajorCode, major:state.currentMajorName, topic:state.currentTopic });
   }
@@ -716,6 +721,10 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     await performExperienceQuery(ui, state, searchView, resultView, state.currentSchool, state.currentResolution?.input || state.currentSchool, state.currentResolution, { forceRefresh:true, entityId:state.currentEntityId, topic:state.currentTopic });
     return;
   }
+  if (event.target.closest('[data-retry-major]') && state.currentMajorCode) {
+    await performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode:state.currentMajorCode, major:state.currentMajorName, topic:state.currentTopic, forceRefresh:true });
+    return;
+  }
   const choice = event.target.closest('[data-school-choice]');
   if (choice) {
     const candidate = state.choiceCandidates[Number(choice.dataset.schoolChoice)];
@@ -812,9 +821,16 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   const scope = params.get('scope') === 'major' ? 'major' : 'school';
   state.scope = scope;
   state.decisionContext = readDecisionContextFromLocation(location);
+  state.contextState = ['available','partial','none'].includes(params.get('contextState'))
+    ? params.get('contextState')
+    : (state.decisionContext ? 'available' : (params.get('returnTo') ? 'partial' : 'none'));
+  state.sourceSurface = String(params.get('sourceSurface') || '').trim();
   document.body.dataset.decisionContext = state.decisionContext ? 'readonly' : 'none';
   const topic = cleanTopic(params.get('topic') || 'general');
   if (scope === 'major') {
+    const navigation = readStudentVoiceMajorContext(location);
+    state.contextState = navigation.contextState;
+    state.sourceSurface = navigation.sourceSurface;
     applyScopePresentation(ui, 'major', state);
     const majorCode = cleanMajorCode(params.get('majorCode'));
     const major = cleanMajorName(params.get('major'));
@@ -877,7 +893,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
 function writeLocation(kind, value, entityId, mode, extra = {}) {
   if (mode === 'none') return;
   const url = new URL(location.href);
-  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo','dc']) url.searchParams.delete(key);
+  for (const key of ['school','entity','q','scope','major','majorCode','topic','returnTo','dc','contextState','sourceSurface']) url.searchParams.delete(key);
   if (kind === 'school') {
     url.searchParams.set('school', value);
     if (entityId) url.searchParams.set('entity', entityId);
@@ -888,6 +904,8 @@ function writeLocation(kind, value, entityId, mode, extra = {}) {
     if (extra.majorCode) url.searchParams.set('majorCode', extra.majorCode);
     if (extra.topic && extra.topic !== 'general') url.searchParams.set('topic', extra.topic);
     if (extra.returnTo) url.searchParams.set('returnTo', extra.returnTo);
+    if (extra.contextState && extra.contextState !== 'none') url.searchParams.set('contextState', extra.contextState);
+    if (extra.sourceSurface) url.searchParams.set('sourceSurface', extra.sourceSurface);
   } else if (value) {
     if (extra.scope === 'major') url.searchParams.set('scope', 'major');
     url.searchParams.set('q', value);
@@ -959,6 +977,8 @@ function switchScope(ui, state, searchView, scope = 'school') {
   state.currentTopic = 'general';
   state.currentResolution = null;
   state.selectedOfficialName = '';
+  state.contextState = 'none';
+  state.sourceSurface = '';
   ui.input.value = '';
   searchView.hideResolved();
   searchView.clearResult();
@@ -975,6 +995,8 @@ function leaveMajorDirectState(state) {
   state.currentMajorName = '';
   state.currentTopic = 'general';
   state.returnTo = '';
+  state.contextState = 'none';
+  state.sourceSurface = '';
   delete document.body.dataset.studentVoiceScope;
 }
 
@@ -998,8 +1020,7 @@ function updateButton(ui, state) {
   const scopeReady = state.scope === 'major' || state.ready || state.catalogLoading;
   const scopeError = state.scope === 'school' && Boolean(state.resolverError);
   ui.button.disabled = !scopeReady || scopeError || !ui.input.value.trim() || state.requestInFlight;
-  // Legacy contract retained for v1.5.9 checks: ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
-  ui.button.textContent = state.requestInFlight ? '正在查找' : (state.scope === 'major' ? '看专业怎么说' : '看学校怎么说');
+  ui.button.textContent = state.requestInFlight ? '正在查找' : (state.scope === 'major' ? '查看跨校专业留言' : '查看学校留言');
 }
 
 function experienceKey(query, page) {

@@ -148,7 +148,7 @@ async function finish(opened, name) {
   assert.deepEqual(consoleErrors, [], `${name}: ${consoleErrors.join('\n')}`);
   const resultModule = moduleRequests.at(-1);
   assert.equal(resultModule?.searchParams.get('v'), '159-flow006', `${name}: result cache identity drift`);
-  assert.equal(resultModule?.searchParams.get('r'), 'r042-direct-min-score-handoff', `${name}: UI cache revision drift`);
+  assert.equal(resultModule?.searchParams.get('r'), 'r051-major-scope-clarity', `${name}: UI cache revision drift`);
   await context.close();
   return { overflow, resultView:`${resultModule?.searchParams.get('v')}&${resultModule?.searchParams.get('r')}` };
 }
@@ -178,7 +178,7 @@ try {
     const major = await openPage(browser, testCase, `/tongxue/?scope=major&majorCode=080601&major=%E7%94%B5%E6%B0%94%E5%B7%A5%E7%A8%8B%E5%8F%8A%E5%85%B6%E8%87%AA%E5%8A%A8%E5%8C%96&returnTo=${encodeURIComponent(expectedReturnTo)}&dc=${encodeURIComponent(encodedDecisionContext)}`);
     const majorStrip = major.page.locator('[data-decision-context-strip]');
     assert.equal(await majorStrip.count(), 1, `${testCase.name}: major context strip missing`);
-    assert.match(await major.page.locator('#result').textContent(), /跨学校专业体验/);
+    assert.match(await major.page.locator('#result').textContent(), /跨校同专业留言|不同学校学生留言/);
     assert.match(await major.page.locator('#result').textContent(), /不同学校的学生/);
     const pathwayHref = await major.page.locator('[data-major-pathway-full-link]').getAttribute('href');
     const pathwayUrl = new URL(pathwayHref, major.page.url());

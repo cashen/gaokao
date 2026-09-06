@@ -237,14 +237,27 @@ export function summarizeDecisionContext(context = null, { surface = '' } = {}) 
   const lines = [location, subject, position, project].filter(Boolean);
   const presentationSurface = surface || normalized.sourceSurface;
   const title = normalized.sourceSurface === 'ln-rank'
-    ? '来自刚才的专业初选'
+    ? (normalized.resultMode === 'school-all'
+      ? '来自刚才的学校专业列表'
+      : normalized.resultMode === 'major-all'
+        ? '来自刚才的专业最低分结果'
+        : '来自刚才的分数结果')
     : normalized.sourceSurface === 'major-path'
       ? '来自刚才的专业升学地图'
       : normalized.sourceSurface === 'tongxue'
         ? '来自刚才的同学体验'
         : '你刚才带着这些条件过来';
+  const scope = normalized.majorCode || normalized.major
+    ? 'major'
+    : normalized.schoolCode || normalized.school
+      ? 'school'
+      : '';
   const note = presentationSurface === 'tongxue'
-    ? '同学你好：一次查看一个具体专业'
+    ? (scope === 'major'
+      ? '同学你好：这里看的是跨校同专业留言，不代表某一所学校'
+      : scope === 'school'
+        ? '同学你好：这里看的是学生对整所学校的个人体验'
+        : '同学你好：这里显示刚才带来的查询条件')
     : presentationSurface === 'ln-rank'
       ? '来自专业初选：当前支持多个已确认专业'
       : '本轮只读上下文，不自动修改家庭方案';

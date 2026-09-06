@@ -292,7 +292,7 @@ function installReturnAction(context) {
   action.textContent = context.sourceSurface === 'academic-background'
     ? '← 返回背景依据'
     : ['tongxue', 'tongxue-major'].includes(context.sourceSurface)
-      ? '← 返回同学你好'
+      ? `← 返回${sourceContext.canonicalName || '这个专业'}的跨校学生留言`
       : context.context === 'school' && context.school
         ? `← 返回${context.school}的专业`
         : '← 返回刚才的专业列表';
@@ -308,6 +308,7 @@ function installDecisionActions(focus, major, source = sourceContext) {
     canonicalName: major.name,
     context: source.context || 'score',
     sourceKey: source.sourceKey,
+    sourceSurface: 'major-path',
     returnTo: source.returnTo || '/major-path/',
     decisionContext: context
   });

@@ -7,14 +7,14 @@ const presenter = read('shared/resources/majors/undergrad-graduate-pathway-view.
 const resultView = read('tongxue/app/tongxue-runtime-result-view-v159.js');
 const controller = read('tongxue/app/tongxue-runtime-controller-v159.js');
 const index = read('tongxue/index.html');
-const navigation = read('shared/resources/majors/major-path-navigation.v003.js');
+const navigation = read('shared/resources/majors/major-path-navigation.v004.js');
 const majorPathApp = read('major-path/app.v004.js');
 
 assert.match(plan, /必要归属、最小呈现/);
 assert.match(plan, /主结果区不再显示/);
 assert.match(presenter, /undergrad-graduate-pathway\.v001\.js/);
 assert.match(presenter, /graduate-catalog-2022\.v001\.js/);
-assert.match(presenter, /major-path-navigation\.v003\.js/);
+assert.match(presenter, /major-path-navigation\.v004\.js/);
 assert.doesNotMatch(presenter, /CLASS_RULES|MAJOR_RULES/, 'Tongxue presenter must not copy the pathway mapping owner');
 assert.doesNotMatch(presenter, /\\`|\\\$\{/, 'shared presenter must contain valid JavaScript template syntax');
 assert.match(presenter, /UNDERGRAD_GRADUATE_PATHWAY_VIEW_META/);

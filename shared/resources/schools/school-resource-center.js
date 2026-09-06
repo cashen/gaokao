@@ -124,7 +124,8 @@ export function buildTongxueSchoolHref({
   returnTo = '',
   decisionContext = null,
   resultMode = '',
-  returnAnchor = ''
+  returnAnchor = '',
+  sourceSurface = ''
 } = {}) {
   const name = String(school || '').trim();
   if (!name) return '';
@@ -134,9 +135,11 @@ export function buildTongxueSchoolHref({
   if (returnTo) params.set('returnTo', String(returnTo).trim());
   if (resultMode) params.set('resultMode', String(resultMode).trim());
   if (returnAnchor) params.set('returnAnchor', String(returnAnchor).trim());
+  if (sourceSurface) params.set('sourceSurface', String(sourceSurface).trim());
   const context = decisionContext ? validateDecisionContext(decisionContext) : null;
   const encoded = context ? encodeDecisionContext(context) : '';
   if (encoded) params.set(DECISION_CONTEXT_QUERY_KEY, encoded);
+  if (returnTo && !encoded) params.set('contextState', 'partial');
   return `/tongxue/?${params.toString()}`;
 }
 

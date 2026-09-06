@@ -1,0 +1,23 @@
+{
+  "task": "tongxue-major-scope-human-journey-v001",
+  "repository": "cashen/gaokao",
+  "branch": "fix/tongxue-major-scope-human-v001",
+  "baseSha": "242902cb43c33b6045aa1e062e8e82059ce5797f",
+  "headSha": "3248aa7dcd8848d678839fe67b85722a8cd35ccd",
+  "pr": null,
+  "completed": [
+    "baseline-main-verified",
+    "plan-written",
+    "checkpoint-written",
+    "mpx-01-navigation-context-truth",
+    "mpx-02-ln-rank-handoff-semantics",
+    "mpx-03-tongxue-scope-ia-copy",
+    "mpx-04-major-path-weak-network",
+    "static-regression-suite",
+    "browser-regression-four-viewports"
+  ],
+  "inProgress": "mpx-05-pr-ci-merge",
+  "pending": ["create-commit", "publish-pr", "ci-verify", "merge-main", "post-merge-verify"],
+  "lastFailure": null,
+  "verifiedAt": "2026-09-06T00:00:00Z"
+}

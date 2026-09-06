@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="tongxue-build" content="tongxue-v159-single-runtime-owner-20260726">
-<title>同学你好 - 学校、专业，都可以问问同学怎么说</title>
+<title>同学你好 - 学生谈学校，也谈跨校专业</title>
 <link rel="canonical" href="https://gaokao.powers.org.cn/tongxue/">
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3972_5.css?v=3972_5" />
-<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150","/tongxue/app/tongxue-runtime-controller-v159.js?v=159":"/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&r=r036-major-history-rank-lazy","/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-fuzzy001":"/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001&r=r049-human-journey-ui","/tongxue/app/tongxue-runtime-result-view-v159.js?v=159":"/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r042-direct-min-score-handoff"}}</script>
+<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150","/tongxue/app/tongxue-runtime-controller-v159.js?v=159":"/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&r=r036-major-history-rank-lazy","/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-fuzzy001":"/tongxue/app/tongxue-runtime-search-view-v159.js?v=159-startup001&r=r051-major-scope-clarity","/tongxue/app/tongxue-runtime-result-view-v159.js?v=159":"/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r051-major-scope-clarity"}}</script>
 <style>
 :root{--bg:#fff;--card:#fff;--primary:#172d67;--primary-hover:#102352;--brand-teal:#45b99a;--brand-teal-soft:#eaf7f3;--text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#eaf7f3;--warm:#fff6ed;--warm-border:#f0d4bc;--warm-text:#8d4b20;--danger:#9a4336;--danger-bg:#fff0ec;--danger-border:#efc5ba;--shadow:0 14px 38px rgba(20,40,50,.07)}
 *{box-sizing:border-box}
@@ -50,7 +50,7 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
 @media(max-width:700px) and (max-height:700px){.hero{padding-top:14px;padding-bottom:20px}.hero-logo{width:clamp(175px,52vw,205px)}.hero-copy{margin-top:10px}.search-box{margin-top:15px}}
 @media(prefers-reduced-motion:reduce){.input-state{animation:none;border-top-color:#9bb0b7}.btn,.quick-example,.choice-card{transition:none!important}}
 </style>
-<style data-tongxue-human-reading="r049-human-journey-ui">
+<style data-tongxue-human-reading="r051-major-scope-clarity">
 /* r040: keep the result readable without hiding the user's way to search again. */
 body.tongxue-result-ready:not(.tongxue-direct-result) .hero{padding:14px 0 12px;text-align:left;border-bottom:1px solid var(--border)}
 body.tongxue-result-ready:not(.tongxue-direct-result) .hero-logo-link,body.tongxue-result-ready:not(.tongxue-direct-result) .hero-copy{display:none}
@@ -64,6 +64,12 @@ body.tongxue-result-ready #result>.result-shell,body.tongxue-result-ready #resul
 .decision-context-strip small{grid-column:1 / 3;color:var(--muted);font-size:11px}
 .decision-context-return{grid-column:3;grid-row:3;color:var(--primary);font-size:12px;font-weight:850;text-underline-offset:3px;white-space:nowrap}
 .decision-context-strip.standalone{border-left-color:#8da7af;background:#f7faf9}
+.decision-context-strip.partial{border-left-color:#d7a33d;background:#fffaf0;border-color:#ecd9a4}
+.scope-boundary{margin:14px 0 0;padding:11px 13px;border-left:3px solid var(--brand-teal);background:#f4faf8;color:var(--muted);font-size:13px;line-height:1.7}
+.major-supporting-info{margin-top:22px;border-top:1px dashed var(--border);padding-top:15px;color:var(--muted)}
+.major-supporting-info>summary{color:var(--primary);font-size:14px;font-weight:850;cursor:pointer}
+body.tongxue-result-ready .scope-switch button{min-height:40px;padding-inline:16px}
+body.tongxue-result-ready .scope-switch button[data-scope-switch=major]{color:#315e8a}
 .summary-grid,.review-grid,.major-pathway-grid{grid-template-columns:1fr}
 .summary-grid .insight-card,.review-grid .review-card,.major-pathway-grid .major-pathway-panel{border:0;border-top:1px solid var(--border);border-radius:0;padding:16px 0;background:transparent;box-shadow:none}
 .summary-grid .insight-card.attention{border-color:var(--border);background:transparent}
@@ -75,29 +81,29 @@ body.tongxue-result-ready #result>.result-shell,body.tongxue-result-ready #resul
   <link rel="stylesheet" href="/shared/ui/components/min-score-entry.v001.css?v=001_0" />
   <link rel="stylesheet" href="/shared/ui/shell/unified-visual-responsive.v3990_3.css?v=3990_3&r=r038-unified-visual-responsive-production-contract" />
 </head>
-<body data-ui-page="tongxue" data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-tongxue-capability-version="tongxue-runtime-v159-r3968" data-tongxue-ui-revision="r049-human-journey-ui" data-tongxue-major-pathway-version="undergrad-graduate-pathway-view-v001" data-release-surface="tongxue" data-ui-visual-responsive="unified-v001">
+<body data-ui-page="tongxue" data-release="v3.9.90.3" data-site-runtime-generation="v3990_3" data-tongxue-capability-version="tongxue-runtime-v159-r3968" data-tongxue-ui-revision="r051-major-scope-clarity" data-tongxue-major-pathway-version="undergrad-graduate-pathway-view-v001" data-release-surface="tongxue" data-ui-visual-responsive="unified-v001">
 <div data-ui-global-header-mount></div>
 <div data-ui-family-status-mount></div>
 <div class="wrap">
-  <div class="topbar"><a class="brand" href="/tongxue/" data-tongxue-home>学校体验线索</a><div><button class="back-home direct-change-school" type="button" data-change-school hidden>换一所学校</button> <a class="back-home" href="/ln-rank/" data-ui-module-back>返回专业初选</a></div></div>
+  <div class="topbar"><a class="brand" href="/tongxue/" data-tongxue-home>学校学生留言</a><div><button class="back-home direct-change-school" type="button" data-change-school hidden>换一所学校</button> <a class="back-home" href="/ln-rank/" data-ui-module-back>返回专业初选</a></div></div>
   <section class="hero">
     <h1 class="sr-only">同学你好</h1>
     <a class="hero-logo-link" href="/tongxue/" aria-label="返回同学你好首页">
       <img class="hero-logo" src="./assets/brand/tongxue-logo-primary-v1.webp" width="560" height="260" alt="同学你好" decoding="async" fetchpriority="high">
     </a>
     <div class="hero-copy">
-  <p class="hero-title">学校、专业，都可以问问同学怎么说</p>
-      <p class="hero-description">整理学生公开留言，帮你了解学习、生活和就业体验；学校与专业都支持先选准查询对象</p>
+  <p class="hero-title">学生谈学校，也谈跨校专业</p>
+      <p class="hero-description">先选清楚你要了解的对象：一所学校，或一个具体本科专业在不同学校的学习体验</p>
     </div>
     <div class="search-box">
-      <div class="scope-switch" role="tablist" aria-label="选择查询对象"><button type="button" role="tab" data-scope-switch="school" aria-selected="true" class="active">看学校体验</button><button type="button" role="tab" data-scope-switch="major" aria-selected="false">看专业体验</button></div>
+      <div class="scope-switch" role="tablist" aria-label="选择要听谁谈什么"><button type="button" role="tab" data-scope-switch="school" aria-selected="true" class="active">学生谈这所学校</button><button type="button" role="tab" data-scope-switch="major" aria-selected="false">跨校同专业留言</button></div>
       <div class="search-row">
         <div class="input-wrap">
           <input id="school" class="search-input" autocomplete="off" inputmode="search" placeholder="输入学校、简称或地区" aria-label="学校名称或地区" aria-autocomplete="list" aria-controls="schoolSuggestions" aria-expanded="false" aria-describedby="indexStatus">
           <span id="inputState" class="input-state" aria-hidden="true"></span>
           <div id="schoolSuggestions" class="suggestions" role="listbox" hidden></div>
         </div>
-        <button id="queryButton" class="btn" type="button" disabled>看同学怎么说</button>
+        <button id="queryButton" class="btn" type="button" disabled>查看学校留言</button>
       </div>
       <div class="quick-examples" data-scope-examples="school"><span>试试：</span><button class="quick-example" type="button" data-example-scope="school" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example-scope="school" data-example="哈尔滨工业大学">哈尔滨工业大学</button><button class="quick-example" type="button" data-example-scope="school" data-example="深圳">深圳</button></div>
       <div class="quick-examples" data-scope-examples="major" hidden><span>试试：</span><button class="quick-example" type="button" data-example-scope="major" data-example="电气">电气</button><button class="quick-example" type="button" data-example-scope="major" data-example="机械">机械</button><button class="quick-example" type="button" data-example-scope="major" data-example="计算机">计算机</button></div>
@@ -110,11 +116,10 @@ body.tongxue-result-ready #result>.result-shell,body.tongxue-result-ready #resul
   <footer class="footer" data-release-footer>
     <div>学生留言只代表部分评论者在特定专业、校区和年份的个人体验，不代表学校官方结论。</div>
     <div class="major-source-footer-note" data-major-source-footer-note hidden></div>
-    <a class="version" href="./changelog.html">同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.3 · UI 修订 r049 · 查看同学你好更新记录 · <span data-current-release hidden></span></a> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a>
+    <a class="version" href="./changelog.html">同学你好 · 能力版本 v1.5.9 · 全站发布 v3.9.90.3 · UI 修订 r051 · 查看同学你好更新记录 · <span data-current-release hidden></span></a> · <a data-release-log-link href="/changelog.html">查看全站更新记录</a>
   </footer>
 </div>
-<script type="module" src="./app/tongxue-runtime-v159-r3968.js?v=3968_0-nav003&r=r049-human-journey-ui"></script>
+<script type="module" src="./app/tongxue-runtime-v159-r3968.js?v=3968_0-nav003&r=r051-major-scope-clarity"></script>
 <script type="module" src="/shared/resources/release/release-footer.v3990_3.js?v=3990_3&r=r036-major-history-rank-lazy"></script>
 </body>
 </html>
-

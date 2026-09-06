@@ -28,7 +28,7 @@ assert.match(actions, /school-major-review-link/);
 assert.doesNotMatch(schoolView.slice(detailStart), /school-major-review-link/);
 assert.match(handoff, /concreteMajorFromRendered\(\{ code, name:sourceMajor \}\)/);
 assert.match(handoff, /compact:true/);
-assert.match(handoff, /看看这所学校的大学生怎么说/);
+assert.match(handoff, /看看学校整体的学习和生活体验/);
 assert.match(presenter, /看看这所学校的大学生怎么说/);
 assert.match(runtime, /school-all-mode\.v3969_2\.js\?v=3969_2&r=r046-ln-rank-dynamic-focus-scroll/);
 assert.match(workspaceCss, /major-path-entry--compact[\s\S]*width: calc\(\(100% - 16px\) \/ 3\)/);
@@ -41,7 +41,7 @@ console.log(JSON.stringify({
   ok: true,
   sharedMajorResolution: true,
   schoolCanonicalIdentity: true,
-  visibleEntries: ['专业升学路径', '大学生说专业', '大学生说学校'],
+  visibleEntries: ['专业升学路径', '跨校学生留言', '学生谈这所学校'],
   releaseRevision: 'r036-major-history-rank-lazy',
   cacheRevision: 'r036-major-history-rank-lazy'
 }, null, 2));
