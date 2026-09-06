@@ -15,7 +15,7 @@ export const CURRENT_RELEASE = Object.freeze({
   releaseLogHref: '/changelog.html',
   releaseLogLabel: '查看全站更新记录',
   releaseFooterContractVersion: 'release-footer-contract-v3990_3',
-  releaseRevision: 'r048-cross-module-context-handoff',
+  releaseRevision: 'r049-tongxue-human-journey-ui',
   crossModuleContextHandoffVersion: 'cross-module-context-handoff-v001',
   crossModuleContextHandoffRevision: 'r048-cross-module-context-handoff',
   returnSnapshotVersion: 'return-snapshot-v001',
@@ -100,6 +100,8 @@ export const CURRENT_RELEASE = Object.freeze({
   reportFrontendVersion: 'feishu-browser-v3967_0',
   historyEvidenceVersion: 'ln-physics-history-evidence-v3967_0',
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
+  tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v001',
+  tongxueHumanJourneyUiRevision: 'r049-tongxue-human-journey-ui',
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v002',
   lnRankHumanQueryInputRevision: 'r032-input-clear-state',
   lnRankCardEntryVersion: 'ln-rank-three-card-entries-v005',
@@ -258,3 +260,4 @@ export const CURRENT_RELEASE = Object.freeze({
 
 export function getCurrentRelease() { return CURRENT_RELEASE; }
 export function currentAssetQuery() { return CURRENT_RELEASE.assetVersion; }
+

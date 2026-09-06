@@ -48,21 +48,32 @@ export function createTongxueResultView(ui, state, searchView) {
 
   function mountDecisionContext() {
     const context = state.decisionContext;
-    if (!context || !ui.result) return;
+    if (!ui.result) return;
     const host = ui.result.querySelector('.result-shell, .state-card');
     if (!host || host.querySelector('[data-decision-context-strip]')) return;
-    const summary = summarizeDecisionContext(context, { surface:'tongxue' });
-    if (!summary.lines.length) return;
+    const summary = context ? summarizeDecisionContext(context, { surface:'tongxue' }) : null;
+    const standalone = !context && state.directMode;
+    if (!standalone && !summary?.lines.length) return;
     const strip = document.createElement('section');
     strip.className = 'decision-context-strip';
     strip.dataset.decisionContextStrip = 'readonly';
-    strip.innerHTML = `<strong>${html(summary.title)}</strong><span>${html(summary.lines.join(' · '))}</span><small>${html(summary.note)}；不会自动修改家庭方案。</small>`;
-    if (context.returnTo) {
-      const link = document.createElement('a');
-      link.href = context.returnTo;
-      link.textContent = '返回刚才的查询';
-      link.className = 'decision-context-return';
-      strip.append(link);
+    if (standalone) {
+      strip.classList.add('standalone');
+      strip.innerHTML = '<strong>这是一次独立查询</strong><span>未带入分数、专业筛选或家庭方案</span><small>你可以继续查看学生留言，也可以从顶部回到同学你好首页。</small>';
+    } else {
+      const returnLabel = context.sourceSurface === 'major-path'
+        ? '回到专业升学地图'
+        : context.sourceSurface === 'ln-rank'
+          ? '回到专业初选'
+          : '回到刚才的查询';
+      strip.innerHTML = `<strong>${html(summary.title)}</strong><span>${html(summary.lines.join(' · '))}</span><small>${html(summary.note)}；不会自动修改家庭方案。</small>`;
+      if (context.returnTo) {
+        const link = document.createElement('a');
+        link.href = context.returnTo;
+        link.textContent = returnLabel;
+        link.className = 'decision-context-return';
+        strip.append(link);
+      }
     }
     host.prepend(strip);
   }
@@ -375,3 +386,4 @@ export function createTongxueResultView(ui, state, searchView) {
 
   return Object.freeze({ renderResult, renderActiveReviews, appendReviews, updateLoadMore, renderFailure });
 }
+
