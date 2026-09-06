@@ -3,7 +3,7 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-major-scope-human-v001",
   "baseSha": "242902cb43c33b6045aa1e062e8e82059ce5797f",
-  "headSha": "f1a554bca973bf4d6e0fb13b78bbffd97dd33057",
+  "headSha": "be660c25f4e3189efb3d7a32b02a2ae625786c16",
   "pr": 266,
   "completed": [
     "baseline-main-verified",
@@ -16,10 +16,11 @@
     "static-regression-suite",
     "browser-regression-four-viewports",
     "create-commit",
-    "publish-pr"
+    "publish-pr",
+    "ci-failure-fixed-context-title-contract"
   ],
   "inProgress": "ci-verify",
   "pending": ["ci-verify", "merge-main", "post-merge-verify"],
-  "lastFailure": null,
+  "lastFailure": "PR 266 runs exposed two stale baseline expectations (专业初选 title, r042 result-view cache identity); both were updated to the scope-accurate title and r051 cache identity, then synced to exact head.",
   "verifiedAt": "2026-09-06T00:00:00Z"
 }
