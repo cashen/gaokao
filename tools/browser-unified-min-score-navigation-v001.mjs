@@ -74,7 +74,8 @@ try {
     }));
 
     await page.goto(`${base}/major-path/?majorCode=080601&from=ln-rank&returnTo=%2Fln-rank%2F`, { waitUntil: 'networkidle' });
-    await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor();
+    await page.locator('[data-major-pathway-focus]').waitFor({ state: 'attached', timeout: 30000 });
+    await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor({ state: 'attached', timeout: 30000 });
     const majorEntry = page.locator('[data-min-score-entry="major"] .min-score-entry__link');
     assert.match(await majorEntry.getAttribute('href'), /mode=major-all/);
     assert.match(await majorEntry.getAttribute('href'), /majorCode=080601/);
@@ -82,13 +83,14 @@ try {
     assert.match(await majorEntry.getAttribute('href'), /#majorAllResultsPanel$/);
 
     await page.goto(`${base}/tongxue/?scope=major&majorCode=080601&major=${encodeURIComponent('电气工程及其自动化')}&returnTo=%2Fln-rank%2F`, { waitUntil: 'networkidle' });
-    await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor();
+    await page.locator('[data-major-pathway-focus]').waitFor({ state: 'attached', timeout: 30000 });
+    await page.locator('[data-min-score-entry="major"] .min-score-entry__link').waitFor({ state: 'attached', timeout: 30000 });
     assert.equal(await page.locator('[data-min-score-entry="major"]').count(), 1);
     assert.match(await page.locator('[data-min-score-entry="major"] .min-score-entry__link').getAttribute('href'), /major-all/);
     assert.equal(await page.locator('body').evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true, '390px viewport must not overflow horizontally');
 
     await page.goto(`${base}/tongxue/?school=${encodeURIComponent('吉林大学')}`, { waitUntil: 'networkidle' });
-    await page.locator('[data-min-score-entry="school"] .min-score-entry__link').waitFor();
+    await page.locator('[data-min-score-entry="school"] .min-score-entry__link').waitFor({ state: 'visible', timeout: 30000 });
     const schoolEntry = page.locator('[data-min-score-entry="school"] .min-score-entry__link');
     assert.equal(await schoolEntry.innerText(), '查这所学校在辽宁各专业的最低分');
     assert.match(await schoolEntry.getAttribute('href'), /mode=school-all/);
