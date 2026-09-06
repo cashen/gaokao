@@ -2,7 +2,7 @@
   "task": "major-path-human-journey-ui-audit-v001",
   "repository": "local checkout of gaokao-site",
   "branch": "fix/major-path-human-journey-continuity-v001",
-  "headSha": "8ed3acfa11a4692875885e0d2091104f94aaca3d",
+  "headSha": "186433b904dbf808e2a542f500bd558ba6c1a4e8",
   "baseSha": "2f36a067990c8a1a6fc2f19f9b10c27322730e71",
   "pr": 265,
   "completed": [
@@ -14,10 +14,11 @@
     "source-return-context-isolation-implementation",
     "static-continuity-and-regression-tests",
     "remote-branch-and-draft-pr-created",
-    "checkpoint-synced-to-pr"
+    "checkpoint-synced-to-pr",
+    "android-background-verifier-fix-local"
   ],
-  "inProgress": "wait-for-pr-ci-preview-and-browser-journeys",
+  "inProgress": "sync-android-background-verifier-fix-to-pr",
   "pending": ["ci-preview-production", "merge-main"],
-  "lastFailure": "local browser journey remains unverified until CI installs the pinned Chromium executable",
-  "verifiedAt": "2026-09-06T00:00:00Z"
+  "lastFailure": "PR CI run 34005610810 failed because the Android background verifier still expected major-path v0.05/app.v005; local verifier now targets v0.06/app.v006 and passes",
+  "verifiedAt": "2026-09-06T02:15:00Z"
 }
