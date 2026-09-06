@@ -3,8 +3,8 @@
   "repository": "cashen/gaokao",
   "branch": "fix/tongxue-major-scope-human-v001",
   "baseSha": "242902cb43c33b6045aa1e062e8e82059ce5797f",
-  "headSha": "3248aa7dcd8848d678839fe67b85722a8cd35ccd",
-  "pr": null,
+  "headSha": "f1a554bca973bf4d6e0fb13b78bbffd97dd33057",
+  "pr": 266,
   "completed": [
     "baseline-main-verified",
     "plan-written",
@@ -14,10 +14,12 @@
     "mpx-03-tongxue-scope-ia-copy",
     "mpx-04-major-path-weak-network",
     "static-regression-suite",
-    "browser-regression-four-viewports"
+    "browser-regression-four-viewports",
+    "create-commit",
+    "publish-pr"
   ],
-  "inProgress": "mpx-05-pr-ci-merge",
-  "pending": ["create-commit", "publish-pr", "ci-verify", "merge-main", "post-merge-verify"],
+  "inProgress": "ci-verify",
+  "pending": ["ci-verify", "merge-main", "post-merge-verify"],
   "lastFailure": null,
   "verifiedAt": "2026-09-06T00:00:00Z"
 }
