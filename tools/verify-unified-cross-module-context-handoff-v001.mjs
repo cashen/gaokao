@@ -20,7 +20,7 @@ for (const [label, source, needles] of [
   ['score result handoff', scoreCards, ['createDecisionContext', 'buildTongxueSchoolHref', 'captureCurrentReturnSnapshot']],
   ['major result handoff', handoff, ['rememberBeforeNavigate', 'resultMode', 'returnAnchor']],
   ['major path student voice', majorStudentVoice, ['decisionContext', 'sourceKey', 'captureCurrentReturnSnapshot']],
-  ['Tongxue copy', tongxue, ['返回刚才的查询']],
+  ['Tongxue copy', tongxue, ['回到来源查询', '独立查询']],
   ['release registration', release, ['crossModuleContextHandoffVersion', 'returnSnapshotVersion', 'returnSnapshot']],
   ['resource manifest', manifest, ['crossModuleContextHandoff', 'same-origin-bounded-readonly-context-and-return-snapshot-v001']],
   ['durable plan', plan, ['断网边界', '完成条件', 'head SHA']]
@@ -29,3 +29,4 @@ for (const [label, source, needles] of [
 }
 assert.ok(!school.includes('location.href =') && !handoff.includes('window.open('), 'handoff must keep explicit same-tab navigation ownership');
 console.log('unified cross-module context handoff v001 static contract passed');
+

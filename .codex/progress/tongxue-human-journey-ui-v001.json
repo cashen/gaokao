@@ -22,7 +22,13 @@
     "merge-main",
     "post-merge-production-verify"
   ],
-  "lastFailure": null,
+  "lastFailure": {
+    "runId": 34003218572,
+    "jobId": 101405678325,
+    "cause": "legacy verifier expected 返回刚才的查询",
+    "resolution": "updated verifier and source label to current 回到来源查询 contract",
+    "resolvedLocally": true
+  },
   "pullRequest": {
     "number": 264,
     "url": "https://github.com/cashen/gaokao/pull/264",

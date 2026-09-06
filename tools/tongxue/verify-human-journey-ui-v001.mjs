@@ -15,7 +15,7 @@ assert.ok(!page.includes('r=r040-human-reading-flow"'), 'retired Tongxue UI cach
 assert.ok(searchView.includes('ui.result?.contains(document.activeElement)'), 'result-internal viewport guard missing');
 assert.ok(resultView.includes('这是一次独立查询'), 'standalone direct-entry context missing');
 assert.ok(resultView.includes('回到专业升学地图'), 'major-path return label missing');
-assert.ok(resultView.includes('回到专业初选'), 'ln-rank return label missing');
+assert.ok(resultView.includes('回到来源查询（专业初选）'), 'ln-rank return label missing');
 assert.ok(release.includes("releaseRevision: 'r049-tongxue-human-journey-ui'"), 'canonical release revision missing');
 assert.ok(release.includes("tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v001'"), 'Tongxue UI capability version missing');
 assert.ok(changelog.includes('r049-tongxue-human-journey-ui'), 'Tongxue changelog entry missing');

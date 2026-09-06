@@ -64,8 +64,8 @@ export function createTongxueResultView(ui, state, searchView) {
       const returnLabel = context.sourceSurface === 'major-path'
         ? '回到专业升学地图'
         : context.sourceSurface === 'ln-rank'
-          ? '回到专业初选'
-          : '回到刚才的查询';
+          ? '回到来源查询（专业初选）'
+          : '回到来源查询';
       strip.innerHTML = `<strong>${html(summary.title)}</strong><span>${html(summary.lines.join(' · '))}</span><small>${html(summary.note)}；不会自动修改家庭方案。</small>`;
       if (context.returnTo) {
         const link = document.createElement('a');
