@@ -1,0 +1,31 @@
+name: Verify simulation report v001
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report.v001.js'
+      - 'ln-rank/css/simulation-report.v001.css'
+      - 'functions/api/simulation-rank.js'
+      - 'tools/verify-simulation-report-v001.mjs'
+  push:
+    branches: [feat/simulation-report-a4-print]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax checks
+        run: |
+          node --check functions/api/simulation-rank.js
+          node --check ln-rank/js/simulation-report.v001.js
+          node --check tools/verify-simulation-report-v001.mjs
+      - name: Simulation report contract
+        run: node tools/verify-simulation-report-v001.mjs
