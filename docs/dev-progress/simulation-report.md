@@ -2,8 +2,8 @@
 
 分支：feat/simulation-report-a4-print
 PR：#267
-
-目标：辽宁物理类模拟填报单，支持动态志愿、专业代码映射、历史分数位次对比、A4打印。
+当前 HEAD：cdfbe2cf2b40c6935ad0a3ebc38ab16956b8133e
+基线 main：bf20ddcaf51d343def945f6844e5111e92f41ff9
 
 ## 当前状态
 
@@ -17,10 +17,13 @@ PR：#267
 - [x] 历史数据联动
 - [x] A4打印优化
 - [x] 添加可重复的源代码/打印契约校验
-- [ ] CI全部通过后完成多终端人工验证
-- [ ] PR审核
-- [ ] 合并main
-- [ ] 合并后生产验证
+- [x] Node 20 syntax + simulation contract gate
+- [x] Cloudflare branch preview deploy successful
+- [x] main tree integrity gate successful
+- [x] PR 已 Ready for Review
+- [ ] 全站发布/runtime/resource/production gates全部完成
+- [ ] exact-head merge
+- [ ] merge后 main/Cloudflare/custom-domain/API/data-SHA 验证
 
 ## 已确认的数据与所有权
 
@@ -28,7 +31,7 @@ PR：#267
 2. 2026/2025/2024专业历史记录：复用 `/api/ai/major-history` 及其现有历史证据合同，不复制招生事实。
 3. 2026考生参考位次：新增轻量 `/api/simulation-rank`，内部直接调用现有 `functions/_lib/ln-2026-physics-score-rank.js`，不建立第二份位次数据。
 4. 学校输入：复用 `tongxue/data/school-name-resolver-v150.js` 的学校实体解析。
-5. 志愿状态：页面自身只负责家庭草案的排序/保存，不改变 `selection-pool` 的业务事实。
+5. 志愿状态：页面自身只负责家庭草案的排序/保存，不改变 `selection-pool` 的业务事实与家庭方案真源。
 
 ## 断网续接规则
 
@@ -47,5 +50,7 @@ PR：#267
 
 - Node 20 语法检查。
 - 模块契约检查。
-- PR CI绿灯后，再进行浏览器/打印人工验证。
-- 未通过验证不合并main。
+- Cloudflare branch preview deploy。
+- main tree integrity。
+- 全站 release/runtime/resource gates 必须以最终 HEAD 为依据。
+- exact-head merge 后重新核验 main SHA 与生产部署，不接受旧 SHA 的验证证据。
