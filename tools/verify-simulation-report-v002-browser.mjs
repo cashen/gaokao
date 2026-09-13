@@ -28,11 +28,11 @@ const makeVolunteer = (index, withLongRemark = false) => ({
     studyLength: '',
     trainingMode: '',
     subjectRequirement: '',
-    remark: withLongRemark ? '这是用于打印分页验收的长备注。家庭讨论时可记录专业备注、特殊限制、培养方向、校区安排和其他需要正式填报前再次核对的信息。' : ''
+    remark: withLongRemark ? 'LONG_REMARK_CHECK：这是用于打印分页验收的长备注。家庭讨论时可记录专业备注、特殊限制、培养方向、校区安排和其他需要正式填报前再次核对的信息。' : ''
   },
   familyDecision: index % 3 === 0 ? '稳' : '',
   familyStatus: index % 4 === 0 ? '保留' : '',
-  familyNote: withLongRemark ? '打印验收长家庭备注：请与正式招生计划、招生章程及志愿填报系统再次对照。' : ''
+  familyNote: withLongRemark ? 'LONG_FAMILY_NOTE_CHECK：打印验收长家庭备注，请与正式招生计划、招生章程及志愿填报系统再次对照。' : ''
 });
 
 const makeState = count => ({
@@ -151,8 +151,10 @@ try {
       throw new Error(`PDF lost expected volunteer rows for count ${count}.`);
     }
     if (count === 30) {
-      if (!text.includes('打印分页验收的长备注')) throw new Error('Long remark did not survive PDF output.');
-      if (!text.includes('长家庭备注')) throw new Error('Long family note did not survive PDF output.');
+      if (!text.includes('LONG_REMARK_CHECK')) throw new Error('Long remark marker did not survive PDF output.');
+      if (!text.includes('LONG_FAMILY_NOTE_CHECK')) throw new Error('Long family note marker did not survive PDF output.');
+      if (!text.includes('长备注')) throw new Error('Long remark CJK text did not survive PDF output.');
+      if (!text.includes('长家庭备注')) throw new Error('Long family note CJK text did not survive PDF output.');
     }
     console.log(`print boundary ${count}: PASS (${stat.size} bytes, ${pageCount} pages)`);
   }
@@ -227,7 +229,7 @@ try {
   console.log('Responsive: PC 1366 / Pad 820 / Android 390 / Android 360');
   console.log('Print boundaries: 1 / 5 / 10 / 20 / 30 volunteers');
   console.log('Print: repeated identity + column headers on every extracted page');
-  console.log('Print: no hardcoded 待核实 placeholders; long notes survive PDF');
+  console.log('Print: no hardcoded 待核实 placeholders; long note markers survive PDF');
   console.log('Migration: v001 retains major + history, then persists new manual-check data as v2');
 } finally {
   await browser.close();
