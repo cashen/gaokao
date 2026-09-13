@@ -1,0 +1,47 @@
+{
+  "task": "simulation-report-v002-paper-check-sheet",
+  "repository": "cashen/gaokao",
+  "baseMainSha": "a5f213396ef4fdfecee3ad87587f15af9847509c",
+  "branch": "feat/simulation-report-v002-paper-check-sheet",
+  "phase": "P1-verification",
+  "plan": "docs/plans/simulation-report-v002-paper-check-sheet.md",
+  "currentHead": "636d082e4dec20a769424a92b9e06e866dc0c24b",
+  "completed": [
+    "branch-created",
+    "plan-written",
+    "checkpoint-written",
+    "manual-check-state",
+    "localstorage-migration",
+    "screen-ui",
+    "print-layout",
+    "screen-column-regression-fixed",
+    "static-contract-updated",
+    "workflow-added",
+    "workflow-initial-verifier-failure-diagnosed",
+    "verifier-fixed"
+  ],
+  "inProgress": "exact-head-ci",
+  "pending": [
+    "multi-page-print",
+    "browser-regression",
+    "print-regression",
+    "static-contract-pass",
+    "release-gates",
+    "ready",
+    "merge-main",
+    "post-merge-verify"
+  ],
+  "lastFailure": "Initial v002 verifier run at 96dbc4b failed because the verifier expected direct localStorage.getItem calls while implementation correctly used readStored(). Verifier was corrected. A separate repository bounded-fanout workflow failure on the old head was unrelated to this change and is not treated as the v002 feature result.",
+  "invariants": [
+    "No admissions data source added",
+    "No tuition/plan/campus facts invented",
+    "manualCheck is user-owned draft data",
+    "Existing history/rank/school/major owners remain unchanged",
+    "Empty printable manual fields show labels plus blank writing space, never 待核实",
+    "Every printed page repeats student identity and column header",
+    "A single volunteer never splits across pages",
+    "Screen does not show the print-only manual check column",
+    "Maximum volunteers remains 30"
+  ],
+  "updatedAt": "2026-09-13T10:55:00+08:00"
+}

@@ -48,7 +48,7 @@ mustContain(runtime, [
 mustContain(styles, [
   '@page{size:A4 landscape;',
   '@media print',
-  '.col-actions{display:none}',
+  '.col-actions{display:none!important}',
   '.school-suggestions{display:none!important}',
   '.sheet-table{min-width:0;width:100%;table-layout:fixed}'
 ], 'styles');

@@ -1,0 +1,33 @@
+name: Verify simulation report v002 paper check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report.v001.js'
+      - 'ln-rank/css/simulation-report.v001.css'
+      - 'tools/verify-simulation-report-v002-paper-check-sheet.mjs'
+      - 'docs/plans/simulation-report-v002-paper-check-sheet.md'
+      - '.codex/progress/simulation-report-v002-paper-check-sheet.json'
+  push:
+    branches: [feat/simulation-report-v002-paper-check-sheet]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax checks
+        run: |
+          node --check ln-rank/js/simulation-report.v001.js
+          node --check tools/verify-simulation-report-v002-paper-check-sheet.mjs
+      - name: Paper-check contract
+        run: node tools/verify-simulation-report-v002-paper-check-sheet.mjs
+      - name: Diff check
+        run: git diff --check

@@ -2,13 +2,20 @@ import { MAJOR_CATALOG_2026 } from '../kb/major-understanding/major-catalog-2026
 import { createMajorCatalogResolver } from '../../shared/resources/majors/major-catalog-contract.js';
 import { loadSchoolNameResolver } from '../../tongxue/data/school-name-resolver-v150.js';
 
-const STORAGE_KEY = 'gaokao:simulation-report:v001';
+const STORAGE_KEY = 'gaokao:simulation-report:v002';
+const LEGACY_STORAGE_KEY = 'gaokao:simulation-report:v001';
 const API_BASE = '/api/ai/major-history';
 const RANK_API = '/api/simulation-rank';
 const resolver = createMajorCatalogResolver(MAJOR_CATALOG_2026);
+const MANUAL_CHECK_KEYS = [
+  'institutionCode', 'groupCode', 'campus', 'studyLocation', 'tuition',
+  'accommodationFee', 'planCount', 'studyLength', 'trainingMode',
+  'subjectRequirement', 'remark'
+];
 let schoolResolverPromise = null;
 let state = loadState();
 let candidateRankRequest = 0;
+let expandedRows = new Set();
 
 const $ = selector => document.querySelector(selector);
 const rowsEl = $('#volunteerRows');
@@ -23,9 +30,30 @@ const addBtn = $('#addVolunteer');
 const printBtn = $('#printSheet');
 const resetBtn = $('#resetSheet');
 
+function emptyManualCheck() {
+  return Object.fromEntries(MANUAL_CHECK_KEYS.map(key => [key, '']));
+}
+
+function createVolunteer(order) {
+  return {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    order,
+    school: '',
+    majorCode: '',
+    majorName: '',
+    history: null,
+    loading: false,
+    error: '',
+    manualCheck: emptyManualCheck(),
+    familyDecision: '',
+    familyStatus: '',
+    familyNote: ''
+  };
+}
+
 function defaultState() {
   return {
-    version: 1,
+    version: 2,
     studentName: '',
     subjectTrack: '辽宁物理类（物化生）',
     totalScore: '',
@@ -35,35 +63,54 @@ function defaultState() {
   };
 }
 
-function createVolunteer(order) {
-  return { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, order, school: '', majorCode: '', majorName: '', history: null, loading: false, error: '' };
+function normalizeVolunteer(row, index) {
+  const fresh = createVolunteer(index + 1);
+  return {
+    ...fresh,
+    ...row,
+    order: index + 1,
+    manualCheck: { ...emptyManualCheck(), ...(row?.manualCheck || {}) },
+    familyDecision: typeof row?.familyDecision === 'string' ? row.familyDecision : '',
+    familyStatus: typeof row?.familyStatus === 'string' ? row.familyStatus : '',
+    familyNote: typeof row?.familyNote === 'string' ? row.familyNote : ''
+  };
+}
+
+function readStored(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null');
+  } catch {
+    return null;
+  }
 }
 
 function loadState() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (!parsed || parsed.version !== 1) return defaultState();
-    return {
-      ...defaultState(),
-      ...parsed,
-      scores: { ...defaultState().scores, ...(parsed.scores || {}) },
-      volunteers: Array.isArray(parsed.volunteers) && parsed.volunteers.length ? parsed.volunteers.map((row, i) => ({ ...createVolunteer(i + 1), ...row, order: i + 1 })) : [createVolunteer(1)]
-    };
-  } catch {
-    return defaultState();
-  }
+  const parsed = readStored(STORAGE_KEY) || readStored(LEGACY_STORAGE_KEY);
+  if (!parsed || !Array.isArray(parsed.volunteers)) return defaultState();
+  return {
+    ...defaultState(),
+    ...parsed,
+    version: 2,
+    scores: { ...defaultState().scores, ...(parsed.scores || {}) },
+    volunteers: parsed.volunteers.length ? parsed.volunteers.map(normalizeVolunteer) : [createVolunteer(1)]
+  };
 }
 
 function saveState() {
   const serializable = {
     ...state,
+    version: 2,
     volunteers: state.volunteers.map(row => ({
       id: row.id,
       order: row.order,
       school: row.school,
       majorCode: row.majorCode,
       majorName: row.majorName,
-      history: row.history
+      history: row.history,
+      manualCheck: { ...emptyManualCheck(), ...(row.manualCheck || {}) },
+      familyDecision: row.familyDecision || '',
+      familyStatus: row.familyStatus || '',
+      familyNote: row.familyNote || ''
     }))
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
@@ -135,6 +182,54 @@ function updateMeta() {
   printDateEl.textContent = new Date().toLocaleDateString('zh-CN');
 }
 
+function renderManualField(key, label, row, wide = false) {
+  const value = row.manualCheck?.[key] || '';
+  const multiline = key === 'remark';
+  const control = multiline
+    ? `<textarea class="manual-input manual-textarea" data-field="manualCheck.${esc(key)}" data-row-id="${esc(row.id)}" rows="2" aria-label="${esc(label || '专业备注/特殊限制')}">${esc(value)}</textarea>`
+    : `<input class="manual-input" type="text" value="${esc(value)}" data-field="manualCheck.${esc(key)}" data-row-id="${esc(row.id)}" aria-label="${esc(label)}" />`;
+  return `<div class="manual-field ${wide ? 'manual-field-wide' : ''}"><span>${esc(label)}</span>${control}</div>`;
+}
+
+function renderManualPanel(row) {
+  const open = expandedRows.has(row.id);
+  const panelId = `manual-panel-${row.id}`;
+  return `<div class="manual-wrap">
+    <button type="button" class="manual-toggle" data-action="toggle-manual" data-row-id="${esc(row.id)}" aria-expanded="${open}" aria-controls="${esc(panelId)}">${open ? '收起报考信息' : '报考信息'}</button>
+    <div id="${esc(panelId)}" class="manual-panel" ${open ? '' : 'hidden'}>
+      <div class="manual-grid">
+        ${renderManualField('institutionCode', '院校代码', row)}
+        ${renderManualField('groupCode', '专业组/招生代码', row)}
+        ${renderManualField('campus', '校区', row)}
+        ${renderManualField('studyLocation', '实际培养地点', row)}
+        ${renderManualField('tuition', '学费', row)}
+        ${renderManualField('accommodationFee', '住宿费', row)}
+        ${renderManualField('planCount', '2026招生计划', row)}
+        ${renderManualField('studyLength', '学制', row)}
+        ${renderManualField('trainingMode', '培养方式', row)}
+        ${renderManualField('subjectRequirement', '选科要求', row)}
+        ${renderManualField('remark', '专业备注/特殊限制', row, true)}
+      </div>
+      <div class="family-grid">
+        <div class="manual-field"><span>家庭判断</span><select class="manual-input" data-field="familyDecision" data-row-id="${esc(row.id)}" aria-label="家庭判断"><option value="">未填写</option><option value="冲" ${row.familyDecision === '冲' ? 'selected' : ''}>冲</option><option value="稳" ${row.familyDecision === '稳' ? 'selected' : ''}>稳</option><option value="保" ${row.familyDecision === '保' ? 'selected' : ''}>保</option></select></div>
+        <div class="manual-field"><span>处理</span><select class="manual-input" data-field="familyStatus" data-row-id="${esc(row.id)}" aria-label="志愿处理"><option value="">未填写</option><option value="保留" ${row.familyStatus === '保留' ? 'selected' : ''}>保留</option><option value="备选" ${row.familyStatus === '备选' ? 'selected' : ''}>备选</option><option value="删除" ${row.familyStatus === '删除' ? 'selected' : ''}>删除</option></select></div>
+        <div class="manual-field manual-field-wide"><span>家庭备注</span><input class="manual-input" type="text" value="${esc(row.familyNote || '')}" data-field="familyNote" data-row-id="${esc(row.id)}" aria-label="家庭备注" /></div>
+      </div>
+      <p class="manual-hint">这些字段只是你自己的核对记录；当前系统没有对应招生事实时保持空白，不代表“没有这项信息”。</p>
+    </div>
+  </div>`;
+}
+
+function printManualField(label, value, wide = false) {
+  const text = String(value || '').trim();
+  const shown = text ? esc(text) : '&nbsp;';
+  return `<span class="print-field ${wide ? 'print-field-wide' : ''}"><b>${esc(label)}：</b><span class="print-blank">${shown}</span></span>`;
+}
+
+function mark(value, label) {
+  return value === label ? '☑' : '□';
+}
+
 function renderRows() {
   rowsEl.innerHTML = state.volunteers.map((row, index) => {
     const order = index + 1;
@@ -142,7 +237,24 @@ function renderRows() {
     return `<tr draggable="true" data-row-id="${esc(row.id)}">
       <td class="col-order"><span class="drag-handle" title="拖动调整顺序" aria-hidden="true">☰</span><b>${order}</b></td>
       <td class="col-school"><div class="cell-editor"><input class="school-input" data-field="school" data-row-id="${esc(row.id)}" value="${esc(row.school)}" placeholder="输入学校名称" autocomplete="off" /><div class="school-suggestions" data-school-suggestions="${esc(row.id)}"></div></div></td>
-      <td class="col-major"><div class="cell-editor"><input class="major-input" list="${suggestionId}" data-field="majorCode" data-row-id="${esc(row.id)}" value="${esc(row.majorCode)}" placeholder="专业代码，如080301" inputmode="text" autocomplete="off" /><datalist id="${suggestionId}">${majorSuggestions(row.majorCode).map(item => `<option value="${esc(item.code)}">${esc(item.name)}</option>`).join('')}</datalist><div class="major-name" data-major-name="${esc(row.id)}">${esc(row.majorName || '输入专业代码，自动带出中文')}</div></div></td>
+      <td class="col-major"><div class="cell-editor"><input class="major-input" list="${suggestionId}" data-field="majorCode" data-row-id="${esc(row.id)}" value="${esc(row.majorCode)}" placeholder="专业代码，如080301" inputmode="text" autocomplete="off" /><datalist id="${suggestionId}">${majorSuggestions(row.majorCode).map(item => `<option value="${esc(item.code)}">${esc(item.name)}</option>`).join('')}</datalist><div class="major-name" data-major-name="${esc(row.id)}">${esc(row.majorName || '输入专业代码，自动带出中文')}</div>${renderManualPanel(row)}</div></td>
+      <td class="col-check print-col-check">
+        <div class="print-check-block">
+          ${printManualField('院校代码', row.manualCheck?.institutionCode)}
+          ${printManualField('专业组/招生代码', row.manualCheck?.groupCode)}
+          ${printManualField('校区', row.manualCheck?.campus)}
+          ${printManualField('实际培养地点', row.manualCheck?.studyLocation)}
+          ${printManualField('学费', row.manualCheck?.tuition)}
+          ${printManualField('住宿费', row.manualCheck?.accommodationFee)}
+          ${printManualField('2026招生计划', row.manualCheck?.planCount)}
+          ${printManualField('学制', row.manualCheck?.studyLength)}
+          ${printManualField('培养方式', row.manualCheck?.trainingMode)}
+          ${printManualField('选科要求', row.manualCheck?.subjectRequirement)}
+          ${printManualField('专业备注/特殊限制', row.manualCheck?.remark, true)}
+          <span class="print-field print-family"><b>家庭判断：</b>${mark(row.familyDecision, '冲')}冲　${mark(row.familyDecision, '稳')}稳　${mark(row.familyDecision, '保')}保　 <b>处理：</b>${mark(row.familyStatus, '保留')}保留　${mark(row.familyStatus, '备选')}备选　${mark(row.familyStatus, '删除')}删除</span>
+          <span class="print-field print-field-wide"><b>家庭备注：</b>${row.familyNote ? esc(row.familyNote) : '&nbsp;'}</span>
+        </div>
+      </td>
       <td class="history-cell">${historyCell(2026, row.history)}</td>
       <td class="history-cell">${historyCell(2025, row.history)}</td>
       <td class="history-cell">${historyCell(2024, row.history)}</td>
@@ -256,6 +368,10 @@ function updateSchoolSuggestions(input) {
   });
 }
 
+function updateManualValue(row, key, value) {
+  row.manualCheck = { ...emptyManualCheck(), ...(row.manualCheck || {}), [key]: String(value ?? '') };
+}
+
 function moveRow(rowId, delta) {
   const index = state.volunteers.findIndex(row => row.id === rowId);
   const target = index + delta;
@@ -272,12 +388,14 @@ function deleteRow(rowId) {
   } else {
     state.volunteers = state.volunteers.filter(row => row.id !== rowId).map((row, i) => ({ ...row, order: i + 1 }));
   }
+  expandedRows.delete(rowId);
   saveState();
   renderRows();
 }
 
 function resetAll() {
   state = defaultState();
+  expandedRows.clear();
   saveState();
   updateMeta();
   renderRows();
@@ -285,7 +403,7 @@ function resetAll() {
 }
 
 function bindEvents() {
-  [nameEl, subjectEl, scoreEl].forEach(input => input.addEventListener('input', event => {
+  [nameEl, subjectEl, scoreEl].forEach(input => input.addEventListener('input', () => {
     state.studentName = nameEl.value.trim();
     state.subjectTrack = subjectEl.value.trim() || '辽宁物理类（物化生）';
     state.totalScore = scoreEl.value.trim();
@@ -302,33 +420,47 @@ function bindEvents() {
     saveState();
     renderRows();
   });
-  printBtn.addEventListener('click', () => window.print());
+  printBtn.addEventListener('click', () => {
+    state.studentName = nameEl.value.trim();
+    state.totalScore = scoreEl.value.trim();
+    state.subjectTrack = subjectEl.value.trim();
+    saveState();
+    window.print();
+  });
   resetBtn.addEventListener('click', resetAll);
 
   rowsEl.addEventListener('input', event => {
     const rowId = event.target.dataset.rowId;
     const row = state.volunteers.find(item => item.id === rowId);
     if (!row) return;
-    if (event.target.dataset.field === 'school') {
+    const field = event.target.dataset.field || '';
+    if (field === 'school') {
       row.school = event.target.value;
       row.history = null;
       row.error = '';
       updateSchoolSuggestions(event.target);
       saveState();
-    }
-    if (event.target.dataset.field === 'majorCode') {
+    } else if (field === 'majorCode') {
       const changed = updateMajorFromInput(row, event.target.value);
       saveState();
       const nameMount = document.querySelector(`[data-major-name="${CSS.escape(rowId)}"]`);
       if (nameMount) nameMount.textContent = row.majorName || '输入专业代码，自动带出中文';
       if (changed && row.school) fetchHistory(row);
+    } else if (field.startsWith('manualCheck.')) {
+      updateManualValue(row, field.slice('manualCheck.'.length), event.target.value);
+      saveState();
+    } else if (field === 'familyNote') {
+      row.familyNote = event.target.value;
+      saveState();
     }
   });
+
   rowsEl.addEventListener('change', event => {
     const rowId = event.target.dataset.rowId;
     const row = state.volunteers.find(item => item.id === rowId);
     if (!row) return;
-    if (event.target.dataset.field === 'school') {
+    const field = event.target.dataset.field || '';
+    if (field === 'school') {
       row.school = event.target.value.trim();
       saveState();
       const resolved = getSchoolResolver().then(resolverInstance => resolverInstance.resolve(row.school, { limit: 6 })).catch(() => null);
@@ -338,13 +470,28 @@ function bindEvents() {
         renderRows();
         fetchHistory(row);
       });
+    } else if (field === 'majorCode' && row.majorName && row.school) {
+      fetchHistory(row);
+    } else if (field.startsWith('manualCheck.')) {
+      updateManualValue(row, field.slice('manualCheck.'.length), event.target.value);
+      saveState();
+    } else if (field === 'familyDecision' || field === 'familyStatus') {
+      row[field] = event.target.value;
+      saveState();
     }
-    if (event.target.dataset.field === 'majorCode' && row.majorName && row.school) fetchHistory(row);
   });
+
   rowsEl.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button) return;
     const rowId = button.dataset.rowId;
+    if (button.dataset.action === 'toggle-manual') {
+      if (expandedRows.has(rowId)) expandedRows.delete(rowId); else expandedRows.add(rowId);
+      renderRows();
+      const panel = document.getElementById(`manual-panel-${CSS.escape(rowId)}`);
+      panel?.querySelector('.manual-input')?.focus({ preventScroll: true });
+      return;
+    }
     if (button.dataset.schoolChoice) {
       const row = state.volunteers.find(item => item.id === rowId);
       if (!row) return;
@@ -384,14 +531,22 @@ function bindEvents() {
   });
 }
 
+function syncPrintMeta() {
+  document.getElementById('printStudentName').textContent = nameEl.value.trim();
+  document.getElementById('printTotalScore').textContent = scoreEl.value.trim();
+  document.getElementById('printRank').textContent = rankEl.textContent.trim();
+  document.getElementById('printSubject').textContent = subjectEl.value.trim();
+  printDateEl.textContent = new Date().toLocaleDateString('zh-CN');
+}
+
 updateMeta();
 renderRows();
 bindEvents();
 fetchCandidateRank();
-
 window.addEventListener('beforeprint', () => {
   state.studentName = nameEl.value.trim();
   state.totalScore = scoreEl.value.trim();
   state.subjectTrack = subjectEl.value.trim();
   saveState();
+  syncPrintMeta();
 });

@@ -142,6 +142,7 @@ jobs:
     timeout-minutes: 65
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@v4
         with:

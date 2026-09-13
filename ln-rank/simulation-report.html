@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#eef2f1" />
   <title>辽宁模拟志愿填报单</title>
-  <link rel="stylesheet" href="/ln-rank/css/simulation-report.v001.css?v=001" />
+  <link rel="stylesheet" href="/ln-rank/css/simulation-report.v001.css?v=002-paper-check" />
+  <link rel="stylesheet" href="/ln-rank/css/simulation-report-v002-print-overrides.css?v=002-print-lines" />
 </head>
 <body>
   <main class="page">
@@ -13,7 +14,7 @@
       <div>
         <p class="eyebrow">辽宁物理类 · 家庭讨论用</p>
         <h1 class="title">模拟志愿填报单</h1>
-        <p class="subtitle">把已经讨论过的学校和专业排成一张表。专业代码自动带出中文，历史记录只作参考，不代替当年的招生计划和投档结果。</p>
+        <p class="subtitle">把已经讨论过的学校和专业排成一张表。新增的报考核对栏只是留给你自己记录，当前系统没有招生人数、学费、校区等事实时保持空白。</p>
       </div>
       <a class="button" href="/ln-rank/">返回专业初选</a>
     </header>
@@ -38,37 +39,44 @@
       </div>
 
       <div class="toolbar screen-only">
-        <div><b>我的志愿</b><div id="pageStatus" class="status">每一行是一条志愿，可以拖动或使用上下箭头调整顺序。</div></div>
+        <div><b>我的志愿</b><div id="pageStatus" class="status">每一行是一条志愿，可以拖动或使用上下箭头调整顺序；“报考信息”用于你自己核对后填写。</div></div>
         <div class="tool-actions"><button id="addVolunteer" class="button primary" type="button">＋ 添加志愿</button><button id="printSheet" class="button" type="button">打印 A4</button><button id="resetSheet" class="button" type="button">清空重填</button></div>
       </div>
 
-      <section class="print-only sheet-header">
-        <div><h1 class="sheet-title">辽宁物理类模拟志愿填报单</h1><p class="sheet-note">姓名：<span id="printStudentName"></span>　总分：<span id="printTotalScore"></span>　参考位次：<span id="printRank"></span>　类型：<span id="printSubject"></span></p></div>
-        <div class="print-meta">打印日期：<span id="printDate">—</span></div>
-      </section>
-
       <div class="table-wrap">
         <table class="sheet-table" aria-label="模拟志愿填报表">
-          <thead><tr><th class="col-order">志愿</th><th class="col-school">学校</th><th class="col-major">专业（代码→中文）</th><th class="history-cell">2026</th><th class="history-cell">2025</th><th class="history-cell">2024</th><th class="delta-cell">相对当前位次</th><th class="col-actions screen-only">调整</th></tr></thead>
+          <thead>
+            <tr class="print-only print-student-head">
+              <th colspan="9">
+                <div class="print-head-row">
+                  <div>
+                    <h1 class="sheet-title">辽宁物理类模拟志愿填报单</h1>
+                    <p class="sheet-note">姓名：<span id="printStudentName"></span>　总分：<span id="printTotalScore"></span>　参考位次：<span id="printRank"></span>　类型：<span id="printSubject"></span></p>
+                  </div>
+                  <div class="print-meta">打印日期：<span id="printDate">—</span></div>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th class="col-order">志愿</th>
+              <th class="col-school">学校</th>
+              <th class="col-major">专业（代码→中文）</th>
+              <th class="col-check">报考核对</th>
+              <th class="history-cell">2026</th>
+              <th class="history-cell">2025</th>
+              <th class="history-cell">2024</th>
+              <th class="delta-cell">相对当前位次</th>
+              <th class="col-actions">调整</th>
+            </tr>
+          </thead>
           <tbody id="volunteerRows"></tbody>
         </table>
       </div>
       <p class="footnote">历史列格式：录取分数 / 录取位次。同口径历史记录缺失时显示“无严格记录”。“相对当前位次”仅表示历史位次与当前2026参考位次的数值差，不代表录取概率。</p>
-      <p class="sheet-print-footer print-only">数据说明：专业名称来自2026本科专业目录；历史投档记录来自站内辽宁物理类历史数据。最终填报前请以当年官方招生计划、专业要求和投档规则为准。</p>
+      <p class="footnote screen-only">报考核对栏当前只保存你自己填写的草稿信息，不代表系统已经核验招生计划、学费、校区或专业条件。</p>
+      <p class="sheet-print-footer print-only">打印说明：空白核对项请在正式填报前自行查阅当年辽宁招生计划、学校招生章程及志愿填报系统；此页不把空白解释为“无此要求”。</p>
     </section>
   </main>
-  <script>
-    const syncPrintMeta = () => {
-      document.getElementById('printStudentName').textContent = document.getElementById('studentName').value.trim();
-      document.getElementById('printTotalScore').textContent = document.getElementById('totalScore').value.trim();
-      document.getElementById('printRank').textContent = document.getElementById('candidateRank').textContent.trim();
-      document.getElementById('printSubject').textContent = document.getElementById('subjectTrack').value.trim();
-      document.getElementById('printDate').textContent = new Date().toLocaleDateString('zh-CN');
-    };
-    window.addEventListener('beforeprint', syncPrintMeta);
-    ['studentName','totalScore','subjectTrack'].forEach(id => document.getElementById(id).addEventListener('input', syncPrintMeta));
-    window.addEventListener('load', syncPrintMeta);
-  </script>
-  <script type="module" src="/ln-rank/js/simulation-report.v001.js?v=001"></script>
+  <script type="module" src="/ln-rank/js/simulation-report.v001.js?v=002-paper-check"></script>
 </body>
 </html>
