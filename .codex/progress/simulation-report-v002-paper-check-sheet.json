@@ -3,24 +3,33 @@
   "repository": "cashen/gaokao",
   "baseMainSha": "a5f213396ef4fdfecee3ad87587f15af9847509c",
   "branch": "feat/simulation-report-v002-paper-check-sheet",
-  "phase": "P0-foundation",
+  "phase": "P0-implementation",
   "plan": "docs/plans/simulation-report-v002-paper-check-sheet.md",
-  "completed": ["branch-created", "plan-written"],
-  "inProgress": "checkpoint-written",
-  "pending": [
+  "currentHead": "f65e458ae0cbfbf4494c6207a70d68154b6e8af1",
+  "completed": [
+    "branch-created",
+    "plan-written",
+    "checkpoint-written",
     "manual-check-state",
     "localstorage-migration",
     "screen-ui",
     "print-layout",
+    "static-contract-draft",
+    "workflow-added",
+    "workflow-initial-failure-diagnosed"
+  ],
+  "inProgress": "rerun-paper-check-contract",
+  "pending": [
     "multi-page-print",
     "browser-regression",
     "print-regression",
-    "static-contract",
+    "static-contract-pass",
     "release-gates",
     "ready",
     "merge-main",
     "post-merge-verify"
   ],
+  "lastFailure": "The first paper-check workflow run failed only because the verifier expected a different legacy-storage expression. JS syntax checks passed. Verifier regex was corrected to the actual readStored(STORAGE_KEY) || readStored(LEGACY_STORAGE_KEY) implementation.",
   "invariants": [
     "No admissions data source added",
     "No tuition/plan/campus facts invented",
@@ -31,5 +40,5 @@
     "A single volunteer never splits across pages",
     "Maximum volunteers remains 30"
   ],
-  "updatedAt": "2026-09-13T10:22:00+08:00"
+  "updatedAt": "2026-09-13T10:40:00+08:00"
 }
