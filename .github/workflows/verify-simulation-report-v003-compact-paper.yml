@@ -11,6 +11,7 @@ on:
       - 'ln-rank/css/simulation-report-v002-print-overrides.css'
       - 'ln-rank/css/simulation-report-v003-print.css'
       - 'tools/verify-simulation-report-v003-compact-paper.mjs'
+      - 'tools/verify-simulation-report-v003-compact-paper-contract.mjs'
       - 'docs/plans/simulation-report-v003-compact-paper-card.md'
       - '.github/workflows/verify-simulation-report-v003-compact-paper.yml'
 
@@ -24,6 +25,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Static contract and syntax checks
+        run: |
+          node --check ln-rank/js/simulation-report.v001.js
+          node --check ln-rank/js/simulation-report-v003-print.js
+          node --check tools/verify-simulation-report-v003-compact-paper.mjs
+          node --check tools/verify-simulation-report-v003-compact-paper-contract.mjs
+          node tools/verify-simulation-report-v003-compact-paper-contract.mjs
+          git diff --check
       - name: Install PDF inspection tools
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Install Playwright package
