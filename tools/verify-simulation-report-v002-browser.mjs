@@ -1,9 +1,13 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
+const execFileAsync = promisify(execFile);
 const base = process.env.SIMULATION_REPORT_BASE_URL || 'http://127.0.0.1:4173';
 const url = `${base}/ln-rank/simulation-report.html`;
 const output = process.env.SIMULATION_REPORT_PDF || '/tmp/simulation-report-v002.pdf';
+const extracted = '/tmp/simulation-report-v002.txt';
 const studentName = '纸面核对测试学生';
 const volunteers = Array.from({ length: 30 }, (_, index) => ({
   id: `test-${index + 1}`,
@@ -89,7 +93,6 @@ try {
     const studentHead = document.querySelector('.print-student-head');
     const firstCheck = document.querySelector('.print-check-block');
     return {
-      paperWidth: getComputedStyle(document.querySelector('.sheet-table')).width,
       theadDisplay: getComputedStyle(head).display,
       studentHeadDisplay: getComputedStyle(studentHead).display,
       checkDisplay: getComputedStyle(firstCheck).display,
@@ -105,10 +108,42 @@ try {
   const stat = await fs.stat(output);
   if (stat.size < 1000) throw new Error(`Generated PDF is unexpectedly small: ${stat.size} bytes`);
 
-  console.log(`simulation-report-v002-browser: PASS (${stat.size} bytes PDF)`);
+  const { stdout: pdfInfo } = await execFileAsync('pdfinfo', [output]);
+  const pageMatch = pdfInfo.match(/^Pages:\s+(\d+)$/m);
+  const pageCount = pageMatch ? Number(pageMatch[1]) : 0;
+  if (pageCount < 2) throw new Error(`Expected 30 volunteers to span multiple pages, got ${pageCount} page(s).`);
+
+  await execFileAsync('pdftotext', ['-layout', output, extracted]);
+  const text = await fs.readFile(extracted, 'utf8');
+  const pages = text.split('\f').map(value => value.trim()).filter(Boolean);
+  if (pages.length < 2) throw new Error(`PDF text extraction produced ${pages.length} page(s); expected at least 2.`);
+  for (const [index, pageText] of pages.entries()) {
+    for (const required of [
+      '辽宁物理类模拟志愿填报单',
+      `姓名：${studentName}`,
+      '总分：555',
+      '参考位次：29,685',
+      '类型：辽宁物理类（物化生）',
+      '志愿',
+      '学校',
+      '专业（代码→中文）',
+      '报考核对'
+    ]) {
+      if (!pageText.includes(required)) throw new Error(`PDF page ${index + 1} missing repeated header text: ${required}`);
+    }
+  }
+  for (const forbidden of ['学费：待核实', '校区：待核实', '2026招生计划：待核实']) {
+    if (text.includes(forbidden)) throw new Error(`PDF contains forbidden hardcoded placeholder: ${forbidden}`);
+  }
+  if (!text.includes('测试大学1') || !text.includes('测试大学30')) {
+    throw new Error('PDF lost first or last volunteer row in multi-page output.');
+  }
+
+  console.log(`simulation-report-v002-browser: PASS (${stat.size} bytes PDF, ${pageCount} pages)`);
   console.log('PC 1366: no horizontal overflow, 30 rows');
   console.log('Mobile 390: no horizontal overflow, 30 manual-check controls');
-  console.log('Print: repeating thead contract, printable check block visible, no hardcoded 待核实');
+  console.log('Print: A4 landscape, repeated student/header text on every extracted page');
+  console.log('Print: 30 volunteers span multiple pages without hardcoded 待核实 placeholders');
 } finally {
   await browser.close();
 }
