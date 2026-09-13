@@ -184,32 +184,51 @@ try {
     localStorage.setItem(legacyKey, JSON.stringify(value));
   }, { legacyKey: 'gaokao:simulation-report:v001', value: legacyState, storageKey });
   await page.reload({ waitUntil: 'networkidle' });
-  const migrationChecks = await page.evaluate(storageKey => {
+  const migrationChecks = await page.evaluate(() => {
     const row = document.querySelector('#volunteerRows > tr');
     const firstManual = document.querySelector('[data-field="manualCheck.tuition"]');
-    const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
     return {
       rowCount: document.querySelectorAll('#volunteerRows > tr').length,
       rowMajor: document.querySelector('.major-input')?.value || '',
       historyScore: row?.querySelector('.history-cell .history-main')?.textContent || '',
       manualInputs: document.querySelectorAll('[data-field^="manualCheck."]').length,
-      migratedVersion: stored?.version || null,
-      migratedManualTuition: stored?.volunteers?.[0]?.manualCheck?.tuition ?? null,
       hasManualTuitionInput: Boolean(firstManual)
     };
-  }, storageKey);
+  });
   if (migrationChecks.rowCount !== 1) throw new Error(`Legacy v001 migration row count is ${migrationChecks.rowCount}`);
   if (migrationChecks.rowMajor !== '080301') throw new Error(`Legacy v001 migration lost major code: ${migrationChecks.rowMajor}`);
   if (migrationChecks.historyScore !== '550分') throw new Error(`Legacy v001 migration lost historical score: ${migrationChecks.historyScore}`);
   if (migrationChecks.manualInputs !== 11 || !migrationChecks.hasManualTuitionInput) throw new Error('Manual-check fields were not created during migration.');
-  if (migrationChecks.migratedVersion !== 2 || migrationChecks.migratedManualTuition !== '') throw new Error('Migrated v001 state was not normalized to v2 blank manual fields.');
+
+  const persisted = await page.evaluate(({ storageKey }) => {
+    const input = document.querySelector('[data-field="manualCheck.tuition"]');
+    if (!input) return { edited: false };
+    input.value = '4500';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    return {
+      edited: true,
+      version: stored?.version ?? null,
+      tuition: stored?.volunteers?.[0]?.manualCheck?.tuition ?? null
+    };
+  }, { storageKey });
+  if (!persisted.edited) throw new Error('Could not edit migrated manual tuition field.');
+  if (persisted.version !== 2 || persisted.tuition !== '4500') throw new Error('Edited migrated v001 state did not persist to v2 storage.');
+
+  await page.reload({ waitUntil: 'networkidle' });
+  const reloadPersistence = await page.evaluate(() => ({
+    tuition: document.querySelector('[data-field="manualCheck.tuition"]')?.value || '',
+    rowMajor: document.querySelector('.major-input')?.value || ''
+  }));
+  if (reloadPersistence.tuition !== '4500') throw new Error(`Persisted manual tuition lost after reload: ${reloadPersistence.tuition}`);
+  if (reloadPersistence.rowMajor !== '080301') throw new Error(`Persisted migrated major changed after reload: ${reloadPersistence.rowMajor}`);
 
   console.log('simulation-report-v002-browser: PASS');
   console.log('Responsive: PC 1366 / Pad 820 / Android 390 / Android 360');
   console.log('Print boundaries: 1 / 5 / 10 / 20 / 30 volunteers');
   console.log('Print: repeated identity + column headers on every extracted page');
   console.log('Print: no hardcoded 待核实 placeholders; long notes survive PDF');
-  console.log('Migration: v001 retains major + history and normalizes manual-check state');
+  console.log('Migration: v001 retains major + history, then persists new manual-check data as v2');
 } finally {
   await browser.close();
 }
