@@ -1,0 +1,86 @@
+/* v003 compact paper card: print-only information architecture. Screen editing remains v002. */
+@media print {
+  .sheet-table .col-check {
+    width: 28%;
+    min-width: 0;
+  }
+
+  .sheet-table .col-school { width: 15%; }
+  .sheet-table .col-major { width: 24%; }
+  .sheet-table .history-cell { width: 7%; }
+  .sheet-table .delta-cell { width: 7%; }
+
+  .sheet-table .print-col-check {
+    font-size: 7.5px;
+    line-height: 1.2;
+  }
+
+  .sheet-table .print-check-block {
+    min-height: 0;
+    margin: 0;
+  }
+
+  .sheet-table .compact-check-sheet {
+    display: block;
+    min-width: 0;
+  }
+
+  .sheet-table .compact-check-line {
+    white-space: nowrap;
+  }
+
+  .sheet-table .compact-risk-line {
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .sheet-table .compact-risk {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sheet-table .compact-risk-item {
+    display: inline-block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sheet-table .compact-family-line {
+    margin-top: 1px;
+  }
+
+  .sheet-table .compact-family {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .sheet-table .compact-note-line {
+    display: inline-block;
+    width: 72px;
+    max-width: 24%;
+    min-height: 1em;
+    border-bottom: 1px solid #788783;
+    vertical-align: baseline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sheet-table .print-field,
+  .sheet-table .print-family,
+  .sheet-table .print-blank,
+  .sheet-table .print-field-wide {
+    display: none !important;
+  }
+
+  .sheet-table tbody tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

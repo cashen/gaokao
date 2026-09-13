@@ -7,6 +7,7 @@
   <title>辽宁模拟志愿填报单</title>
   <link rel="stylesheet" href="/ln-rank/css/simulation-report.v001.css?v=002-paper-check" />
   <link rel="stylesheet" href="/ln-rank/css/simulation-report-v002-print-overrides.css?v=002-print-lines" />
+  <link rel="stylesheet" href="/ln-rank/css/simulation-report-v003-print.css?v=003-compact-card" />
 </head>
 <body>
   <main class="page">
@@ -61,7 +62,7 @@
               <th class="col-order">志愿</th>
               <th class="col-school">学校</th>
               <th class="col-major">专业（代码→中文）</th>
-              <th class="col-check">报考核对</th>
+              <th class="col-check">核对 / 重点提醒</th>
               <th class="history-cell">2026</th>
               <th class="history-cell">2025</th>
               <th class="history-cell">2024</th>
@@ -74,9 +75,10 @@
       </div>
       <p class="footnote">历史列格式：录取分数 / 录取位次。同口径历史记录缺失时显示“无严格记录”。“相对当前位次”仅表示历史位次与当前2026参考位次的数值差，不代表录取概率。</p>
       <p class="footnote screen-only">报考核对栏当前只保存你自己填写的草稿信息，不代表系统已经核验招生计划、学费、校区或专业条件。</p>
-      <p class="sheet-print-footer print-only">打印说明：空白核对项请在正式填报前自行查阅当年辽宁招生计划、学校招生章程及志愿填报系统；此页不把空白解释为“无此要求”。</p>
+      <p class="sheet-print-footer print-only">打印说明：固定只留代码/专业组与特殊限制核对；费用、培养地点、学制等仅在已有明确异常线索时提示。具体事实请以当年招生计划、招生章程及志愿填报系统为准。</p>
     </section>
   </main>
   <script type="module" src="/ln-rank/js/simulation-report.v001.js?v=002-paper-check"></script>
+  <script type="module" src="/ln-rank/js/simulation-report-v003-print.js?v=003-compact-card"></script>
 </body>
 </html>
