@@ -21,8 +21,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install Playwright package
+        run: npm install --no-save playwright@1.55.0
       - name: Install Playwright Chromium
-        run: npx --yes playwright@1.55.0 install --with-deps chromium
+        run: npx playwright install --with-deps chromium
       - name: Start static server
         run: python3 -m http.server 4173 >/tmp/gaokao-http.log 2>&1 &
       - name: Verify responsive and multi-page print behavior
