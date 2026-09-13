@@ -42,7 +42,7 @@ for (const needle of [
 
 for (const needle of [
   '固定核对只保留“代码/专业组”和“特殊限制”',
-  '最多 2 个风险标签',
+  '风险提醒最多 2 条',
   '高收费：v003 不因单独出现一个学费数字而判定“高收费”',
   '普通卡：主信息约 2 行 + 核对 1 行 + 家庭处理 1 行'
 ]) assert.ok(plan.includes(needle), `plan missing ${needle}`);
