@@ -12,6 +12,7 @@
     width: 100%;
     min-width: 0;
     min-height: 18px;
+    border-bottom: 1px solid #788783;
   }
 
   .sheet-table .print-family + .print-field-wide {
@@ -21,11 +22,8 @@
     min-height: 28px;
   }
 
-  .sheet-table .print-family + .print-field-wide::after {
-    content: '';
-    flex: 1;
-    min-width: 40px;
-    height: 14px;
-    border-bottom: 1px solid #788783;
+  .sheet-table .print-family + .print-field-wide .print-blank {
+    flex: 1 1 auto;
+    width: auto;
   }
 }
