@@ -7,11 +7,13 @@ on:
       - 'ln-rank/simulation-report.html'
       - 'ln-rank/js/simulation-report.v001.js'
       - 'ln-rank/js/simulation-report-v003-print.js'
+      - 'ln-rank/js/simulation-report-v004-android-print.js'
       - 'ln-rank/css/simulation-report.v001.css'
       - 'ln-rank/css/simulation-report-v002-print-overrides.css'
       - 'ln-rank/css/simulation-report-v003-print.css'
       - 'tools/verify-simulation-report-v003-compact-paper.mjs'
       - 'tools/verify-simulation-report-v003-compact-paper-contract.mjs'
+      - 'tools/verify-simulation-report-v004-android-print.mjs'
       - 'docs/plans/simulation-report-v003-compact-paper-card.md'
       - '.github/workflows/verify-simulation-report-v003-compact-paper.yml'
 
@@ -29,8 +31,10 @@ jobs:
         run: |
           node --check ln-rank/js/simulation-report.v001.js
           node --check ln-rank/js/simulation-report-v003-print.js
+          node --check ln-rank/js/simulation-report-v004-android-print.js
           node --check tools/verify-simulation-report-v003-compact-paper.mjs
           node --check tools/verify-simulation-report-v003-compact-paper-contract.mjs
+          node --check tools/verify-simulation-report-v004-android-print.mjs
           node tools/verify-simulation-report-v003-compact-paper-contract.mjs
           git diff --check
       - name: Install PDF inspection tools
@@ -45,3 +49,7 @@ jobs:
         env:
           PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
         run: node tools/verify-simulation-report-v003-compact-paper.mjs
+      - name: Verify Android print fallback
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
+        run: node tools/verify-simulation-report-v004-android-print.mjs
