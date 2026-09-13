@@ -27,7 +27,7 @@ for (const needle of [
   'window.addEventListener(\'beforeprint\', syncPrintChecks)'
 ]) assert.ok(printRuntime.includes(needle), `print runtime missing ${needle}`);
 
-assert.match(printRuntime, /仅.*manualCheck/u, 'risk layer should depend on existing manual records');
+assert.match(printRuntime, /const manual = row\?\.manualCheck \|\| \{\};/, 'risk layer must read only existing manualCheck data');
 assert.equal(printRuntime.includes('高收费项目'), false, 'must not invent a high-tuition classification from a raw tuition number');
 assert.equal(printRuntime.includes('学费：待核实'), false, 'must not generate hardcoded 待核实 placeholder');
 
