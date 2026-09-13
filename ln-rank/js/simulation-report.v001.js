@@ -182,13 +182,13 @@ function updateMeta() {
   printDateEl.textContent = new Date().toLocaleDateString('zh-CN');
 }
 
-function renderManualField(key, label, row) {
+function renderManualField(key, label, row, wide = false) {
   const value = row.manualCheck?.[key] || '';
   const multiline = key === 'remark';
   const control = multiline
-    ? `<textarea class="manual-input manual-textarea" data-field="manualCheck.${esc(key)}" data-row-id="${esc(row.id)}" rows="2" aria-label="${esc(label)}">${esc(value)}</textarea>`
+    ? `<textarea class="manual-input manual-textarea" data-field="manualCheck.${esc(key)}" data-row-id="${esc(row.id)}" rows="2" aria-label="${esc(label || '专业备注/特殊限制')}">${esc(value)}</textarea>`
     : `<input class="manual-input" type="text" value="${esc(value)}" data-field="manualCheck.${esc(key)}" data-row-id="${esc(row.id)}" aria-label="${esc(label)}" />`;
-  return `<label class="manual-field"><span>${esc(label)}</span>${control}</label>`;
+  return `<div class="manual-field ${wide ? 'manual-field-wide' : ''}"><span>${esc(label)}</span>${control}</div>`;
 }
 
 function renderManualPanel(row) {
@@ -208,12 +208,12 @@ function renderManualPanel(row) {
         ${renderManualField('studyLength', '学制', row)}
         ${renderManualField('trainingMode', '培养方式', row)}
         ${renderManualField('subjectRequirement', '选科要求', row)}
-        <label class="manual-field manual-field-wide"><span>专业备注/特殊限制</span>${renderManualField('remark', '', row).replace('<span></span>', '')}</label>
+        ${renderManualField('remark', '专业备注/特殊限制', row, true)}
       </div>
       <div class="family-grid">
-        <label class="manual-field"><span>家庭判断</span><select class="manual-input" data-field="familyDecision" data-row-id="${esc(row.id)}" aria-label="家庭判断"><option value="">未填写</option><option value="冲" ${row.familyDecision === '冲' ? 'selected' : ''}>冲</option><option value="稳" ${row.familyDecision === '稳' ? 'selected' : ''}>稳</option><option value="保" ${row.familyDecision === '保' ? 'selected' : ''}>保</option></select></label>
-        <label class="manual-field"><span>处理</span><select class="manual-input" data-field="familyStatus" data-row-id="${esc(row.id)}" aria-label="志愿处理"><option value="">未填写</option><option value="保留" ${row.familyStatus === '保留' ? 'selected' : ''}>保留</option><option value="备选" ${row.familyStatus === '备选' ? 'selected' : ''}>备选</option><option value="删除" ${row.familyStatus === '删除' ? 'selected' : ''}>删除</option></select></label>
-        <label class="manual-field manual-field-wide"><span>家庭备注</span><input class="manual-input" type="text" value="${esc(row.familyNote || '')}" data-field="familyNote" data-row-id="${esc(row.id)}" aria-label="家庭备注" /></label>
+        <div class="manual-field"><span>家庭判断</span><select class="manual-input" data-field="familyDecision" data-row-id="${esc(row.id)}" aria-label="家庭判断"><option value="">未填写</option><option value="冲" ${row.familyDecision === '冲' ? 'selected' : ''}>冲</option><option value="稳" ${row.familyDecision === '稳' ? 'selected' : ''}>稳</option><option value="保" ${row.familyDecision === '保' ? 'selected' : ''}>保</option></select></div>
+        <div class="manual-field"><span>处理</span><select class="manual-input" data-field="familyStatus" data-row-id="${esc(row.id)}" aria-label="志愿处理"><option value="">未填写</option><option value="保留" ${row.familyStatus === '保留' ? 'selected' : ''}>保留</option><option value="备选" ${row.familyStatus === '备选' ? 'selected' : ''}>备选</option><option value="删除" ${row.familyStatus === '删除' ? 'selected' : ''}>删除</option></select></div>
+        <div class="manual-field manual-field-wide"><span>家庭备注</span><input class="manual-input" type="text" value="${esc(row.familyNote || '')}" data-field="familyNote" data-row-id="${esc(row.id)}" aria-label="家庭备注" /></div>
       </div>
       <p class="manual-hint">这些字段只是你自己的核对记录；当前系统没有对应招生事实时保持空白，不代表“没有这项信息”。</p>
     </div>
@@ -224,6 +224,10 @@ function printManualField(label, value, wide = false) {
   const text = String(value || '').trim();
   const shown = text ? esc(text) : '&nbsp;';
   return `<span class="print-field ${wide ? 'print-field-wide' : ''}"><b>${esc(label)}：</b><span class="print-blank">${shown}</span></span>`;
+}
+
+function mark(value, label) {
+  return value === label ? '☑' : '□';
 }
 
 function renderRows() {
@@ -247,8 +251,8 @@ function renderRows() {
           ${printManualField('培养方式', row.manualCheck?.trainingMode)}
           ${printManualField('选科要求', row.manualCheck?.subjectRequirement)}
           ${printManualField('专业备注/特殊限制', row.manualCheck?.remark, true)}
-          <span class="print-field print-family"><b>家庭判断：</b>□冲　□稳　□保　 <b>处理：</b>□保留　□备选　□删除</span>
-          ${row.familyNote ? `<span class="print-field print-field-wide"><b>家庭备注：</b>${esc(row.familyNote)}</span>` : '<span class="print-field print-field-wide"><b>家庭备注：</b>&nbsp;</span>'}
+          <span class="print-field print-family"><b>家庭判断：</b>${mark(row.familyDecision, '冲')}冲　${mark(row.familyDecision, '稳')}稳　${mark(row.familyDecision, '保')}保　 <b>处理：</b>${mark(row.familyStatus, '保留')}保留　${mark(row.familyStatus, '备选')}备选　${mark(row.familyStatus, '删除')}删除</span>
+          <span class="print-field print-field-wide"><b>家庭备注：</b>${row.familyNote ? esc(row.familyNote) : '&nbsp;'}</span>
         </div>
       </td>
       <td class="history-cell">${historyCell(2026, row.history)}</td>
@@ -445,12 +449,8 @@ function bindEvents() {
     } else if (field.startsWith('manualCheck.')) {
       updateManualValue(row, field.slice('manualCheck.'.length), event.target.value);
       saveState();
-      renderRows();
-      expandedRows.add(rowId);
-      const control = document.querySelector(`[data-field="${field}"][data-row-id="${CSS.escape(rowId)}"]`);
-      if (control) control.focus();
-    } else if (field === 'familyNote' || field === 'familyDecision' || field === 'familyStatus') {
-      row[field] = event.target.value;
+    } else if (field === 'familyNote') {
+      row.familyNote = event.target.value;
       saveState();
     }
   });
