@@ -1,0 +1,38 @@
+name: Verify simulation report v003 compact paper card
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report.v001.js'
+      - 'ln-rank/js/simulation-report-v003-print.js'
+      - 'ln-rank/css/simulation-report.v001.css'
+      - 'ln-rank/css/simulation-report-v002-print-overrides.css'
+      - 'ln-rank/css/simulation-report-v003-print.css'
+      - 'tools/verify-simulation-report-v003-compact-paper.mjs'
+      - 'docs/plans/simulation-report-v003-compact-paper-card.md'
+      - '.github/workflows/verify-simulation-report-v003-compact-paper.yml'
+
+jobs:
+  browser-print:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install PDF inspection tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Install Playwright package
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: python3 -m http.server 4173 >/tmp/gaokao-http.log 2>&1 &
+      - name: Verify compact responsive and print behavior
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
+        run: node tools/verify-simulation-report-v003-compact-paper.mjs
