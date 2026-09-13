@@ -38,6 +38,18 @@ function setPrimary(href, text) {
   if (label) label.textContent = text;
 }
 
+function ensureSimulationEntry() {
+  const host = document.querySelector('.hero-primary');
+  if (!host || document.getElementById('homeSimulationAction')) return;
+  const link = document.createElement('a');
+  link.id = 'homeSimulationAction';
+  link.className = 'primary-note';
+  link.href = '/ln-rank/simulation-report.html';
+  link.textContent = '已经有学校和专业？直接进入模拟志愿填报 →';
+  link.setAttribute('aria-label', '直接进入模拟志愿填报');
+  host.appendChild(link);
+}
+
 function renderSteps(lines) {
   const root = document.getElementById('homeSteps');
   if (!root) return;
@@ -196,6 +208,7 @@ function renderCountdown(now = new Date()) {
 
 const release = mountCurrentRelease();
 renderHomeState();
+ensureSimulationEntry();
 bindToolGroups();
 renderCountdown();
 const countdownTimer = globalThis.setInterval(renderCountdown, 1000);
