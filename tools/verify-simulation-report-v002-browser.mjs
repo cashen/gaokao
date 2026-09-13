@@ -151,7 +151,7 @@ try {
       throw new Error(`PDF lost expected volunteer rows for count ${count}.`);
     }
     if (count === 30) {
-      if (!text.includes('打印验收的长备注')) throw new Error('Long remark did not survive PDF output.');
+      if (!text.includes('打印分页验收的长备注')) throw new Error('Long remark did not survive PDF output.');
       if (!text.includes('长家庭备注')) throw new Error('Long family note did not survive PDF output.');
     }
     console.log(`print boundary ${count}: PASS (${stat.size} bytes, ${pageCount} pages)`);
