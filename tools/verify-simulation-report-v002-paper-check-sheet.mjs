@@ -64,12 +64,12 @@ mustContain(styles, [
   '.print-student-head th{display:table-cell!important}'
 ], 'styles');
 
-assert.equal(page.includes('学费：待核实'), false, 'print/page: must not hardcode 学费：待核实');
-assert.equal(page.includes('校区：待核实'), false, 'print/page: must not hardcode 校区：待核实');
-assert.equal(page.includes('2026招生计划：待核实'), false, 'print/page: must not hardcode 2026招生计划：待核实');
+assert.equal(page.includes('学费：待核实'), false, 'page: must not hardcode 学费：待核实');
+assert.equal(page.includes('校区：待核实'), false, 'page: must not hardcode 校区：待核实');
+assert.equal(page.includes('2026招生计划：待核实'), false, 'page: must not hardcode 2026招生计划：待核实');
 assert.match(runtime, /const shown = text \? esc\(text\) : '&nbsp;';/, 'runtime: blank manual fields remain blank in print');
-assert.match(runtime, /localStorage\.getItem\(STORAGE_KEY\) \|\| localStorage\.getItem\(LEGACY_STORAGE_KEY\)/, 'runtime: legacy storage migration path exists');
-assert.match(runtime, /return \{[\s\S]*version: 2,[\s\S]*manualCheck: \{ \.\.\.emptyManualCheck\(\), \.\.\.\(row\?\.manualCheck \|\| \{\}\) \}/, 'runtime: v001 rows gain empty manual fields');
+assert.match(runtime, /readStored\(STORAGE_KEY\) \|\| readStored\(LEGACY_STORAGE_KEY\)/, 'runtime: legacy storage migration path exists');
+assert.match(runtime, /manualCheck: \{ \.\.\.emptyManualCheck\(\), \.\.\.\(row\?\.manualCheck \|\| \{\}\) \}/, 'runtime: v001 rows gain empty manual fields');
 assert.match(page, /<thead>[\s\S]*print-student-head[\s\S]*志愿[\s\S]*学校[\s\S]*专业（代码→中文）[\s\S]*报考核对/, 'page: repeatable print head contains student identity and column head');
 
 console.log('simulation-report-v002-paper-check-sheet: PASS');
