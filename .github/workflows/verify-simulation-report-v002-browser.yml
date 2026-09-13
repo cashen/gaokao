@@ -7,6 +7,7 @@ on:
       - 'ln-rank/simulation-report.html'
       - 'ln-rank/js/simulation-report.v001.js'
       - 'ln-rank/css/simulation-report.v001.css'
+      - 'ln-rank/css/simulation-report-v002-print-overrides.css'
       - 'tools/verify-simulation-report-v002-browser.mjs'
   push:
     branches: [feat/simulation-report-v002-paper-check-sheet]
