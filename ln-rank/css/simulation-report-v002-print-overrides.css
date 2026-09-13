@@ -16,14 +16,10 @@
   }
 
   .sheet-table .print-family + .print-field-wide {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
+    display: block;
+    width: 100%;
     min-height: 28px;
-  }
-
-  .sheet-table .print-family + .print-field-wide .print-blank {
-    flex: 1 1 auto;
-    width: auto;
+    border-bottom: 1px solid #788783;
+    padding-bottom: 2px;
   }
 }
