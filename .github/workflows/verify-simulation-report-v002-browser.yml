@@ -9,6 +9,7 @@ on:
       - 'ln-rank/css/simulation-report.v001.css'
       - 'ln-rank/css/simulation-report-v002-print-overrides.css'
       - 'tools/verify-simulation-report-v002-browser.mjs'
+      - '.github/workflows/verify-simulation-report-v002-browser.yml'
   push:
     branches: [feat/simulation-report-v002-paper-check-sheet]
 
@@ -22,6 +23,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install PDF inspection tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Install Playwright package
         run: npm install --no-save playwright@1.55.0
       - name: Install Playwright Chromium
