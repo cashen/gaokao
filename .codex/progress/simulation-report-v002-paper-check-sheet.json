@@ -1,0 +1,35 @@
+{
+  "task": "simulation-report-v002-paper-check-sheet",
+  "repository": "cashen/gaokao",
+  "baseMainSha": "a5f213396ef4fdfecee3ad87587f15af9847509c",
+  "branch": "feat/simulation-report-v002-paper-check-sheet",
+  "phase": "P0-foundation",
+  "plan": "docs/plans/simulation-report-v002-paper-check-sheet.md",
+  "completed": ["branch-created", "plan-written"],
+  "inProgress": "checkpoint-written",
+  "pending": [
+    "manual-check-state",
+    "localstorage-migration",
+    "screen-ui",
+    "print-layout",
+    "multi-page-print",
+    "browser-regression",
+    "print-regression",
+    "static-contract",
+    "release-gates",
+    "ready",
+    "merge-main",
+    "post-merge-verify"
+  ],
+  "invariants": [
+    "No admissions data source added",
+    "No tuition/plan/campus facts invented",
+    "manualCheck is user-owned draft data",
+    "Existing history/rank/school/major owners remain unchanged",
+    "Empty printable manual fields show labels plus blank writing space, never 待核实",
+    "Every printed page repeats student identity and column header",
+    "A single volunteer never splits across pages",
+    "Maximum volunteers remains 30"
+  ],
+  "updatedAt": "2026-09-13T10:22:00+08:00"
+}
