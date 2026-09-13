@@ -79,7 +79,7 @@ try {
   if (!checks.cards[2].text.includes('异地/多校区培养')) throw new Error('Remote-campus card missing conditional location reminder.');
   if (!checks.cards[3].text.includes('非标准学制')) throw new Error('Non-standard duration card missing reminder.');
   if (!checks.cards[4].text.includes('特殊培养方式')) throw new Error('Special training card missing reminder.');
-  if (!checks.cards[4].text.includes('□保留 □调整 □删除')) throw new Error('Family handling line missing.');
+  if (!/处理：[☑□]保留\s+[☑□]调整\s+[☑□]删除/u.test(checks.cards[4].text)) throw new Error('Family handling line missing.');
 
   const multiRisk = volunteer('6', {
     remark: '中外合作办学 + 异地培养 + 额外说明',
