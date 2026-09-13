@@ -1,0 +1,31 @@
+/* v002 paper worksheet print-only refinements. No data source or runtime ownership added. */
+@media print {
+  .sheet-table .print-field-wide {
+    display: block;
+    width: 100%;
+    min-height: 30px;
+    margin-top: 2px;
+  }
+
+  .sheet-table .print-field-wide .print-blank {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 18px;
+  }
+
+  .sheet-table .print-family + .print-field-wide {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    min-height: 28px;
+  }
+
+  .sheet-table .print-family + .print-field-wide::after {
+    content: '';
+    flex: 1;
+    min-width: 40px;
+    height: 14px;
+    border-bottom: 1px solid #788783;
+  }
+}
