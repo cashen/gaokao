@@ -24,7 +24,9 @@ mustContain(page, [
   'printRank',
   'printSubject',
   'printDate',
-  '打印 A4'
+  '打印 A4',
+  '<th colspan="9">',
+  '<th class="col-actions">调整</th>'
 ], 'page');
 
 mustContain(runtime, [
@@ -61,7 +63,9 @@ mustContain(styles, [
   '.sheet-table thead{display:table-header-group}',
   '.sheet-table tbody tr{break-inside:avoid;page-break-inside:avoid}',
   '.col-actions{display:none!important}',
-  '.print-student-head th{display:table-cell!important}'
+  '.print-student-head th{display:table-cell!important}',
+  '.col-check{width:36%;min-width:360px;display:none}',
+  '.col-check{display:table-cell;width:38%;min-width:0}'
 ], 'styles');
 
 assert.equal(page.includes('学费：待核实'), false, 'page: must not hardcode 学费：待核实');
@@ -70,9 +74,10 @@ assert.equal(page.includes('2026招生计划：待核实'), false, 'page: must n
 assert.match(runtime, /const shown = text \? esc\(text\) : '&nbsp;';/, 'runtime: blank manual fields remain blank in print');
 assert.match(runtime, /readStored\(STORAGE_KEY\) \|\| readStored\(LEGACY_STORAGE_KEY\)/, 'runtime: legacy storage migration path exists');
 assert.match(runtime, /manualCheck: \{ \.\.\.emptyManualCheck\(\), \.\.\.\(row\?\.manualCheck \|\| \{\}\) \}/, 'runtime: v001 rows gain empty manual fields');
-assert.match(page, /<thead>[\s\S]*print-student-head[\s\S]*志愿[\s\S]*学校[\s\S]*专业（代码→中文）[\s\S]*报考核对/, 'page: repeatable print head contains student identity and column head');
+assert.match(page, /<thead>[\s\S]*print-student-head[\s\S]*志愿[\s\S]*学校[\s\S]*专业（代码→中文）[\s\S]*报考核对[\s\S]*调整/, 'page: repeatable print head and nine-column screen table are aligned');
 
 console.log('simulation-report-v002-paper-check-sheet: PASS');
 console.log('Manual check fields: labels reserved, empty values remain blank');
+console.log('Screen: manual check column hidden; expanded panel remains the editing surface');
 console.log('Print: A4 landscape, repeating thead, non-splittable volunteer rows');
 console.log('Compatibility: v001 localStorage data migrates into v002 without new admissions data owners');
