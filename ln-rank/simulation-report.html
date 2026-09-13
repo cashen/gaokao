@@ -15,7 +15,7 @@
       <div>
         <p class="eyebrow">辽宁物理类 · 家庭讨论用</p>
         <h1 class="title">模拟志愿填报单</h1>
-        <p class="subtitle">把已经讨论过的学校和专业排成一张表。新增的报考核对栏只是留给你自己记录，当前系统没有招生人数、学费、校区等事实时保持空白。</p>
+        <p class="subtitle">把已经讨论过的学校和专业排成一张表。核对与提醒只在需要时出现；系统没有招生事实时不替你编造。</p>
       </div>
       <a class="button" href="/ln-rank/">返回专业初选</a>
     </header>
@@ -40,8 +40,8 @@
       </div>
 
       <div class="toolbar screen-only">
-        <div><b>我的志愿</b><div id="pageStatus" class="status">每一行是一条志愿，可以拖动或使用上下箭头调整顺序；“报考信息”用于你自己核对后填写。</div></div>
-        <div class="tool-actions"><button id="addVolunteer" class="button primary" type="button">＋ 添加志愿</button><button id="printSheet" class="button" type="button">打印 A4</button><button id="resetSheet" class="button" type="button">清空重填</button></div>
+        <div><b>我的志愿</b><div id="pageStatus" class="status">每一行是一条志愿；可以拖动或使用上下箭头调整顺序。核对与提醒只在需要时展开。</div></div>
+        <div class="tool-actions"><button id="addVolunteer" class="button primary" type="button">＋ 添加志愿</button><button id="printSheet" class="button" type="button">生成 PDF</button><button id="resetSheet" class="button" type="button">清空重填</button></div>
       </div>
 
       <div class="table-wrap">
@@ -74,12 +74,12 @@
         </table>
       </div>
       <p class="footnote">历史列格式：录取分数 / 录取位次。同口径历史记录缺失时显示“无严格记录”。“相对当前位次”仅表示历史位次与当前2026参考位次的数值差，不代表录取概率。</p>
-      <p class="footnote screen-only">报考核对栏当前只保存你自己填写的草稿信息，不代表系统已经核验招生计划、学费、校区或专业条件。</p>
+      <p class="footnote screen-only">核对与提醒用于辅助检查当前志愿，不代表系统已经核验招生计划、学费、校区或专业条件。</p>
       <p class="sheet-print-footer print-only">打印说明：固定只留代码/专业组与特殊限制核对；费用、培养地点、学制等仅在已有明确异常线索时提示。具体事实请以当年招生计划、招生章程及志愿填报系统为准。</p>
     </section>
   </main>
   <script type="module" src="/ln-rank/js/simulation-report.v001.js?v=002-paper-check"></script>
   <script type="module" src="/ln-rank/js/simulation-report-v003-print.js?v=003-compact-card"></script>
-  <script type="module" src="/ln-rank/js/simulation-report-v004-android-print.js?v=004-android-fallback"></script>
+  <script type="module" src="/ln-rank/js/simulation-report-v005-pdf-reminders.js?v=005-pdf-reminders"></script>
 </body>
 </html>
