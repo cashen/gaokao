@@ -6,7 +6,6 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const base = process.env.SIMULATION_REPORT_BASE_URL || 'http://127.0.0.1:4173';
 const url = `${base}/ln-rank/simulation-report.html`;
-const output = process.env.SIMULATION_REPORT_PDF || '/tmp/simulation-report-v002.pdf';
 const extracted = '/tmp/simulation-report-v002.txt';
 const studentName = '纸面核对测试学生';
 const makeVolunteer = (index, withLongRemark = false) => ({
@@ -82,14 +81,16 @@ try {
   if (screenChecks.rowCount !== 30) throw new Error(`Expected 30 volunteer rows, got ${screenChecks.rowCount}`);
   if (!screenChecks.checkColumnHidden) throw new Error('Printable check column must remain hidden on screen.');
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.reload({ waitUntil: 'networkidle' });
-  const mobileChecks = await page.evaluate(() => ({
-    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    toggleCount: document.querySelectorAll('.manual-toggle').length
-  }));
-  if (mobileChecks.overflow !== 0) throw new Error(`Mobile horizontal overflow: ${mobileChecks.overflow}`);
-  if (mobileChecks.toggleCount !== 30) throw new Error(`Expected 30 manual toggles, got ${mobileChecks.toggleCount}`);
+  for (const [width, height] of [[820, 900], [390, 844], [360, 780]]) {
+    await page.setViewportSize({ width, height });
+    await page.reload({ waitUntil: 'networkidle' });
+    const responsiveChecks = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      toggleCount: document.querySelectorAll('.manual-toggle').length
+    }));
+    if (responsiveChecks.overflow !== 0) throw new Error(`Responsive horizontal overflow at ${width}px: ${responsiveChecks.overflow}`);
+    if (responsiveChecks.toggleCount !== 30) throw new Error(`Expected 30 manual toggles at ${width}px, got ${responsiveChecks.toggleCount}`);
+  }
 
   await page.setViewportSize({ width: 1366, height: 900 });
 
@@ -146,7 +147,7 @@ try {
     for (const forbidden of ['学费：待核实', '校区：待核实', '2026招生计划：待核实']) {
       if (text.includes(forbidden)) throw new Error(`PDF ${count}-volunteer output contains forbidden hardcoded placeholder: ${forbidden}`);
     }
-    if (!text.includes(`测试大学1`) || (count === 30 && !text.includes('测试大学30'))) {
+    if (!text.includes('测试大学1') || (count === 30 && !text.includes('测试大学30'))) {
       throw new Error(`PDF lost expected volunteer rows for count ${count}.`);
     }
     if (count === 30) {
@@ -156,7 +157,11 @@ try {
     console.log(`print boundary ${count}: PASS (${stat.size} bytes, ${pageCount} pages)`);
   }
 
-  await setState(30);
+  const legacyHistory = {
+    years: {
+      2026: { score: 550, rank: 30000, comparable: true, recordStatus: 'primary-record' }
+    }
+  };
   const legacyState = {
     version: 1,
     studentName,
@@ -164,29 +169,47 @@ try {
     totalScore: '555',
     scores: { chinese: '', math: '', english: '', physics: '', chemistry: '', biology: '' },
     rank: null,
-    volunteers: [makeVolunteer(1, false)]
+    volunteers: [{
+      ...makeVolunteer(1, false),
+      history: legacyHistory,
+      manualCheck: undefined,
+      familyDecision: undefined,
+      familyStatus: undefined,
+      familyNote: undefined
+    }]
   };
-  await page.evaluate(({ legacyKey, value }) => {
-    localStorage.removeItem('gaokao:simulation-report:v002');
+  await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(({ legacyKey, value, storageKey }) => {
+    localStorage.removeItem(storageKey);
     localStorage.setItem(legacyKey, JSON.stringify(value));
-  }, { legacyKey: 'gaokao:simulation-report:v001', value: legacyState });
+  }, { legacyKey: 'gaokao:simulation-report:v001', value: legacyState, storageKey });
   await page.reload({ waitUntil: 'networkidle' });
-  const migrationChecks = await page.evaluate(() => ({
-    rowCount: document.querySelectorAll('#volunteerRows > tr').length,
-    rowMajor: document.querySelector('.major-input')?.value || '',
-    manualInputs: document.querySelectorAll('[data-field^="manualCheck."]').length
-  }));
+  const migrationChecks = await page.evaluate(storageKey => {
+    const row = document.querySelector('#volunteerRows > tr');
+    const firstManual = document.querySelector('[data-field="manualCheck.tuition"]');
+    const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    return {
+      rowCount: document.querySelectorAll('#volunteerRows > tr').length,
+      rowMajor: document.querySelector('.major-input')?.value || '',
+      historyScore: row?.querySelector('.history-cell .history-main')?.textContent || '',
+      manualInputs: document.querySelectorAll('[data-field^="manualCheck."]').length,
+      migratedVersion: stored?.version || null,
+      migratedManualTuition: stored?.volunteers?.[0]?.manualCheck?.tuition ?? null,
+      hasManualTuitionInput: Boolean(firstManual)
+    };
+  }, storageKey);
   if (migrationChecks.rowCount !== 1) throw new Error(`Legacy v001 migration row count is ${migrationChecks.rowCount}`);
   if (migrationChecks.rowMajor !== '080301') throw new Error(`Legacy v001 migration lost major code: ${migrationChecks.rowMajor}`);
-  if (migrationChecks.manualInputs !== 11) throw new Error(`Expected 11 manual-check inputs after migration, got ${migrationChecks.manualInputs}`);
+  if (migrationChecks.historyScore !== '550分') throw new Error(`Legacy v001 migration lost historical score: ${migrationChecks.historyScore}`);
+  if (migrationChecks.manualInputs !== 11 || !migrationChecks.hasManualTuitionInput) throw new Error('Manual-check fields were not created during migration.');
+  if (migrationChecks.migratedVersion !== 2 || migrationChecks.migratedManualTuition !== '') throw new Error('Migrated v001 state was not normalized to v2 blank manual fields.');
 
   console.log('simulation-report-v002-browser: PASS');
-  console.log('PC 1366: no horizontal overflow, 30 rows');
-  console.log('Mobile 390: no horizontal overflow, 30 manual-check controls');
+  console.log('Responsive: PC 1366 / Pad 820 / Android 390 / Android 360');
   console.log('Print boundaries: 1 / 5 / 10 / 20 / 30 volunteers');
   console.log('Print: repeated identity + column headers on every extracted page');
   console.log('Print: no hardcoded 待核实 placeholders; long notes survive PDF');
-  console.log('Migration: v001 draft retains row/major and receives manual-check fields');
+  console.log('Migration: v001 retains major + history and normalizes manual-check state');
 } finally {
   await browser.close();
 }
