@@ -127,6 +127,7 @@ try {
 
     await execFileAsync('pdftotext', ['-layout', countOutput, extracted]);
     const text = await fs.readFile(extracted, 'utf8');
+    const normalizedText = text.replace(/\s+/gu, '');
     const pages = text.split('\f').map(value => value.trim()).filter(Boolean);
     if (pages.length !== pageCount) throw new Error(`${count} volunteers PDF text extraction produced ${pages.length} pages but pdfinfo reports ${pageCount}.`);
     for (const [index, pageText] of pages.entries()) {
@@ -151,10 +152,10 @@ try {
       throw new Error(`PDF lost expected volunteer rows for count ${count}.`);
     }
     if (count === 30) {
-      if (!text.includes('LONG_REMARK_CHECK')) throw new Error('Long remark marker did not survive PDF output.');
-      if (!text.includes('LONG_FAMILY_NOTE_CHECK')) throw new Error('Long family note marker did not survive PDF output.');
-      if (!text.includes('长备注')) throw new Error('Long remark CJK text did not survive PDF output.');
-      if (!text.includes('长家庭备注')) throw new Error('Long family note CJK text did not survive PDF output.');
+      if (!normalizedText.includes('LONG_REMARK_CHECK')) throw new Error('Long remark marker did not survive PDF output.');
+      if (!normalizedText.includes('LONG_FAMILY_NOTE_CHECK')) throw new Error('Long family note marker did not survive PDF output.');
+      if (!normalizedText.includes('长备注')) throw new Error('Long remark CJK text did not survive PDF output.');
+      if (!normalizedText.includes('长家庭备注')) throw new Error('Long family note CJK text did not survive PDF output.');
     }
     console.log(`print boundary ${count}: PASS (${stat.size} bytes, ${pageCount} pages)`);
   }
