@@ -39,21 +39,42 @@ try {
   const popupPromise = page.waitForEvent('popup', { timeout: 3000 }).catch(() => null);
   await printButton.click();
   const popup = await popupPromise;
+  const printPage = popup || page;
   if (popup) {
     await popup.waitForLoadState('networkidle');
     assert.match(popup.url(), /simulation-report\.html\?print=1/, 'Android print fallback opened wrong URL');
-    assert.equal(await popup.locator('body').evaluate(body => body.classList.contains('android-print-fallback')), true, 'fallback page class missing');
-    assert.equal(await popup.locator('.android-print-hint').count(), 1, 'fallback hint missing');
-    assert.equal(await popup.locator('.print-check-block .compact-check-sheet').count(), 1, 'compact print card missing');
   } else {
     assert.match(page.url(), /simulation-report\.html\?print=1/, 'popup-blocked fallback did not navigate to print view');
   }
 
+  assert.equal(await printPage.locator('body').evaluate(body => body.classList.contains('android-print-fallback')), true, 'fallback page class missing');
+  assert.equal(await printPage.locator('.android-print-hint').count(), 1, 'fallback hint missing');
+  assert.equal(await printPage.locator('.print-check-block .compact-check-sheet').count(), 1, 'compact print card missing');
+
+  const mobileLayout = await printPage.locator('.sheet-table tbody tr').first().evaluate(row => {
+    const table = row.closest('table');
+    const order = row.querySelector('.col-order');
+    const school = row.querySelector('.col-school');
+    const header = table?.querySelector('thead tr:not(.print-student-head)');
+    return {
+      tableDisplay: getComputedStyle(table).display,
+      rowDisplay: getComputedStyle(row).display,
+      orderDisplay: getComputedStyle(order).display,
+      schoolDisplay: getComputedStyle(school).display,
+      headerDisplay: header ? getComputedStyle(header).display : 'missing'
+    };
+  });
+  assert.equal(mobileLayout.tableDisplay, 'block', 'Android mobile print table must use block/card layout');
+  assert.equal(mobileLayout.rowDisplay, 'block', 'Android mobile volunteer rows must be cards');
+  assert.equal(mobileLayout.orderDisplay, 'block', 'volunteer number must remain visible');
+  assert.equal(mobileLayout.schoolDisplay, 'block', 'school field must remain readable');
+  assert.equal(mobileLayout.headerDisplay, 'none', 'wide table header must not squeeze the mobile print view');
+
   assert.equal(await page.evaluate(() => window.__printed), false, 'Android path must not rely on window.print()');
-  console.log('simulation-report-v004-android-print: PASS');
+  console.log('simulation-report-v005-android-print-layout: PASS');
   console.log('Android Pixel 5 emulation: print button opens the same-origin print view');
+  console.log('Mobile fallback uses readable volunteer cards instead of a squeezed 9-column table');
   console.log('No direct window.print() dependency on the Android entry path');
-  console.log('Fallback print hint and compact card are present');
 } finally {
   await browser.close();
 }
