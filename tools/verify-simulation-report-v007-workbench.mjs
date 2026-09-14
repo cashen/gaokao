@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const read = p => fs.readFileSync(p, 'utf8');
+const page = read('ln-rank/simulation-report.html');
+const css = read('ln-rank/css/simulation-report-v007-mobile.css');
+const runtime = read('ln-rank/js/simulation-report-v007-workbench.js');
+const bridge = read('ln-rank/js/simulation-report-v006-input-bridge.js');
+const manifest = JSON.parse(read('ln-rank/data/simulation-workbench-release-v007.json'));
+for (const needle of ['模拟志愿工作台','先放进来，再慢慢整理','这里是家庭整理工具，不是正式填报系统。','simulation-report-v007-mobile.css?v=007-mobile','simulation-report-v007-workbench.js?v=007-mobile','simulation-report-v006-input-bridge.js?v=006-input-bridge','生成 PDF','清空重填']) if (!page.includes(needle)) throw new Error(`page contract missing: ${needle}`);
+if (page.includes('simulation-report-v004-android-print.js')) throw new Error('legacy Android print entry must not remain');
+for (const needle of ["STORAGE_KEY = 'gaokao:simulation-report:v002'",'const resolver = createMajorCatalogResolver','家庭处理','已排除','只影响这里的整理清单，不影响正式填报','这条内容已经在志愿',"clickLegacy('#printSheet')",'↑ 上移','↓ 下移']) if (!runtime.includes(needle)) throw new Error(`runtime contract missing: ${needle}`);
+for (const needle of ['bridgeField','data-field][data-id','wbStudentName','wbTotalScore']) if (!bridge.includes(needle)) throw new Error(`input bridge contract missing: ${needle}`);
+for (const needle of ['--bg:#f4f1ea','@media(max-width:760px)','grid-template-columns:36px minmax(0,1fr)','.volunteer-top .card-field{grid-column:2','min-height:44px','.card-tools{grid-column:2;display:grid']) if (!css.includes(needle)) throw new Error(`mobile style contract missing: ${needle}`);
+if (manifest.version !== 'simulation-workspace-v007' || manifest.revision !== 'r053-mobile-card-layout') throw new Error('simulation v007 manifest mismatch');
+console.log('simulation-report-v007-workbench: PASS');
