@@ -1,0 +1,41 @@
+name: Verify simulation report v007 mobile UI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v007-mobile.css'
+      - 'ln-rank/js/simulation-report-v007-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v007.json'
+      - 'tools/verify-simulation-report-v007-mobile.mjs'
+      - '.github/workflows/verify-simulation-report-v007-mobile.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v007-mobile.css'
+      - 'ln-rank/js/simulation-report-v007-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v007.json'
+      - 'tools/verify-simulation-report-v007-mobile.mjs'
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: node --check tools/verify-simulation-report-v007-mobile.mjs && node --check ln-rank/js/simulation-report-v007-workbench.js
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: python3 -m http.server 4173 >/tmp/gaokao-http.log 2>&1 &
+      - name: Verify mobile workbench layout
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
+        run: node tools/verify-simulation-report-v007-mobile.mjs
