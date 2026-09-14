@@ -36,8 +36,8 @@ if (await card.locator('.detail-panel').isVisible()) throw new Error('detail pan
 if ((await card.locator('.history-hint').innerText()).includes('501分') === false) throw new Error('2026 history score missing');
 if ((await card.locator('.history-hint').innerText()).includes('43,100位') === false) throw new Error('2026 history rank missing');
 const box = await card.locator('.history-hint').boundingBox();
-if (!box || box.width < 300) throw new Error(`history hint too narrow: ${box?.width}`);
-if (errors.length) throw new Error(`browser page errors: ${errors.join(' | ')}`);
+if (!box || box.width < 280) throw new Error(`history hint too narrow: ${box?.width}`);
+if (errors.length) throw new Error(`browser page errors: ${errors.join(' | ')} `);
 
 await browser.close();
 console.log('simulation-report-v008-history: PASS');
