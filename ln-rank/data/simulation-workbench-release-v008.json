@@ -1,0 +1,10 @@
+{
+  "version": "simulation-workspace-v008",
+  "revision": "r054-visible-three-year-history",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "family decision workbench with always-visible three-year score-rank reference",
+  "mobileBase": "simulation-report-v007-mobile.css",
+  "historyRuntime": "simulation-report-v008-history-hint.js",
+  "dataSource": "existing localStorage volunteer history.years 2026/2025/2024"
+}
