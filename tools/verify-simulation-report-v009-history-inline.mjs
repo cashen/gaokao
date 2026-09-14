@@ -13,7 +13,7 @@ assert.match(js, /localStorage\.getItem\(STORAGE_KEY/);
 assert.match(js, /history\?\.years\?\.\[2026\]/);
 assert.match(js, /history\?\.years\?\.\[2025\]/);
 assert.match(js, /history\?\.years\?\.\[2024\]/);
-assert.match(js, /role=\\"note\\"/);
+assert.match(js, /role=\"note\"/);
 assert.match(css, /\.history-inline\{display:flex/);
 assert.match(css, /white-space:nowrap/);
 assert.match(css, /overflow-x:auto/);
