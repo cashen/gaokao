@@ -1,0 +1,9 @@
+{
+  "version": "simulation-workspace-v006",
+  "revision": "r052-human-decision-workbench",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "family decision workbench",
+  "compatibilityController": "simulation-report.v001.js",
+  "pdfController": "simulation-report-v005-pdf-reminders.js"
+}

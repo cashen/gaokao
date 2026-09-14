@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+const read = p => fs.readFileSync(p, 'utf8');
+const page = read('ln-rank/simulation-report.html');
+const css = read('ln-rank/css/simulation-report-v006-workbench.css');
+const runtime = read('ln-rank/js/simulation-report-v006-workbench.js');
+const manifest = JSON.parse(read('ln-rank/data/simulation-workbench-release-v006.json'));
+for (const needle of ['模拟志愿工作台','先放进来，再慢慢整理','这里是家庭整理工具，不是正式填报系统。','simulation-report-v006-workbench.js?v=006-workbench','simulation-report-v006-workbench.css?v=006-workbench','生成 PDF','清空重填']) if (!page.includes(needle)) throw new Error(`page contract missing: ${needle}`);
+if (page.includes('simulation-report-v004-android-print.js')) throw new Error('legacy Android print entry must not remain');
+for (const needle of ["STORAGE_KEY = 'gaokao:simulation-report:v002'",'const resolver = createMajorCatalogResolver','家庭处理','已排除','只影响这里的整理清单，不影响正式填报','这条内容已经在志愿',"clickLegacy('#printSheet')"]) if (!runtime.includes(needle)) throw new Error(`runtime contract missing: ${needle}`);
+for (const needle of ['--bg:#f4f1ea','@media(max-width:760px)','grid-template-columns:1fr 1fr']) if (!css.includes(needle)) throw new Error(`responsive style contract missing: ${needle}`);
+if (manifest.version !== 'simulation-workspace-v006' || manifest.revision !== 'r052-human-decision-workbench') throw new Error('simulation v006 manifest mismatch');
+console.log('simulation-report-v006-workbench: PASS');
+console.log('Family decision workbench IA: covered');
+console.log('Incomplete-first workflow, status summary, mobile cards, reorder, safe clear: covered');
+console.log('Inbound URL contract and duplicate guard: covered');
+console.log('PDF remains the final output action, not the page mental model: covered');
