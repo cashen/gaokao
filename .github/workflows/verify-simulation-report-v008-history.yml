@@ -1,0 +1,30 @@
+name: Verify simulation report v008 history
+
+on:
+  pull_request:
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v008-history-hint.css'
+      - 'ln-rank/js/simulation-report-v008-history-hint.js'
+      - 'ln-rank/data/simulation-workbench-release-v008.json'
+      - 'tools/verify-simulation-report-v008-history.mjs'
+      - '.github/workflows/verify-simulation-report-v008-history.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v008-history-hint.css'
+      - 'ln-rank/js/simulation-report-v008-history-hint.js'
+      - 'ln-rank/data/simulation-workbench-release-v008.json'
+      - 'tools/verify-simulation-report-v008-history.mjs'
+      - '.github/workflows/verify-simulation-report-v008-history.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/verify-simulation-report-v008-history.mjs
