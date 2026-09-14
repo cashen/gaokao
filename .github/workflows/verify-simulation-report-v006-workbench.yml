@@ -1,23 +1,23 @@
-name: Verify simulation report v006 workbench
+name: Verify simulation report v007 workbench
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v006-workbench.css'
-      - 'ln-rank/js/simulation-report-v006-workbench.js'
-      - 'ln-rank/data/simulation-workbench-release-v006.json'
-      - 'tools/verify-simulation-report-v006-workbench.mjs'
+      - 'ln-rank/css/simulation-report-v007-mobile.css'
+      - 'ln-rank/js/simulation-report-v007-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v007.json'
+      - 'tools/verify-simulation-report-v007-workbench.mjs'
       - '.github/workflows/verify-simulation-report-v006-workbench.yml'
   push:
     branches: [main]
     paths:
       - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v006-workbench.css'
-      - 'ln-rank/js/simulation-report-v006-workbench.js'
-      - 'ln-rank/data/simulation-workbench-release-v006.json'
-      - 'tools/verify-simulation-report-v006-workbench.mjs'
+      - 'ln-rank/css/simulation-report-v007-mobile.css'
+      - 'ln-rank/js/simulation-report-v007-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v007.json'
+      - 'tools/verify-simulation-report-v007-workbench.mjs'
 
 jobs:
   verify:
@@ -27,5 +27,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify v006 workbench contracts
-        run: node tools/verify-simulation-report-v006-workbench.mjs
+      - name: Verify v007 workbench contracts
+        run: node tools/verify-simulation-report-v007-workbench.mjs

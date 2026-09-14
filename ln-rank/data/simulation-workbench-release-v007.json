@@ -1,0 +1,11 @@
+{
+  "version": "simulation-workspace-v007",
+  "revision": "r053-mobile-card-layout",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "family decision workbench with mobile-first volunteer cards",
+  "compatibilityController": "simulation-report.v001.js",
+  "pdfController": "simulation-report-v005-pdf-reminders.js",
+  "mobileCss": "simulation-report-v007-mobile.css",
+  "mobileRuntime": "simulation-report-v007-workbench.js"
+}
