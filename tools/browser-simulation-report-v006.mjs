@@ -25,7 +25,7 @@ const second = page.locator('.volunteer-card').nth(1);
 await second.locator('[data-field="school"]').fill('大连理工大学');
 await second.locator('[data-field="majorCode"]').fill('080301');
 await page.waitForTimeout(500);
-await second.getByRole('button', { name: '↑' }).click();
+await page.locator('.volunteer-card').nth(1).getByRole('button', { name: '上移' }).click();
 await page.waitForTimeout(400);
 if ((await page.locator('.volunteer-card').first().locator('[data-field="school"]').inputValue()) !== '大连理工大学') throw new Error('reorder failed');
 page.once('dialog', d => d.accept());
