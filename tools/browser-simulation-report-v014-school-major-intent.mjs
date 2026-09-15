@@ -3,25 +3,26 @@ import { chromium } from 'playwright';
 const schoolRows=Array.from({length:3000},(_,i)=>({name:i===0?'辽宁科技大学':`测试大学${i}`,province:i===0?'辽宁省':'测试省',city:i===0?'鞍山市':'测试市'}));
 const seed={version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'555',rank:29685,volunteers:[{id:'v014-1',order:1,school:'辽宁科技大学',majorCode:'',majorName:'',history:null,manualCheck:{},familyStatus:'待讨论',familyNote:''}]};
 
-async function setInput(locator,value){await locator.fill(value);await new Promise(resolve=>setTimeout(resolve,220));}
+async function setInput(locator,value){await locator.fill(value);await new Promise(resolve=>setTimeout(resolve,300));}
 
 async function run(viewport,label){
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport,deviceScaleFactor:viewport.width<500?2:1});
   await context.addInitScript(state=>localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify(state)),seed);
-  const page=await context.newPage(); const errors=[]; const requestFailures=[]; const requests=[];
+  const page=await context.newPage(); const errors=[],requestFailures=[],requests=[],responses=[];
   page.on('pageerror',e=>errors.push(String(e)));
   page.on('requestfailed',r=>requestFailures.push(`${r.method()} ${r.url()} :: ${r.failure()?.errorText||'failed'}`));
-  page.on('request',r=>{const u=r.url();if(u.includes('school-search-index')||u.includes('simulation-report-v014')||u.includes('/api/ai/major-history'))requests.push(`${r.method()} ${u}`);});
+  page.on('request',r=>{const u=r.url();if(u.includes('school-search-index')||u.includes('/api/ai/major-history')||u.includes('simulation-report-v014'))requests.push(`${r.method()} ${u}`);});
+  page.on('response',r=>{const u=r.url();if(u.includes('school-search-index')||u.includes('/api/ai/major-history'))responses.push(`${r.status()} ${u}`);});
   await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:schoolRows.length,schools:schoolRows})}));
   await page.route('**/api/ai/major-history**',async route=>{
     const u=new URL(route.request().url()); const major=u.searchParams.get('major')||''; const school=u.searchParams.get('schoolKeyword')||'';
     const rows=[
-      {id:'m-1',school:'辽宁科技大学',major:'机械设计制造及其自动化',standardMajorName:'机械设计制造及其自动化',majorCode2026:'080202',standardMajorCode:'080202',score2026:505,rank2026:50000,score2025:500,rank2025:52000,score2024:490,rank2024:55000},
-      {id:'m-2',school:'辽宁科技大学',major:'机械电子工程',standardMajorName:'机械电子工程',majorCode2026:'080204',standardMajorCode:'080204',score2026:498,rank2026:54000,score2025:494,rank2025:57000,score2024:480,rank2024:60000},
-      {id:'m-3',school:'辽宁科技大学',major:'测控技术与仪器',standardMajorName:'测控技术与仪器',majorCode2026:'080301',standardMajorCode:'080301',score2026:493,rank2026:56659,score2025:491,rank2025:61050,score2024:476,rank2024:64544},
-      {id:'m-4',school:'辽宁科技大学',major:'网络工程',standardMajorName:'网络工程',majorCode2026:'080903',standardMajorCode:'080903',score2026:487,rank2026:59000,score2025:483,rank2025:62500,score2024:470,rank2024:69000},
-      {id:'m-5',school:'辽宁科技大学',major:'计算机科学与技术',standardMajorName:'计算机科学与技术',majorCode2026:'080901',standardMajorCode:'080901',score2026:515,rank2026:46000,score2025:509,rank2025:49500,score2024:500,rank2024:53000}
+      {id:'m-1',school:'辽宁科技大学',major:'机械设计制造及其自动化',standardMajorName:'机械设计制造及其自动化',majorCode2026:'080202',standardMajorCode:'080202'},
+      {id:'m-2',school:'辽宁科技大学',major:'机械电子工程',standardMajorName:'机械电子工程',majorCode2026:'080204',standardMajorCode:'080204'},
+      {id:'m-3',school:'辽宁科技大学',major:'测控技术与仪器',standardMajorName:'测控技术与仪器',majorCode2026:'080301',standardMajorCode:'080301'},
+      {id:'m-4',school:'辽宁科技大学',major:'网络工程',standardMajorName:'网络工程',majorCode2026:'080903',standardMajorCode:'080903'},
+      {id:'m-5',school:'辽宁科技大学',major:'计算机科学与技术',standardMajorName:'计算机科学与技术',majorCode2026:'080901',standardMajorCode:'080901'}
     ];
     let records=[];
     if(school==='辽宁科技大学'){
@@ -29,50 +30,32 @@ async function run(viewport,label){
       else if(/网络/.test(major))records=rows.filter(r=>/网络/.test(r.major));
       else if(/计算机/.test(major))records=rows.filter(r=>/计算机/.test(r.major));
       else if(major==='测控技术与仪器')records=rows.filter(r=>r.major==='测控技术与仪器');
-      else records=[];
     }
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records,total:records.length,complete:true,dataYear:2026,summary:{total:records.length}})});
   });
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card',{timeout:15000});
-  let c=page.locator('.volunteer-card').first();
+  const diagnostic=async()=>await page.evaluate(()=>({scripts:[...document.scripts].map(s=>s.src).filter(Boolean),errors:[],helpers:[...document.querySelectorAll('[data-v014-helper]')].map(x=>x.textContent),boxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-major-box]')].map(x=>({hidden:x.hidden,text:x.innerText})),majorValue:document.querySelector('[data-field="majorCode"]')?.value,pageText:document.body.innerText.slice(0,3000)}));
+  const c=page.locator('.volunteer-card').first();
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
-  try{
-    await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});
-  }catch(error){
-    const diagnostic=await page.evaluate(()=>({
-      href:location.href,
-      readyState:document.readyState,
-      scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
-      pageText:document.body.innerText.slice(0,1800),
-      cards:[...document.querySelectorAll('.volunteer-card')].map(x=>({cardId:x.dataset.cardId,html:x.outerHTML.slice(0,2200)})),
-      schoolInputs:[...document.querySelectorAll('[data-field="school"]')].map(x=>({value:x.value,id:x.dataset.id,rowId:x.dataset.rowId,cardId:x.closest('.volunteer-card')?.dataset.cardId})),
-      helpers:[...document.querySelectorAll('[data-v014-helper]')].map(x=>({text:x.textContent,tone:x.dataset.tone})),
-      schoolBoxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-school-box]')].map(x=>({hidden:x.hidden,text:x.textContent})),
-      v014Boxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-major-box]')].map(x=>({attr:[...x.attributes].map(a=>[a.name,a.value]),hidden:x.hidden,text:x.textContent})),
-      stored:localStorage.getItem('gaokao:simulation-report:v002')
-    }));
-    throw new Error(`${label}: school resolver did not finish: ${error.message}; diagnostics=${JSON.stringify({diagnostic,errors,requestFailures,requests})}`);
-  }
-  await setInput(page.locator('.volunteer-card').first().locator('[data-field="majorCode"]'),'机械');
-  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});
+  try{await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});}catch(error){throw new Error(`${label}: school resolver did not finish: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
+  const majorInput=c.locator('[data-field="majorCode"]');
+  await setInput(majorInput,'机械');
+  try{await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});}catch(error){throw new Error(`${label}: major candidates did not render: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
   let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
   if(await currentMajor.inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
   const candidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!candidates.includes('机械设计制造及其自动化')||!candidates.includes('机械电子工程'))throw new Error(`${label}: school-grounded mechanical candidates missing`);
-  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
   await setInput(currentMajor,'网络');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:30000});
   if(await currentMajor.inputValue()!=='网络')throw new Error(`${label}: network input was auto-mapped`);
   const networkCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!networkCandidates.includes('网络工程'))throw new Error(`${label}: network school-grounded candidate missing`);
-  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
   await setInput(currentMajor,'计算机');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:30000});
   if(await currentMajor.inputValue()!=='计算机')throw new Error(`${label}: computer input was auto-mapped`);
   const computerCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!computerCandidates.includes('计算机科学与技术'))throw new Error(`${label}: computer school-grounded candidate missing`);
-  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
   await setInput(currentMajor,'测空技术与仪器');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});
   if(await currentMajor.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
