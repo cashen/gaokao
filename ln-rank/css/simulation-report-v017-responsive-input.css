@@ -1,15 +1,15 @@
 .workbench-panel .volunteer-card{overflow:visible}
 .workbench-panel .volunteer-card:focus-within{position:relative;z-index:60}
-.responsive-school-suggestions,.responsive-major-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:100;max-height:360px;overflow:auto;border:1px solid #c8d4cf;border-radius:12px;background:#fff;box-shadow:0 14px 34px rgba(34,52,46,.16);padding:4px}
-.responsive-school-suggestions .major-suggestion,.responsive-major-suggestions .major-suggestion{min-height:54px;width:100%;padding:9px 10px;border:0;border-bottom:1px solid #edf1ee;background:#fff;text-align:left;cursor:pointer;font:inherit;color:#2e3f38;display:flex;align-items:center;justify-content:space-between;gap:14px;border-radius:8px}
+.responsive-school-suggestions,.responsive-major-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:100;max-height:360px;overflow:auto;border:1px solid #c8d4cf;border-radius:12px;background:#fff;box-shadow:0 14px 34px rgba(34,52,46,.16);padding:4px;pointer-events:auto}
+.responsive-school-suggestions .major-suggestion,.responsive-major-suggestions .major-suggestion{min-height:54px;width:100%;padding:9px 10px;border:0;border-bottom:1px solid #edf1ee;background:#fff;text-align:left;cursor:pointer;font:inherit;color:#2e3f38;display:flex;align-items:center;justify-content:space-between;gap:14px;border-radius:8px;pointer-events:auto;touch-action:manipulation}
 .responsive-school-suggestions .major-suggestion:last-child,.responsive-major-suggestions .major-suggestion:last-child{border-bottom:0}
 .responsive-school-suggestions .major-suggestion:hover,.responsive-school-suggestions .major-suggestion:focus-visible,.responsive-major-suggestions .major-suggestion:hover,.responsive-major-suggestions .major-suggestion:focus-visible{background:#f2f6f3;outline:2px solid transparent}
 .responsive-school-suggestions .major-suggestion:focus-visible,.responsive-major-suggestions .major-suggestion:focus-visible{box-shadow:inset 0 0 0 2px #7b968d}
 .major-suggestion-label{padding:7px 8px 6px;font-size:11px;color:#66756f;font-weight:600}
-.suggestion-main{display:grid;gap:2px;min-width:0}
+.suggestion-main{display:grid;gap:2px;min-width:0;pointer-events:none}
 .suggestion-main strong{font-size:14px;font-weight:650;line-height:1.35;overflow-wrap:anywhere}
 .suggestion-main small{font-size:11px;color:#74827c;line-height:1.35}
-.suggestion-action{flex:0 0 auto;padding:5px 8px;border:1px solid #cbd7d1;border-radius:7px;color:#40574f;background:#f8faf9;font-size:11px;white-space:nowrap}
+.suggestion-action{flex:0 0 auto;padding:5px 8px;border:1px solid #cbd7d1;border-radius:7px;color:#40574f;background:#f8faf9;font-size:11px;white-space:nowrap;pointer-events:none}
 .school-choice .suggestion-action{color:#29483f;font-weight:650}
 .responsive-major-suggestions .major-suggestion{min-height:52px}
 .major-caption{transition:none}
