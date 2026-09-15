@@ -6,14 +6,12 @@ on:
     paths:
       - 'major-path/**'
       - 'tongxue/**'
-      - 'ln-rank/**'
       - 'shared/resources/admissions/**'
       - 'shared/resources/majors/undergrad-graduate-pathway-view.v001.js'
       - 'shared/resources/schools/school-resource-center.js'
       - 'shared/ui/components/min-score-entry.v001.css'
       - 'tools/verify-unified-min-score-navigation-v001.mjs'
       - 'tools/browser-unified-min-score-navigation-v001.mjs'
-      - '.github/workflows/verify-unified-min-score-navigation-v001.yml'
   push:
     branches: [main]
     paths:
@@ -26,7 +24,6 @@ on:
       - 'shared/ui/components/min-score-entry.v001.css'
       - 'tools/verify-unified-min-score-navigation-v001.mjs'
       - 'tools/browser-unified-min-score-navigation-v001.mjs'
-      - '.github/workflows/verify-unified-min-score-navigation-v001.yml'
   workflow_dispatch:
 
 permissions:
