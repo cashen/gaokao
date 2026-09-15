@@ -5,7 +5,11 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'ln-rank/**'
+      - 'ln-rank/js/feature/major-all/major-all-mode.v001.js'
+      - 'ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js'
+      - 'ln-rank/js/app-runtime.v3990_3.js'
       - 'shared/resources/release/current-release.js'
       - 'shared/resources/release/active-resource-manifest.v3990_3.js'
       - 'shared/resources/release/site-runtime-contract.v3990_3.js'
@@ -13,10 +17,15 @@ on:
       - 'tools/verify-ln-rank-unified-card-context-v001.mjs'
       - 'tools/audit-three-card-entries-v001.mjs'
       - 'docs/plans/ln-rank-input-clear-state-v001.md'
+      - '.github/workflows/verify-ln-rank-input-clear-state-v001.yml'
   push:
     branches: [main]
     paths:
-      - 'ln-rank/**'
+      - 'ln-rank/js/feature/major-all/major-all-mode.v001.js'
+      - 'ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_3.js'
+      - 'ln-rank/js/app-runtime.v3990_3.js'
       - 'shared/resources/release/current-release.js'
       - 'shared/resources/release/active-resource-manifest.v3990_3.js'
       - 'shared/resources/release/site-runtime-contract.v3990_3.js'
