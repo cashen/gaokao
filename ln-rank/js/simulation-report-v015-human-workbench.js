@@ -1,0 +1,143 @@
+import { MAJOR_CATALOG_2026 } from '../kb/major-understanding/major-catalog-2026.generated.js';
+import { createMajorCatalogResolver, normalizeMajorCode } from '../../shared/resources/majors/major-catalog-contract.js';
+import { loadSchoolNameResolver } from '../../tongxue/data/school-name-resolver-v150.js';
+
+const STORAGE_KEY = 'gaokao:simulation-report:v002';
+const resolver = createMajorCatalogResolver(MAJOR_CATALOG_2026);
+const schoolResolverPromise = loadSchoolNameResolver();
+const inflight = new Map();
+const ui = new Map();
+const norm = v => String(v ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
+const lower = v => norm(v).toLowerCase();
+const esc = v => String(v ?? '').replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;' }[c]));
+
+function getState(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch { return null; } }
+function row(id){ return getState()?.volunteers?.find(x => String(x.id) === String(id)); }
+function card(id){ return document.querySelector(`.volunteer-card[data-card-id="${CSS.escape(String(id))}"]`); }
+function field(id,name){ return card(id)?.querySelector(`[data-field="${CSS.escape(name)}"]`); }
+function patchRow(id, patch){
+  try {
+    const s=getState(); const r=s?.volunteers?.find(x=>String(x.id)===String(id)); if(!r)return;
+    Object.assign(r,patch); localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+  } catch {}
+}
+function setUi(id, patch){ ui.set(String(id), {...(ui.get(String(id))||{}), ...patch}); }
+function clearUi(id, keys){ const n={...(ui.get(String(id))||{})}; keys.forEach(k=>delete n[k]); ui.set(String(id),n); }
+function renderBox(id,kind,html,hidden=false){
+  const inputEl=field(id,kind==='school'?'school':'majorCode'); if(!inputEl)return;
+  const attr=`data-v015-${kind}`; let box=inputEl.parentElement?.querySelector(`[${attr}]`);
+  if(!box){box=document.createElement('div');box.className=kind==='major'?'major-input-suggestions':'school-input-suggestions-v014';box.setAttribute(attr,String(id));inputEl.insertAdjacentElement('afterend',box);}
+  box.innerHTML=html; box.hidden=hidden;
+}
+function helper(id,text,tone='neutral'){
+  setUi(id,{helper:{text,tone}});
+  const c=card(id); if(!c)return;
+  let el=c.querySelector('[data-v015-helper]'); if(!el){el=document.createElement('div');el.className='major-input-helper v014-helper';el.dataset.v015Helper=String(id);(field(id,'majorCode')?.parentElement||c).appendChild(el);}
+  el.textContent=text; el.dataset.tone=tone;
+}
+function schoolBox(id,result){
+  const candidates=result?.status==='resolved'?[{officialName:result.officialName}]:((result?.candidates||[]).slice(0,6));
+  if(!candidates.length){renderBox(id,'school','',true);return;}
+  renderBox(id,'school',`<div class="major-suggestion-label">${result?.status==='resolved'?'已识别学校':'请确认学校'}</div>${candidates.map(x=>`<button type="button" class="major-suggestion" data-v015-school-choice="${esc(x.officialName)}"><strong>${esc(x.officialName)}</strong><span>${result?.status==='resolved'?'已识别':'候选学校'}</span></button>`).join('')}`);
+}
+function majorBox(id,list,label){
+  const seen=new Set(); const items=[];
+  for(const x of list||[]){const name=norm(x.name||x.standardMajorName||x.major),code=norm(x.code||x.majorCode2026||x.standardMajorCode);if(!name||seen.has(name+'|'+code))continue;seen.add(name+'|'+code);items.push({name,code});if(items.length>=8)break;}
+  if(!items.length){renderBox(id,'major','',true);return;}
+  renderBox(id,'major',`<div class="major-suggestion-label">${esc(label)}</div>${items.map(x=>`<button type="button" class="major-suggestion" data-v015-major-code="${esc(x.code)}" data-v015-major-name="${esc(x.name)}"><strong>${esc(x.name)}</strong><span>${esc(x.code||'专业名称')}</span></button>`).join('')}`);
+}
+function rehydrate(id){const s=ui.get(String(id));if(!s)return;if(s.helper)helper(id,s.helper.text,s.helper.tone);if(s.school)schoolBox(id,s.school);if(s.major)majorBox(id,s.major.items,s.major.label);}
+function cancel(id){const x=inflight.get(String(id));if(x?.abort)x.abort();inflight.delete(String(id));}
+function broad(v){const q=norm(v);return q.length<=4 || ['机','机械','网络','计算机','电气','自动化','软件','电子','通信','信息','土木','建筑','材料','能源','生物','化学','数学','物理'].includes(q);}
+function localCandidates(raw){
+  const q=norm(raw); if(!q)return [];
+  if(/^\d{1,6}$/.test(q)){
+    const prefix=normalizeMajorCode(q); return resolver.search(prefix,{limit:12}).map(x=>x.item);
+  }
+  return resolver.search(q,{limit:12}).map(x=>x.item);
+}
+async function schoolResolution(raw){ return (await schoolResolverPromise).resolve(norm(raw),{limit:6}); }
+async function records(school,query,signal){
+  const url=`/api/ai/major-history?major=${encodeURIComponent(query)}&schoolKeyword=${encodeURIComponent(school)}&limit=50&offset=0`;
+  const r=await fetch(url,{headers:{accept:'application/json'},signal}); if(!r.ok)throw new Error(`HTTP ${r.status}`); const d=await r.json(); if(d?.ok===false)throw new Error(d.message||'query_failed'); return Array.isArray(d.records)?d.records:[];
+}
+function candidate(r){return {name:norm(r.standardMajorName||r.major),code:norm(r.majorCode2026||r.standardMajorCode)};}
+function exactRecord(recordsList,school,item){return recordsList.find(r=>lower(r.school)===lower(school)&&(norm(r.majorCode2026||r.standardMajorCode)===norm(item.code)||lower(r.standardMajorName||r.major)===lower(item.name)));}
+function isCurrent(id,token,value){return inflight.get(String(id))?.token===token && norm(field(id,'majorCode')?.value)===value;}
+
+async function schoolInput(id,raw){
+  cancel('school:'+id); clearUi(id,['school','major']); renderBox(id,'school','',true); renderBox(id,'major','',true);
+  patchRow(id,{school:raw,majorName:''});
+  if(!raw){helper(id,'先填写学校；专业可以随后再输入。','neutral');return;}
+  const controller=new AbortController(), token=Symbol('school'); inflight.set('school:'+id,{abort:controller,token}); helper(id,'正在识别学校……','neutral');
+  try{
+    const result=await schoolResolution(raw); if(inflight.get('school:'+id)?.token!==token||norm(field(id,'school')?.value)!==raw)return;
+    setUi(id,{school:result}); schoolBox(id,result);
+    if(result?.status==='resolved')helper(id,`已识别学校：${result.officialName}。后面的专业只按该校实际记录核对。`,'ok');
+    else if(result?.candidates?.length)helper(id,'找到多个可能的学校，请点选正确的一所。','neutral');
+    else helper(id,'暂未找到明确学校，请继续输入完整校名。','warn');
+  }catch(e){if(e?.name==='AbortError')return;helper(id,'学校识别暂时不可用；你仍可以继续输入，不会被系统卡住。','warn');}
+}
+
+async function schoolGrounded(id,raw,signal){
+  const sr=await schoolResolution(field(id,'school')?.value); const school=sr?.status==='resolved'?sr.officialName:''; if(!school)return {school,candidates:[]};
+  const rs=await records(school,raw,signal); return {school,candidates:rs.map(candidate).filter(x=>x.name)};
+}
+
+async function majorInput(id,raw){
+  cancel(id); clearUi(id,['major']); renderBox(id,'major','',true); patchRow(id,{majorCode:raw,majorName:''});
+  if(!raw){helper(id,'支持专业名称或代码；输入过程中可以随时修改或删除。','neutral');return;}
+  const local=localCandidates(raw);
+  const direct=/^\d{6}$/.test(raw)?resolver.findByCode(normalizeMajorCode(raw)):resolver.findByName(raw);
+  const school=norm(field(id,'school')?.value);
+  // Local intent feedback is immediate. Network is only used to ground it in the confirmed school.
+  if(!school){
+    if(local.length) { setUi(id,{major:{items:local,label:'专业名称候选（仅表示专业目录，不代表学校开设）'}}); majorBox(id,local,'专业名称候选（仅表示专业目录，不代表学校开设）'); helper(id,'请先确认学校；这些只是帮助你理解专业名称的候选。','neutral'); }
+    else helper(id,'暂未找到相关专业名称，请再多写几个字或输入专业代码。','warn');
+    return;
+  }
+  const sr=await schoolResolution(school); if(norm(field(id,'school')?.value)!==school)return;
+  if(sr?.status!=='resolved'){helper(id,'请先从学校候选中确认学校，再按该校实际专业核对。','neutral');return;}
+  const schoolName=sr.officialName; const controller=new AbortController(),token=Symbol('major'); inflight.set(String(id),{abort:controller,token});
+  helper(id, broad(raw)?`正在从“${schoolName}”实际专业记录中找与“${raw}”相关的专业……`:`正在核对“${schoolName}”是否有“${raw}”……`,'neutral');
+  try{
+    const grounded=await schoolGrounded(id,raw,controller.signal); if(!isCurrent(id,token,raw))return;
+    let candidates=grounded.candidates;
+    if(!candidates.length && local.length){
+      // For fuzzy/typo fallback, verify catalog candidates against the same school before showing them.
+      for(const item of local.slice(0,6)){
+        const rs=await records(schoolName,item.name,controller.signal); if(!isCurrent(id,token,raw))return;
+        if(exactRecord(rs,schoolName,item))candidates.push(item);
+      }
+    }
+    if(candidates.length){
+      setUi(id,{major:{items:candidates,label:`${schoolName} · 仅显示该校实际专业记录`}}); majorBox(id,candidates,`${schoolName} · 仅显示该校实际专业记录`);
+      if(broad(raw)) helper(id,`找到 ${candidates.length > 1 ? '多个' : '相关'}专业，请选择具体专业；系统不会替你自动选一个。`,'neutral');
+      else helper(id,`已在“${schoolName}”实际记录中找到相关专业，请选择确认。`,'neutral');
+    } else {
+      helper(id,`暂未找到“${schoolName}”与“${raw}”对应的实际专业记录。若这是大类/关键词，请再多写几个字；若确定专业，可输入完整代码。`,'warn');
+    }
+  }catch(e){if(e?.name==='AbortError')return;helper(id,'暂时无法在线核对；候选不会被当作该校招生事实，你可以继续输入。','warn');}
+}
+
+function chooseSchool(id,name){const el=field(id,'school');if(!el)return;el.value=name;patchRow(id,{school:name,majorName:''});clearUi(id,['school','major']);renderBox(id,'school','',true);renderBox(id,'major','',true);helper(id,`已确认学校：${name}；专业会重新按该校实际记录核对。`,'ok');}
+function chooseMajor(id,code,name){const el=field(id,'majorCode');if(!el)return;el.value=code||name;patchRow(id,{majorCode:el.value,majorName:name});clearUi(id,['major']);renderBox(id,'major','',true);helper(id,`已选择：${name}${code?' · '+code:''}。正在核对学校实际记录。`,'ok');verify(id,name,code);}
+async function verify(id,name,code){
+  const school=norm(field(id,'school')?.value);if(!school)return; const sr=await schoolResolution(school);if(sr?.status!=='resolved')return;
+  const controller=new AbortController(),token=Symbol('verify');cancel(id);inflight.set(String(id),{abort:controller,token});
+  try{const rs=await records(sr.officialName,name,controller.signal);if(!isCurrent(id,token,norm(field(id,'majorCode')?.value)))return;const item={name,code};const hit=exactRecord(rs,sr.officialName,item);if(hit)helper(id,`✓ 已确认：${sr.officialName} · ${name}，找到该校实际专业记录。`,'ok');else{patchRow(id,{majorName:''});helper(id,`⚠ ${sr.officialName} 暂未找到“${name}”的实际专业记录，请重新选择。`,'warn');}}catch(e){if(e?.name!=='AbortError')helper(id,'暂时无法在线核对；请勿把候选名称当作已确认专业。','warn');}
+}
+
+function onInput(e){const t=e.target?.closest?.('[data-field="school"],[data-field="majorCode"]');if(!t)return;e.stopImmediatePropagation();e.stopPropagation();const id=t.closest('.volunteer-card')?.dataset.cardId;if(!id)return;const raw=norm(t.value);if(t.dataset.field==='school')void schoolInput(id,raw);else void majorInput(id,raw);}
+function onClick(e){
+  const s=e.target.closest('[data-v015-school-choice]');if(s){e.preventDefault();e.stopImmediatePropagation();const id=s.closest('.volunteer-card')?.dataset.cardId;if(id)chooseSchool(id,s.dataset.v015SchoolChoice);return;}
+  const m=e.target.closest('[data-v015-major-code]');if(m){e.preventDefault();e.stopImmediatePropagation();const id=m.closest('.volunteer-card')?.dataset.cardId;if(id)chooseMajor(id,m.dataset.v015MajorCode,m.dataset.v015MajorName);return;}
+}
+function onComposition(e){const t=e.target?.closest?.('[data-field="school"],[data-field="majorCode"]');if(t){t.dataset.v015Composing=e.type==='compositionend'?'0':'1';if(e.type==='compositionstart')e.stopImmediatePropagation();}}
+function boot(){
+  // Capture phase runs before legacy bubble bridges, so raw editing is never routed through the old input bridge.
+  document.addEventListener('compositionstart',onComposition,true);document.addEventListener('compositionupdate',onComposition,true);document.addEventListener('compositionend',onComposition,true);
+  document.addEventListener('input',onInput,true);document.addEventListener('click',onClick,true);
+  const rows=document.querySelector('#wbRows');if(rows)new MutationObserver(()=>{for(const [id] of ui)rehydrate(id);}).observe(rows,{childList:true});
+}
+boot();
