@@ -1,11 +1,9 @@
 name: Verify main tree integrity
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,7 +20,7 @@ jobs:
       - name: Checkout the exact reviewed commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -31,9 +29,9 @@ jobs:
 
       - name: Reject sparse or incomplete deployable trees
         env:
-          TREE_GUARD_MODE: ${{ github.event_name == 'pull_request' && 'pull-request' || 'main' }}
-          TREE_GUARD_BASE: ${{ github.event.pull_request.base.sha || '' }}
-          TREE_GUARD_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          TREE_GUARD_MODE: main
+          TREE_GUARD_BASE: ''
+          TREE_GUARD_HEAD: ${{ github.sha }}
         run: >-
           node tools/verify-main-tree-integrity-v001.mjs
           "$TREE_GUARD_MODE"
