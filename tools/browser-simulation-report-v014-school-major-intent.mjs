@@ -4,6 +4,7 @@ const schoolRows=Array.from({length:3000},(_,i)=>({name:i===0?'辽宁科技大�
 const seed={version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'555',rank:29685,volunteers:[{id:'v014-1',order:1,school:'辽宁科技大学',majorCode:'',majorName:'',history:null,manualCheck:{},familyStatus:'待讨论',familyNote:''}]};
 
 async function setInput(locator,value){await locator.fill(value);await new Promise(resolve=>setTimeout(resolve,300));}
+async function typeMajor(locator,value){await locator.fill('');await locator.pressSequentially(value,{delay:20});await new Promise(resolve=>setTimeout(resolve,500));}
 
 async function run(viewport,label){
   const browser=await chromium.launch({headless:true});
@@ -40,23 +41,23 @@ async function run(viewport,label){
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
   try{await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});}catch(error){throw new Error(`${label}: school resolver did not finish: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
   const majorInput=c.locator('[data-field="majorCode"]');
-  await setInput(majorInput,'机械');
+  await typeMajor(majorInput,'机械');
   try{await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});}catch(error){throw new Error(`${label}: major candidates did not render: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
   let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
   if(await currentMajor.inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
   const candidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!candidates.includes('机械设计制造及其自动化')||!candidates.includes('机械电子工程'))throw new Error(`${label}: school-grounded mechanical candidates missing`);
-  await setInput(currentMajor,'网络');
+  await typeMajor(currentMajor,'网络');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:30000});
   if(await currentMajor.inputValue()!=='网络')throw new Error(`${label}: network input was auto-mapped`);
   const networkCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!networkCandidates.includes('网络工程'))throw new Error(`${label}: network school-grounded candidate missing`);
-  await setInput(currentMajor,'计算机');
+  await typeMajor(currentMajor,'计算机');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:30000});
   if(await currentMajor.inputValue()!=='计算机')throw new Error(`${label}: computer input was auto-mapped`);
   const computerCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!computerCandidates.includes('计算机科学与技术'))throw new Error(`${label}: computer school-grounded candidate missing`);
-  await setInput(currentMajor,'测空技术与仪器');
+  await typeMajor(currentMajor,'测空技术与仪器');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});
   if(await currentMajor.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
   if(!(await page.locator('.volunteer-card').first().locator('[data-v014-major-box]').innerText()).includes('测控技术与仪器'))throw new Error(`${label}: typo suggestion missing`);
