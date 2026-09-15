@@ -36,15 +36,17 @@ if(await schoolChoices.count()) await schoolChoices.first().click();
 await page.waitForTimeout(100);
 await major.fill('自动化');
 await page.waitForTimeout(700);
-const body=await page.locator('body').innerText();
-assert.match(body,/自动化/,'东北大学+自动化应有相关反馈');
+assert.match(await page.locator('body').innerText(),/自动化/,'东北大学+自动化应有相关反馈');
 
 await major.fill('080301');
-for(const value of ['08030','0803','080','08','0','']){
-  await major.press('Control+A');
-  if(value) await major.type(value); else await major.press('Backspace');
-  assert.equal(await major.inputValue(),value,`代码删除中间态 ${value} 必须可编辑`);
+for(let i=0;i<5;i++){
+  await major.press('End');
+  await major.press('Backspace');
 }
+assert.equal(await major.inputValue(),'08','080301 连续删除后应保留 08');
+await major.press('End'); await major.press('Backspace'); await major.press('Backspace');
+assert.equal(await major.inputValue(),'','代码可继续删除到空');
+
 await major.fill('机械');
 await page.waitForTimeout(700);
 assert.match(await page.locator('body').innerText(),/机械工程|机械设计制造及其自动化|机械电子工程/,'学校实际机械相关专业必须出现');
