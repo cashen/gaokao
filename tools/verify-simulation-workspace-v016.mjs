@@ -11,14 +11,14 @@ const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-rel
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf8');
 
 for (const src of [
-  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.13-r103',
-  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.13-r103',
-  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.13-r103'
+  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.14-r104',
+  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.14-r104',
+  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.14-r104'
 ]) assert.ok(html.includes(src), `html missing ${src}`);
 assert.ok(!html.includes('simulation-report-v006-input-bridge.js'));
 assert.ok(!html.includes('simulation-report-v014-school-major-intent.js'));
-assert.equal(manifest.version,'simulation-workspace-v016.13');
-assert.equal(manifest.revision,'r103-contract-behavior-fix');
+assert.equal(manifest.version,'simulation-workspace-v016.14');
+assert.equal(manifest.revision,'r104-guard-contract-fix');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.equal(manifest.pdfRuntime,'/ln-rank/js/simulation-report-v016-pdf.js');
 assert.equal(manifest.legacyRenderGuard,'/ln-rank/js/simulation-report-v016-legacy-render-guard.js');
@@ -32,7 +32,7 @@ assert.ok(js.includes('r.standardMajorName||r.major'));
 assert.ok(js.includes('norm(item.code)'));
 assert.ok(js.includes('norm(item.name)'));
 assert.ok(guard.includes('__simulationHumanSyncDepth'));
-assert.ok(guard.includes('Math.max(0'));
+assert.ok(guard.includes('Math.max(1'));
 assert.ok(legacy.includes('function inboundMajorConflict'));
 assert.ok(legacy.includes('代码与专业名称不一致'));
 assert.ok(legacy.includes('__simulationHumanSyncDepth'));
@@ -43,4 +43,4 @@ assert.ok(!pdf.includes('家庭判断'));
 assert.ok(!pdf.includes('冲稳保'));
 assert.ok(legacyPdf.includes('家庭判断')); // legacy compatibility layer is no longer the visible PDF exporter.
 for(const expected of ['390','768','1280','pressSequentially','compositionstart','insertFromPaste','网络失败','Backspace','URL inbound','inbound conflict','duplicate','refresh','visible human input must be synchronized']) assert.ok(browser.includes(expected),`browser regression missing ${expected}`);
-console.log('simulation-workspace-v016.13 contract: PASS');
+console.log('simulation-workspace-v016.14 contract: PASS');
