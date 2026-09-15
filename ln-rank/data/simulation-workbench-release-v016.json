@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.40",
-  "revision":"r130-shenyang-direct-action-gate",
+  "version":"simulation-workspace-v016.41",
+  "revision":"r131-school-worker-and-performance-gate",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v017-responsive-input.js",
   "runtimeRevision":"v016.39-r129",
@@ -8,7 +8,7 @@
   "responsiveInputCss":"/ln-rank/css/simulation-report-v017-responsive-input.css",
   "pdfRuntime":"/ln-rank/js/simulation-report-v016-pdf.js",
   "legacyRenderGuard":"/ln-rank/js/simulation-report-v016-legacy-render-guard.js",
-  "purpose":"human-first simulation input with one current candidate interaction runtime and a concrete Shenyang direct-action browser gate",
+  "purpose":"human-first simulation input with one current candidate interaction runtime, restored school worker execution and canonical input performance gate",
   "schoolResolver":"/tongxue/data/school-name-resolver-v150.js",
   "majorResolver":"shared/resources/majors/major-catalog-contract.js",
   "factSource":"/api/ai/major-history",
@@ -25,7 +25,9 @@
     "the current page has one canonical candidate click path",
     "historical simulation-report workflows are manual-only",
     "canonical gate executes the current v017 direct-action browser regression",
-    "the canonical browser regression includes the concrete Shenyang Industrial University school-to-major flow"
+    "the canonical browser regression includes the concrete Shenyang Industrial University school-to-major flow",
+    "school candidate execution uses the shared v150 catalog resolver inside a dedicated module Worker",
+    "input performance is measured on the synchronous input-dispatch path"
   ],
   "targets":{"android":"390px","pad":"768px","desktop":"1280px"},
   "status":"canonical-gate-verification"
