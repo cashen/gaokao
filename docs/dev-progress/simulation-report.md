@@ -2,10 +2,10 @@
 
 分支：`fix/simulation-major-intent-v014`
 PR：#285
-当前 HEAD：`3c1763ff8c2addcb8a2672754891db3c68b8c887`
+当前 HEAD：`99aa21c8ab021c19591b6fe0c97139a41c4dbbc2`
 当前 main：`3b24bbd425aace4702d5ebeda32d526ff1447f5a`
-当前版本：`simulation-workspace-v014.5`
-当前修订：`r067-human-typing-browser-regression`
+当前版本：`simulation-workspace-v014.7`
+当前修订：`r069-current-workbench-regression-cleanup`
 
 ## 当前状态
 
@@ -19,18 +19,22 @@ PR：#285
 - [x] 宽泛专业不自动替用户拍板
 - [x] 错别字候选必须用户明确确认
 - [x] 保留既有 PDF、历史数据和家庭状态兼容层
-- [x] v014 contract gate
-- [x] Cloudflare branch preview deploy for v014 head
-- [ ] v014.5 browser gate：上一轮失败已定位，当前 head 已改为逐字输入回归，等待新 CI
+- [x] 修正 v012 browser reload seed 误测
+- [x] 修正 v006 browser assertion precedence 误测
+- [x] 清理 v001/v003/v005/v008/v009/v013 对 superseded page markup 的错误契约依赖
+- [x] v014.7 contract source updated
+- [ ] 最新 v014 contract/browser CI 全部通过
+- [ ] v006/v012/v008/v009 browser regressions 全部通过
 - [ ] 最终全站 release/runtime/resource/production gates
 - [ ] exact-head merge
 - [ ] merge 后重新核验 main SHA、Cloudflare Preview/Production、custom domain、API health、数据 SHA parity
 
-## 当前阻塞
+## 已定位的历史误报/失败
 
-v014 原 browser CI 在 desktop 阶段等待 `.major-suggestion` 超时。诊断显示学校索引请求成功、无 request failure/page error，但没有发出 `/api/ai/major-history` 请求。该失败发生在浏览器回归输入路径，不能把旧 PASS 当成当前 head 的 PASS。
-
-v014.5/r067 已将 major 输入回归改成清空后逐字输入（`pressSequentially`），继续验证真实键盘输入路径；未修改招生事实源，也未复制数据。
+1. v014：旧浏览器测试使用 Playwright `fill()` 后，没有触发预期的专业输入事件；已改为逐字键入。
+2. v012：测试自己的 `addInitScript` 在 reload 时重新写入 seed，导致持久化结果被测试覆盖；已改为仅在 storage 为空时 seed。
+3. v006：测试中一个 `!awaitValue === '080301'` 断言存在运算符优先级错误；已修正。
+4. v001/v003/v005/v008/v009/v013：后续版本替换页面入口/文案后，旧契约仍要求已移除的可见标记；已改为兼容性契约，继续检查仍存在的旧运行时/打印能力，而非删除验证。
 
 ## 数据所有权
 
