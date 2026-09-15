@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v015.8",
-  "revision":"r082-regression-matrix",
+  "version":"simulation-workspace-v015.9",
+  "revision":"r083-exact-school-major-confirmation",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
   "purpose":"human-first non-blocking input with strict school-major intersection",
@@ -8,7 +8,7 @@
   "majorResolver":"shared/resources/majors/major-catalog-contract.js",
   "factSource":"/api/ai/major-history",
   "noFabrication":true,
-  "rules":["input state is independent from confirmed entity state","broad major input gets related feedback without automatic selection","school-grounded candidates are restricted to actual school records","catalog-only candidates are never represented as school facts","final confirmation requires school entity plus major code/name record","major code supports editable intermediate prefixes","input and deletion never await network or whole-workbench rerender","stale async responses cannot overwrite newer input","IME composition and paste are first-class input paths","changing school or major invalidates dependent confirmation","network failure is distinct from mismatch","local major feedback is immediate while async verification is debounced","fact queries are cached by normalized school and major intent","runtime syntax is statically validated before browser regression","family decision state is independent from fact/input state","no 冲稳保 wording","legacy workbench no longer polls every 500ms during normal operation","browser regression covers 390/768/1280 viewports, rapid typing, IME lifecycle, paste, deletion, network failure, school change and request budget"],
+  "rules":["input state is independent from confirmed entity state","broad major input gets related feedback without automatic selection","school-grounded candidates are restricted to actual school records","catalog-only candidates are never represented as school facts","final confirmation requires school entity plus major code and name agreement with the actual record","major code supports editable intermediate prefixes","input and deletion never await network or whole-workbench rerender","stale async responses cannot overwrite newer input","IME composition and paste are first-class input paths","changing school or major invalidates dependent confirmation","network failure is distinct from mismatch","local major feedback is immediate while async verification is debounced","fact queries are cached by normalized school and major intent","runtime syntax is statically validated before browser regression","family decision state is independent from fact/input state","no 冲稳保 wording","legacy workbench no longer polls every 500ms during normal operation","browser regression covers 390/768/1280 viewports, rapid typing, IME lifecycle, paste, deletion, network failure, school change and request budget"],
   "mobileTarget":"390px",
   "padTarget":"768px",
   "desktopTarget":"1280px",
