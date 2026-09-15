@@ -18,7 +18,7 @@ assert.equal(manifest.version,'simulation-workspace-v016.30');assert.equal(manif
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v017-responsive-input.js');assert.equal(manifest.legacyInputRuntime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 for(const [name,source] of [['legacy input compatibility',js],['responsive runtime',responsive],['school search worker',worker],['pdf runtime',pdf],['guard runtime',guard]]) assert.doesNotThrow(()=>new Function(source.replace(/^import .*$/gm,'')),`${name} syntax must remain valid`);
 assert.ok(!responsive.includes('input.dispatchEvent('),'hidden legacy compatibility sync must not dispatch legacy input/change events');
-for(const expected of ['new Worker(','requestSchoolCandidates','confirmedSchool','currentSchoolContext','queryFacts','getAll(\'major\')','cancelRow(id)','major-fact:','persistedSchoolContext']) assert.ok(responsive.includes(expected),`responsive runtime missing ${expected}`);
+for(const expected of ['new Worker(','requestSchoolCandidates','confirmedSchool','currentSchoolContext','queryFacts','params.append(\'major\',name)','major-fact:','persistedSchoolContext','cancelRow(id)']) assert.ok(responsive.includes(expected),`responsive runtime missing ${expected}`);
 assert.ok(worker.includes('void resolver().catch(()=>{})'),'school resolver must warm in worker');
 assert.ok(worker.includes("typeof r.search==='function'"));assert.ok(api.includes("url.searchParams.getAll('major')"));assert.ok(api.includes("url.searchParams.getAll('majors')"));
 assert.ok(legacy.includes('function inboundMajorConflict'));assert.ok(legacy.includes('代码与专业名称不一致'));assert.ok(legacy.includes('__simulationHumanSyncDepth'));assert.ok(!legacy.includes('setInterval(()=>render(),500'));
