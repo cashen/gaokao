@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.9",
-  "revision":"r099-final-regression",
+  "version":"simulation-workspace-v016.10",
+  "revision":"r100-final-ci-gate",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
   "pdfRuntime":"/ln-rank/js/simulation-report-v016-pdf.js",
@@ -14,5 +14,5 @@
   "mobileTarget":"390px",
   "padTarget":"768px",
   "desktopTarget":"1280px",
-  "status":"final-regression"
+  "status":"final-ci-gate"
 }
