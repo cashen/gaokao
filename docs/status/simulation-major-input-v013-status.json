@@ -1,0 +1,19 @@
+{
+  "version": "simulation-workspace-v013",
+  "revision": "r057-forgiving-major-input-school-match",
+  "status": "ready-for-review",
+  "scope": "simulation-report.html major name/code input, suggestions, school-major validation",
+  "base": "233d5f6e52644d2b1f687d6be1916c298790193c",
+  "implemented": [
+    "Chinese or code input",
+    "shared resolver candidates",
+    "typo correction without silent selection",
+    "school-major history match",
+    "explicit mismatch vs network-check states",
+    "mobile touch-friendly candidate list"
+  ],
+  "verification": [
+    "tools/verify-simulation-report-v013-major-input.mjs",
+    "tools/browser-simulation-report-v013-major-input.mjs"
+  ]
+}

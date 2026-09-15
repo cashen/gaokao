@@ -1,0 +1,12 @@
+{
+  "version": "simulation-workspace-v013",
+  "revision": "r057-forgiving-major-input-school-match",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "human-friendly major input with school-context validation",
+  "majorInput": "major name or code",
+  "fuzzyResolution": "shared major catalog resolver",
+  "schoolMatch": "/api/ai/major-history?major=...&schoolKeyword=...",
+  "mobile": "same input flow with touch-friendly suggestion list",
+  "noFabrication": true
+}
