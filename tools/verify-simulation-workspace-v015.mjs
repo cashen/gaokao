@@ -13,6 +13,7 @@ assert.doesNotMatch(html,/simulation-report-v014-school-major-intent\.js/);
 assert.equal(manifest.version,'simulation-workspace-v015.6');
 assert.equal(manifest.revision,'r080-immediate-local-feedback');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
+assert.doesNotThrow(()=>new Function(js.replace(/^import .*$/gm,'')),'v015 runtime must remain JavaScript-syntax valid');
 assert.match(js,/AbortController/);
 assert.match(js,/compositionstart/);
 assert.match(js,/compositionend/);
