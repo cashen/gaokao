@@ -9,14 +9,14 @@ for(const viewport of viewports){
   const page=await context.newPage();
   const errors=[];const requests=[];
   page.on('pageerror',e=>errors.push(String(e)));page.on('request',r=>{if(r.url().includes('/api/ai/major-history'))requests.push(r.url())});
-  await page.route('**/api/ai/major-history**',async route=>{const u=new URL(route.request().url());const major=u.searchParams.get('major')||'';const school=u.searchParams.get('schoolKeyword')||'';if(major.includes('网络失败')){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,message:'mock unavailable'})});return}const records=school.includes('东北大学')?[{school:'东北大学',standardMajorName:'自动化',majorCode2026:'080801'},{school:'东北大学',standardMajorName:'机械工程',majorCode2026:'080201'},{school:'东北大学',standardMajorName:'机械设计制造及其自动化',majorCode2026:'080202'},{school:'东北大学',standardMajorName:'机械电子工程',majorCode2026:'080204'}].filter(r=>!major||r.standardMajorName.includes(major)||r.majorCode2026.startsWith(major)):[];await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records})})});
+  await page.route('**/api/ai/major-history**',async route=>{const u=new URL(route.request().url());const majorInputs=u.searchParams.getAll('major');const major=(majorInputs[0]||u.searchParams.get('major')||'');const school=u.searchParams.get('schoolKeyword')||'';if(major.includes('网络失败')){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,message:'mock unavailable'})});return}const records=school.includes('东北大学')?[{school:'东北大学',standardMajorName:'自动化',majorCode2026:'080801'},{school:'东北大学',standardMajorName:'机械工程',majorCode2026:'080201'},{school:'东北大学',standardMajorName:'机械设计制造及其自动化',majorCode2026:'080202'},{school:'东北大学',standardMajorName:'机械电子工程',majorCode2026:'080204'}].filter(r=>!majorInputs.length||majorInputs.includes(r.standardMajorName)||r.standardMajorName.includes(major)||r.majorCode2026.startsWith(major)):[];await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records})})});
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card[data-card-id="v016-1"]',{timeout:10000});
-  const school=page.locator('[data-field="school"]').first();const major=page.locator('[data-field="majorCode"]').first();const helper=page.locator('[data-v015-helper]').first();
-  await major.fill('机械');await page.waitForTimeout(100);assert.ok(await page.locator('[data-v015-major]').first().isVisible(),`${viewport.name}: 机械输入应立即有目录反馈`);
+  const school=page.locator('[data-field="school"]').first();const major=page.locator('[data-field="majorCode"]').first();const helper=page.locator('[data-v017-helper]').first();
+  await major.fill('机械');await page.waitForTimeout(100);assert.ok(await page.locator('[data-v017-major]').first().isVisible(),`${viewport.name}: 机械输入应立即有目录反馈`);
   await school.fill('东北大学');
-  await page.locator('[data-v015-school-choice]').first().waitFor({state:'visible',timeout:5000});
-  const choices=page.locator('[data-v015-school-choice]');assert.ok(await choices.count(),`${viewport.name}: 学校候选必须可确认`);await choices.first().click();
+  await page.locator('[data-v017-school-choice]').first().waitFor({state:'visible',timeout:5000});
+  const choices=page.locator('[data-v017-school-choice]');assert.ok(await choices.count(),`${viewport.name}: 学校候选必须可确认`);await choices.first().click();
   await major.fill('');await major.pressSequentially('自动化',{delay:15});await page.waitForTimeout(700);assert.equal(await major.inputValue(),'自动化');assert.match(await page.locator('body').innerText(),/自动化/);
   const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);assert.equal(persisted.school,'东北大学');assert.equal(persisted.majorCode,'自动化','visible human input must be synchronized to legacy data source');
   await major.fill('');await major.dispatchEvent('compositionstart');await major.evaluate(el=>{el.value='机械';el.dispatchEvent(new Event('input',{bubbles:true}))});await major.dispatchEvent('compositionend');await page.waitForTimeout(700);assert.equal(await major.inputValue(),'机械');assert.match(await helper.textContent(),/找到|核对|实际专业/);
@@ -31,7 +31,6 @@ for(const viewport of viewports){
   await browser.close();
 }
 
-// URL inbound: conflicting code/name must be surfaced, not silently coerced.
 {
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport:{width:1280,height:900},locale:'zh-CN'});
@@ -42,7 +41,6 @@ for(const viewport of viewports){
   await browser.close();
 }
 
-// URL inbound: an already-present school + major must not create a duplicate volunteer.
 {
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport:{width:1280,height:900},locale:'zh-CN'});
@@ -53,4 +51,4 @@ for(const viewport of viewports){
   await browser.close();
 }
 
-console.log('simulation-workspace-v016.18 browser: PASS');
+console.log('simulation-workspace-v016.23 browser: PASS');
