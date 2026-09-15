@@ -4,6 +4,22 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/resources/release/**'
+      - 'shared/resources/resource-registry.js'
+      - 'shared/governance/**'
+      - 'shared/ui/**'
+      - 'functions/_lib/major-bands-*.js'
+      - 'functions/api/major-bands*.js'
+      - 'ln-rank/data/211-static/**'
+      - 'ln-rank/data/local-strength/**'
+      - 'ln-rank/js/academic-background/**'
+      - 'ln-rank/js/local-strength/**'
+      - 'tools/audit-canonical-release-version-v3990_3.mjs'
+      - 'tools/audit-site-runtime-generation-v3990_3.mjs'
+      - 'tools/audit-unified-resource-graph-v3990_3.mjs'
+      - 'tools/audit-major-bands-rank-kernel-v3990_3.mjs'
+      - 'tools/ln-2026/**'
   push:
     branches: [main]
   workflow_dispatch:
@@ -35,9 +51,6 @@ jobs:
           node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_3.mjs
           node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_3.mjs
 
-          # Preserve the complete historical Python acceptance surface without
-          # creating a second maintained copy. Only current-generation identity
-          # markers are mapped; declared stable business-resource versions remain unchanged.
           sed \
             -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
             -e 's/v3990_0/v3990_3/g' \

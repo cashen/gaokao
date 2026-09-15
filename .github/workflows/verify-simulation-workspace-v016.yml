@@ -1,0 +1,70 @@
+name: Verify simulation workspace v016
+
+on:
+  pull_request:
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
+      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
+      - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
+      - 'ln-rank/js/simulation-report-v016-pdf.js'
+      - 'ln-rank/js/simulation-report-v017-responsive-input.js'
+      - 'ln-rank/js/simulation-school-search-worker-v001.js'
+      - 'ln-rank/data/simulation-workbench-release-v016.json'
+      - 'docs/plans/simulation-workspace-v016-human-complete.md'
+      - 'docs/dev-progress/simulation-report.md'
+      - 'tools/verify-simulation-workspace-v017.mjs'
+      - 'tools/browser-simulation-workspace-v017-actions.mjs'
+      - 'tools/browser-simulation-workspace-v016-performance.mjs'
+      - '.github/workflows/verify-simulation-workspace-v016.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
+      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
+      - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
+      - 'ln-rank/js/simulation-report-v016-pdf.js'
+      - 'ln-rank/js/simulation-report-v017-responsive-input.js'
+      - 'ln-rank/js/simulation-school-search-worker-v001.js'
+      - 'ln-rank/data/simulation-workbench-release-v016.json'
+      - 'docs/plans/simulation-workspace-v016-human-complete.md'
+      - 'docs/dev-progress/simulation-report.md'
+      - 'tools/verify-simulation-workspace-v017.mjs'
+      - 'tools/browser-simulation-workspace-v017-actions.mjs'
+      - 'tools/browser-simulation-workspace-v016-performance.mjs'
+      - '.github/workflows/verify-simulation-workspace-v016.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: simulation-workspace-v016-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/verify-simulation-workspace-v017.mjs
+  browser:
+    needs: contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
+      - run: node tools/browser-simulation-workspace-v017-actions.mjs
+      - run: node tools/browser-simulation-workspace-v016-performance.mjs

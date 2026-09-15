@@ -1,31 +1,12 @@
-name: Browser simulation report v010 history layout
+name: Archived simulation report regression
 
+# Historical regression workflow. Current page verification is centralized in
+# Verify simulation workspace v016. It is retained for manual forensic reruns.
 on:
-  pull_request:
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v010-history-layout.css'
-      - 'ln-rank/js/simulation-report-v010-history-layout.js'
-      - 'tools/browser-simulation-report-v010-history-layout.mjs'
-      - '.github/workflows/browser-simulation-report-v010-history-layout.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v010-history-layout.css'
-      - 'ln-rank/js/simulation-report-v010-history-layout.js'
-      - 'tools/browser-simulation-report-v010-history-layout.mjs'
-      - '.github/workflows/browser-simulation-report-v010-history-layout.yml'
+  workflow_dispatch:
 
 jobs:
-  browser:
+  archived:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm install --no-save playwright@1.55.0
-      - run: npx playwright install --with-deps chromium
-      - run: python3 -m http.server 4173 >/tmp/gaokao-http.log 2>&1 &
-      - run: node tools/browser-simulation-report-v010-history-layout.mjs
+      - run: echo "Historical simulation-report workflow; use the canonical simulation workspace gate for current changes."
