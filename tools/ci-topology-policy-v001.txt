@@ -1,0 +1,3 @@
+CI topology policy v001
+
+PR workflows must be resource-scoped. Broad PR triggers such as ln-rank/** or unbounded pull_request triggers are prohibited when a workflow owns a narrower subsystem. Production-only verification belongs on main unless a preview-specific contract is explicitly required. The simulation workspace canonical gate is the only workflow responsible for the simulation-report input journey.
