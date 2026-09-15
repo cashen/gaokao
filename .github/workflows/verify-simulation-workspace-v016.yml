@@ -18,9 +18,7 @@ on:
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
-    branches:
-      - main
-      - feat/simulation-workspace-v016-human-complete
+    branches: [main]
     paths:
       - 'ln-rank/simulation-report.html'
       - 'ln-rank/css/simulation-report-v017-responsive-input.css'
@@ -30,6 +28,7 @@ on:
       - 'ln-rank/js/simulation-report-v017-responsive-input.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
+      - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
       - 'tools/verify-simulation-workspace-v016.mjs'
       - 'tools/browser-simulation-workspace-v016.mjs'
@@ -64,7 +63,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install playwright@1.55.0
+      - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
       - run: node tools/browser-simulation-workspace-v016.mjs

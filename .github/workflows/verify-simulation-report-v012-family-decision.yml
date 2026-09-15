@@ -1,45 +1,12 @@
-name: Verify simulation report v012 family decision
+name: Archived simulation report regression
 
+# Historical regression workflow. Current page verification is centralized in
+# Verify simulation workspace v016. It is retained for manual forensic reruns.
 on:
-  pull_request:
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v012-family-decision.css'
-      - 'ln-rank/js/simulation-report-v012-family-decision.js'
-      - 'ln-rank/data/simulation-workbench-release-v012.json'
-      - 'tools/verify-simulation-report-v012-family-decision.mjs'
-      - 'tools/browser-simulation-report-v012-family-decision.mjs'
-      - '.github/workflows/verify-simulation-report-v012-family-decision.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v012-family-decision.css'
-      - 'ln-rank/js/simulation-report-v012-family-decision.js'
-      - 'ln-rank/data/simulation-workbench-release-v012.json'
-      - 'tools/verify-simulation-report-v012-family-decision.mjs'
-      - 'tools/browser-simulation-report-v012-family-decision.mjs'
-      - '.github/workflows/verify-simulation-report-v012-family-decision.yml'
+  workflow_dispatch:
 
 jobs:
-  contract:
+  archived:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: node tools/verify-simulation-report-v012-family-decision.mjs
-
-  browser:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm install playwright@1.55.0
-      - run: npx playwright install --with-deps chromium
-      - name: Start static server
-        run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
-      - run: node tools/browser-simulation-report-v012-family-decision.mjs
+      - run: echo "Historical simulation-report workflow; use the canonical simulation workspace gate for current changes."
