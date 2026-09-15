@@ -4,6 +4,9 @@ let resolverPromise=null;
 const resolver=()=>resolverPromise||(resolverPromise=loadSchoolNameResolver());
 const text=value=>String(value??'').normalize('NFKC').replace(/\u00a0/g,' ').trim();
 
+// Warm the heavy school directory off the main thread as soon as the worker starts.
+void resolver().catch(()=>{});
+
 self.onmessage=async event=>{
   const {type,id,seq,query}=event.data||{};
   const q=text(query);
