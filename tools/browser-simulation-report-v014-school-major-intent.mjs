@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const schoolRows=Array.from({length:3000},(_,i)=>({name:i===0?'辽宁科技大学':`测试大学${i}`,province:i===0?'辽宁省':'测试省',city:i===0?'鞍山市':'测试市'}));
 const seed={version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'555',rank:29685,volunteers:[{id:'v014-1',order:1,school:'辽宁科技大学',majorCode:'',majorName:'',history:null,manualCheck:{},familyStatus:'待讨论',familyNote:''}]};
 
-async function setInput(locator,value){await locator.fill(value);await new Promise(resolve=>setTimeout(resolve,300));}
+async function setInput(locator,value,delay=300){await locator.fill(value);await new Promise(resolve=>setTimeout(resolve,delay));}
 async function typeMajor(locator,value){await locator.fill('');await locator.pressSequentially(value,{delay:20});await new Promise(resolve=>setTimeout(resolve,500));}
 
 async function run(viewport,label){
@@ -36,10 +36,22 @@ async function run(viewport,label){
   });
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card',{timeout:15000});
-  const diagnostic=async()=>await page.evaluate(()=>({scripts:[...document.scripts].map(s=>s.src).filter(Boolean),errors:[],helpers:[...document.querySelectorAll('[data-v014-helper]')].map(x=>x.textContent),boxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-major-box]')].map(x=>({hidden:x.hidden,text:x.innerText})),majorValue:document.querySelector('[data-field="majorCode"]')?.value,pageText:document.body.innerText.slice(0,3000)}));
+  const diagnostic=async()=>await page.evaluate(()=>({scripts:[...document.scripts].map(s=>s.src).filter(Boolean),errors:[],helpers:[...document.querySelectorAll('[data-v014-helper]')].map(x=>x.textContent),boxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-major-box]')].map(x=>({hidden:x.hidden,text:x.innerText})),majorValue:document.querySelector('[data-field="majorCode"]')?.value,schoolValue:document.querySelector('[data-field="school"]')?.value,pageText:document.body.innerText.slice(0,3000)}));
   const c=page.locator('.volunteer-card').first();
-  await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
+  const schoolInput=c.locator('[data-field="school"]');
+  await setInput(schoolInput,'辽宁科技大学');
   try{await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});}catch(error){throw new Error(`${label}: school resolver did not finish: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
+
+  // Regression: typing a partial school name and immediately deleting it must stop pending work
+  // and must not re-render stale candidates after the field is already empty.
+  await schoolInput.fill('辽宁');
+  await schoolInput.fill('');
+  await new Promise(resolve=>setTimeout(resolve,250));
+  const cleared=await page.evaluate(()=>({school:document.querySelector('[data-field="school"]')?.value||'',schoolBoxHidden:document.querySelector('[data-v014-school-box]')?.hidden??true,schoolBoxText:document.querySelector('[data-v014-school-box]')?.innerText||'',helper:document.querySelector('[data-v014-helper]')?.textContent||''}));
+  if(cleared.school!=='')throw new Error(`${label}: school input did not clear`);
+  if(!cleared.schoolBoxHidden||cleared.schoolBoxText)throw new Error(`${label}: stale school candidates remained after clear: ${JSON.stringify(cleared)}`);
+  if(cleared.helper.includes('已识别学校')||cleared.helper.includes('请确认学校'))throw new Error(`${label}: stale school resolver result returned after clear: ${JSON.stringify(cleared)}`);
+
   const majorInput=c.locator('[data-field="majorCode"]');
   await typeMajor(majorInput,'机械');
   try{await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});}catch(error){throw new Error(`${label}: major candidates did not render: ${error.message}; diagnostics=${JSON.stringify({awaited:await diagnostic(),errors,requestFailures,requests,responses})}`);}
@@ -69,4 +81,4 @@ async function run(viewport,label){
 }
 await run({width:1280,height:900},'desktop');
 await run({width:390,height:844},'mobile');
-console.log('simulation-report-v014-school-major-intent browser: PASS');
+console.log('simulation-report-v014-school-major-intent browser v014.13: PASS');
