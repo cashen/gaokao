@@ -20,7 +20,7 @@
 - [x] 修正 v014 浏览器 `fill()` 与真实输入事件差异
 - [x] 修正 v012 reload seed 误测
 - [x] 修正 v006 assertion precedence 误测
-- [x] 清理 v001/v003/v005/v008/v009/v013 superseded page markup 误报
+- [x] 清理历史版本 superseded page markup 误报
 - [x] 合并 PR #285 到 main
 - [x] 合并后 production API health：SUCCESS
 - [x] 合并后 Cloudflare Pages：SUCCESS，部署 `6c18f7a`
@@ -44,7 +44,7 @@
 
 用户反馈新的真实体验问题：在学校输入框先输入“辽宁”再删除，界面仍出现明显卡顿。代码审计确认 v014 当前实现对每次 `input` 都立即触发学校解析和 localStorage 写入，并且 workbench 的 MutationObserver 会观察候选节点自身的 childList 变化，存在不必要的重复 rehydrate 放大。r075 直接处理这三个路径，不改变学校解析与招生事实来源。
 
-本轮新增 CI 架构问题：同一 PR HEAD 可能同时触发大量历史兼容 workflow，造成 runner 并发槽位被 queued jobs 占满；r076 先在当前 v014 workflow 和 main tree integrity 上加入 PR-scoped concurrency guard，后续全站 workflow 体系继续按 merge gate 分层治理。
+本轮新增 CI 架构问题：同一 PR HEAD 会同时触发大量历史兼容 workflow，runner 并发槽位被 queued jobs 占满；r076 已为当前 v014 专项与 main tree integrity 增加 PR-scoped concurrency guard，旧提交在同一 PR 上产生的新执行可被最新执行淘汰。全站 workflow 分层治理仍需在后续 CI 架构专项中继续完善。
 
 ## 数据所有权
 
