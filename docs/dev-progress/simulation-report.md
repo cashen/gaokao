@@ -2,11 +2,11 @@
 
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
-基线 main：`a96a7d15190b1f8737501985a92b4c5ab09e4978`
-当前产品版本：`simulation-workspace-v016.40`
-当前产品修订：`r130-shenyang-direct-action-gate`
+基线 main：`aaaea61e758f90e54e98976e977f6915b9b6f751`
+当前产品版本：`simulation-workspace-v016.41`
+当前产品修订：`r131-school-worker-and-performance-gate`
 运行时修订：`v016.39-r129`
-阶段：canonical exact-head gate → browser actions → Preview → merge
+阶段：canonical exact-head gate → browser actions → performance → Preview → merge
 
 ## 本轮架构收敛
 
@@ -20,10 +20,14 @@ PR：#290
 - [x] canonical simulation gate 不再对 feature branch push 重复触发，只对 PR 与 main push 运行。
 - [x] canonical contract 与 browser test 对齐到当前 v017 direct-action 测试，不再执行过期 v016 browser script。
 - [x] v016.40 专门增加“沈阳工业大学”PC direct-action 场景，防止本次真实回归问题再次进入发布。
+- [x] 补齐实际运行所需的 `simulation-school-search-worker-v001.js`，复用既有 v150 学校目录 resolver，不新造学校数据。
+- [x] 补齐 canonical input performance regression，并把同步 input-dispatch 性能纳入 contract。
+- [x] 发布修订提升至 `v016.41 / r131`，同步页面 cache-buster、manifest、contract、browser gate 和进度记录。
+- [x] PR 与 main 基线重新同步，当前 compare `behind_by=0`。
 
-## 当前唯一自动门禁
+## 当前 canonical gate
 
-`.github/workflows/verify-simulation-workspace-v016.yml` 仅负责当前 simulation workspace；contract 使用 `tools/verify-simulation-workspace-v017.mjs`，browser 使用 `tools/browser-simulation-workspace-v017-actions.mjs`，随后执行 performance 回归。
+`.github/workflows/verify-simulation-workspace-v016.yml` 负责当前 simulation workspace；contract 使用 `tools/verify-simulation-workspace-v017.mjs`，browser 使用 `tools/browser-simulation-workspace-v017-actions.mjs`，随后执行 `tools/browser-simulation-workspace-v016-performance.mjs`。
 
 ## Merge Gate
 
