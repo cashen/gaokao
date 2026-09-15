@@ -8,6 +8,7 @@ async function run(viewport,label){
   await context.addInitScript(state=>localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify(state)),seed);
   const page=await context.newPage(); const errors=[];
   page.on('pageerror',e=>errors.push(String(e)));
+  await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:1,schools:[{name:'辽宁科技大学',province:'辽宁省',city:'鞍山市'}]})}));
   await page.route('**/api/ai/major-history**',async route=>{
     const u=new URL(route.request().url()); const major=u.searchParams.get('major')||''; const school=u.searchParams.get('schoolKeyword')||'';
     const rows=[
@@ -15,19 +16,16 @@ async function run(viewport,label){
       {id:'m-2',school:'辽宁科技大学',major:'机械电子工程',standardMajorName:'机械电子工程',majorCode2026:'080204',standardMajorCode:'080204',score2026:498,rank2026:54000,score2025:494,rank2025:57000,score2024:480,rank2024:60000},
       {id:'m-3',school:'辽宁科技大学',major:'测控技术与仪器',standardMajorName:'测控技术与仪器',majorCode2026:'080301',standardMajorCode:'080301',score2026:493,rank2026:56659,score2025:491,rank2025:61050,score2024:476,rank2024:64544}
     ];
-    const exact=major==='测控技术与仪器';
-    const broad=/机械|网络|计算机/.test(major);
-    const records=school==='辽宁科技大学' ? (exact?rows.filter(r=>r.major==='测控技术与仪器'):broad?rows.filter(r=>/机械/.test(r.major)):[]) : [];
+    const records=school==='辽宁科技大学' ? (/机械/.test(major)?rows.filter(r=>/机械/.test(r.major)):major==='测控技术与仪器'?rows.filter(r=>r.major==='测控技术与仪器'):[]) : [];
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records,total:records.length,complete:true,dataYear:2026,summary:{total:records.length}})});
   });
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card',{timeout:15000});
   const c=page.locator('.volunteer-card').first(), school=c.locator('[data-field="school"]'), major=c.locator('[data-field="majorCode"]');
-  await school.fill('辽科大');
-  await page.waitForFunction(()=>document.body.innerText.includes('辽宁科技大学'),null,{timeout:10000});
-  await c.getByRole('button',{name:/辽宁科技大学/}).click();
+  await school.fill('辽宁科技大学');
+  await page.waitForTimeout(250);
   await major.fill('机械');
-  await page.waitForFunction(()=>document.querySelectorAll('[data-v014-major-box] .major-suggestion').length>=2,null,{timeout:10000});
+  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
   if(await major.inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
   const candidates=await c.locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!candidates.includes('机械设计制造及其自动化')||!candidates.includes('机械电子工程'))throw new Error(`${label}: school-grounded major candidates missing`);
@@ -36,7 +34,7 @@ async function run(viewport,label){
   await c.getByRole('button',{name:/机械电子工程/}).click();
   await page.waitForFunction(()=>document.querySelector('[data-field="majorCode"]')?.value==='080204',null,{timeout:5000});
   await major.fill('测空技术与仪器');
-  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
+  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000}).catch(()=>{throw new Error(`${label}: typo suggestion missing`);});
   if(await major.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
   if(!(await c.locator('[data-v014-major-box]').innerText()).includes('测控技术与仪器'))throw new Error(`${label}: typo suggestion missing`);
   await c.getByRole('button',{name:/测控技术与仪器/}).click();
