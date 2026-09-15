@@ -3,33 +3,30 @@
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
 基线 main：`6df5410461f314bd22d30b65ec98a2ac34d631b3`
-当前产品版本：`simulation-workspace-v016.42`
-当前产品修订：`r132-candidate-lifecycle-and-history-hydration`
-运行时修订：`v016.39-r129`
+当前产品版本：`simulation-workspace-v016.44`
+当前产品修订：`r134-history-reference-only`
+运行时修订：`v016.43-r133`
 阶段：canonical exact-head gate → browser actions → performance → Preview → merge
 
-## v016.42 / r132 本轮修复
+## v016.44 / r134 本轮修订
 
-- [x] 移除旧 v007 workbench 的周期性/Observer 整卡重绘路径，避免 v017 已生成候选被旧运行时重新 `innerHTML` 销毁。
-- [x] 保留当前 v017 学校/专业候选的直接 button click 路径，不再增加第二套全局 click 委托。
-- [x] 专业确认后继续以学校名称、专业名称、代码做严格事实核验。
-- [x] 历史成绩状态继续落在当前志愿的 `history.years`，供三年历史展示直接消费；缺失历史记录显式标记为 `no-strict-record`。
-- [x] stale worker / network 结果不能覆盖更新后的输入。
-- [x] 页面 cache-buster、release manifest、canonical contract、browser regression 与 progress revision 提升到 v016.42 / r132。
+- [x] 保留学校→专业的明确候选确认，不改变学校/专业事实核验。
+- [x] 保留真实三年历史数据写回 `history.years`；历史数据仍然展示。
+- [x] 移除“有历史记录需要核对”的状态；历史数据不再进入 needs-check 状态。
+- [x] 移除历史条目中的“需核验”展示标签。
+- [x] 页面用“补充需要确认的信息”替代“核对需要确认的地方”，避免暗示用户必须人工核对历史数据。
+- [x] 增加 history reference-only release asset，并提升页面/release manifest 到 v016.44/r134。
+- [x] canonical verifier 增加 history reference-only 静态约束。
+- [x] browser regression 增加“沈阳化工大学 → 高分子材料与工程 → 080407”历史数据显示且不出现历史核对提示的回归。
 
-## v016.41 之前已完成
+## v016.43 / r133 之前已完成
 
-- [x] 定位并移除 v017 自身 window capture click + `stopImmediatePropagation` 的候选点击阻断。
-- [x] 学校候选使用独立 Worker，复用 v150 学校目录 resolver 与 v3969 学校查询引擎。
-- [x] 候选保留学校官方名称、省、市、层次、精确/相似匹配信息。
-- [x] 学校与专业确认按钮均为真实 button；PC / Pad / Android 目标视口统一进入回归。
-- [x] 将“沈阳工业大学”具体学校→专业流程纳入 canonical browser regression。
-- [x] 历史 simulation-report v001/v003/v005/v006/v007/v008/v009/v010/v011/v012/v013/v014 workflow 改为手动 workflow_dispatch。
-- [x] canonical simulation gate 使用 v017 contract + direct-action browser + performance，不调用过期 browser 脚本。
-
-## CI 收敛原则
-
-当前 simulation workspace 的 PR 验证只以 `.github/workflows/verify-simulation-workspace-v016.yml` 作为功能性 canonical gate；历史 simulation workflow 仅手动取证。其他重型跨站/生产验证不应因为 `simulation-report.html` 的局部修改重复占用 runner；涉及主干发布的完整生产验证放在 main push 阶段完成。
+- [x] 专业确认后直接基于 `/api/ai/major-history` 返回的学校实际专业记录生成 2026 / 2025 / 2024 历史。
+- [x] 每年使用该校该专业记录中最低可用分数对应记录；缺失年份显式 `no-strict-record`，不编造数据。
+- [x] 移除旧 v007 整卡周期性/Observer 重绘对 v017 候选按钮的破坏。
+- [x] 学校/专业候选直接 button click 与 stale worker 防护。
+- [x] 学校搜索放入独立 Worker，输入同步路径保持低延迟。
+- [x] historical simulation-report workflows 改为手动 workflow_dispatch；canonical gate 集中到 v016。
 
 ## 当前 canonical gate
 
