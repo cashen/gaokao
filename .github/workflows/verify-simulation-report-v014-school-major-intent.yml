@@ -21,6 +21,9 @@ on:
       - 'tools/browser-simulation-report-v014-school-major-intent.mjs'
       - '.github/workflows/verify-simulation-report-v014-school-major-intent.yml'
   workflow_dispatch:
+concurrency:
+  group: simulation-report-v014-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   contract:
     runs-on: ubuntu-latest
