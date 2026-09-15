@@ -25,6 +25,7 @@ on:
       - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
       - 'ln-rank/js/simulation-report-v016-pdf.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
+      - 'docs/dev-progress/simulation-report.md'
       - 'tools/verify-simulation-workspace-v016.mjs'
       - 'tools/browser-simulation-workspace-v016.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
