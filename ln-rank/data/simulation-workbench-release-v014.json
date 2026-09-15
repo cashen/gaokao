@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014.9",
-  "revision": "r071-compatibility-contract-cleanup",
+  "version": "simulation-workspace-v014.10",
+  "revision": "r072-final-regression-gate",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -21,7 +21,8 @@
     "r068 v012 persistence regression seeds localStorage only when empty so reload assertions validate persisted family decisions",
     "r069 legacy simulation contracts validate current workbench compatibility surfaces instead of requiring superseded page markup",
     "r070 v013 browser compatibility regression validates current v014 intent instead of removed state-line/caption markup",
-    "r071 compatibility contracts are revision-agnostic within the v014 release family"
+    "r071 compatibility contracts are revision-agnostic within the v014 release family",
+    "r072 final gate validates the complete v014.10 regression set before exact-head merge"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
