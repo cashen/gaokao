@@ -9,31 +9,35 @@ const legacy=fs.readFileSync('ln-rank/js/simulation-report-v007-workbench.js','u
 const legacyPdf=fs.readFileSync('ln-rank/js/simulation-report-v005-pdf-reminders.js','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v016.json','utf8'));
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf8');
-assert.match(html,/simulation-report-v015-human-workbench\\.js\\?v=v016\\.11-r101/);
-assert.match(html,/simulation-report-v016-legacy-render-guard\\.js\\?v=v016\\.11-r101/);
-assert.match(html,/simulation-report-v016-pdf\\.js\\?v=v016\\.11-r101/);
-assert.doesNotMatch(html,/simulation-report-v006-input-bridge\\.js/);
-assert.doesNotMatch(html,/simulation-report-v014-school-major-intent\\.js/);
-assert.equal(manifest.version,'simulation-workspace-v016.11');
-assert.equal(manifest.revision,'r101-final-import-fix');
+
+for (const src of [
+  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.12-r102',
+  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.12-r102',
+  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.12-r102'
+]) assert.ok(html.includes(src), `html missing ${src}`);
+assert.ok(!html.includes('simulation-report-v006-input-bridge.js'));
+assert.ok(!html.includes('simulation-report-v014-school-major-intent.js'));
+assert.equal(manifest.version,'simulation-workspace-v016.12');
+assert.equal(manifest.revision,'r102-final-contract-fix');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.equal(manifest.pdfRuntime,'/ln-rank/js/simulation-report-v016-pdf.js');
 assert.equal(manifest.legacyRenderGuard,'/ln-rank/js/simulation-report-v016-legacy-render-guard.js');
 assert.doesNotThrow(()=>new Function(js.replace(/^import .*$/gm,'')),'input runtime syntax must remain valid');
 assert.doesNotThrow(()=>new Function(pdf),'pdf runtime syntax must remain valid');
 assert.doesNotThrow(()=>new Function(guard),'guard runtime syntax must remain valid');
-for(const expected of ['AbortController','compositionstart','compositionend','queueMicrotask','stopImmediatePropagation','schoolGrounded','实际专业记录','不会替你自动选一个','normalizeMajorCode','factCache','const timers=new Map','function previewMajor','scheduleLegacyFieldSync','__simulationHumanSyncDepth'])assert.match(js,new RegExp(expected.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')));
-assert.match(js,/!norm\\(item\\.code\\).*norm\\(r\\.majorCode2026/);
-assert.match(js,/!norm\\(item\\.name\\).*lower\\(r\\.standardMajorName/);
-assert.match(guard,/__simulationHumanSyncDepth/);
-assert.match(guard,/Math\.max\\(1/);
-assert.match(legacy,/function inboundMajorConflict/);
-assert.match(legacy,/代码与专业名称不一致/);
-assert.match(legacy,/__simulationHumanSyncDepth/);
+for(const expected of ['AbortController','compositionstart','compositionend','queueMicrotask','stopImmediatePropagation','schoolGrounded','实际专业记录','不会替你自动选一个','normalizeMajorCode','factCache','const timers=new Map','function previewMajor','scheduleLegacyFieldSync','__simulationHumanSyncDepth']) assert.ok(js.includes(expected),`input runtime missing ${expected}`);
+assert.ok(js.includes('!norm(item.code)&&norm(r.majorCode2026'));
+assert.ok(js.includes('!norm(item.name)&&lower(r.standardMajorName'));
+assert.ok(guard.includes('__simulationHumanSyncDepth'));
+assert.ok(guard.includes('Math.max(1'));
+assert.ok(legacy.includes('function inboundMajorConflict'));
+assert.ok(legacy.includes('代码与专业名称不一致'));
+assert.ok(legacy.includes('__simulationHumanSyncDepth'));
 assert.ok(legacy.includes("from '../../shared/resources/majors/major-catalog-contract.js'"));
-assert.doesNotMatch(legacy,/setInterval\\(\\(\\)=>render\\(\\),500\\)/);
-for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（待核实）','第二页及后续页面重复顶部考生信息','家庭处理','pdf.save'])assert.match(pdf,new RegExp(expected.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')));
-assert.doesNotMatch(pdf,/家庭判断|冲稳保/);
-assert.match(legacyPdf,/家庭判断/);
-assert.match(browser,/390/);assert.match(browser,/768/);assert.match(browser,/1280/);assert.match(browser,/pressSequentially/);assert.match(browser,/compositionstart/);assert.match(browser,/insertFromPaste/);assert.match(browser,/网络失败/);assert.match(browser,/Backspace/);assert.match(browser,/URL inbound/);assert.match(browser,/inbound conflict/);assert.match(browser,/duplicate/);assert.match(browser,/refresh/);assert.match(browser,/visible human input must be synchronized/);
-console.log('simulation-workspace-v016.11 contract: PASS');
+assert.ok(!legacy.includes('setInterval(()=>render(),500)'));
+for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（待核实）','第二页及后续页面重复顶部考生信息','家庭处理','pdf.save']) assert.ok(pdf.includes(expected),`pdf runtime missing ${expected}`);
+assert.ok(!pdf.includes('家庭判断'));
+assert.ok(!pdf.includes('冲稳保'));
+assert.ok(legacyPdf.includes('家庭判断')); // legacy compatibility layer is no longer the visible PDF exporter.
+for(const expected of ['390','768','1280','pressSequentially','compositionstart','insertFromPaste','网络失败','Backspace','URL inbound','inbound conflict','duplicate','refresh','visible human input must be synchronized']) assert.ok(browser.includes(expected),`browser regression missing ${expected}`);
+console.log('simulation-workspace-v016.12 contract: PASS');
