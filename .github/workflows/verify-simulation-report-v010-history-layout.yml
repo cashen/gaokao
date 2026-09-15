@@ -1,0 +1,30 @@
+name: Verify simulation report v010 history layout
+
+on:
+  pull_request:
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v010-history-layout.css'
+      - 'ln-rank/js/simulation-report-v010-history-layout.js'
+      - 'ln-rank/data/simulation-workbench-release-v010.json'
+      - 'tools/verify-simulation-report-v010-history-layout.mjs'
+      - '.github/workflows/verify-simulation-report-v010-history-layout.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v010-history-layout.css'
+      - 'ln-rank/js/simulation-report-v010-history-layout.js'
+      - 'ln-rank/data/simulation-workbench-release-v010.json'
+      - 'tools/verify-simulation-report-v010-history-layout.mjs'
+      - '.github/workflows/verify-simulation-report-v010-history-layout.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/verify-simulation-report-v010-history-layout.mjs
