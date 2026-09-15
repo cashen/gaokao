@@ -13,8 +13,8 @@ on:
       - 'ln-rank/data/simulation-workbench-release-v016.json'
       - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
-      - 'tools/verify-simulation-workspace-v016.mjs'
-      - 'tools/browser-simulation-workspace-v016.mjs'
+      - 'tools/verify-simulation-workspace-v017.mjs'
+      - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
@@ -30,8 +30,8 @@ on:
       - 'ln-rank/data/simulation-workbench-release-v016.json'
       - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
-      - 'tools/verify-simulation-workspace-v016.mjs'
-      - 'tools/browser-simulation-workspace-v016.mjs'
+      - 'tools/verify-simulation-workspace-v017.mjs'
+      - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node tools/verify-simulation-workspace-v016.mjs
+      - run: node tools/verify-simulation-workspace-v017.mjs
   browser:
     needs: contract
     runs-on: ubuntu-latest
@@ -66,5 +66,5 @@ jobs:
       - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
-      - run: node tools/browser-simulation-workspace-v016.mjs
+      - run: node tools/browser-simulation-workspace-v017-actions.mjs
       - run: node tools/browser-simulation-workspace-v016-performance.mjs
