@@ -8,7 +8,7 @@ const controllers=new Map();
 const rowContext=new Map();
 const schoolFactCache=new Map();
 const composing=new Set();
-const schoolSearchWorker=new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.22-r112',{type:'module'});
+const schoolSearchWorker=new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.24-r114',{type:'module'});
 let workerSeq=0;
 const pendingSchool=new Map();
 
