@@ -2,10 +2,10 @@
 
 分支：`fix/simulation-major-intent-v014`
 PR：#285
-当前 HEAD：`99aa21c8ab021c19591b6fe0c97139a41c4dbbc2`
+当前 HEAD：`bba4d7a5d24fc7e219ed7706a027f0926036726d`
 当前 main：`3b24bbd425aace4702d5ebeda32d526ff1447f5a`
-当前版本：`simulation-workspace-v014.7`
-当前修订：`r069-current-workbench-regression-cleanup`
+当前版本：`simulation-workspace-v014.10`
+当前修订：`r072-final-regression-gate`
 
 ## 当前状态
 
@@ -19,22 +19,22 @@ PR：#285
 - [x] 宽泛专业不自动替用户拍板
 - [x] 错别字候选必须用户明确确认
 - [x] 保留既有 PDF、历史数据和家庭状态兼容层
-- [x] 修正 v012 browser reload seed 误测
-- [x] 修正 v006 browser assertion precedence 误测
-- [x] 清理 v001/v003/v005/v008/v009/v013 对 superseded page markup 的错误契约依赖
-- [x] v014.7 contract source updated
-- [ ] 最新 v014 contract/browser CI 全部通过
-- [ ] v006/v012/v008/v009 browser regressions 全部通过
-- [ ] 最终全站 release/runtime/resource/production gates
+- [x] 修正 v014 浏览器 `fill()` 与真实输入事件差异
+- [x] 修正 v012 reload seed 误测
+- [x] 修正 v006 assertion precedence 误测
+- [x] 清理 v001/v003/v005/v008/v009/v013 superseded page markup 误报
+- [x] 固定 v014 release-family compatibility contract
+- [ ] v014.10 contract/browser 最新运行必须通过
+- [ ] 全站 release/runtime/resource/production/tree integrity 必须通过
 - [ ] exact-head merge
-- [ ] merge 后重新核验 main SHA、Cloudflare Preview/Production、custom domain、API health、数据 SHA parity
+- [ ] merge 后 main/Cloudflare/custom-domain/API/data-SHA parity 必须重新核验
 
-## 已定位的历史误报/失败
+## 已定位并修复的错误类型
 
-1. v014：旧浏览器测试使用 Playwright `fill()` 后，没有触发预期的专业输入事件；已改为逐字键入。
-2. v012：测试自己的 `addInitScript` 在 reload 时重新写入 seed，导致持久化结果被测试覆盖；已改为仅在 storage 为空时 seed。
-3. v006：测试中一个 `!awaitValue === '080301'` 断言存在运算符优先级错误；已修正。
-4. v001/v003/v005/v008/v009/v013：后续版本替换页面入口/文案后，旧契约仍要求已移除的可见标记；已改为兼容性契约，继续检查仍存在的旧运行时/打印能力，而非删除验证。
+1. **v014 browser 输入路径问题**：原测试使用 `fill()` 后没有触发预期专业候选事件；回归改为逐字键入。
+2. **v012 持久化误测**：原测试 reload 时再次覆盖 seed storage；改为仅 storage 为空时初始化。
+3. **v006 测试断言错误**：`!value === '080301'` 运算符优先级导致断言失效；已修复。
+4. **历史版本契约过期**：旧测试继续要求已经被后续工作台替换的脚本、文案、DOM；现在检查当前工作台及仍保留的兼容能力。
 
 ## 数据所有权
 
