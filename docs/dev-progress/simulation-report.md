@@ -3,8 +3,8 @@
 分支：`feat/simulation-workspace-v015-human-input`
 PR：#286
 基线 main：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
-当前版本：`simulation-workspace-v015.6`
-当前修订：`r080-immediate-local-feedback`
+当前版本：`simulation-workspace-v015.7`
+当前修订：`r081-runtime-syntax-contract`
 当前阶段：Phase 1/2 implementation + regression
 当前 HEAD：以 GitHub PR #286 实时 HEAD 为唯一事实；本文件不替代 GitHub 状态。
 
@@ -27,7 +27,8 @@ PR：#286
 - [x] fact cache 已加入，避免同一学校+专业查询重复请求。
 - [x] v015.5 加入 180ms 异步核验 debounce。
 - [x] v015.6 修正 debounce 后的体验回归：本地专业目录反馈在输入事件内即时显示，只有异步学校/事实核验延迟。
-- [x] 版本已提升到 `v015.6/r080`。
+- [x] v015.7 增加 runtime syntax static contract，浏览器回归前先阻断语法错误。
+- [x] 版本已提升到 `v015.7/r081`。
 
 ## 尚未完成
 
@@ -51,6 +52,7 @@ PR：#286
 3. **compositionend 漏触发**：已在 compositionend 后按当前字段值重新进入 v015 输入流程；普通 input 仍可幂等处理。
 4. **回归测试过弱**：已把专业代码删除改为真实 Backspace，并加入学校不存在专业、换学校和请求计数检查。
 5. **debounce 误伤本地反馈**：v015.5 初版把整个 majorInput 延迟，导致本地目录反馈也延迟；v015.6 将本地 preview 与异步核验分离，保证输入即时可见。
+6. **运行时代码语法缺少独立门禁**：v015.7 在 contract 中加入去除 import 后的 `new Function` 语法校验，避免浏览器任务才暴露低级语法错误。
 
 ## 当前仍需重点验证
 
