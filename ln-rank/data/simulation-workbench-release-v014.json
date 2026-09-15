@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014.4",
-  "revision": "r066-broad-before-direct",
+  "version": "simulation-workspace-v014.5",
+  "revision": "r067-human-typing-browser-regression",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -16,7 +16,8 @@
     "network failure is not a mismatch",
     "v014 candidate and helper UI survives visible workbench rerenders",
     "r065 capture-phase event isolation prevents legacy input bridge auto-mapping from overriding raw major intent",
-    "r066 broad terms are evaluated before direct catalog matching so resolver aliases cannot auto-map broad input"
+    "r066 broad terms are evaluated before direct catalog matching so resolver aliases cannot auto-map broad input",
+    "r067 browser regression uses human-like key input for major intent instead of relying only on programmatic fill"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
