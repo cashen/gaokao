@@ -17,6 +17,6 @@ assert.match(css, /\.history-inline\{display:flex/);
 assert.match(css, /white-space:nowrap/);
 assert.match(css, /overflow-x:auto/);
 assert.match(currentRuntime, /history|近3年/);
-assert.equal(manifest.version, 'simulation-workspace-v014.6');
-assert.equal(manifest.revision, 'r068-v012-browser-harness');
+assert.equal(manifest.version, 'simulation-workspace-v014.7');
+assert.equal(manifest.revision, 'r069-current-workbench-regression-cleanup');
 console.log('simulation-report-v009 compatibility contract on current workbench: PASS');
