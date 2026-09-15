@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v015.1",
-  "revision": "r075-human-input-ime-gate",
+  "version": "simulation-workspace-v015.2",
+  "revision": "r076-real-delete-regression",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v015-human-workbench.js",
   "purpose": "human-first non-blocking input with strict school-major intersection",
