@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 
+const schoolRows=Array.from({length:3000},(_,i)=>({name:i===0?'辽宁科技大学':`测试大学${i}`,province:i===0?'辽宁省':'测试省',city:i===0?'鞍山市':'测试市'}));
 const seed={version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'555',rank:29685,volunteers:[{id:'v014-1',order:1,school:'辽宁科技大学',majorCode:'',majorName:'',history:null,manualCheck:{},familyStatus:'待讨论',familyNote:''}]};
 
 async function run(viewport,label){
@@ -8,7 +9,7 @@ async function run(viewport,label){
   await context.addInitScript(state=>localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify(state)),seed);
   const page=await context.newPage(); const errors=[];
   page.on('pageerror',e=>errors.push(String(e)));
-  await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:1,schools:[{name:'辽宁科技大学',province:'辽宁省',city:'鞍山市'}]})}));
+  await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:schoolRows.length,schools:schoolRows})}));
   await page.route('**/api/ai/major-history**',async route=>{
     const u=new URL(route.request().url()); const major=u.searchParams.get('major')||''; const school=u.searchParams.get('schoolKeyword')||'';
     const rows=[
@@ -23,7 +24,6 @@ async function run(viewport,label){
   await page.waitForSelector('.volunteer-card',{timeout:15000});
   const c=page.locator('.volunteer-card').first(), school=c.locator('[data-field="school"]'), major=c.locator('[data-field="majorCode"]');
   await school.fill('辽宁科技大学');
-  await page.waitForTimeout(250);
   await major.fill('机械');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
   if(await major.inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
@@ -34,7 +34,7 @@ async function run(viewport,label){
   await c.getByRole('button',{name:/机械电子工程/}).click();
   await page.waitForFunction(()=>document.querySelector('[data-field="majorCode"]')?.value==='080204',null,{timeout:5000});
   await major.fill('测空技术与仪器');
-  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000}).catch(()=>{throw new Error(`${label}: typo suggestion missing`);});
+  await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
   if(await major.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
   if(!(await c.locator('[data-v014-major-box]').innerText()).includes('测控技术与仪器'))throw new Error(`${label}: typo suggestion missing`);
   await c.getByRole('button',{name:/测控技术与仪器/}).click();
