@@ -10,13 +10,13 @@ const css=fs.readFileSync('ln-rank/css/simulation-report-v014-school-major-inten
 const plan=fs.readFileSync('docs/plans/simulation-school-major-intent-v014.md','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v014.json','utf8'));
 for(const expected of ['simulation-report-v014-school-major-intent.css?v=014-school-major-intent','simulation-report-v014-school-major-intent.js?v=014-school-major-intent','simulation-report-v012-family-decision.js?v=012-family-decision','simulation-report-v010-history-layout.js?v=010-history-layout'])if(!html.includes(expected))throw new Error(`html missing ${expected}`);
-for(const expected of ['loadSchoolNameResolver','createMajorCatalogResolver','/api/ai/major-history','schoolKeyword','实际招生记录','broadTerms','schoolGroundedCandidates','不会把全国专业目录候选冒充成该校招生事实','uiState','rehydrateAll','event.stopImmediatePropagation','event.stopPropagation','persistCard'])if(!js.includes(expected))throw new Error(`runtime missing ${expected}`);
+for(const expected of ['loadSchoolNameResolver','createMajorCatalogResolver','/api/ai/major-history','schoolKeyword','实际招生记录','broadTerms','schoolGroundedCandidates','不会把全国专业目录候选冒充成该校招生事实','uiState','rehydrateAll','event.stopImmediatePropagation','event.stopPropagation','persistCard','const isBroad=broad(raw);if(isBroad)'])if(!js.includes(expected))throw new Error(`runtime missing ${expected}`);
 for(const expected of ['diagnostics=','requestFailures','responses','major candidates did not render','1280','390'])if(!browser.includes(expected))throw new Error(`browser test missing ${expected}`);
 execFileSync(process.execPath,['--check',runtimePath],{stdio:'pipe'});
 execFileSync(process.execPath,['--check',browserPath],{stdio:'pipe'});
 for(const expected of ['.school-input-suggestions-v014','.major-input-suggestions','min-height:46px','max-height:280px'])if(!css.includes(expected))throw new Error(`css missing ${expected}`);
 for(const expected of ['任意学校','实际招生记录','机械','网络','计算机','测空技术与仪器','不幻觉'])if(!plan.includes(expected))throw new Error(`plan missing ${expected}`);
-if(manifest.version!=='simulation-workspace-v014.3')throw new Error('manifest version mismatch');
-if(manifest.revision!=='r065-legacy-event-isolation')throw new Error('manifest revision mismatch');
+if(manifest.version!=='simulation-workspace-v014.4')throw new Error('manifest version mismatch');
+if(manifest.revision!=='r066-broad-before-direct')throw new Error('manifest revision mismatch');
 if(manifest.noFabrication!==true)throw new Error('noFabrication must be true');
-console.log('simulation-report-v014.3-school-major-intent contract: PASS');
+console.log('simulation-report-v014.4-school-major-intent contract: PASS');
