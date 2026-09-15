@@ -11,6 +11,20 @@ function readState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch { return null; }
 }
 
+function writeFamilyStatus(id, value) {
+  try {
+    const state = readState();
+    if (!state || !Array.isArray(state.volunteers)) return false;
+    const row = state.volunteers.find(item => String(item.id) === String(id));
+    if (!row) return false;
+    row.familyStatus = value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getRow(id) {
   const state = readState();
   return state?.volunteers?.find(row => String(row.id) === String(id)) || null;
@@ -38,7 +52,8 @@ function familyDecisionMarkup(row) {
   const selected = row.familyStatus || '待讨论';
   const buttons = OPTIONS.map(option => {
     const active = selected === option.value;
-    return `<button type="button" class="family-option family-option-${option.value === '保留' ? 'keep' : option.value === '备选' ? 'candidate' : option.value === '已排除' ? 'exclude' : 'undecided'}" data-family-option="${option.value}" data-family-id="${id}" aria-pressed="${active ? 'true' : 'false'}" title="${option.hint}"><span>${option.label}</span></button>`;
+    const suffix = option.value === '保留' ? 'keep' : option.value === '备选' ? 'candidate' : option.value === '已排除' ? 'exclude' : 'undecided';
+    return `<button type="button" class="family-option family-option-${suffix}" data-family-option="${option.value}" data-family-id="${id}" aria-pressed="${active ? 'true' : 'false'}" title="${option.hint}"><span>${option.label}</span></button>`;
   }).join('');
   return `<div class="family-decision" data-family-decision="${id}" role="group" aria-label="这所学校怎么处理？"><div class="family-decision-heading"><span>这所学校怎么处理？</span><span class="family-current" data-family-current>已选：${currentCopy(selected)}</span></div><div class="family-decision-options">${buttons}</div></div>`;
 }
@@ -73,11 +88,13 @@ function handleClick(event) {
   const value = button.dataset.familyOption;
   const container = button.closest('.family-decision');
   if (!id || !value || !container) return;
-  paintSelection(container, value);
-  if (!syncFamilyStatus(id, value)) {
+
+  if (!writeFamilyStatus(id, value)) {
     paintSelection(container, getRow(id)?.familyStatus || '待讨论');
     return;
   }
+  syncFamilyStatus(id, value);
+  paintSelection(container, value);
   button.blur();
 }
 
