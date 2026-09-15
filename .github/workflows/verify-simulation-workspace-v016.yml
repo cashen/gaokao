@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
       - 'ln-rank/js/simulation-report-v015-human-workbench.js'
       - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
       - 'ln-rank/js/simulation-report-v016-pdf.js'
@@ -22,6 +23,7 @@ on:
       - feat/simulation-workspace-v016-human-complete
     paths:
       - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
       - 'ln-rank/js/simulation-report-v015-human-workbench.js'
       - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
       - 'ln-rank/js/simulation-report-v016-pdf.js'
