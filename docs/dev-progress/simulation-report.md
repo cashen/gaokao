@@ -1,11 +1,9 @@
 # 模拟志愿填报单页开发进度
 
-分支：`fix/simulation-major-intent-v014`
-PR：#285
-当前 HEAD：`bba4d7a5d24fc7e219ed7706a027f0926036726d`
-当前 main：`3b24bbd425aace4702d5ebeda32d526ff1447f5a`
-当前版本：`simulation-workspace-v014.10`
-当前修订：`r072-final-regression-gate`
+当前合并基线：`main` / `6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
+当前修复分支：`fix/simulation-postmerge-v011-contract`
+当前版本：`simulation-workspace-v014.12`
+当前修订：`r074-postmerge-v011-compatibility`
 
 ## 当前状态
 
@@ -23,18 +21,21 @@ PR：#285
 - [x] 修正 v012 reload seed 误测
 - [x] 修正 v006 assertion precedence 误测
 - [x] 清理 v001/v003/v005/v008/v009/v013 superseded page markup 误报
-- [x] 固定 v014 release-family compatibility contract
-- [ ] v014.10 contract/browser 最新运行必须通过
-- [ ] 全站 release/runtime/resource/production/tree integrity 必须通过
-- [ ] exact-head merge
-- [ ] merge 后 main/Cloudflare/custom-domain/API/data-SHA parity 必须重新核验
+- [x] 合并 PR #285 到 main
+- [x] 合并后 production API health：SUCCESS
+- [x] 合并后 Cloudflare Pages：SUCCESS，部署 `6c18f7a`
+- [x] 定位合并后 v011 compatibility contract/browser 失败为旧版 CSS/JS 引用误报
+- [x] 建立 post-merge v011 修复分支
+- [x] v011 contract/browser 改为验证当前 v012 family decision + v014 工作台
+- [x] 版本提升至 v014.12 / r074
+- [ ] post-merge v011 contract/browser CI
+- [ ] post-merge 全站 release/runtime/resource/tree integrity
+- [ ] post-merge Cloudflare custom-domain/runtime/API/data-SHA parity 完整核验
+- [ ] 修复 PR 合并回 main
 
-## 已定位并修复的错误类型
+## 当前已确认的问题
 
-1. **v014 browser 输入路径问题**：原测试使用 `fill()` 后没有触发预期专业候选事件；回归改为逐字键入。
-2. **v012 持久化误测**：原测试 reload 时再次覆盖 seed storage；改为仅 storage 为空时初始化。
-3. **v006 测试断言错误**：`!value === '080301'` 运算符优先级导致断言失效；已修复。
-4. **历史版本契约过期**：旧测试继续要求已经被后续工作台替换的脚本、文案、DOM；现在检查当前工作台及仍保留的兼容能力。
+`main` 上合并后的 `Verify simulation report v011 family decision` 在 contract/browser 两个 job 均失败。日志明确显示 contract 失败原因是仍要求已经不再由当前单页加载的 `simulation-report-v011-family-decision.css/js`；页面实际加载的是 v012 family decision 层，并同时加载 v014 学校/专业意图层。该问题属于测试契约过期，不是招生事实或页面运行时异常。
 
 ## 数据所有权
 
@@ -46,8 +47,8 @@ PR：#285
 
 ## 断网续接规则
 
-恢复时必须以本文件、PR #285、branch HEAD、main HEAD 和对应 CI run 为准；不得根据旧聊天状态推断已完成。
+恢复时必须以本文件、修复分支 HEAD、main HEAD 和对应 CI run 为准；不得根据旧聊天状态推断已完成。
 
 ## Merge gate
 
-只允许以最终 HEAD 的专用 contract/browser CI 和全站门禁为依据合并。合并后必须重新读取 main SHA，并核验 Cloudflare Preview/Production、custom domain、API health 与数据 SHA parity；旧 SHA 的部署或测试证据不能替代最终 head 验证。
+post-merge 修复仍必须走独立 PR；只有该 PR 的最终 HEAD 专用 contract/browser 和全站门禁均通过，才允许再次合并。合并后必须重新读取 main SHA，并核验 Cloudflare Preview/Production、custom domain、API health 与数据 SHA parity。
