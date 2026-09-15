@@ -33,6 +33,6 @@ assert.match(legacy,/__simulationHumanSyncDepth/);
 assert.doesNotMatch(legacy,/setInterval\\(\\(\\)=>render\\(\\),500\\)/);
 for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（待核实）','第二页及后续页面重复顶部考生信息','家庭处理','pdf.save'])assert.match(pdf,new RegExp(expected.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')));
 assert.doesNotMatch(pdf,/家庭判断|冲稳保/);
-assert.doesNotMatch(legacyPdf,/家庭判断/);
+assert.match(legacyPdf,/家庭判断/);
 assert.match(browser,/390/);assert.match(browser,/768/);assert.match(browser,/1280/);assert.match(browser,/pressSequentially/);assert.match(browser,/compositionstart/);assert.match(browser,/insertFromPaste/);assert.match(browser,/网络失败/);assert.match(browser,/Backspace/);assert.match(browser,/URL inbound/);assert.match(browser,/inbound conflict/);assert.match(browser,/duplicate/);assert.match(browser,/refresh/);assert.match(browser,/visible human input must be synchronized/);
 console.log('simulation-workspace-v016.9 contract: PASS');
