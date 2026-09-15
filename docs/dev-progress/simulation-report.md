@@ -3,12 +3,12 @@
 分支：`feat/simulation-workspace-v015-human-input`
 PR：#286
 基线 main：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
-当前版本：`simulation-workspace-v015.2`
-当前修订：`r076-real-delete-regression`
+当前版本：`simulation-workspace-v015.4`
+当前修订：`r078-ime-dependency-and-polling-fix`
 当前阶段：Phase 1/2 implementation + regression
-当前 HEAD：`由 GitHub PR #286 实时读取；本次 checkpoint 提交前不得假设后续状态`
+当前 HEAD：以 GitHub PR #286 实时 HEAD 为唯一事实；本文件不替代 GitHub 状态。
 
-## 已完成
+## 本 checkpoint 已完成
 
 - [x] 从 main 精确 SHA 创建独立 v015 分支。
 - [x] 创建 PR #286，保持 Draft，未允许 merge。
@@ -17,37 +17,43 @@ PR：#286
 - [x] 新建 v015 Human Input controller。
 - [x] 页面停止加载 v006 input bridge 与 v014 input controller，输入主路径切到 v015。
 - [x] v015 使用 AbortController/request token 隔离异步结果。
-- [x] 宽泛专业先给本地目录反馈，再按已确认学校实际记录收敛。
+- [x] 宽泛专业先给本地目录反馈，再按已确认学校实际专业记录收敛。
 - [x] 学校×专业候选严格以实际学校记录为边界。
 - [x] 专业代码保留可编辑中间态。
-- [x] 加入中文 IME composition 生命周期处理。
-- [x] 加入 v015 static contract/browser regression 初版。
-- [x] 加入 v015 GitHub Actions workflow。
-- [x] browser regression 已修正为真实逐字符 Backspace 删除路径。
-- [x] 版本已按本次修订提升到 `v015.2/r076`。
+- [x] 中文 IME composition 生命周期保护，并补 compositionend 后正式匹配。
+- [x] browser regression 使用真实 Backspace 连续删除。
+- [x] v007 旧 workbench 移除正常运行期间 500ms 周期性 render，减少输入干扰。
+- [x] 学校变化会取消专业请求、清除旧专业确认，并对保留的专业输入重新核对。
+- [x] fact cache 已加入，避免同一学校+专业查询重复请求。
+- [x] 版本已提升到 `v015.4/r078`。
 
 ## 尚未完成
 
-- [ ] 完成 v015 domain state 与 Legacy compatibility 的最终收口，确认不破坏现有 PDF/排序/家庭状态。
-- [ ] 完善 IME：compositionend 后的最终 input 事件覆盖。
-- [ ] 完成真实粘贴/中文 IME/快速输入 browser regression。
-- [ ] 学校/专业换值后的 confirmation dependency 完整落地。
+- [ ] Legacy compatibility 最终收口，并证明 PDF/排序/家庭状态无回归。
+- [ ] 真实粘贴/中文 IME/快速输入 browser regression 全覆盖。
+- [ ] School × Major 全场景：精确、关键词、代码类、学校无该专业、换学校/换专业确认失效。
 - [ ] URL inbound 冲突/duplicate 全覆盖。
 - [ ] 刷新/返回/后台恢复全覆盖。
 - [ ] PDF/多页/Android/Alook/Pad/Windows 回归。
 - [ ] 真实学校 resolver + mock fact source 的浏览器场景扩充。
-- [ ] API cache/debounce 进一步优化，避免 fuzzy fallback 多次串行查询。
+- [ ] API debounce/缓存/取消策略进一步做请求数量回归。
 - [ ] v015 contract/browser CI 全部通过并核验最终 HEAD。
 - [ ] 全站 release/runtime/production/tree integrity 门禁通过。
 - [ ] 最终 Preview 必须精确对应最终 HEAD。
 - [ ] merge 后重新验证 main/Cloudflare/custom-domain/API/data-SHA parity。
 
-## 当前已知实现风险
+## 本 checkpoint 发现并纠正的风险
 
-1. v007 仍负责 workbench legacy 数据控制与 render；v015 已停止 v006/v014 输入桥，但必须继续验证排序、PDF、家庭状态没有回归。
-2. v015 fuzzy fallback 当前可能产生多次实际记录请求；必须用缓存/去重/取消策略收敛，不能靠关键词特判。
-3. IME 逻辑已经保护 composition 中的业务处理，但真实 compositionend 行为尚未得到 CI 证据。
-4. 当前 CI run 在 checkpoint 时尚未从 GitHub 获得有效结果；不得将未运行/queued/unknown 视为通过。
+1. **周期性 render**：v007 原先每 500ms 调用 render；已移除，避免用户输入期间被无意义刷新干扰。
+2. **学校变化后的旧专业状态**：已取消专业异步任务、清空 `majorName`，并在新学校确认后重新核对保留的专业输入。
+3. **compositionend 漏触发**：已在 compositionend 后按当前字段值重新进入 v015 输入流程；普通 input 仍可幂等处理。
+4. **回归测试过弱**：已把专业代码删除改为真实 Backspace，并加入学校不存在专业、换学校和请求计数检查。
+
+## 当前仍需重点验证
+
+- v015 仍通过 v007 兼容层完成排序/PDF/家庭状态等非输入职责；不能在没有回归证据前宣称已完全移除 Legacy。
+- fuzzy fallback 虽已有缓存，但仍可能对多个本地候选逐项查询；必须继续优化并以请求计数证明，而不是增加关键词特判。
+- CI 当前仅能证明 run/job 的真实状态；queued/pending/unknown 均不视为通过。
 
 ## 数据所有权
 
@@ -64,10 +70,10 @@ PR：#286
 1. 本文件最新版本/阶段。
 2. PR #286 实际 state/head SHA。
 3. `main` 实时 SHA。
-4. 最新 v015 CI run/job。
+4. 最新 v015 CI run/job；旧 SHA 结果不得替代新 HEAD。
 5. Preview/Production 实际部署状态。
 
-不得把 queued/unknown 当 passed；不得把旧 SHA 的通过结果当作新 HEAD 的证据；不得声称未验证的浏览器、Alook、生产状态已通过。
+不得从聊天记录推断完成状态；不得把 queued/pending/unknown 当 passed；不得声称未验证的浏览器、Alook、生产状态已通过。
 
 ## 修改安全规则
 
@@ -77,6 +83,7 @@ PR：#286
 - 每次代码修订必须 bump version/revision。
 - 测试失败先区分产品、测试、环境问题。
 - 不为“机械”等示例写特判。
+- 不把全国专业目录候选冒充学校专业。
 
 ## Merge Gate
 
