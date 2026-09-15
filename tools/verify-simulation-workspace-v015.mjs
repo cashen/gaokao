@@ -7,11 +7,11 @@ const legacy=fs.readFileSync('ln-rank/js/simulation-report-v007-workbench.js','u
 const plan=fs.readFileSync('docs/plans/simulation-workspace-v015-human-input.md','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v015.json','utf8'));
 
-assert.match(html,/simulation-report-v015-human-workbench\.js\?v=v015\.6-r080/);
+assert.match(html,/simulation-report-v015-human-workbench\.js\?v=v015\.7-r081/);
 assert.doesNotMatch(html,/simulation-report-v006-input-bridge\.js/);
 assert.doesNotMatch(html,/simulation-report-v014-school-major-intent\.js/);
-assert.equal(manifest.version,'simulation-workspace-v015.6');
-assert.equal(manifest.revision,'r080-immediate-local-feedback');
+assert.equal(manifest.version,'simulation-workspace-v015.7');
+assert.equal(manifest.revision,'r081-runtime-syntax-contract');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.doesNotThrow(()=>new Function(js.replace(/^import .*$/gm,'')),'v015 runtime must remain JavaScript-syntax valid');
 assert.match(js,/AbortController/);
@@ -34,4 +34,4 @@ assert.match(plan,/School × Major/);
 assert.match(plan,/080301.*08030.*0803.*080.*08.*0/);
 assert.match(plan,/东北大学.*自动化/);
 assert.match(plan,/机械/);
-console.log('simulation-workspace-v015.6 contract: PASS');
+console.log('simulation-workspace-v015.7 contract: PASS');
