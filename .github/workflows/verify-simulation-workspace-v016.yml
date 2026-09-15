@@ -35,7 +35,7 @@ on:
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
 
-a concurrency:
+concurrency:
   group: simulation-workspace-v016-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
