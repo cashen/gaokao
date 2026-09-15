@@ -1,0 +1,47 @@
+name: Verify simulation workspace v015
+
+on:
+  pull_request:
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v015.json'
+      - 'docs/plans/simulation-workspace-v015-human-input.md'
+      - 'docs/dev-progress/simulation-report.md'
+      - 'tools/verify-simulation-workspace-v015.mjs'
+      - 'tools/browser-simulation-workspace-v015.mjs'
+      - '.github/workflows/verify-simulation-workspace-v015.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
+      - 'ln-rank/data/simulation-workbench-release-v015.json'
+      - 'tools/verify-simulation-workspace-v015.mjs'
+      - 'tools/browser-simulation-workspace-v015.mjs'
+      - '.github/workflows/verify-simulation-workspace-v015.yml'
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/verify-simulation-workspace-v015.mjs
+
+  browser:
+    needs: contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
+      - run: node tools/browser-simulation-workspace-v015.mjs
