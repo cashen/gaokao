@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014.1",
-  "revision": "r063-runtime-syntax-fix",
+  "version": "simulation-workspace-v014.2",
+  "revision": "r064-browser-diagnostics",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -15,7 +15,7 @@
     "final matched state requires exact school entity plus major code/name record",
     "network failure is not a mismatch",
     "v014 candidate and helper UI survives visible workbench rerenders",
-    "r063 removes duplicate lexical binding that prevented v014 module execution"
+    "r064 browser verification records API requests, responses and DOM diagnostics when candidate rendering fails"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
