@@ -30,7 +30,7 @@ assert.match(guard,/Math\.max\\(1/);
 assert.match(legacy,/function inboundMajorConflict/);
 assert.match(legacy,/代码与专业名称不一致/);
 assert.match(legacy,/__simulationHumanSyncDepth/);
-assert.match(legacy,/from '\.\.\/\.\.\/shared\/resources\/majors\/major-catalog-contract\\.js'/);
+assert.ok(legacy.includes("from '../../shared/resources/majors/major-catalog-contract.js'"));
 assert.doesNotMatch(legacy,/setInterval\\(\\(\\)=>render\\(\\),500\\)/);
 for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（待核实）','第二页及后续页面重复顶部考生信息','家庭处理','pdf.save'])assert.match(pdf,new RegExp(expected.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')));
 assert.doesNotMatch(pdf,/家庭判断|冲稳保/);
