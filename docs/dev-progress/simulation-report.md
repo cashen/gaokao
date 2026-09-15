@@ -1,32 +1,51 @@
 # 模拟志愿填报单页开发进度
 
 分支：`feat/simulation-workspace-v015-human-input`
-PR：待创建
+PR：#286
 基线 main：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
 当前版本：`simulation-workspace-v015.0`
 当前修订：`r074-human-workbench`
-当前阶段：Phase 0 — 基线确认与 PR/断网续接建立
+当前阶段：Phase 1/2 implementation + regression
+当前 HEAD：以 GitHub branch `feat/simulation-workspace-v015-human-input` 为准；不要从聊天记录猜测。
 
-## 当前状态
+## 已完成
 
-- [x] 读取并确认 main 基线 SHA：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
-- [x] 从该精确 SHA 创建 v015 独立分支
-- [x] 创建 v015 总体执行计划：`docs/plans/simulation-workspace-v015-human-input.md`
-- [ ] 创建 PR
-- [ ] Phase 1 架构收口
-- [ ] Phase 2 Human Input Engine
-- [ ] Phase 3 School × Major 联合匹配
-- [ ] Phase 4 Confirmation/Data Context
-- [ ] Phase 5 Workbench Domain State
-- [ ] Phase 6 Inbound/PDF/Accessibility
-- [ ] Phase 7 Human Regression Matrix
-- [ ] Phase 8 CI / Preview / merge / production verification
+- [x] 从 main 精确 SHA 创建独立 v015 分支。
+- [x] 创建 PR #286，保持 Draft，未允许 merge。
+- [x] 创建完整计划 `docs/plans/simulation-workspace-v015-human-input.md`。
+- [x] 创建 v015 release contract。
+- [x] 新建 v015 Human Input controller。
+- [x] 页面停止加载 v006 input bridge 与 v014 input controller，输入主路径切到 v015。
+- [x] v015 使用 AbortController/request token 隔离异步结果。
+- [x] 宽泛专业先给本地目录反馈，再按已确认学校实际记录收敛。
+- [x] 学校×专业候选严格以实际学校记录为边界。
+- [x] 专业代码保留可编辑中间态。
+- [x] 加入中文 IME composition 生命周期处理。
+- [x] 加入 v015 static contract/browser regression 初版。
+- [x] 加入 v015 GitHub Actions workflow。
 
-## 已知基线事实
+## 尚未完成
 
-- v014.11 已将宽泛专业、学校实际记录、最终学校+专业确认写入 release contract。
-- 当前页面仍同时加载多个历史 runtime/bridge；v007 通过 Legacy DOM 同步字段，v006 仍监听全局 input bridge。
-- 因此本次不是继续增加局部输入补丁，而是收口为单一 domain state + 非阻塞 Human Input Engine。
+- [ ] 完成 v015 domain state 与 Legacy compatibility 的最终收口，确认不破坏现有 PDF/排序/家庭状态。
+- [ ] 完善 IME：compositionend 后的最终 input 事件覆盖。
+- [ ] 完善真实逐字符删除测试，而非仅验证重新设置值。
+- [ ] 学校/专业换值后的 confirmation dependency 完整落地。
+- [ ] URL inbound 冲突/duplicate 全覆盖。
+- [ ] 刷新/返回/后台恢复全覆盖。
+- [ ] PDF/多页/Android/Alook/Pad/Windows 回归。
+- [ ] 真实学校 resolver + mock fact source 的浏览器场景扩充。
+- [ ] API cache/debounce 进一步优化，避免 fuzzy fallback 多次串行查询。
+- [ ] v015 contract/browser CI 全部通过。
+- [ ] 全站 release/runtime/resource/production/tree integrity 门禁通过。
+- [ ] 最终 Preview 必须精确对应最终 HEAD。
+- [ ] merge 后重新验证 main/Cloudflare/custom-domain/API/data-SHA parity。
+
+## 当前已知实现风险
+
+1. v007 仍负责 workbench legacy 数据控制与 render；v015 已停止 v006/v014 输入桥，但必须继续验证排序、PDF、家庭状态没有回归。
+2. v015 当前 fuzzy fallback 为安全优先实现，可能产生多次实际记录请求；Phase 3 必须增加缓存/批量策略，不能以增加关键词特判解决。
+3. IME 逻辑已经阻止 composition 中的业务输入，但必须用真实 browser regression 验证 compositionend 后行为。
+4. 浏览器测试初版需要修正为真正逐字符删除，不能把“重新填值”冒充删除测试。
 
 ## 数据所有权
 
@@ -38,42 +57,41 @@ PR：待创建
 
 ## 断网续接规则
 
-恢复时只认：
+恢复时严格按以下顺序重新核实：
 
-1. 本文件的最新提交与当前阶段。
-2. GitHub PR 的真实状态与 head SHA。
-3. `main` 的实时 SHA。
-4. 最新专用 CI run/job 状态。
-5. Preview/Production 的实际部署状态。
+1. 本文件最新版本/阶段。
+2. PR #286 实际 state/head SHA。
+3. `main` 实时 SHA。
+4. 最新 v015 CI run/job。
+5. Preview/Production 实际部署状态。
 
-不得根据旧聊天内容推断某阶段已经完成；不得把 queued 当 passed；不得在没有实际证据时声称部署或生产验证成功。
+不得把 queued 当 passed；不得把旧 SHA 的通过结果当作新 HEAD 的证据；不得声称未验证的浏览器、Alook、生产状态已通过。
 
 ## 修改安全规则
 
 - 不使用 `git reset --hard`。
 - 不使用 `git checkout --`。
 - 不覆盖未知用户改动。
-- 每次版本修订必须 bump version/revision。
-- 失败先定位是产品、测试还是基础设施问题，再修改。
-- 不能为通过测试给“机械”等关键词写特判。
+- 每次代码修订必须 bump version/revision。
+- 测试失败先区分产品、测试、环境问题。
+- 不为“机械”等示例写特判。
 
 ## Merge Gate
 
-只有 v015 Definition of Done 全部满足才允许合并 main：
+**未全部完成不得 merge。**
 
-- 所有输入不卡顿；
-- 学校×专业严格交集；
-- 宽泛专业相关反馈；
-- 代码逐级删除；
+必须同时满足：
+
+- 输入/删除不卡顿；
+- 学校与专业严格交集；
+- 宽泛专业有相关反馈；
 - 中文 IME/粘贴/快速输入；
 - 请求竞态/网络失败隔离；
 - 换学校/专业旧确认失效；
 - 家庭状态/排序/持久化；
-- URL 入站；
-- PDF/打印；
+- URL inbound；
+- PDF/打印多端；
 - Windows/Android Chrome/Alook/Pad；
-- 专用 CI 与全站门禁；
+- v015 专用 CI 与全站门禁；
 - 最终 Preview 精确对应最终 HEAD；
-- merge 后 main/Cloudflare/custom domain/API/data-SHA parity。
-
-未全部完成不得 merge。
+- merge 后 main/Cloudflare/custom-domain/API/data-SHA parity。
