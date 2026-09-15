@@ -26,7 +26,10 @@ const seedState = (id) => ({
 async function testViewport(viewport, label) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport, deviceScaleFactor: viewport.width < 500 ? 2 : 1 });
-  await context.addInitScript((state) => localStorage.setItem('gaokao:simulation-report:v002', JSON.stringify(state)), seedState(`${label}-1`));
+  await context.addInitScript((state) => {
+    const key = 'gaokao:simulation-report:v002';
+    if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(state));
+  }, seedState(`${label}-1`));
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
