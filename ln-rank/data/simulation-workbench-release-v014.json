@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014",
-  "revision": "r061-school-context-major-intent-browser-sync",
+  "version": "simulation-workspace-v014.1",
+  "revision": "r062-school-sync-browser-timeout",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -15,7 +15,7 @@
     "final matched state requires exact school entity plus major code/name record",
     "network failure is not a mismatch",
     "v014 candidate and helper UI survives visible workbench rerenders",
-    "r061 browser verification waits for confirmed school resolution before major interaction"
+    "r062 browser verification uses native Playwright input events and allows resolver warm-up"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
