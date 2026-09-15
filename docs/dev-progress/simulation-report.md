@@ -3,10 +3,10 @@
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
 基线 main：`7873c939e3cfebc4bf3e48a230de09dadd930d60`
-当前最终 HEAD：以 GitHub PR #290 实时 HEAD 为准
-产品版本：`simulation-workspace-v016.9`
-产品修订：`r099-final-regression`
-阶段：merge-gate / CI runner blocked
+当前候选 HEAD：`d92c1df301c1163732ef8b828ddd69a2437b8926`
+产品版本：`simulation-workspace-v016.10`
+产品修订：`r100-final-ci-gate`
+阶段：merge-gate / runner blocked
 
 ## 已完成
 
@@ -21,19 +21,20 @@ PR：#290
 - [x] Legacy 500ms render 已移除；异步 Legacy 更新被 render guard 隔离。
 - [x] URL inbound code/name 冲突拦截与 duplicate 防重。
 - [x] 当前 PDF 独立层：`报考信息（待核实）`、后续页重复顶部考生信息、当前输出不使用旧家庭判断术语。
-- [x] HTML cache-buster、manifest、contract/browser regression 统一到 v016.9/r099。
+- [x] HTML cache-buster、manifest、contract/browser regression 已统一到 v016.10/r100。
 - [x] v016 workflow 增加专用 branch push 触发，并覆盖 input / PDF / guard 文件。
 
 ## 当前门禁
 
-最终功能 HEAD 在当前 PR #290 上；GitHub Actions 已成功产生专用 v016 `contract` job，但 runner 当前仍为 `queued`，因此 contract/browser 尚无 conclusion。Cloudflare Preview 对同一分支 HEAD 可建立 deployment，但每次 HEAD 改动后必须重新确认 exact SHA 的 Preview success。
+- [x] GitHub Actions 已能够创建 v016 `contract` check run，证明触发层已恢复。
+- [ ] v016 contract 实际 PASS：当前 run `34945054467` / job `104302372926` 仍为 `queued`。
+- [ ] browser regression：依赖 contract，尚未开始。
+- [ ] Cloudflare Preview exact HEAD：当前 HEAD 已产生对应 Preview deployment，但最近一次查询仍显示 build in progress，不能标为 SUCCESS。
+- [ ] Windows Chrome / Android Chrome / Android Alook / Pad 实机验证。
+- [ ] PDF 多页/第二页头信息/待核实字段最终实测。
+- [ ] Production/custom-domain/API/data-SHA parity。
+- [ ] exact-head merge 到 main。
 
 ## Merge Gate
 
-只有最终 HEAD 的 contract PASS → browser PASS → exact Preview SUCCESS → 必要多端/PDF核验 → exact-head merge → main SHA → Production/custom-domain/API/data-SHA parity 全部成立后，才允许 merge。
-
-旧 SHA 的通过证据、queued/pending、旧 Preview 均不能替代最终 HEAD。
-
-## 分支清理
-
-旧 PR 已关闭；当前工具没有 branch-delete ref 能力，因此不能伪称已删除 branch。合并后会保留这一限制并如实记录。
+queued/pending/unknown 均不得视为 passed。必须以当前最终 HEAD 的 contract PASS → browser PASS → exact Preview SUCCESS → 多端/PDF核验 → merge → main SHA → Production parity 为顺序闭环。
