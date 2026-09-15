@@ -9,8 +9,10 @@ async function run(viewport,label){
   const browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport,deviceScaleFactor:viewport.width<500?2:1});
   await context.addInitScript(state=>localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify(state)),seed);
-  const page=await context.newPage(); const errors=[];
+  const page=await context.newPage(); const errors=[]; const requestFailures=[]; const requests=[];
   page.on('pageerror',e=>errors.push(String(e)));
+  page.on('requestfailed',r=>requestFailures.push(`${r.method()} ${r.url()} :: ${r.failure()?.errorText||'failed'}`));
+  page.on('request',r=>{const u=r.url();if(u.includes('school-search-index')||u.includes('simulation-report-v014')||u.includes('/api/ai/major-history'))requests.push(`${r.method()} ${u}`);});
   await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:schoolRows.length,schools:schoolRows})}));
   await page.route('**/api/ai/major-history**',async route=>{
     const u=new URL(route.request().url()); const major=u.searchParams.get('major')||''; const school=u.searchParams.get('schoolKeyword')||'';
@@ -35,7 +37,23 @@ async function run(viewport,label){
   await page.waitForSelector('.volunteer-card',{timeout:15000});
   let c=page.locator('.volunteer-card').first();
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
-  await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});
+  try{
+    await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.textContent.includes('已识别学校'),null,{timeout:30000});
+  }catch(error){
+    const diagnostic=await page.evaluate(()=>({
+      href:location.href,
+      readyState:document.readyState,
+      scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
+      pageText:document.body.innerText.slice(0,1800),
+      cards:[...document.querySelectorAll('.volunteer-card')].map(x=>({cardId:x.dataset.cardId,html:x.outerHTML.slice(0,2200)})),
+      schoolInputs:[...document.querySelectorAll('[data-field="school"]')].map(x=>({value:x.value,id:x.dataset.id,rowId:x.dataset.rowId,cardId:x.closest('.volunteer-card')?.dataset.cardId})),
+      helpers:[...document.querySelectorAll('[data-v014-helper]')].map(x=>({text:x.textContent,tone:x.dataset.tone})),
+      schoolBoxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-school-box]')].map(x=>({hidden:x.hidden,text:x.textContent})),
+      v014Boxes:[...document.querySelectorAll('[data-v014-school-box],[data-v014-major-box]')].map(x=>({attr:[...x.attributes].map(a=>[a.name,a.value]),hidden:x.hidden,text:x.textContent})),
+      stored:localStorage.getItem('gaokao:simulation-report:v002')
+    }));
+    throw new Error(`${label}: school resolver did not finish: ${error.message}; diagnostics=${JSON.stringify({diagnostic,errors,requestFailures,requests})}`);
+  }
   await setInput(page.locator('.volunteer-card').first().locator('[data-field="majorCode"]'),'机械');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:30000});
   let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
