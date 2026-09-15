@@ -34,35 +34,39 @@
 
 当前运行时：`simulation-report-v017-responsive-input.js`。
 
-## 6. v016.42 / r132 本轮生命周期修复
+## 6. v016.43 / r133 历史写回
 
-旧 v007 workbench 仍负责历史展示，因此不能继续以固定周期或宽范围 MutationObserver 对 `#wbRows` 做整卡 `innerHTML` 重绘。该路径会销毁 v017 刚生成的候选 button，造成“候选看得到但点不进去”的真实人类交互故障。
+专业确认完成后，历史记录直接从 `/api/ai/major-history` 返回的学校实际专业记录构建 `history.years`。不存在严格历史记录的年份明确写入 `no-strict-record`，不得静默缺失或编造。
 
-本轮将旧运行时改为仅在明确终态需要同步时刷新，当前候选确认仍由 v017 独立直接绑定 button；不会为了补一个点击问题继续增加第三套事件委托。
+## 7. v016.44 / r134 历史仅作参考
 
-专业确认完成后，历史记录重新写入同一志愿的 `history.years`，让三年历史显示直接消费确认后的事实；不存在严格历史记录时明确写入 `no-strict-record`，不得静默缺失。
+历史三年分数/位次继续展示，但不再把历史缺失或可比性标记转化为用户需要处理的 `needs-check` 状态，也不再显示“需核验”标签。
 
-## 7. Workflow 收敛
+“需要核对”只保留给用户实际可以处理的身份信息与人工补充字段；历史数据属于系统提供的参考记录，用户无需承担一个无法执行的历史核对任务。
+
+页面使用“补充需要确认的信息”作为操作指引，避免把历史参考误解为待办事项。
+
+## 8. Workflow 收敛
 
 历史 simulation-report v001/v003/v005/v006/v007/v008/v009/v010/v011/v012/v013/v014 自动触发退出，改为 `workflow_dispatch` 手动取证。当前模拟工作台的 PR 功能性验证只使用 `.github/workflows/verify-simulation-workspace-v016.yml` 作为 canonical gate。
 
 其他重型跨站/生产验证不应因为 `simulation-report.html` 局部修改反复启动；主干发布级验证放在 main push 阶段完成，模块级 PR 只验证自己真正负责的资源边界。
 
-## 8. 发布版本
+## 9. 发布版本
 
 每次产品/验证修订都提升版本或修订号，并同步页面 cache-buster、release manifest、验证脚本和进度文件。
 
-当前版本：`simulation-workspace-v016.42`
-当前修订：`r132-candidate-lifecycle-and-history-hydration`
-当前运行时实现：`v016.39-r129`
+当前版本：`simulation-workspace-v016.44`
+当前修订：`r134-history-reference-only`
+当前运行时实现：`v016.43-r133`
 
-## 9. 发布级真实回归
+## 10. 发布级真实回归
 
 canonical browser regression 必须覆盖 Android 390、Pad 768、Desktop 1280；输入 `沈阳工业大学`，确认候选中的 `辽宁省 / 沈阳市 / 本科 / 名称完全一致`，点击 `选这所`；再输入专业，点击 `选这个`；检查 `confirmedSchool`、`majorCode`、`majorName` 以及 `history.years` 实际持久化；检查无 page error；输入性能同步 dispatch 满足 canonical performance gate。
 
-同时保留具体“沈阳工业大学 → 电气工程及其自动化”回归，用来验证候选在短暂异步和旧 DOM 生命周期下仍可持续点击。
+同时保留“沈阳化工大学 → 高分子材料与工程 → 080407”回归，确认历史数据可以落盘且界面不出现历史“需要核对/需核验”提示。
 
-## 10. Merge Gate
+## 11. Merge Gate
 
 只有以下全部成立才允许 merge：
 
