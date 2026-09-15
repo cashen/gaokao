@@ -10,8 +10,13 @@ async function run(viewport,label){
   const context=await browser.newContext({viewport,deviceScaleFactor:viewport.width<500?2:1});
   await context.addInitScript(state=>localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify(state)),seed);
   const page=await context.newPage(); const errors=[];
+  let schoolCatalogLoadedResolve;
+  const schoolCatalogLoaded=new Promise(resolve=>{schoolCatalogLoadedResolve=resolve;});
   page.on('pageerror',e=>errors.push(String(e)));
-  await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:schoolRows.length,schools:schoolRows})}));
+  await page.route('**/tongxue/data/school-search-index.20260617-v150.json',async route=>{
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({buildId:'tongxue-v150-region-20260617',asOfDate:'2026-06-17',count:schoolRows.length,schools:schoolRows})});
+    schoolCatalogLoadedResolve();
+  });
   await page.route('**/api/ai/major-history**',async route=>{
     const u=new URL(route.request().url()); const major=u.searchParams.get('major')||''; const school=u.searchParams.get('schoolKeyword')||'';
     const rows=[
@@ -33,10 +38,9 @@ async function run(viewport,label){
   });
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card',{timeout:15000});
+  await schoolCatalogLoaded;
   let c=page.locator('.volunteer-card').first();
-  const schoolResponse=page.waitForResponse(response=>response.url().includes('/tongxue/data/school-search-index.20260617-v150.json')&&response.ok(),{timeout:15000});
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
-  await schoolResponse;
   await setInput(page.locator('.volunteer-card').first().locator('[data-field="majorCode"]'),'机械');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:15000});
   let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
