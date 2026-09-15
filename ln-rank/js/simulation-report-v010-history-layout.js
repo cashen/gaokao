@@ -17,8 +17,7 @@ function formatYear(year, item) {
   if (!item || (item.score == null && item.rank == null)) return `<span class="history-inline-item"><b>${year}</b> 暂无严格记录</span>`;
   const score = item.score == null ? '—' : `${item.score}分`;
   const rank = item.rank == null ? '—' : `${formatRank(item.rank)}位`;
-  const needsCheck = item.comparable === false && item.recordStatus !== 'primary-record';
-  return `<span class="history-inline-item"><b>${year}</b> ${esc(score)} / ${esc(rank)}${needsCheck ? '<em>需核验</em>' : ''}</span>`;
+  return `<span class="history-inline-item"><b>${year}</b> ${esc(score)} / ${esc(rank)}</span>`;
 }
 
 function buildHistoryInline(row) {
