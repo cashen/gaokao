@@ -46,9 +46,14 @@ canonical gate 必须执行当前 v017 contract、当前 v017 direct-action brow
 
 每次产品/验证修订都提升版本或修订号，并同步页面 cache-buster、release manifest、验证脚本和进度文件。
 
-当前版本：`simulation-workspace-v016.40`
-当前修订：`r130-shenyang-direct-action-gate`
+当前版本：`simulation-workspace-v016.41`
+当前修订：`r131-school-worker-and-performance-gate`
 当前运行时实现：`v016.39-r129`
+
+本轮还补齐了运行时 Worker 和性能门禁：
+
+- `ln-rank/js/simulation-school-search-worker-v001.js`：复用既有 v150 学校目录 resolver 与 v3969 学校查询引擎，专门负责候选搜索和严格 resolve。
+- `tools/browser-simulation-workspace-v016-performance.mjs`：测量学校/专业输入事件的同步 dispatch 成本，防止输入本身被同步计算拖慢。
 
 ## 8. 发布级真实回归
 
@@ -65,6 +70,7 @@ canonical browser regression 必须覆盖：
 - 点击候选内部真实文字 `选这个`
 - 检查 `confirmedSchool`、`majorCode`、`majorName` 实际持久化
 - 检查无 page error
+- 输入性能同步 dispatch 满足 canonical performance gate
 
 ## 9. Merge Gate
 
