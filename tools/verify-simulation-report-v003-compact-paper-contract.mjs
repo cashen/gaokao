@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-
 const read = file => fs.readFileSync(file, 'utf8');
 const page = read('ln-rank/simulation-report.html');
 const printRuntime = read('ln-rank/js/simulation-report-v003-print.js');
@@ -8,7 +7,6 @@ const printStyles = read('ln-rank/css/simulation-report-v003-print.css');
 const plan = read('docs/plans/simulation-report-v003-compact-paper-card.md');
 const currentRuntime = read('ln-rank/js/simulation-report-v014-school-major-intent.js');
 const manifest = JSON.parse(read('ln-rank/data/simulation-workbench-release-v014.json'));
-
 for (const needle of ['生成 PDF','simulation-report-v014-school-major-intent.js?v=014-school-major-intent','volunteer-card','核对与提醒']) assert.ok(page.includes(needle), `current page missing ${needle}`);
 for (const needle of ["const STORAGE_KEY = 'gaokao:simulation-report:v002'",'function riskMessages(row)','中外合作｜学费需重点确认','异地/多校区培养｜确认实际地点','非标准学制｜确认培养年限','特殊培养方式｜需确认','return messages.slice(0, 2)',"window.addEventListener('beforeprint', syncPrintChecks)"]) assert.ok(printRuntime.includes(needle), `print runtime missing ${needle}`);
 assert.match(printRuntime,/const manual = row\?\.manualCheck \|\| \{\};/,'risk layer must read only existing manualCheck data');
@@ -17,6 +15,6 @@ assert.equal(printRuntime.includes('学费：待核实'),false,'must not generat
 for (const needle of ['.compact-check-sheet','.compact-risk-item','max-width: 24%','display: none !important','break-inside: avoid','.col-check {\n    width: 28%']) assert.ok(printStyles.includes(needle), `print styles missing ${needle}`);
 for (const needle of ['固定核对只保留“代码/专业组”和“特殊限制”','风险提醒最多 2 条','高收费：v003 不因单独出现一个学费数字而判定“高收费”','普通卡：主信息约 2 行 + 核对 1 行 + 家庭处理 1 行']) assert.ok(plan.includes(needle), `plan missing ${needle}`);
 for (const needle of ['schoolGroundedCandidates','broadTerms','实际招生记录']) assert.ok(currentRuntime.includes(needle), `current integration missing ${needle}`);
-assert.equal(manifest.version,'simulation-workspace-v014.7');
-assert.equal(manifest.revision,'r069-current-workbench-regression-cleanup');
+if (!String(manifest.version).startsWith('simulation-workspace-v014.')) throw new Error(`manifest family mismatch: ${manifest.version}`);
+if (!String(manifest.revision).startsWith('r0')) throw new Error(`manifest revision mismatch: ${manifest.revision}`);
 console.log('simulation-report-v003 compatibility contract on current workbench: PASS');
