@@ -27,7 +27,9 @@ async function testViewport(viewport, label) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport, deviceScaleFactor: viewport.width < 500 ? 2 : 1 });
   await context.addInitScript((state) => {
-    localStorage.setItem('gaokao:simulation-report:v002', JSON.stringify(state));
+    if (!localStorage.getItem('gaokao:simulation-report:v002')) {
+      localStorage.setItem('gaokao:simulation-report:v002', JSON.stringify(state));
+    }
   }, seedState(`${label}-1`));
   const page = await context.newPage();
   const errors = [];
@@ -46,12 +48,7 @@ async function testViewport(viewport, label) {
   if (await card.locator('.family-option').count() !== 4) throw new Error(`${label}: expected four decision buttons`);
   if ((await card.locator('.family-option[aria-pressed="true"]').count()) !== 1) throw new Error(`${label}: default decision must have exactly one selected option`);
 
-  const boxes = await Promise.all([
-    card.locator('.family-option').nth(0).boundingBox(),
-    card.locator('.family-option').nth(1).boundingBox(),
-    card.locator('.family-option').nth(2).boundingBox(),
-    card.locator('.family-option').nth(3).boundingBox()
-  ]);
+  const boxes = await Promise.all(Array.from({ length: 4 }, (_, i) => card.locator('.family-option').nth(i).boundingBox()));
   if (boxes.some(box => !box || box.width < 100 || box.height < 34)) throw new Error(`${label}: decision buttons are too small for comfortable interaction`);
 
   await card.locator('.family-option[data-family-option="保留"]').click();
@@ -77,4 +74,4 @@ async function testViewport(viewport, label) {
 
 await testViewport({ width: 1280, height: 900 }, 'desktop');
 await testViewport({ width: 390, height: 844 }, 'mobile');
-console.log('simulation-report-v011-family-decision: PASS');
+console.log('simulation-report-v011 compatibility browser on current v014.12 workbench: PASS');
