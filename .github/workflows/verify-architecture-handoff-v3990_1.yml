@@ -4,6 +4,14 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'docs/architecture/**'
+      - 'shared/governance/**'
+      - 'shared/resources/release/**'
+      - 'shared/ui/**'
+      - 'tools/audit-architecture-handoff-v3990_3.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/audit-cloudflare-git-production-v3990_3.mjs'
   push:
     branches: [main]
   workflow_dispatch:
