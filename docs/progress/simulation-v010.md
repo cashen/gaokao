@@ -6,6 +6,7 @@
 - Desktop contract: history row spans the available card width and shows 2026 / 2025 / 2024 plus source without clipping.
 - Mobile contract: history row stays one visual line; narrow screens may horizontally scroll rather than increase card height.
 - Data contract: reuse existing `history.years` 2026/2025/2024; no fabricated records.
-- v010 static contract: pending CI
-- v010 desktop + 390px browser regression: pending CI
-- PR merge: pending
+- v010 static contract: PASS
+- v010 desktop + 390px browser regression: PASS
+- PR: #281
+- Main merge: completed after the v010 checks passed
