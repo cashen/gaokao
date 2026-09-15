@@ -1,31 +1,12 @@
-name: Verify simulation report v007 workbench
+name: Archived simulation report regression
 
+# Historical regression workflow. Current page verification is centralized in
+# Verify simulation workspace v016. It is retained for manual forensic reruns.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v007-mobile.css'
-      - 'ln-rank/js/simulation-report-v007-workbench.js'
-      - 'ln-rank/data/simulation-workbench-release-v007.json'
-      - 'tools/verify-simulation-report-v007-workbench.mjs'
-      - '.github/workflows/verify-simulation-report-v006-workbench.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v007-mobile.css'
-      - 'ln-rank/js/simulation-report-v007-workbench.js'
-      - 'ln-rank/data/simulation-workbench-release-v007.json'
-      - 'tools/verify-simulation-report-v007-workbench.mjs'
+  workflow_dispatch:
 
 jobs:
-  verify:
+  archived:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Verify v007 workbench contracts
-        run: node tools/verify-simulation-report-v007-workbench.mjs
+      - run: echo "Historical simulation-report workflow; use the canonical simulation workspace gate for current changes."
