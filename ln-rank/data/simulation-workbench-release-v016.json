@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.14",
-  "revision":"r104-guard-contract-fix",
+  "version":"simulation-workspace-v016.15",
+  "revision":"r105-guard-contract-final",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
   "pdfRuntime":"/ln-rank/js/simulation-report-v016-pdf.js",
