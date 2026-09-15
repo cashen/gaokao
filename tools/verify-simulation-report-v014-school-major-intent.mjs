@@ -10,6 +10,6 @@ for(const expected of ['loadSchoolNameResolver','createMajorCatalogResolver','/a
 for(const expected of ['.school-input-suggestions-v014','.major-input-suggestions','min-height:46px','max-height:280px'])if(!css.includes(expected))throw new Error(`css missing ${expected}`);
 for(const expected of ['任意学校','实际招生记录','机械','网络','计算机','测空技术与仪器','不幻觉'])if(!plan.includes(expected))throw new Error(`plan missing ${expected}`);
 if(manifest.version!=='simulation-workspace-v014')throw new Error('manifest version mismatch');
-if(manifest.revision!=='r060-school-context-major-intent-ci-stabilization')throw new Error('manifest revision mismatch');
+if(manifest.revision!=='r061-school-context-major-intent-browser-sync')throw new Error('manifest revision mismatch');
 if(manifest.noFabrication!==true)throw new Error('noFabrication must be true');
 console.log('simulation-report-v014-school-major-intent contract: PASS');
