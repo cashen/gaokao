@@ -37,6 +37,23 @@ for(const viewport of viewports){
 
 {
   const browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1280,height:900},locale:'zh-CN'});
+  await context.addInitScript(()=>{localStorage.clear();localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify({version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'',volunteers:[{id:'school-ui-1',order:1,school:'',majorCode:'',majorName:'',confirmedSchool:'',familyStatus:'待讨论',history:{years:{}}}],selectionPool:[]}))});
+  const page=await context.newPage();
+  await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
+  await page.waitForSelector('.volunteer-card',{timeout:10000});
+  const school=page.locator('[data-field="school"]').first();const helper=page.locator('[data-v017-helper]').first();
+  await school.fill('沈阳工业大学');
+  const exact=page.locator('[data-v017-school-choice="沈阳工业大学"]').first();
+  await exact.waitFor({state:'visible',timeout:5000});
+  const candidateText=await exact.textContent();assert.match(candidateText,/辽宁省/,'school candidate must show province');assert.match(candidateText,/沈阳市/,'school candidate must show city');assert.match(candidateText,/本科/,'school candidate must show level');assert.match(candidateText,/名称完全一致/,'exact school match must be visibly distinguished');assert.match(candidateText,/选这所/,'school candidate must have an explicit action');
+  await exact.click();await page.waitForFunction(el=>/已确认学校：沈阳工业大学/.test(el?.textContent||''),await helper.elementHandle(),{timeout:5000});
+  const card=page.locator('.volunteer-card').first();const major=card.locator('[data-field="majorCode"]');await major.fill('机械');await card.locator('[data-v017-major]').first().waitFor({state:'visible',timeout:500});await page.waitForTimeout(250);
+  if(await card.locator('[data-v017-major-code]').count()){const firstMajor=card.locator('[data-v017-major-code]').first();const text=await firstMajor.textContent();assert.match(text,/代码/,'major candidate must expose code');assert.match(text,/选这个/,'major candidate must have an explicit action')}
+  await browser.close();
+}
+
+{
+  const browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:1280,height:900},locale:'zh-CN'});
   await context.addInitScript(()=>{localStorage.clear();localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify({version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'',volunteers:[{id:'inbound-1',order:1,school:'',majorCode:'',majorName:'',familyStatus:'待讨论',history:{years:{}}}],selectionPool:[]}))});
   const page=await context.newPage();await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&majorCode=080301&majorName=%E8%87%AA%E5%8A%A8%E5%8C%96',{waitUntil:'domcontentloaded',timeout:15000});await page.waitForTimeout(700);assert.match(await page.locator('body').innerText(),/代码与专业名称不一致/);await browser.close();
 }
@@ -47,4 +64,4 @@ for(const viewport of viewports){
   const page=await context.newPage();await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&majorCode=080801&majorName=%E8%87%AA%E5%8A%A8%E5%8C%96',{waitUntil:'domcontentloaded',timeout:15000});await page.waitForTimeout(700);assert.equal(await page.locator('.volunteer-card').count(),1);assert.match(await page.locator('body').innerText(),/已经在志愿 1/);await browser.close();
 }
 
-console.log('simulation-workspace-v016.35 browser: PASS');
+console.log('simulation-workspace-v016.36 browser: PASS');
