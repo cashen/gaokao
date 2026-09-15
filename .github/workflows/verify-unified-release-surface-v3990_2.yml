@@ -7,10 +7,15 @@ on:
       - 'index.html'
       - 'changelog.html'
       - 'aiplus/index.html'
-      - 'ln-rank/**'
+      - 'ln-rank/index.html'
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/211-mainline.html'
+      - 'ln-rank/selection-pool.html'
+      - 'ln-rank/self-check.html'
+      - 'ln-rank/js/app*.js'
+      - 'ln-rank/site-active-generation.v3990_3.json'
       - 'ln2026.html'
       - 'zy2026.html'
-      - 'zy2026/**'
       - 'major-path/**'
       - 'Public_company/**'
       - 'tongxue/**'
@@ -20,7 +25,9 @@ on:
       - 'shared/resources/release/release-footer.v3990_3.js'
       - 'shared/resources/release/release-footer.v3990_3.css'
       - 'tools/audit-unified-release-surface-v001.mjs'
-      - '.github/workflows/verify-unified-release-surface-v3990_3.yml'
+      - 'tools/audit-canonical-release-version-v3990_3.mjs'
+      - 'tools/audit-architecture-handoff-v3990_3.mjs'
+      - '.github/workflows/verify-unified-release-surface-v3990_2.yml'
   workflow_dispatch:
 
 permissions:
