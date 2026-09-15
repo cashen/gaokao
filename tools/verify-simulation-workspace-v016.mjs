@@ -9,13 +9,13 @@ const legacy=fs.readFileSync('ln-rank/js/simulation-report-v007-workbench.js','u
 const legacyPdf=fs.readFileSync('ln-rank/js/simulation-report-v005-pdf-reminders.js','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v016.json','utf8'));
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf8');
-assert.match(html,/simulation-report-v015-human-workbench\\.js\\?v=v016\\.9-r099/);
-assert.match(html,/simulation-report-v016-legacy-render-guard\\.js\\?v=v016\\.9-r099/);
-assert.match(html,/simulation-report-v016-pdf\\.js\\?v=v016\\.9-r099/);
+assert.match(html,/simulation-report-v015-human-workbench\\.js\\?v=v016\\.10-r100/);
+assert.match(html,/simulation-report-v016-legacy-render-guard\\.js\\?v=v016\\.10-r100/);
+assert.match(html,/simulation-report-v016-pdf\\.js\\?v=v016\\.10-r100/);
 assert.doesNotMatch(html,/simulation-report-v006-input-bridge\\.js/);
 assert.doesNotMatch(html,/simulation-report-v014-school-major-intent\\.js/);
-assert.equal(manifest.version,'simulation-workspace-v016.9');
-assert.equal(manifest.revision,'r099-final-regression');
+assert.equal(manifest.version,'simulation-workspace-v016.10');
+assert.equal(manifest.revision,'r100-final-ci-gate');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.equal(manifest.pdfRuntime,'/ln-rank/js/simulation-report-v016-pdf.js');
 assert.equal(manifest.legacyRenderGuard,'/ln-rank/js/simulation-report-v016-legacy-render-guard.js');
@@ -35,4 +35,4 @@ for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（�
 assert.doesNotMatch(pdf,/家庭判断|冲稳保/);
 assert.match(legacyPdf,/家庭判断/);
 assert.match(browser,/390/);assert.match(browser,/768/);assert.match(browser,/1280/);assert.match(browser,/pressSequentially/);assert.match(browser,/compositionstart/);assert.match(browser,/insertFromPaste/);assert.match(browser,/网络失败/);assert.match(browser,/Backspace/);assert.match(browser,/URL inbound/);assert.match(browser,/inbound conflict/);assert.match(browser,/duplicate/);assert.match(browser,/refresh/);assert.match(browser,/visible human input must be synchronized/);
-console.log('simulation-workspace-v016.9 contract: PASS');
+console.log('simulation-workspace-v016.10 contract: PASS');
