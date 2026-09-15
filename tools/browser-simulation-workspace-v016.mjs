@@ -16,6 +16,7 @@ for(const viewport of viewports){
   await major.fill('机械');await page.waitForTimeout(100);assert.ok(await page.locator('[data-v015-major]').first().isVisible(),`${viewport.name}: 机械输入应立即有目录反馈`);
   await school.fill('东北大学');await page.waitForTimeout(500);const choices=page.locator('[data-v015-school-choice]');assert.ok(await choices.count(),`${viewport.name}: 学校候选必须可确认`);await choices.first().click();
   await major.fill('');await major.pressSequentially('自动化',{delay:15});await page.waitForTimeout(700);assert.equal(await major.inputValue(),'自动化');assert.match(await page.locator('body').innerText(),/自动化/);
+  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);assert.equal(persisted.school,'东北大学');assert.equal(persisted.majorCode,'自动化','visible human input must be synchronized to legacy data source');
   await major.fill('');await major.dispatchEvent('compositionstart');await major.evaluate(el=>{el.value='机械';el.dispatchEvent(new Event('input',{bubbles:true}))});await major.dispatchEvent('compositionend');await page.waitForTimeout(700);assert.equal(await major.inputValue(),'机械');assert.match(await helper.textContent(),/找到|核对|实际专业/);
   await major.fill('');await major.evaluate(el=>{el.focus();const dt=new DataTransfer();dt.setData('text/plain','080301');el.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,clipboardData:dt}));el.value='080301';el.dispatchEvent(new Event('input',{bubbles:true,inputType:'insertFromPaste'}))});assert.equal(await major.inputValue(),'080301');
   for(let i=0;i<4;i++)await major.press('Backspace');assert.equal(await major.inputValue(),'08');await major.press('Backspace');await major.press('Backspace');assert.equal(await major.inputValue(),'');
@@ -38,4 +39,4 @@ for(const viewport of viewports){
   await page.waitForTimeout(700);assert.match(await page.locator('body').innerText(),/代码与专业名称不一致/,'URL inbound conflict must be visible');
   await browser.close();
 }
-console.log('simulation-workspace-v016.1 browser: PASS');
+console.log('simulation-workspace-v016.6 browser: PASS');
