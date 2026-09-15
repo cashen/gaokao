@@ -31,6 +31,7 @@ jobs:
           node-version: 22
       - run: node tools/verify-simulation-report-v014-school-major-intent.mjs
   browser:
+    needs: contract
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
