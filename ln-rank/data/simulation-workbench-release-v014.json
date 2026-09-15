@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014.11",
-  "revision": "r073-final-regression-gate",
+  "version": "simulation-workspace-v014.12",
+  "revision": "r074-postmerge-v011-compatibility",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -23,9 +23,10 @@
     "r070 v013 browser compatibility regression validates current v014 intent instead of removed state-line/caption markup",
     "r071 compatibility contracts are revision-agnostic within the v014 release family",
     "r072 final gate validates the complete v014.10 regression set before exact-head merge",
-    "r073 current v014 browser regressions cover the remaining legacy history surface without reviving superseded markup"
+    "r073 current v014 browser regressions cover the remaining legacy history surface without reviving superseded markup",
+    "r074 post-merge v011 compatibility uses the current v012 family decision layer and preserves legacy v011 sources only for auditability"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
-  "status": "implementation-complete-awaiting-ci"
+  "status": "postmerge-regression-fix-awaiting-ci"
 }
