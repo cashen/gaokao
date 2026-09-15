@@ -1,0 +1,11 @@
+{
+  "version": "simulation-workspace-v009",
+  "revision": "r055-inline-three-year-history",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "family decision workbench with compact one-line three-year score-rank reference",
+  "baseRuntime": "simulation-report-v007-workbench.js",
+  "historyRuntime": "simulation-report-v009-history-inline.js",
+  "historyLayout": "single-line-inline-summary-with-horizontal-overflow-on-narrow-screens",
+  "dataSource": "existing localStorage volunteer history.years 2026/2025/2024"
+}
