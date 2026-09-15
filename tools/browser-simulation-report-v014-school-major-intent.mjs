@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const schoolRows=Array.from({length:3000},(_,i)=>({name:i===0?'辽宁科技大学':`测试大学${i}`,province:i===0?'辽宁省':'测试省',city:i===0?'鞍山市':'测试市'}));
 const seed={version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'555',rank:29685,volunteers:[{id:'v014-1',order:1,school:'辽宁科技大学',majorCode:'',majorName:'',history:null,manualCheck:{},familyStatus:'待讨论',familyNote:''}]};
 
-async function setInput(locator,value){await locator.evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},value);await locator.page().waitForTimeout(120);}
+async function setInput(locator,value){await locator.evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},value);await new Promise(resolve=>setTimeout(resolve,180));}
 
 async function run(viewport,label){
   const browser=await chromium.launch({headless:true});
@@ -27,7 +27,6 @@ async function run(viewport,label){
       else if(/网络/.test(major))records=rows.filter(r=>/网络/.test(r.major));
       else if(/计算机/.test(major))records=rows.filter(r=>/计算机/.test(r.major));
       else if(major==='测控技术与仪器')records=rows.filter(r=>r.major==='测控技术与仪器');
-      else if(major==='测空技术与仪器')records=[];
       else records=[];
     }
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records,total:records.length,complete:true,dataYear:2026,summary:{total:records.length}})});
@@ -36,29 +35,28 @@ async function run(viewport,label){
   await page.waitForSelector('.volunteer-card',{timeout:15000});
   let c=page.locator('.volunteer-card').first();
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
-  c=page.locator('.volunteer-card').first();
-  let major=c.locator('[data-field="majorCode"]');
-  await setInput(major,'机械');
+  await setInput(page.locator('.volunteer-card').first().locator('[data-field="majorCode"]'),'机械');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
-  if(await page.locator('.volunteer-card').first().locator('[data-field="majorCode"]').inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
+  let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
+  if(await currentMajor.inputValue()!=='机械')throw new Error(`${label}: broad input was auto-mapped`);
   const candidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!candidates.includes('机械设计制造及其自动化')||!candidates.includes('机械电子工程'))throw new Error(`${label}: school-grounded mechanical candidates missing`);
-  major=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
-  await setInput(major,'网络');
+  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
+  await setInput(currentMajor,'网络');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:10000});
-  if(await major.inputValue()!=='网络')throw new Error(`${label}: network input was auto-mapped`);
+  if(await currentMajor.inputValue()!=='网络')throw new Error(`${label}: network input was auto-mapped`);
   const networkCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!networkCandidates.includes('网络工程'))throw new Error(`${label}: network school-grounded candidate missing`);
-  major=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
-  await setInput(major,'计算机');
+  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
+  await setInput(currentMajor,'计算机');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion strong',{timeout:10000});
-  if(await major.inputValue()!=='计算机')throw new Error(`${label}: computer input was auto-mapped`);
+  if(await currentMajor.inputValue()!=='计算机')throw new Error(`${label}: computer input was auto-mapped`);
   const computerCandidates=await page.locator('.volunteer-card').first().locator('[data-v014-major-box] .major-suggestion strong').allTextContents();
   if(!computerCandidates.includes('计算机科学与技术'))throw new Error(`${label}: computer school-grounded candidate missing`);
-  major=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
-  await setInput(major,'测空技术与仪器');
+  currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
+  await setInput(currentMajor,'测空技术与仪器');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:10000});
-  if(await major.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
+  if(await currentMajor.inputValue()!=='测空技术与仪器')throw new Error(`${label}: typo was auto-corrected without confirmation`);
   if(!(await page.locator('.volunteer-card').first().locator('[data-v014-major-box]').innerText()).includes('测控技术与仪器'))throw new Error(`${label}: typo suggestion missing`);
   await page.locator('.volunteer-card').first().getByRole('button',{name:/测控技术与仪器/}).click();
   await page.waitForFunction(()=>document.querySelector('[data-field="majorCode"]')?.value==='080301',null,{timeout:5000});
