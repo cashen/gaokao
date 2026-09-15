@@ -13,7 +13,9 @@ on:
       - 'tools/browser-simulation-workspace-v016.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
-    branches: [main]
+    branches:
+      - main
+      - feat/simulation-workspace-v016-human-complete
     paths:
       - 'ln-rank/simulation-report.html'
       - 'ln-rank/js/simulation-report-v015-human-workbench.js'
@@ -43,8 +45,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - run: npm install playwright@1.55.0
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
