@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.1",
-  "revision":"r091-inbound-conflict-regression",
+  "version":"simulation-workspace-v016.2",
+  "revision":"r092-real-ci-gate",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
   "purpose":"human-first non-blocking simulation input with strict school-major intersection and safe inbound handling",
@@ -12,5 +12,5 @@
   "mobileTarget":"390px",
   "padTarget":"768px",
   "desktopTarget":"1280px",
-  "status":"implementation-ready-awaiting-regression"
+  "status":"ci-running"
 }

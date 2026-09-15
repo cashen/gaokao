@@ -3,9 +3,9 @@
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
 基线 main：`7873c939e3cfebc4bf3e48a230de09dadd930d60`
-当前版本：`simulation-workspace-v016.1`
-当前修订：`r091-inbound-conflict-regression`
-阶段：v016 implementation-ready-awaiting-regression
+当前版本：`simulation-workspace-v016.2`
+当前修订：`r092-real-ci-gate`
+阶段：real-ci-gate
 
 ## 已完成
 
@@ -22,7 +22,7 @@ PR：#290
 - [x] AbortController + token + fact cache。
 - [x] 学校/专业变化时旧确认失效。
 - [x] v007 移除 500ms 周期性 render 并补 URL inbound code/name 冲突检查。
-- [x] 增加 URL inbound conflict regression；版本/revision bump 到 v016.1/r091。
+- [x] URL inbound conflict regression；版本/revision bump 到 v016.2/r092。
 
 ## 尚未宣称完成
 
@@ -30,10 +30,14 @@ PR：#290
 - [ ] 390/768/1280 browser 实际执行通过。
 - [ ] Windows Chrome / Android Chrome / Android Alook / Pad 实机检查。
 - [ ] PDF 多页、第二页头信息、待核实字段最终实测。
-- [ ] CI 所有必要 workflow 最终 HEAD 通过。
+- [ ] GitHub v016 CI/legacy workflow 状态通过。
 - [ ] Cloudflare Preview exact SHA。
 - [ ] Production/custom-domain/API/data-SHA parity。
 - [ ] 最终合并 main。
+
+## 当前门禁观察
+
+这一提交 intentionally 去掉 `[skip ci]`，用于取得最终 HEAD 的真实 workflow 证据。如果再次出现历史 v001-v014 大量 workflow fan-out，需把它归类为 CI trigger architecture 问题，不能当作产品代码失败，也不能把 queued 当 passed。
 
 ## 断网续接
 
