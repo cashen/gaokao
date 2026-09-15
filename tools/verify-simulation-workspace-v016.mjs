@@ -15,13 +15,13 @@ const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
 
 for (const src of [
-  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.21-r111',
-  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.21-r111',
-  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.21-r111',
-  '/ln-rank/js/simulation-report-v017-responsive-input.js?v=v016.21-r111'
+  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.22-r112',
+  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.22-r112',
+  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.22-r112',
+  '/ln-rank/js/simulation-report-v017-responsive-input.js?v=v016.22-r112'
 ]) assert.ok(html.includes(src), `html missing ${src}`);
-assert.equal(manifest.version,'simulation-workspace-v016.21');
-assert.equal(manifest.revision,'r111-responsive-input-school-major-cache');
+assert.equal(manifest.version,'simulation-workspace-v016.22');
+assert.equal(manifest.revision,'r112-responsive-input-school-major-cache-syntax-fix');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.equal(manifest.responsiveInputRuntime,'/ln-rank/js/simulation-report-v017-responsive-input.js');
 assert.equal(manifest.schoolSearchWorker,'/ln-rank/js/simulation-school-search-worker-v001.js');
@@ -36,7 +36,7 @@ assert.ok(js.includes('norm(item.code)'));
 assert.ok(js.includes('norm(item.name)'));
 assert.ok(guard.includes('__simulationHumanSyncDepth'));
 assert.ok(guard.includes('Math.max(1'));
-assert.ok(responsive.includes("new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.21-r111',{type:'module'})"));
+assert.ok(responsive.includes("new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.22-r112',{type:'module'})"));
 assert.ok(responsive.includes("window.addEventListener('input',onInput,true)"));
 assert.ok(responsive.includes("params.append('major',name)"),'responsive major verifier must batch major inputs');
 assert.ok(!responsive.includes('for(const item of local.slice(0,6)'));
@@ -56,4 +56,4 @@ assert.ok(!pdf.includes('冲稳保'));
 for(const expected of ['390','768','1280','pressSequentially','compositionstart','insertFromPaste','网络失败','Backspace','URL inbound','inbound conflict','duplicate','refresh','visible human input must be synchronized','waitFor({state:\'visible\',timeout:5000})']) assert.ok(browser.includes(expected),`browser regression missing ${expected}`);
 for(const expected of ['immediateInputMs','must update immediately','major verification should use one multi-major request','old school fact label must not survive school switch','/api/ai/major-history']) assert.ok(performance.includes(expected),`performance regression missing ${expected}`);
 assert.ok(!legacyPdf.includes('家庭判断') || legacyPdf.includes('待核实') || legacyPdf.includes('核对与提醒'),'legacy reminder layer must remain a compatible non-visible layer');
-console.log('simulation-workspace-v016.21 contract: PASS');
+console.log('simulation-workspace-v016.22 contract: PASS');
