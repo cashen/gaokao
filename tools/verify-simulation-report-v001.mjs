@@ -14,55 +14,33 @@ const mustContain = (text, needles, label) => {
 };
 
 mustContain(page, [
-  '辽宁物理类模拟志愿填报单',
-  'studentName',
-  'totalScore',
-  'candidateRank',
-  'data-score-key="chinese"',
-  'data-score-key="math"',
-  'data-score-key="english"',
-  'data-score-key="physics"',
-  'data-score-key="chemistry"',
-  'data-score-key="biology"',
-  'volunteerRows',
-  '打印 A4',
-  'simulation-report.v001.js'
-], 'page');
+  'studentName', 'totalScore', 'candidateRank',
+  'data-score-key="chinese"', 'data-score-key="math"', 'data-score-key="english"',
+  'data-score-key="physics"', 'data-score-key="chemistry"', 'data-score-key="biology"',
+  'volunteerRows', '生成 PDF', 'simulation-report.v001.js'
+], 'current page');
 
 mustContain(runtime, [
-  "STORAGE_KEY = 'gaokao:simulation-report:v001'",
-  'createMajorCatalogResolver',
-  'loadSchoolNameResolver',
-  "const API_BASE = '/api/ai/major-history'",
-  "const RANK_API = '/api/simulation-rank'",
-  'function createVolunteer(order)',
-  'function moveRow(rowId, delta)',
-  'function deleteRow(rowId)',
-  'function saveState()',
-  'function fetchHistory(row)',
-  'function formatDelta(yearRank, candidateRank)',
-  'dragstart',
-  'drop'
+  "STORAGE_KEY = 'gaokao:simulation-report:v002'",
+  'createMajorCatalogResolver', 'loadSchoolNameResolver',
+  "const API_BASE = '/api/ai/major-history'", "const RANK_API = '/api/simulation-rank'",
+  'function createVolunteer(order)', 'function moveRow(rowId, delta)', 'function deleteRow(rowId)',
+  'function saveState()', 'function fetchHistory(row)', 'function formatDelta(yearRank, candidateRank)',
+  'dragstart', 'drop'
 ], 'runtime');
 
 mustContain(styles, [
-  '@page{size:A4 landscape;',
-  '@media print',
-  '.col-actions{display:none!important}',
-  '.school-suggestions{display:none!important}',
-  '.sheet-table{min-width:0;width:100%;table-layout:fixed}'
+  '@page{size:A4 landscape;', '@media print', '.col-actions{display:none!important}',
+  '.school-suggestions{display:none!important}', '.sheet-table{min-width:0;width:100%;table-layout:fixed}'
 ], 'styles');
 
 mustContain(api, [
   "SIMULATION_RANK_API_VERSION = 'simulation-rank-api-v001'",
-  "lookupLn2026PhysicsScore(score)",
+  'lookupLn2026PhysicsScore(score)',
   "source: '2026年辽宁省普通高校招生考试成绩统计表（物理学科类）'"
 ], 'rank-api');
 
 assert.match(runtime, /Math\.random\(\)/, 'runtime: volunteer ids are locally unique');
 assert.doesNotMatch(runtime, /window\.location\s*=|location\.assign\(/, 'runtime: no navigation side effect');
-
-console.log('simulation-report-v001 contract: PASS');
-console.log('A4 print: landscape, action controls hidden, fixed table layout');
-console.log('State: localStorage-backed dynamic volunteers with drag + up/down ordering');
-console.log('Data: canonical 2026 major catalog + canonical major-history endpoint + canonical rank provider bridge');
+console.log('simulation-report-v001 compatibility contract on current workbench: PASS');
+console.log('Underlying v001 state/rank/ordering/PDF compatibility remains covered');

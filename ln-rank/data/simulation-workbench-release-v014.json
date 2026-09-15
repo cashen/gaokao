@@ -1,0 +1,31 @@
+{
+  "version": "simulation-workspace-v014.11",
+  "revision": "r073-final-regression-gate",
+  "page": "/ln-rank/simulation-report.html",
+  "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
+  "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
+  "schoolResolver": "/tongxue/data/school-name-resolver-v150.js",
+  "majorResolver": "shared/resources/majors/major-catalog-contract.js",
+  "factSource": "/api/ai/major-history",
+  "noFabrication": true,
+  "rules": [
+    "broad major terms never auto-map",
+    "broad major candidates must come from the confirmed school's actual records",
+    "catalog-only fuzzy suggestions are labeled as names, not school facts",
+    "final matched state requires exact school entity plus major code/name record",
+    "network failure is not a mismatch",
+    "v014 candidate and helper UI survives visible workbench rerenders",
+    "r065 capture-phase event isolation prevents legacy input bridge auto-mapping from overriding raw major intent",
+    "r066 broad terms are evaluated before direct catalog matching so resolver aliases cannot auto-map broad input",
+    "r067 browser regression uses human-like key input for major intent instead of relying only on programmatic fill",
+    "r068 v012 persistence regression seeds localStorage only when empty so reload assertions validate persisted family decisions",
+    "r069 legacy simulation contracts validate current workbench compatibility surfaces instead of requiring superseded page markup",
+    "r070 v013 browser compatibility regression validates current v014 intent instead of removed state-line/caption markup",
+    "r071 compatibility contracts are revision-agnostic within the v014 release family",
+    "r072 final gate validates the complete v014.10 regression set before exact-head merge",
+    "r073 current v014 browser regressions cover the remaining legacy history surface without reviving superseded markup"
+  ],
+  "mobileTarget": "390px",
+  "desktopTarget": "1280px",
+  "status": "implementation-complete-awaiting-ci"
+}
