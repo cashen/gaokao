@@ -1,0 +1,11 @@
+{
+  "version": "simulation-workspace-v013",
+  "revision": "r057-forgiving-major-input-school-match",
+  "status": "implementation-complete-awaiting-ci",
+  "scope": "simulation-report.html major name/code input, suggestions, school-major validation",
+  "base": "233d5f6e52644d2b1f687d6be1916c298790193c",
+  "tests": [
+    "tools/verify-simulation-report-v013-major-input.mjs",
+    "tools/browser-simulation-report-v013-major-input.mjs"
+  ]
+}
