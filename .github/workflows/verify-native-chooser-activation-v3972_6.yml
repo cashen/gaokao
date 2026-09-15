@@ -4,6 +4,20 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/ui/interaction/interaction-transaction.v3990_3.js'
+      - 'ln-rank/js/navigation/background-link-canonicalizer.v001.js'
+      - 'shared/resources/background/academic-background-navigation.v002.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_3.js'
+      - 'tools/browser-native-chooser-activation-v3990_3.mjs'
+      - 'tools/browser-native-chooser-activation-v3990_3-runner.mjs'
+      - 'tools/browser-resource-execution-v3990_3.mjs'
+      - 'tools/browser-family-action-v3990_3.mjs'
+      - 'tools/browser-school-query-v3990_3.mjs'
+      - 'tools/browser-academic-background-v3971.mjs'
+      - '.github/scripts/install-playwright-chromium.sh'
+      - '.github/workflows/verify-native-chooser-activation-v3972_6.yml'
   push:
     branches: [main]
   workflow_dispatch:
