@@ -1,9 +1,9 @@
 # 模拟志愿填报单页开发进度
 
-当前合并基线：`main` / `6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
+当前合并基线：`main` / `7873c939e3cfebc4bf3e48a230de09dadd930d60`
 当前修复分支：`fix/simulation-postmerge-v011-contract`
-当前版本：`simulation-workspace-v014.12`
-当前修订：`r074-postmerge-v011-compatibility`
+当前版本：`simulation-workspace-v014.13`
+当前修订：`r075-input-clear-latency`
 
 ## 当前状态
 
@@ -28,14 +28,20 @@
 - [x] 建立 post-merge v011 修复分支
 - [x] v011 contract/browser 改为验证当前 v012 family decision + v014 工作台
 - [x] 版本提升至 v014.12 / r074
-- [ ] post-merge v011 contract/browser CI
-- [ ] post-merge 全站 release/runtime/resource/tree integrity
-- [ ] post-merge Cloudflare custom-domain/runtime/API/data-SHA parity 完整核验
+- [x] 定位学校输入删除卡顿的运行时根因：逐字符解析/持久化 + 待完成异步工作未立即失效 + MutationObserver 对自身候选 DOM 变化重复 rehydrate
+- [x] v014.13 / r075：学校输入防抖、删除时取消/失效 pending work、API 请求 AbortController、候选 DOM 幂等渲染、rehydrate 按卡片批处理
+- [x] 增加“输入辽宁后立即删除”浏览器回归
+- [x] 更新 v014 runtime cache-buster
+- [ ] v014.13 / r075 post-merge v011 contract/browser CI
+- [ ] v014.13 / r075 全站 release/runtime/resource/tree integrity
+- [ ] v014.13 / r075 Cloudflare custom-domain/runtime/API/data-SHA parity 完整核验
 - [ ] 修复 PR 合并回 main
 
 ## 当前已确认的问题
 
 `main` 上合并后的 `Verify simulation report v011 family decision` 在 contract/browser 两个 job 均失败。日志明确显示 contract 失败原因是仍要求已经不再由当前单页加载的 `simulation-report-v011-family-decision.css/js`；页面实际加载的是 v012 family decision 层，并同时加载 v014 学校/专业意图层。该问题属于测试契约过期，不是招生事实或页面运行时异常。
+
+用户反馈新的真实体验问题：在学校输入框先输入“辽宁”再删除，界面仍出现明显卡顿。代码审计确认 v014 当前实现对每次 `input` 都立即触发学校解析和 localStorage 写入，并且 workbench 的 MutationObserver 会观察候选节点自身的 childList 变化，存在不必要的重复 rehydrate 放大。r075 直接处理这三个路径，不改变学校解析与招生事实来源。
 
 ## 数据所有权
 
@@ -51,4 +57,4 @@
 
 ## Merge gate
 
-post-merge 修复仍必须走独立 PR；只有该 PR 的最终 HEAD 专用 contract/browser 和全站门禁均通过，才允许再次合并。合并后必须重新读取 main SHA，并核验 Cloudflare Preview/Production、custom domain、API health 与数据 SHA parity。
+post-merge 修复仍必须走独立 PR；由于本轮用户反馈直接落在当前 #287 修复分支上，现 PR #287 需要以最终 HEAD 重新完成专用 contract/browser 和全站门禁。只有最终 HEAD 所有门禁通过，才允许再次合并。合并后必须重新读取 main SHA，并核验 Cloudflare Preview/Production、custom domain、API health 与数据 SHA parity。
