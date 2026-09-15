@@ -1,13 +1,14 @@
 {
-  "version":"simulation-workspace-v016.39",
-  "revision":"r129-canonical-gate-alignment",
+  "version":"simulation-workspace-v016.40",
+  "revision":"r130-shenyang-direct-action-gate",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v017-responsive-input.js",
+  "runtimeRevision":"v016.39-r129",
   "schoolSearchWorker":"/ln-rank/js/simulation-school-search-worker-v001.js",
   "responsiveInputCss":"/ln-rank/css/simulation-report-v017-responsive-input.css",
   "pdfRuntime":"/ln-rank/js/simulation-report-v016-pdf.js",
   "legacyRenderGuard":"/ln-rank/js/simulation-report-v016-legacy-render-guard.js",
-  "purpose":"human-first simulation input with a single current candidate interaction runtime and one canonical automated gate",
+  "purpose":"human-first simulation input with one current candidate interaction runtime and a concrete Shenyang direct-action browser gate",
   "schoolResolver":"/tongxue/data/school-name-resolver-v150.js",
   "majorResolver":"shared/resources/majors/major-catalog-contract.js",
   "factSource":"/api/ai/major-history",
@@ -23,7 +24,8 @@
     "release revisions increment for every revision",
     "the current page has one canonical candidate click path",
     "historical simulation-report workflows are manual-only",
-    "canonical gate executes the current v017 direct-action browser regression"
+    "canonical gate executes the current v017 direct-action browser regression",
+    "the canonical browser regression includes the concrete Shenyang Industrial University school-to-major flow"
   ],
   "targets":{"android":"390px","pad":"768px","desktop":"1280px"},
   "status":"canonical-gate-verification"
