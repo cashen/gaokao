@@ -1,1 +1,0 @@
-v013 applies only to `/ln-rank/simulation-report.html`: forgiving major input, candidate confirmation, and school-context validation. It does not alter formal submission behavior.
