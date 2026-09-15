@@ -40,6 +40,8 @@
 
 canonical gate 必须执行当前 v017 contract、当前 v017 direct-action browser regression，以及 performance regression；不能调用过期的 v016 browser 脚本。
 
+当前仓库 CI 进一步采用资源边界触发：与 simulation-report 无关的 PR workflow 不应因 `ln-rank/**` 或其它宽路径匹配而启动；生产资源验证以 main 为主，专门模块验证只监听其实际负责的代码/测试输入。这样避免一次局部页面修改同时占用多个重型 runner。
+
 ## 7. 发布版本
 
 每次产品/验证修订都提升版本或修订号，并同步页面 cache-buster、release manifest、验证脚本和进度文件。
