@@ -8,7 +8,7 @@ const controllers=new Map();
 const rowContext=new Map();
 const schoolFactCache=new Map();
 const composing=new Set();
-const schoolSearchWorker=new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.24-r114',{type:'module'});
+const schoolSearchWorker=new Worker('/ln-rank/js/simulation-school-search-worker-v001.js?v=v016.25-r115',{type:'module'});
 let workerSeq=0;
 const pendingSchool=new Map();
 
@@ -20,7 +20,7 @@ const field=(id,name)=>card(id)?.querySelector(`[data-field="${CSS.escape(name)}
 const getState=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch{return null}};
 function patchRow(id,patch){try{const s=getState(),r=s?.volunteers?.find(x=>String(x.id)===String(id));if(!r)return;Object.assign(r,patch);localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}catch{}}
 function legacyRow(id){return document.querySelector(`#volunteerRows tr[data-row-id="${CSS.escape(String(id))}"]`)}
-function syncLegacyField(id,name,value){const input=legacyRow(id)?.querySelector(`[data-field="${CSS.escape(name)}"]`);if(!input)return;const depth=Number(window.__simulationResponsiveSyncDepth||0);window.__simulationResponsiveSyncDepth=depth+1;try{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))}finally{queueMicrotask(()=>{window.__simulationResponsiveSyncDepth=Math.max(0,Number(window.__simulationResponsiveSyncDepth||1)-1)})}}
+function syncLegacyField(id,name,value){const input=legacyRow(id)?.querySelector(`[data-field="${CSS.escape(name)}"]`);if(!input)return;input.value=value}
 function sync(id,name,value,delay=80){const key=`${name}:${id}`,old=timers.get(key);if(old)clearTimeout(old);if(!value){syncLegacyField(id,name,value);return}timers.set(key,setTimeout(()=>{timers.delete(key);syncLegacyField(id,name,value)},delay))}
 function box(id,kind,html,hidden=false){const input=field(id,kind==='school'?'school':'majorCode');if(!input)return;const attr=`data-v017-${kind}`;let el=input.parentElement?.querySelector(`[${attr}]`);if(!el){el=document.createElement('div');el.className=kind==='school'?'school-input-suggestions-v014 responsive-school-suggestions':'major-input-suggestions responsive-major-suggestions';el.setAttribute(attr,String(id));input.insertAdjacentElement('afterend',el)}el.innerHTML=html;el.hidden=hidden}
 function helper(id,text,tone='neutral'){const c=card(id);if(!c)return;let el=c.querySelector('[data-v017-helper]');if(!el){el=document.createElement('div');el.className='major-input-helper v014-helper';el.dataset.v017Helper=String(id);(field(id,'majorCode')?.parentElement||c).appendChild(el)}el.textContent=text;el.dataset.tone=tone}
