@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.31",
-  "revision":"r121-responsive-input-fastpath-gate",
+  "version":"simulation-workspace-v016.32",
+  "revision":"r122-ime-paste-real-gate",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v017-responsive-input.js",
   "legacyInputRuntime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
