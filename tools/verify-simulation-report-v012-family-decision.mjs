@@ -16,13 +16,14 @@ for (const expected of [
 if (html.includes('simulation-report-v011-family-decision.js')) throw new Error('legacy v011 visible decision runtime should not be loaded');
 for (const expected of [
   'paintSelection',
+  'writeFamilyStatus',
   'aria-pressed',
   'data-family-option',
   'data-family-current',
-  'value = \'保留\'',
-  'value = \'备选\'',
-  'value = \'待讨论\'',
-  'value = \'已排除\''
+  "'保留'",
+  "'备选'",
+  "'待讨论'",
+  "'已排除'"
 ]) {
   if (!js.includes(expected)) throw new Error(`runtime missing ${expected}`);
 }
