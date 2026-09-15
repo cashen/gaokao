@@ -3,8 +3,8 @@
 分支：`feat/simulation-workspace-v015-human-input`
 PR：#286
 基线 main：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
-当前版本：`simulation-workspace-v015.7`
-当前修订：`r081-runtime-syntax-contract`
+当前版本：`simulation-workspace-v015.8`
+当前修订：`r082-regression-matrix`
 当前阶段：Phase 1/2 implementation + regression
 当前 HEAD：以 GitHub PR #286 实时 HEAD 为唯一事实；本文件不替代 GitHub 状态。
 
@@ -28,12 +28,13 @@ PR：#286
 - [x] v015.5 加入 180ms 异步核验 debounce。
 - [x] v015.6 修正 debounce 后的体验回归：本地专业目录反馈在输入事件内即时显示，只有异步学校/事实核验延迟。
 - [x] v015.7 增加 runtime syntax static contract，浏览器回归前先阻断语法错误。
-- [x] 版本已提升到 `v015.7/r081`。
+- [x] v015.8 将 browser regression 扩展到 390/768/1280 三种 viewport，并覆盖快速逐字输入、IME lifecycle、paste、连续 Backspace、学校无专业、网络失败、换学校和请求预算。
+- [x] 每次代码修订均递增 version/revision。
 
 ## 尚未完成
 
 - [ ] Legacy compatibility 最终收口，并证明 PDF/排序/家庭状态无回归。
-- [ ] 真实粘贴/中文 IME/快速输入 browser regression 全覆盖。
+- [ ] 真实粘贴/中文 IME/快速输入 browser regression 全覆盖（当前为自动化 lifecycle/事件回归，仍需尽可能接近真实终端行为）。
 - [ ] School × Major 全场景：精确、关键词、代码类、学校无该专业、换学校/换专业确认失效。
 - [ ] URL inbound 冲突/duplicate 全覆盖。
 - [ ] 刷新/返回/后台恢复全覆盖。
@@ -45,6 +46,16 @@ PR：#286
 - [ ] 最终 Preview 必须精确对应最终 HEAD。
 - [ ] merge 后重新验证 main/Cloudflare/custom-domain/API/data-SHA parity。
 
+## 本 checkpoint 新增跟踪方法
+
+1. **三端尺寸矩阵**：同一场景同时覆盖 390 / 768 / 1280，避免只在手机宽度通过。
+2. **输入生命周期矩阵**：普通输入、快速逐字输入、IME compositionstart/compositionend、paste、真实 Backspace 分开验证。
+3. **事实边界矩阵**：学校实际专业存在、学校实际专业不存在、全国目录存在但学校记录不存在、网络失败分别验证文案和状态。
+4. **状态转换矩阵**：学校变化、专业变化、旧确认失效、候选重新核对必须验证，不只验证最终字段值。
+5. **性能证据**：请求计数纳入回归；发现重复查询时优先优化缓存/取消/debounce，不用关键词特判。
+6. **证据分层**：静态 contract → 浏览器行为 → CI → Preview exact SHA → Production parity，任何上层证据不能替代下层缺失证据。
+7. **故障分类**：测试失败必须先区分产品 bug、测试脚本 bug、数据/接口契约问题、GitHub runner/环境问题，再决定修代码还是修测试。
+
 ## 本 checkpoint 发现并纠正的风险
 
 1. **周期性 render**：v007 原先每 500ms 调用 render；已移除，避免用户输入期间被无意义刷新干扰。
@@ -53,12 +64,14 @@ PR：#286
 4. **回归测试过弱**：已把专业代码删除改为真实 Backspace，并加入学校不存在专业、换学校和请求计数检查。
 5. **debounce 误伤本地反馈**：v015.5 初版把整个 majorInput 延迟，导致本地目录反馈也延迟；v015.6 将本地 preview 与异步核验分离，保证输入即时可见。
 6. **运行时代码语法缺少独立门禁**：v015.7 在 contract 中加入去除 import 后的 `new Function` 语法校验，避免浏览器任务才暴露低级语法错误。
+7. **单 viewport 假通过**：v015.8 扩展到手机、Pad、桌面同一行为矩阵，降低“只在 390px 正常”的风险。
 
 ## 当前仍需重点验证
 
 - v015 仍通过 v007 兼容层完成排序/PDF/家庭状态等非输入职责；不能在没有回归证据前宣称已完全移除 Legacy。
 - fuzzy fallback 虽已有缓存，但仍可能对多个本地候选逐项查询；必须继续优化并以请求计数证明，而不是增加关键词特判。
-- CI 当前仅能证明 run/job 的真实状态；queued/pending/unknown 均不视为通过。
+- paste 自动化测试验证的是浏览器事件链，不等价于所有 Android/Alook 原生粘贴实现，仍需终端级回归。
+- CI 当前只能证明 run/job 的真实状态；queued/pending/unknown 均不视为通过。
 
 ## 数据所有权
 
@@ -77,6 +90,7 @@ PR：#286
 3. `main` 实时 SHA。
 4. 最新 v015 CI run/job；旧 SHA 结果不得替代新 HEAD。
 5. Preview/Production 实际部署状态。
+6. 若 HEAD 已变化，重新计算本轮所有证据，不沿用上一 HEAD 的结论。
 
 不得从聊天记录推断完成状态；不得把 queued/pending/unknown 当 passed；不得声称未验证的浏览器、Alook、生产状态已通过。
 
