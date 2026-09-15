@@ -9,7 +9,6 @@ on:
       - 'ln-rank/js/simulation-report-v016-pdf.js'
       - 'ln-rank/js/simulation-report-v017-responsive-input.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
-      - 'ln-rank/js/simulation-workbench-release-v016.json'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
       - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
