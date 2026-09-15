@@ -9,7 +9,7 @@ for(const expected of ['simulation-report-v014-school-major-intent.css?v=014-sch
 for(const expected of ['loadSchoolNameResolver','createMajorCatalogResolver','/api/ai/major-history','schoolKeyword','实际招生记录','broadTerms','schoolGroundedCandidates','不会把全国专业目录候选冒充成该校招生事实','uiState','rehydrateAll'])if(!js.includes(expected))throw new Error(`runtime missing ${expected}`);
 for(const expected of ['.school-input-suggestions-v014','.major-input-suggestions','min-height:46px','max-height:280px'])if(!css.includes(expected))throw new Error(`css missing ${expected}`);
 for(const expected of ['任意学校','实际招生记录','机械','网络','计算机','测空技术与仪器','不幻觉'])if(!plan.includes(expected))throw new Error(`plan missing ${expected}`);
-if(manifest.version!=='simulation-workspace-v014')throw new Error('manifest version mismatch');
-if(manifest.revision!=='r061-school-context-major-intent-browser-sync')throw new Error('manifest revision mismatch');
+if(manifest.version!=='simulation-workspace-v014.1')throw new Error('manifest version mismatch');
+if(manifest.revision!=='r062-school-sync-browser-timeout')throw new Error('manifest revision mismatch');
 if(manifest.noFabrication!==true)throw new Error('noFabrication must be true');
-console.log('simulation-report-v014-school-major-intent contract: PASS');
+console.log('simulation-report-v014.1-school-major-intent contract: PASS');
