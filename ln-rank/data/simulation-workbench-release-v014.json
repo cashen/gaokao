@@ -1,6 +1,6 @@
 {
-  "version": "simulation-workspace-v014.13",
-  "revision": "r075-input-clear-latency",
+  "version": "simulation-workspace-v014.14",
+  "revision": "r076-ci-concurrency-guard",
   "page": "/ln-rank/simulation-report.html",
   "runtime": "/ln-rank/js/simulation-report-v014-school-major-intent.js",
   "purpose": "all-school school-grounded fuzzy major filtering and strict school-major matching",
@@ -25,9 +25,10 @@
     "r072 final gate validates the complete v014.10 regression set before exact-head merge",
     "r073 current v014 browser regressions cover the remaining legacy history surface without reviving superseded markup",
     "r074 post-merge v011 compatibility uses the current v012 family decision layer and preserves legacy v011 sources only for auditability",
-    "r075 school input resolution is debounced, pending input work is invalidated on clear, and candidate DOM rendering is idempotent so deleting partial school text stays responsive"
+    "r075 school input resolution is debounced, pending input work is invalidated on clear, and candidate DOM rendering is idempotent so deleting partial school text stays responsive",
+    "r076 PR-scoped concurrency guards cancel obsolete runs so the latest verification head is not starved by stale queued jobs"
   ],
   "mobileTarget": "390px",
   "desktopTarget": "1280px",
-  "status": "input-clear-regression-fix-awaiting-ci"
+  "status": "ci-concurrency-guard-awaiting-run"
 }
