@@ -3,8 +3,8 @@
 分支：`feat/simulation-workspace-v015-human-input`
 PR：#286
 基线 main：`6c18f7aeadfb66f5eef940d8f3ccb4cbe0d16a5a`
-当前版本：`simulation-workspace-v015.8`
-当前修订：`r082-regression-matrix`
+当前版本：`simulation-workspace-v015.9`
+当前修订：`r083-exact-school-major-confirmation`
 当前阶段：Phase 1/2 implementation + regression
 当前 HEAD：以 GitHub PR #286 实时 HEAD 为唯一事实；本文件不替代 GitHub 状态。
 
@@ -29,6 +29,7 @@ PR：#286
 - [x] v015.6 修正 debounce 后的体验回归：本地专业目录反馈在输入事件内即时显示，只有异步学校/事实核验延迟。
 - [x] v015.7 增加 runtime syntax static contract，浏览器回归前先阻断语法错误。
 - [x] v015.8 将 browser regression 扩展到 390/768/1280 三种 viewport，并覆盖快速逐字输入、IME lifecycle、paste、连续 Backspace、学校无专业、网络失败、换学校和请求预算。
+- [x] v015.9 修正最终学校专业确认过宽的问题：当候选同时带有专业名称和专业代码时，实际记录必须同时满足学校、名称、代码，不能仅因名称相同而误确认。
 - [x] 每次代码修订均递增 version/revision。
 
 ## 尚未完成
@@ -55,6 +56,7 @@ PR：#286
 5. **性能证据**：请求计数纳入回归；发现重复查询时优先优化缓存/取消/debounce，不用关键词特判。
 6. **证据分层**：静态 contract → 浏览器行为 → CI → Preview exact SHA → Production parity，任何上层证据不能替代下层缺失证据。
 7. **故障分类**：测试失败必须先区分产品 bug、测试脚本 bug、数据/接口契约问题、GitHub runner/环境问题，再决定修代码还是修测试。
+8. **事实确认双键**：最终专业确认若同时存在名称和代码，必须要求名称与代码均匹配，防止“同名不同代码”误确认。
 
 ## 本 checkpoint 发现并纠正的风险
 
@@ -65,6 +67,7 @@ PR：#286
 5. **debounce 误伤本地反馈**：v015.5 初版把整个 majorInput 延迟，导致本地目录反馈也延迟；v015.6 将本地 preview 与异步核验分离，保证输入即时可见。
 6. **运行时代码语法缺少独立门禁**：v015.7 在 contract 中加入去除 import 后的 `new Function` 语法校验，避免浏览器任务才暴露低级语法错误。
 7. **单 viewport 假通过**：v015.8 扩展到手机、Pad、桌面同一行为矩阵，降低“只在 390px 正常”的风险。
+8. **最终确认条件过宽**：v015.9 发现 `exactRecord` 原先使用“代码或名称任一匹配”，可能让同名但代码不同的专业被误确认；现改为提供什么就必须全部匹配。
 
 ## 当前仍需重点验证
 
