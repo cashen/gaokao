@@ -1,0 +1,47 @@
+name: Verify simulation report v013 major input
+
+on:
+  pull_request:
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report-v013-major-input.js'
+      - 'ln-rank/css/simulation-report-v013-major-input.css'
+      - 'ln-rank/data/simulation-workbench-release-v013.json'
+      - 'docs/plans/simulation-major-input-v013.md'
+      - 'tools/verify-simulation-report-v013-major-input.mjs'
+      - 'tools/browser-simulation-report-v013-major-input.mjs'
+      - '.github/workflows/verify-simulation-report-v013-major-input.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/js/simulation-report-v013-major-input.js'
+      - 'ln-rank/css/simulation-report-v013-major-input.css'
+      - 'ln-rank/data/simulation-workbench-release-v013.json'
+      - 'docs/plans/simulation-major-input-v013.md'
+      - 'tools/verify-simulation-report-v013-major-input.mjs'
+      - 'tools/browser-simulation-report-v013-major-input.mjs'
+      - '.github/workflows/verify-simulation-report-v013-major-input.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/verify-simulation-report-v013-major-input.mjs
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
+      - run: node tools/browser-simulation-report-v013-major-input.mjs
