@@ -1,5 +1,5 @@
 import { MAJOR_CATALOG_2026 } from '../kb/major-understanding/major-catalog-2026.generated.js';
-import { createMajorCatalogResolver } from '../kb/../shared/resources/majors/major-catalog-contract.js';
+import { createMajorCatalogResolver } from '../../shared/resources/majors/major-catalog-contract.js';
 
 const STORAGE_KEY = 'gaokao:simulation-report:v002';
 const resolver = createMajorCatalogResolver(MAJOR_CATALOG_2026);
