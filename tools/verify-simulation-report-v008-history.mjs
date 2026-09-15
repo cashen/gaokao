@@ -17,6 +17,6 @@ assert.match(js, /只用于回看近三年投档记录/);
 assert.match(css, /\.history-hint-grid\{display:grid;grid-template-columns:repeat\(3/);
 assert.match(css, /\.detail-panel \.history-strip\{display:none!important\}/);
 assert.match(currentRuntime, /history|近3年/);
-assert.equal(manifest.version, 'simulation-workspace-v014.6');
-assert.equal(manifest.revision, 'r068-v012-browser-harness');
+assert.equal(manifest.version, 'simulation-workspace-v014.7');
+assert.equal(manifest.revision, 'r069-current-workbench-regression-cleanup');
 console.log('simulation-report-v008 compatibility contract on current workbench: PASS');
