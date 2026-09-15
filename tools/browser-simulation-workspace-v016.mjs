@@ -20,6 +20,7 @@ for(const viewport of viewports){
   await page.waitForFunction(el=>el?.textContent?.includes('东北大学')||el?.textContent?.includes('找到'),await helper.elementHandle(),{timeout:5000});
   const majorRequests=requests.filter(url=>new URL(url).searchParams.get('schoolKeyword')==='东北大学');assert.equal(majorRequests.length,1,`${viewport.name}: first major verification must be one bounded request`);assert.ok(new URL(majorRequests[0]).searchParams.getAll('major').length<=12);
   const choice=page.locator('[data-v017-major-code]').filter({hasText:'机械工程'}).first();await choice.waitFor({state:'visible',timeout:3000});await choice.click();await page.waitForFunction(el=>el?.textContent?.includes('已确认：东北大学'),await helper.elementHandle(),{timeout:3000});
+  const afterChoiceRequests=requests.filter(url=>new URL(url).searchParams.get('schoolKeyword')==='东北大学');assert.equal(afterChoiceRequests.length,1,`${viewport.name}: selecting a major already covered by the school-fact query must not issue a duplicate request`);
   const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);assert.equal(persisted.school,'东北大学');assert.equal(persisted.confirmedSchool,'东北大学');assert.equal(persisted.majorName,'机械工程');
   await major.fill('');
   await page.evaluate(()=>{const el=document.querySelector('[data-field="majorCode"]');el.focus();el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.value='机械';el.dispatchEvent(new InputEvent('input',{bubbles:true,data:'机械',inputType:'insertCompositionText'}));el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'机械'}));});
@@ -46,4 +47,4 @@ for(const viewport of viewports){
   const page=await context.newPage();await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&majorCode=080801&majorName=%E8%87%AA%E5%8A%A8%E5%8C%96',{waitUntil:'domcontentloaded',timeout:15000});await page.waitForTimeout(700);assert.equal(await page.locator('.volunteer-card').count(),1);assert.match(await page.locator('body').innerText(),/已经在志愿 1/);await browser.close();
 }
 
-console.log('simulation-workspace-v016.34 browser: PASS');
+console.log('simulation-workspace-v016.35 browser: PASS');
