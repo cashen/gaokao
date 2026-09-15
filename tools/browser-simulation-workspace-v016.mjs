@@ -46,4 +46,4 @@ for(const viewport of viewports){
   const page=await context.newPage();await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&majorCode=080801&majorName=%E8%87%AA%E5%8A%A8%E5%8C%96',{waitUntil:'domcontentloaded',timeout:15000});await page.waitForTimeout(700);assert.equal(await page.locator('.volunteer-card').count(),1);assert.match(await page.locator('body').innerText(),/已经在志愿 1/);await browser.close();
 }
 
-console.log('simulation-workspace-v016.33 browser: PASS');
+console.log('simulation-workspace-v016.34 browser: PASS');
