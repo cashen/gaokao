@@ -34,45 +34,35 @@
 
 当前运行时：`simulation-report-v017-responsive-input.js`。
 
-## 6. Workflow 收敛
+## 6. v016.42 / r132 本轮生命周期修复
 
-历史 simulation-report v001/v003/v005/v006/v007/v008/v009/v010/v011/v012/v013/v014 自动触发退出，改为 `workflow_dispatch` 手动取证。当前模拟工作台只使用 `.github/workflows/verify-simulation-workspace-v016.yml` 作为 canonical gate。
+旧 v007 workbench 仍负责历史展示，因此不能继续以固定周期或宽范围 MutationObserver 对 `#wbRows` 做整卡 `innerHTML` 重绘。该路径会销毁 v017 刚生成的候选 button，造成“候选看得到但点不进去”的真实人类交互故障。
 
-canonical gate 必须执行当前 v017 contract、当前 v017 direct-action browser regression，以及 performance regression；不能调用过期的 v016 browser 脚本。
+本轮将旧运行时改为仅在明确终态需要同步时刷新，当前候选确认仍由 v017 独立直接绑定 button；不会为了补一个点击问题继续增加第三套事件委托。
 
-当前仓库 CI 进一步采用资源边界触发：与 simulation-report 无关的 PR workflow 不应因 `ln-rank/**` 或其它宽路径匹配而启动；生产资源验证以 main 为主，专门模块验证只监听其实际负责的代码/测试输入。这样避免一次局部页面修改同时占用多个重型 runner。
+专业确认完成后，历史记录重新写入同一志愿的 `history.years`，让三年历史显示直接消费确认后的事实；不存在严格历史记录时明确写入 `no-strict-record`，不得静默缺失。
 
-## 7. 发布版本
+## 7. Workflow 收敛
+
+历史 simulation-report v001/v003/v005/v006/v007/v008/v009/v010/v011/v012/v013/v014 自动触发退出，改为 `workflow_dispatch` 手动取证。当前模拟工作台的 PR 功能性验证只使用 `.github/workflows/verify-simulation-workspace-v016.yml` 作为 canonical gate。
+
+其他重型跨站/生产验证不应因为 `simulation-report.html` 局部修改反复启动；主干发布级验证放在 main push 阶段完成，模块级 PR 只验证自己真正负责的资源边界。
+
+## 8. 发布版本
 
 每次产品/验证修订都提升版本或修订号，并同步页面 cache-buster、release manifest、验证脚本和进度文件。
 
-当前版本：`simulation-workspace-v016.41`
-当前修订：`r131-school-worker-and-performance-gate`
+当前版本：`simulation-workspace-v016.42`
+当前修订：`r132-candidate-lifecycle-and-history-hydration`
 当前运行时实现：`v016.39-r129`
 
-本轮还补齐了运行时 Worker 和性能门禁：
+## 9. 发布级真实回归
 
-- `ln-rank/js/simulation-school-search-worker-v001.js`：复用既有 v150 学校目录 resolver 与 v3969 学校查询引擎，专门负责候选搜索和严格 resolve。
-- `tools/browser-simulation-workspace-v016-performance.mjs`：测量学校/专业输入事件的同步 dispatch 成本，防止输入本身被同步计算拖慢。
+canonical browser regression 必须覆盖 Android 390、Pad 768、Desktop 1280；输入 `沈阳工业大学`，确认候选中的 `辽宁省 / 沈阳市 / 本科 / 名称完全一致`，点击 `选这所`；再输入专业，点击 `选这个`；检查 `confirmedSchool`、`majorCode`、`majorName` 以及 `history.years` 实际持久化；检查无 page error；输入性能同步 dispatch 满足 canonical performance gate。
 
-## 8. 发布级真实回归
+同时保留具体“沈阳工业大学 → 电气工程及其自动化”回归，用来验证候选在短暂异步和旧 DOM 生命周期下仍可持续点击。
 
-canonical browser regression 必须覆盖：
-
-- Android 390
-- Pad 768
-- Desktop 1280
-- 输入 `沈阳工业大学`
-- 候选显示 `辽宁省 / 沈阳市 / 本科 / 名称完全一致`
-- 点击候选内部真实文字 `选这所`
-- 等待 `已确认学校：沈阳工业大学`
-- 输入具体专业
-- 点击候选内部真实文字 `选这个`
-- 检查 `confirmedSchool`、`majorCode`、`majorName` 实际持久化
-- 检查无 page error
-- 输入性能同步 dispatch 满足 canonical performance gate
-
-## 9. Merge Gate
+## 10. Merge Gate
 
 只有以下全部成立才允许 merge：
 
