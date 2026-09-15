@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.38",
-  "revision":"r128-single-action-runtime",
+  "version":"simulation-workspace-v016.39",
+  "revision":"r129-canonical-gate-alignment",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v017-responsive-input.js",
   "schoolSearchWorker":"/ln-rank/js/simulation-school-search-worker-v001.js",
@@ -22,7 +22,8 @@
     "stale worker and network responses cannot overwrite newer input",
     "release revisions increment for every revision",
     "the current page has one canonical candidate click path",
-    "historical simulation-report workflows are manual-only"
+    "historical simulation-report workflows are manual-only",
+    "canonical gate executes the current v017 direct-action browser regression"
   ],
   "targets":{"android":"390px","pad":"768px","desktop":"1280px"},
   "status":"canonical-gate-verification"
