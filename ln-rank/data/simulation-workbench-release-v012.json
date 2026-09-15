@@ -1,0 +1,14 @@
+{
+  "version": "simulation-workspace-v012",
+  "revision": "r056-family-decision-visual-feedback",
+  "baseSiteRelease": "v3.9.90.3",
+  "page": "/ln-rank/simulation-report.html",
+  "purpose": "make family decisions immediately understandable, clickable, persistable, and visually distinct without relying on color alone",
+  "baseRuntime": "simulation-report-v007-workbench.js",
+  "historyRuntime": "simulation-report-v010-history-layout.js",
+  "familyDecisionRuntime": "simulation-report-v012-family-decision.js",
+  "familyDecisionCss": "simulation-report-v012-family-decision.css",
+  "legacyStatusValues": ["待讨论", "保留", "备选", "已排除"],
+  "visibleLabels": ["继续考虑", "候选", "还没决定", "排除"],
+  "interaction": "visible buttons update aria-pressed immediately and write through the existing hidden familyStatus controller"
+}
