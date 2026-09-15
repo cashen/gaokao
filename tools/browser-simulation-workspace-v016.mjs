@@ -27,4 +27,15 @@ for(const viewport of viewports){
   await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.volunteer-card',{timeout:10000});assert.ok(await page.locator('body').innerText().length>0,`${viewport.name}: refresh should recover draft`);
   await browser.close();
 }
-console.log('simulation-workspace-v016 browser: PASS');
+
+// URL inbound: conflicting code/name must be surfaced, not silently coerced.
+{
+  const browser=await chromium.launch({headless:true});
+  const context=await browser.newContext({viewport:{width:1280,height:900},locale:'zh-CN'});
+  await context.addInitScript(()=>{localStorage.clear();localStorage.setItem('gaokao:simulation-report:v002',JSON.stringify({version:2,studentName:'',subjectTrack:'辽宁物理类（物化生）',totalScore:'',volunteers:[{id:'inbound-1',order:1,school:'',majorCode:'',majorName:'',familyStatus:'待讨论',history:{years:{}}}],selectionPool:[]}))});
+  const page=await context.newPage();
+  await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&majorCode=080301&majorName=%E8%87%AA%E5%8A%A8%E5%8C%96',{waitUntil:'domcontentloaded',timeout:15000});
+  await page.waitForTimeout(700);assert.match(await page.locator('body').innerText(),/代码与专业名称不一致/,'URL inbound conflict must be visible');
+  await browser.close();
+}
+console.log('simulation-workspace-v016.1 browser: PASS');

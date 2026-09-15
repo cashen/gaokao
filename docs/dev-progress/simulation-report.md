@@ -1,10 +1,10 @@
 # 模拟志愿填报单页开发进度
 
 当前主线：`feat/simulation-workspace-v016-human-complete`
-PR：待创建
+PR：#290
 基线 main：`7873c939e3cfebc4bf3e48a230de09dadd930d60`
-当前版本：`simulation-workspace-v016.0`
-当前修订：`r090-human-input-integration`
+当前版本：`simulation-workspace-v016.1`
+当前修订：`r091-inbound-conflict-regression`
 阶段：v016 implementation-ready-awaiting-regression
 
 ## 已完成
@@ -22,7 +22,7 @@ PR：待创建
 - [x] AbortController + token + fact cache。
 - [x] 学校/专业变化时旧确认失效。
 - [x] v007 移除 500ms 周期性 render 并补 URL inbound code/name 冲突检查。
-- [x] 版本/revision 统一 bump 到 v016.0/r090。
+- [x] 增加 URL inbound conflict regression；版本/revision bump 到 v016.1/r091。
 
 ## 尚未宣称完成
 
