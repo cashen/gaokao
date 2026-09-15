@@ -4,6 +4,49 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shared/resources/release/**'
+      - 'shared/resources/resource-registry.js'
+      - 'shared/governance/**'
+      - 'shared/ui/**'
+      - 'shared/algorithms/**'
+      - 'shared/resources/schools/**'
+      - 'functions/_lib/**'
+      - 'functions/api/**'
+      - 'ln-rank/**'
+      - 'ln2026.html'
+      - 'zy2026/**'
+      - 'tongxue/**'
+      - 'aiplus/**'
+      - 'tools/ln-2026/**'
+      - 'tools/schools/**'
+      - 'tools/tongxue/**'
+      - 'tools/audit-*.mjs'
+      - 'tools/verify-*.mjs'
+      - 'tools/build-*.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/resources/release/**'
+      - 'shared/resources/resource-registry.js'
+      - 'shared/governance/**'
+      - 'shared/ui/**'
+      - 'shared/algorithms/**'
+      - 'shared/resources/schools/**'
+      - 'functions/_lib/**'
+      - 'functions/api/**'
+      - 'ln-rank/**'
+      - 'ln2026.html'
+      - 'zy2026/**'
+      - 'tongxue/**'
+      - 'aiplus/**'
+      - 'tools/ln-2026/**'
+      - 'tools/schools/**'
+      - 'tools/tongxue/**'
+      - 'tools/audit-*.mjs'
+      - 'tools/verify-*.mjs'
+      - 'tools/build-*.mjs'
+  workflow_dispatch:
 
 permissions:
   contents: read
