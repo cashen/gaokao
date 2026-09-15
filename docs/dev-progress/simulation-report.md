@@ -3,9 +3,9 @@
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
 基线 main：`7873c939e3cfebc4bf3e48a230de09dadd930d60`
-当前版本：`simulation-workspace-v016.6`
-当前修订：`r096-final-compat-sync-pdf`
-阶段：final-regression-awaiting-ci
+当前版本：`simulation-workspace-v016.9`
+当前修订：`r099-final-regression`
+阶段：final-regression
 
 ## 已完成
 
@@ -22,31 +22,22 @@ PR：#290
 - [x] fact cache + 请求预算控制。
 - [x] v007 移除正常运行期间 500ms 周期 render。
 - [x] URL inbound majorCode/majorName 冲突拦截与重复检测。
-- [x] 隐藏 Legacy 数据同步不再触发可见工作台重绘；避免输入失焦/抢焦点，同时保留既有历史、排序、家庭状态数据链路。
-- [x] 当前 PDF 输出单独由 v016 层接管：字段标明“待核实”，后续页面重复顶部考生信息，移除旧家庭判断术语。
-- [x] 当前 HTML cache-buster 与 v016.6/r096 统一。
-- [x] 版本/revision 已 bump 到 `v016.6/r096`。
+- [x] 隐藏 Legacy 数据同步不再触发可见工作台重绘；异步 Legacy 更新也被 render guard 隔离。
+- [x] 当前 PDF 由 v016 独立接管；字段标明“待核实”，后续页面重复顶部考生信息，不使用旧家庭判断术语。
+- [x] HTML cache-buster、manifest、contract、browser regression 统一到 `v016.9/r099`。
 
 ## 尚未宣称完成
 
-- [ ] v016.6 contract 实际执行通过。
+- [ ] v016.9 contract 实际执行通过。
 - [ ] 390/768/1280 browser 实际执行通过。
 - [ ] Windows Chrome / Android Chrome / Android Alook / Pad 实机检查。
 - [ ] PDF 多页、第二页头信息、待核实字段最终浏览器实测。
-- [ ] GitHub v016 workflow 在当前 HEAD 真正启动并完成。
-- [ ] Cloudflare Preview 精确对应最终 HEAD。
+- [ ] GitHub v016 workflow 在当前最终 HEAD 真正启动并完成。
+- [ ] Cloudflare Preview 精确对应最终 HEAD 且构建完成。
 - [ ] Production/custom-domain/API/data-SHA parity。
-- [ ] 关闭已废弃分支 refs（当前工具没有 delete branch ref 能力）。
-- [ ] 最终合并 main。
+- [ ] 使用 exact final head merge 到 main。
+- [ ] 清理已废弃 branch refs（当前工具无 delete branch ref 操作）。
 
-## CI 现状
+## 当前门禁
 
-此前最终 HEAD 出现 `pending / total_count=0`，说明不是产品测试失败，而是 Actions 触发层没有产生 run。当前提交已取消 `[skip ci]`；必须重新核验最新 HEAD 是否实际产生 v016 workflow。queued/pending/unknown 均不得视为 passed。
-
-## 断网续接
-
-恢复只认本文件、PR 实际 HEAD、main 实时 SHA、最新 CI/Preview/Production。旧 PR/旧 SHA 证据不得替代当前 HEAD。
-
-## Merge Gate
-
-只有最终 HEAD 的 contract/browser/多端/PDF/Preview 证据均满足，并确认生产 parity 后，才能使用 exact expected head merge 到 `main`；merge 后必须再次读取 main SHA 并验证线上。
+必须把 `main`、PR、最新 HEAD、Actions、Cloudflare、生产逐层核验。任何旧 SHA 证据都不能替代当前最终 HEAD。
