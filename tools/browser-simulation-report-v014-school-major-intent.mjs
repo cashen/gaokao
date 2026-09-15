@@ -34,8 +34,9 @@ async function run(viewport,label){
   await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded',timeout:15000});
   await page.waitForSelector('.volunteer-card',{timeout:15000});
   let c=page.locator('.volunteer-card').first();
+  const schoolResponse=page.waitForResponse(response=>response.url().includes('/tongxue/data/school-search-index.20260617-v150.json')&&response.ok(),{timeout:15000});
   await setInput(c.locator('[data-field="school"]'),'辽宁科技大学');
-  await page.waitForFunction(()=>document.querySelector('[data-v014-helper]')?.innerText.includes('已识别学校'),null,{timeout:10000});
+  await schoolResponse;
   await setInput(page.locator('.volunteer-card').first().locator('[data-field="majorCode"]'),'机械');
   await page.waitForSelector('[data-v014-major-box] .major-suggestion',{timeout:15000});
   let currentMajor=page.locator('.volunteer-card').first().locator('[data-field="majorCode"]');
