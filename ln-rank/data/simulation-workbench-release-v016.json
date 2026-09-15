@@ -1,6 +1,6 @@
 {
-  "version":"simulation-workspace-v016.16",
-  "revision":"r106-final-legacy-contract",
+  "version":"simulation-workspace-v016.17",
+  "revision":"r107-duplicate-inbound-regression",
   "page":"/ln-rank/simulation-report.html",
   "runtime":"/ln-rank/js/simulation-report-v015-human-workbench.js",
   "pdfRuntime":"/ln-rank/js/simulation-report-v016-pdf.js",
