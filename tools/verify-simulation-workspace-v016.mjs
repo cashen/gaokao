@@ -7,7 +7,6 @@ const worker=fs.readFileSync('ln-rank/js/simulation-school-search-worker-v001.js
 const guard=fs.readFileSync('ln-rank/js/simulation-report-v016-legacy-render-guard.js','utf8');
 const pdf=fs.readFileSync('ln-rank/js/simulation-report-v016-pdf.js','utf8');
 const legacy=fs.readFileSync('ln-rank/js/simulation-report-v007-workbench.js','utf8');
-const legacyPdf=fs.readFileSync('ln-rank/js/simulation-report-v005-pdf-reminders.js','utf8');
 const api=fs.readFileSync('functions/api/ai/major-history.js','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v016.json','utf8'));
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf8');
