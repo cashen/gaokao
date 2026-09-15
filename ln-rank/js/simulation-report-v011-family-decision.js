@@ -2,8 +2,8 @@ const STORAGE_KEY = 'gaokao:simulation-report:v002';
 
 const OPTIONS = [
   { value: '保留', label: '继续考虑' },
-  { value: '备选', label: '先留着' },
-  { value: '待讨论', label: '候选' },
+  { value: '备选', label: '候选' },
+  { value: '待讨论', label: '还没决定' },
   { value: '已排除', label: '排除' }
 ];
 
@@ -35,7 +35,7 @@ function syncFamilyStatus(id, value) {
 
 function currentCopy(value) {
   if (value === '保留') return '继续考虑';
-  if (value === '备选') return '先留着';
+  if (value === '备选') return '候选';
   if (value === '已排除') return '排除';
   return '还没决定';
 }
@@ -44,7 +44,7 @@ function buildDecision(row) {
   const id = escapeHtml(row.id);
   const selected = row.familyStatus || '待讨论';
   const buttons = OPTIONS.map(option => {
-    const pressed = selected === option.value && selected !== '待讨论';
+    const pressed = selected === option.value;
     return `<button type="button" class="family-option" data-family-option="${escapeHtml(option.value)}" data-id="${id}" aria-pressed="${pressed ? 'true' : 'false'}">${escapeHtml(option.label)}</button>`;
   }).join('');
   return `<div class="family-decision" data-family-decision="${id}" role="group" aria-label="这所学校怎么处理？"><div class="family-decision-label">这所学校怎么处理？ <span class="family-current">目前：<strong>${escapeHtml(currentCopy(selected))}</strong></span></div><div class="family-decision-options">${buttons}</div></div>`;
