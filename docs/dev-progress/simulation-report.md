@@ -12,10 +12,10 @@ PR：#290
 - [x] v016.32 contract 失败根因定位为真实 `Backspace` 回归缺失；不是 timeout。
 - [x] Playwright 现在真实执行 Backspace，并立即校验 active major input 的值同步变化。
 - [x] 专用 simulation workflow 改为对 `pull_request.head.sha` 显式 checkout，避免 PR job 使用 merge ref 偏离 exact HEAD。
-- [x] 发现并修复版本/cache-buster 不一致：HTML 与 responsive runtime 的 active worker cache key 同步。
+- [x] HTML 与 responsive runtime 的 active worker cache key 已同步到当前 release revision。
 - [x] 专业宽泛输入后的具体专业选择复用已有学校事实缓存，避免“机械 → 机械工程”再次发送重复网络请求。
 - [x] browser regression 增加“已被此前学校事实查询覆盖的具体专业不得产生第二次请求”真实请求计数门禁。
-- [x] v016.35/r125 manifest、HTML cache-buster、contract、browser regression、progress 已同步。
+- [x] v016.35/r125 manifest、HTML cache-buster、responsive runtime、contract、browser regression、progress 已同步。
 
 ## 已确认的输入架构
 
