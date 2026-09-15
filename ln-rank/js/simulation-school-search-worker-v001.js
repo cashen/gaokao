@@ -7,6 +7,12 @@ const text=value=>String(value??'').normalize('NFKC').replace(/\u00a0/g,' ').tri
 // Warm the heavy school directory off the main thread as soon as the worker starts.
 void resolver().catch(()=>{});
 
+function candidateView(r,item){
+  const name=text(item?.officialName||item?.name);
+  const meta=typeof r.getMetadata==='function'?r.getMetadata(name):null;
+  return {officialName:name,province:text(meta?.province),city:text(meta?.city),level:text(meta?.level),location:text(meta?.location),score:Number.isFinite(item?.score)?item.score:null,matchType:text(item?.matchType)};
+}
+
 self.onmessage=async event=>{
   const {type,id,seq,query}=event.data||{};
   const q=text(query);
@@ -14,7 +20,7 @@ self.onmessage=async event=>{
     const r=await resolver();
     if(type==='search'){
       const rows=typeof r.search==='function'?r.search(q,{limit:6}):((await r.resolve(q,{limit:6}))?.candidates||[]);
-      self.postMessage({type:'school-candidates',id,seq,candidates:(rows||[]).map(item=>({officialName:text(item.officialName||item.name)})).filter(item=>item.officialName)});
+      self.postMessage({type:'school-candidates',id,seq,candidates:(rows||[]).map(item=>candidateView(r,item)).filter(item=>item.officialName)});
       return;
     }
     if(type==='resolve'){
