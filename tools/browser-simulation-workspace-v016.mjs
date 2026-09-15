@@ -14,7 +14,9 @@ for(const viewport of viewports){
   await page.waitForSelector('.volunteer-card[data-card-id="v016-1"]',{timeout:10000});
   const school=page.locator('[data-field="school"]').first();const major=page.locator('[data-field="majorCode"]').first();const helper=page.locator('[data-v015-helper]').first();
   await major.fill('机械');await page.waitForTimeout(100);assert.ok(await page.locator('[data-v015-major]').first().isVisible(),`${viewport.name}: 机械输入应立即有目录反馈`);
-  await school.fill('东北大学');await page.waitForTimeout(500);const choices=page.locator('[data-v015-school-choice]');assert.ok(await choices.count(),`${viewport.name}: 学校候选必须可确认`);await choices.first().click();
+  await school.fill('东北大学');
+  await page.locator('[data-v015-school-choice]').first().waitFor({state:'visible',timeout:5000});
+  const choices=page.locator('[data-v015-school-choice]');assert.ok(await choices.count(),`${viewport.name}: 学校候选必须可确认`);await choices.first().click();
   await major.fill('');await major.pressSequentially('自动化',{delay:15});await page.waitForTimeout(700);assert.equal(await major.inputValue(),'自动化');assert.match(await page.locator('body').innerText(),/自动化/);
   const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);assert.equal(persisted.school,'东北大学');assert.equal(persisted.majorCode,'自动化','visible human input must be synchronized to legacy data source');
   await major.fill('');await major.dispatchEvent('compositionstart');await major.evaluate(el=>{el.value='机械';el.dispatchEvent(new Event('input',{bubbles:true}))});await major.dispatchEvent('compositionend');await page.waitForTimeout(700);assert.equal(await major.inputValue(),'机械');assert.match(await helper.textContent(),/找到|核对|实际专业/);
@@ -51,4 +53,4 @@ for(const viewport of viewports){
   await browser.close();
 }
 
-console.log('simulation-workspace-v016.17 browser: PASS');
+console.log('simulation-workspace-v016.18 browser: PASS');

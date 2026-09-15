@@ -11,14 +11,14 @@ const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-rel
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v016.mjs','utf8');
 
 for (const src of [
-  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.17-r107',
-  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.17-r107',
-  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.17-r107'
+  '/ln-rank/js/simulation-report-v015-human-workbench.js?v=v016.18-r108',
+  '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.18-r108',
+  '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.18-r108'
 ]) assert.ok(html.includes(src), `html missing ${src}`);
 assert.ok(!html.includes('simulation-report-v006-input-bridge.js'));
 assert.ok(!html.includes('simulation-report-v014-school-major-intent.js'));
-assert.equal(manifest.version,'simulation-workspace-v016.17');
-assert.equal(manifest.revision,'r107-duplicate-inbound-regression');
+assert.equal(manifest.version,'simulation-workspace-v016.18');
+assert.equal(manifest.revision,'r108-browser-school-wait');
 assert.equal(manifest.runtime,'/ln-rank/js/simulation-report-v015-human-workbench.js');
 assert.equal(manifest.pdfRuntime,'/ln-rank/js/simulation-report-v016-pdf.js');
 assert.equal(manifest.legacyRenderGuard,'/ln-rank/js/simulation-report-v016-legacy-render-guard.js');
@@ -41,6 +41,6 @@ assert.ok(!legacy.includes('setInterval(()=>render(),500)'));
 for(const expected of ['html2canvas','jsPDF','pdf-v016-title','报考信息（待核实）','第二页及后续页面重复顶部考生信息','家庭处理','pdf.save']) assert.ok(pdf.includes(expected),`pdf runtime missing ${expected}`);
 assert.ok(!pdf.includes('家庭判断'));
 assert.ok(!pdf.includes('冲稳保'));
-for(const expected of ['390','768','1280','pressSequentially','compositionstart','insertFromPaste','网络失败','Backspace','URL inbound','inbound conflict','duplicate','refresh','visible human input must be synchronized']) assert.ok(browser.includes(expected),`browser regression missing ${expected}`);
+for(const expected of ['390','768','1280','pressSequentially','compositionstart','insertFromPaste','网络失败','Backspace','URL inbound','inbound conflict','duplicate','refresh','visible human input must be synchronized','waitFor({state:\'visible\',timeout:5000})']) assert.ok(browser.includes(expected),`browser regression missing ${expected}`);
 assert.ok(!legacyPdf.includes('家庭判断') || legacyPdf.includes('待核实') || legacyPdf.includes('核对与提醒'),'legacy reminder layer must remain a compatible non-visible layer');
-console.log('simulation-workspace-v016.17 contract: PASS');
+console.log('simulation-workspace-v016.18 contract: PASS');
