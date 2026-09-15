@@ -7,7 +7,7 @@ const PDF_LIBS = {
 let pdfLibPromise = null;
 let reminderOpen = new Set();
 
-const esc = value => String(value ?? '').replace(/[&<>\"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const esc = value => String(value ?? '').replace(/[&<>\"']/g, char => ({ '&': '&lt;'.replace('&', '&'), '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
 function readState() {
   try {
@@ -54,8 +54,8 @@ function getReminders(row) {
   if (historyYears.some(item => item?.comparable === false && item?.recordStatus !== 'primary-record')) reminders.push({ level: 'check', text: '部分历史记录口径需要核验，请结合当年招生章程判断。' });
   const manualFilled = ['institutionCode', 'groupCode', 'campus', 'studyLocation', 'tuition', 'accommodationFee', 'planCount', 'studyLength', 'trainingMode', 'subjectRequirement', 'remark'].filter(key => input[key]);
   if (manualFilled.length) reminders.push({ level: 'check', text: `你已留下 ${manualFilled.length} 项人工核对记录，填报前请逐项与当年官方资料确认。` });
-  if (input.familyDecision || row.familyStatus || row.familyNote) {
-    const family = [row.familyDecision, row.familyStatus, row.familyNote].filter(Boolean).join(' · ');
+  if (row.familyStatus || row.familyNote) {
+    const family = [row.familyStatus, row.familyNote].filter(Boolean).join(' · ');
     reminders.push({ level: 'family', text: `家庭处理：${family}` });
   }
   if (!reminders.length) reminders.push({ level: 'ok', text: '目前没有发现需要特别提醒的项目。' });
@@ -75,7 +75,7 @@ function decorateRows() {
     const old = rowEl.querySelector('.manual-wrap');
     if (!old) return;
     if (rowEl.querySelector('.scenario-wrap')) return;
-    old.replaceWith(document.createRange().createContextualFragment(reminderPanel({ id: rowId, ...readState()?.volunteers?.find(row => row.id === rowId) }))); 
+    old.replaceWith(document.createRange().createContextualFragment(reminderPanel({ id: rowId, ...readState()?.volunteers?.find(row => row.id === rowId) })));
   });
 }
 
@@ -175,7 +175,7 @@ function buildPdfRoot() {
     const delta = row.history?.years?.[2026]?.rank && Number(state.rank) > 0 ? `${Number(row.history.years[2026].rank) - Number(state.rank) > 0 ? '+' : ''}${(Number(row.history.years[2026].rank) - Number(state.rank)).toLocaleString('zh-CN')}名` : '—';
     const card = document.createElement('section');
     card.className = 'pdf-card';
-    card.innerHTML = `<div class="pdf-card-head">志愿 ${index + 1}　${esc(input.school || '未填写学校')}</div><div class="pdf-card-body"><div class="pdf-grid"><div class="pdf-cell"><b>专业（代码→中文）</b><span>${esc(input.majorCode || '未填写')} → ${esc(majorName)}</span></div><div class="pdf-cell"><b>相对当前位次</b><span>${esc(delta)}</span></div><div class="pdf-cell"><b>家庭判断</b><span>${esc(row.familyDecision || '未填写')}</span></div><div class="pdf-cell"><b>处理</b><span>${esc(row.familyStatus || '未填写')}</span></div></div><div class="pdf-history"><div><b>2026</b><span>${esc(formatHistory(row, 2026))}</span></div><div><b>2025</b><span>${esc(formatHistory(row, 2025))}</span></div><div><b>2024</b><span>${esc(formatHistory(row, 2024))}</span></div><div><b>家庭备注</b><span>${esc(row.familyNote || '—')}</span></div></div><div class="pdf-reminder"><strong>核对与提醒</strong><br>${reminderHtml}</div></div></section>`;
+    card.innerHTML = `<div class="pdf-card-head">志愿 ${index + 1}　${esc(input.school || '未填写学校')}</div><div class="pdf-card-body"><div class="pdf-grid"><div class="pdf-cell"><b>专业（代码→中文）</b><span>${esc(input.majorCode || '未填写')} → ${esc(majorName)}</span></div><div class="pdf-cell"><b>相对当前位次</b><span>${esc(delta)}</span></div><div class="pdf-cell"><b>家庭处理</b><span>${esc(row.familyStatus || '待讨论')}</span></div></div><div class="pdf-history"><div><b>2026</b><span>${esc(formatHistory(row, 2026))}</span></div><div><b>2025</b><span>${esc(formatHistory(row, 2025))}</span></div><div><b>2024</b><span>${esc(formatHistory(row, 2024))}</span></div><div><b>家庭备注</b><span>${esc(row.familyNote || '—')}</span></div></div><div class="pdf-reminder"><strong>核对与提醒</strong><br>${reminderHtml}</div></div>`;
     root.appendChild(card);
   });
   const foot = document.createElement('div');
@@ -203,11 +203,13 @@ async function generatePdf() {
     const pageHeight = 297;
     const margin = 8;
     const usableWidth = pageWidth - margin * 2;
-    const pagePxHeight = Math.floor(canvas.width * ((pageHeight - margin * 2) / usableWidth));
-    let offsetY = 0;
-    let page = 0;
-    while (offsetY < canvas.height) {
-      const sliceHeight = Math.min(pagePxHeight, canvas.height - offsetY);
+    const fullPagePxHeight = Math.floor(canvas.width * ((pageHeight - margin * 2) / usableWidth));
+    const headerSlicePxHeight = Math.min(Math.round(canvas.width * 0.18), 180);
+    const headerMmHeight = headerSlicePxHeight / canvas.width * usableWidth;
+    const contentPageMmHeight = pageHeight - margin * 2 - headerMmHeight;
+    const contentPagePxHeight = Math.floor(canvas.width * (contentPageMmHeight / usableWidth));
+
+    const addCanvasSlice = (offsetY, sliceHeight, topMm) => {
       const slice = document.createElement('canvas');
       slice.width = canvas.width;
       slice.height = sliceHeight;
@@ -215,11 +217,25 @@ async function generatePdf() {
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, slice.width, slice.height);
       ctx.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-      if (page > 0) pdf.addPage();
       const imageHeight = sliceHeight / canvas.width * usableWidth;
-      pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableWidth, Math.min(imageHeight, pageHeight - margin * 2), undefined, 'FAST');
-      offsetY += sliceHeight;
-      page += 1;
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, topMm, usableWidth, Math.min(imageHeight, pageHeight - topMm - margin), undefined, 'FAST');
+    };
+
+    addCanvasSlice(0, Math.min(fullPagePxHeight, canvas.height), margin);
+    let offsetY = Math.min(fullPagePxHeight, canvas.height);
+    while (offsetY < canvas.height) {
+      pdf.addPage();
+      const headerHeight = Math.min(headerSlicePxHeight, canvas.height);
+      const headerCanvas = document.createElement('canvas');
+      headerCanvas.width = canvas.width;
+      headerCanvas.height = headerHeight;
+      const headerCtx = headerCanvas.getContext('2d');
+      headerCtx.fillStyle = '#fff';
+      headerCtx.fillRect(0, 0, headerCanvas.width, headerCanvas.height);
+      headerCtx.drawImage(canvas, 0, 0, canvas.width, headerHeight, 0, 0, canvas.width, headerHeight);
+      pdf.addImage(headerCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableWidth, headerMmHeight, undefined, 'FAST');
+      addCanvasSlice(offsetY, Math.min(contentPagePxHeight, canvas.height - offsetY), margin + headerMmHeight);
+      offsetY += contentPagePxHeight;
     }
     const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '');
     pdf.save(`辽宁物理类模拟志愿填报单-${stamp}.pdf`);
