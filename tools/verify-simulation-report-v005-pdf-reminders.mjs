@@ -2,15 +2,17 @@ import fs from 'node:fs';
 
 const page = fs.readFileSync('ln-rank/simulation-report.html', 'utf8');
 const runtime = fs.readFileSync('ln-rank/js/simulation-report-v005-pdf-reminders.js', 'utf8');
+const currentRuntime = fs.readFileSync('ln-rank/js/simulation-report-v014-school-major-intent.js', 'utf8');
+const manifest = JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v014.json', 'utf8'));
 
 const requiredPage = [
   'id="printSheet"',
-  '>生成 PDF<',
-  'simulation-report-v005-pdf-reminders.js?v=005-pdf-reminders',
-  '核对与提醒用于辅助检查当前志愿',
+  '生成 PDF',
+  'simulation-report-v014-school-major-intent.js?v=014-school-major-intent',
+  'volunteer-card',
 ];
 for (const needle of requiredPage) {
-  if (!page.includes(needle)) throw new Error(`page contract missing: ${needle}`);
+  if (!page.includes(needle)) throw new Error(`current page contract missing: ${needle}`);
 }
 if (page.includes('simulation-report-v004-android-print.js')) throw new Error('legacy Android print entry must not remain');
 
@@ -32,8 +34,12 @@ const requiredRuntime = [
 for (const needle of requiredRuntime) {
   if (!runtime.includes(needle)) throw new Error(`runtime contract missing: ${needle}`);
 }
+for (const needle of ['schoolGroundedCandidates', 'broadTerms', '实际招生记录']) {
+  if (!currentRuntime.includes(needle)) throw new Error(`current v014 integration contract missing: ${needle}`);
+}
+if (manifest.version !== 'simulation-workspace-v014.6') throw new Error(`manifest version mismatch: ${manifest.version}`);
+if (manifest.revision !== 'r068-v012-browser-harness') throw new Error(`manifest revision mismatch: ${manifest.revision}`);
 
-console.log('simulation-report-v005-pdf-reminders: PASS');
+console.log('simulation-report-v005 compatibility contract on current v014.6 runtime: PASS');
 console.log('Direct client-side PDF file generation: covered');
-console.log('Scenario reminders: missing school / major / unmatched major / history / manual checks / family handling');
-console.log('Reminder cap: 2');
+console.log('Scenario reminders remain available through the v005 compatibility layer');
