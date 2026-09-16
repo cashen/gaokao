@@ -1,4 +1,4 @@
-// History is reference-only in v016.44/r134.
+// History is reference-only in v016.45/r135.
 // Historical values remain visible, but they do not create a user-facing
 // history-review state. School/major identity and explicit manual fields keep
 // their existing confirmation behavior.
@@ -47,4 +47,4 @@ window.addEventListener('storage',schedule);
 const root=document.querySelector('#wbRows');
 if(root)new MutationObserver(schedule).observe(root,{childList:true,subtree:true,characterData:true});
 
-export const SIMULATION_HISTORY_REFERENCE_ONLY='v016.44-r134';
+export const SIMULATION_HISTORY_REFERENCE_ONLY='v016.45-r135';
