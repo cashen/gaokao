@@ -14,9 +14,10 @@ const pdfBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-v001.mjs',
 const pdfAndroidBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-android-v002.mjs','utf8');
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
 const releaseFooter=fs.readFileSync('shared/resources/release/release-footer.v3990_3.js','utf8');
+const familyContract=fs.readFileSync('tests/verify-simulation-family-decision-r140.mjs','utf8');
 
-assert.equal(manifest.version,'simulation-workspace-v016.57');
-assert.equal(manifest.revision,'r147-android-pdf-delivery-hardening');
+assert.equal(manifest.version,'simulation-workspace-v016.58');
+assert.equal(manifest.revision,'r148-family-decision-ui');
 assert.equal(manifest.pageVersion,'v1.0');
 assert.equal(manifest.pageVersionLabel,'模拟志愿 v1.0');
 assert.equal(manifest.runtimeRevision,'v016.46-r136');
@@ -40,7 +41,7 @@ assert.ok(legacy.includes('no-strict-record'));
 for(const expected of ['getMetadata','province','city','level','candidateView','loadSchoolCatalog','resolveUnifiedSchoolQuery','SEARCH_DEBOUNCE_MS','searchTimers','searchSequences','scheduleSearch','loadAdmissionDirectoryOnce','directoryCandidates','directoryExact']) assert.ok(worker.includes(expected),`worker missing ${expected}`);
 assert.ok(worker.includes('admissionDirectoryPromise = null'));
 assert.ok(worker.includes('catalogPromise = null'));
-for(const expected of ['overflow:visible','pointer-events:auto','touch-action:manipulation','.suggestion-action']) assert.ok(css.includes(expected),`css missing ${expected}`);
+for(const expected of ['overflow:visible','pointer-events:auto','touch-action:manipulation','.suggestion-action','.decision-progress','.print-plan-action','z-index:100']) assert.ok(css.includes(expected),`css missing ${expected}`);
 for(const expected of ['390','768','1280','选这所','选这个','沈阳工业大学','沈阳化工大学','高分子','电气工程及其自动化','confirmedSchool','majorName','history.years']) assert.ok(browser.includes(expected),`browser gate missing ${expected}`);
 for(const expected of ['input synchronous work exceeded 100ms','input p95 exceeded 60ms','rapid school typing','rapid-school-directory-requests','沈阳工业大学','自动化']) assert.ok(performance.includes(expected),`performance gate missing ${expected}`);
 for(const expected of ['sim-pdf-page','sim-pdf-line','splitPages','createPageShell','rowsBottom','contentBottom','break-inside:avoid','历史分数/位次仅作参考','__GAOKAO_SIMULATION_PDF_V01650__']) assert.ok(pdf.includes(expected),`pdf runtime missing ${expected}`);
@@ -52,4 +53,5 @@ for(const expected of ['const RELEASE=\'v016.52-r147\'','MOBILE_SCALE=1.25','win
 for(const expected of ['userAgent','Android 14','requestedScale','saveCalls','simulation-workspace-v016.57 Android PDF delivery','late-loaded/replaced html2canvas']) assert.ok(pdfAndroidBrowser.includes(expected),`android pdf browser gate missing ${expected}`);
 for(const expected of ["export const SIMULATION_PAGE_VERSION = 'v1.0'",'ensureSimulationPageVersion','data-simulation-page-version','模拟志愿 ${SIMULATION_PAGE_VERSION}']) assert.ok(releaseFooter.includes(expected),`release footer missing ${expected}`);
 assert.ok(html.includes('/shared/resources/release/release-footer.v3990_3.js'), 'simulation page must mount the canonical release footer runtime');
-console.log('simulation-workspace-v016.57 contract: PASS');
+for(const expected of ['parent-readable single-page hierarchy','我的志愿','打印 / 保存这份方案','家庭整理进度','不是正式填报','当前记录信息完整']) assert.ok(familyContract.includes(expected),`family contract missing ${expected}`);
+console.log('simulation-workspace-v016.58 r148 contract: PASS');
