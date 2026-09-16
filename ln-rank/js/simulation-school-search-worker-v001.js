@@ -99,6 +99,29 @@ function directoryCandidates(query, directory) {
     .slice(0, SEARCH_LIMIT);
 }
 
+function directoryExact(query, directory) {
+  const needle = normalizedSchool(query);
+  if (!needle) return null;
+  const rows = Array.isArray(directory?.schools) ? directory.schools : [];
+  for (const row of rows) {
+    const names = [row?.officialName, ...(Array.isArray(row?.admissionNames) ? row.admissionNames : []), ...(Array.isArray(row?.searchNames) ? row.searchNames : [])]
+      .map(norm).filter(Boolean);
+    if (names.some(name => normalizedSchool(name) === needle)) {
+      return {
+        officialName: norm(row?.officialName || names[0]),
+        province: norm(row?.province),
+        city: norm(row?.city),
+        level: norm(row?.level),
+        location: norm(row?.location || [row?.province, row?.city].filter(Boolean).join(' · ')),
+        score: 1,
+        matchType: 'official_exact',
+        matchReason: '按招生学校目录精确匹配。'
+      };
+    }
+  }
+  return null;
+}
+
 async function search(query) {
   const admissionDirectory = await loadAdmissionDirectoryOnce();
   const direct = directoryCandidates(query, admissionDirectory);
@@ -119,6 +142,21 @@ async function search(query) {
 }
 
 async function resolve(query) {
+  const admissionDirectory = await loadAdmissionDirectoryOnce();
+  const direct = directoryExact(query, admissionDirectory);
+  if (direct) {
+    return {
+      status: 'resolved',
+      officialName: direct.officialName,
+      province: direct.province,
+      city: direct.city,
+      level: direct.level,
+      location: direct.location,
+      score: direct.score,
+      matchType: direct.matchType
+    };
+  }
+
   const catalog = await loadCatalogOnce();
   const input = norm(query);
   const result = catalog.resolver.resolve(input, { limit: RESOLVE_LIMIT });
