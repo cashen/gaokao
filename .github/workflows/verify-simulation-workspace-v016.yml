@@ -1,5 +1,7 @@
 name: Verify simulation workspace v016
 
+# v016.46-r136: school search is debounced/superseded inside the Worker; keep this workflow path-triggered so every final HEAD gets a fresh canonical run.
+
 on:
   pull_request:
     paths:
