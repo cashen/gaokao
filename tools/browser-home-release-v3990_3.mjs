@@ -47,6 +47,7 @@ try {
       const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
       const simulationEntry = document.querySelector('[data-home-simulation-entry]');
+      const mainlineLinks = [...document.querySelectorAll('[data-tool-group="mainline"] .tool-link')];
       const supportLinks = [...document.querySelectorAll('.tool-groups .tool-link')];
       const groups = [...document.querySelectorAll('[data-tool-group]')];
       return {
@@ -72,7 +73,8 @@ try {
         simulationEntryCount: document.querySelectorAll('[data-home-simulation-entry]').length,
         simulationEntryTitle: simulationEntry?.querySelector('strong')?.textContent?.trim(),
         simulationEntryHref: simulationEntry?.getAttribute('href'),
-        simulationEntryOrder: supportLinks.indexOf(simulationEntry),
+        simulationEntryOrder: mainlineLinks.indexOf(simulationEntry),
+        mainlineLinkCount: mainlineLinks.length,
         majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
         majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
         majorPathHref: majorPathEntry?.getAttribute('href'),
@@ -118,7 +120,8 @@ try {
     assert.equal(state.toolLinkCount, 9, `${device.name}: all tool links plus simulation entry retained`);
     assert.equal(state.simulationEntryTitle, '模拟志愿', `${device.name}: simulation tool title`);
     assert.equal(state.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation tool route`);
-    assert.equal(state.simulationEntryOrder, 0, `${device.name}: simulation tool leads mainline tools`);
+    assert.equal(state.mainlineLinkCount >= 1, true, `${device.name}: mainline has tools`);
+    assert.equal(state.simulationEntryOrder, 0, `${device.name}: simulation tool is first within mainline tools`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3990_3\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.shell?.version, 'family-shell-v3990_3', `${device.name}: shell owner`);
