@@ -3,12 +3,22 @@
 当前主线：`feat/simulation-workspace-v016-human-complete`
 PR：#290
 基线 main：`6df5410461f314bd22d30b65ec98a2ac34d631b3`
-当前产品版本：`simulation-workspace-v016.45`
-当前产品修订：`r135-compact-a4-pdf`
-运行时修订：`v016.43-r133`
+当前产品版本：`simulation-workspace-v016.46`
+当前产品修订：`r136-school-search-debounce`
+运行时修订：`v016.46-r136`
 阶段：canonical exact-head gate → browser actions → performance → Preview → merge
 
-## v016.45 / r135 本轮修订：紧凑 A4 PDF
+## v016.46 / r136 本轮修订：学校搜索生命周期优化
+
+- [x] 学校候选搜索在 Worker 内增加 100ms debounce，连续输入只执行最后一次搜索。
+- [x] 同一志愿的旧 search sequence 在 Worker 内立即失效，不再继续发出旧候选结果。
+- [x] 清空学校输入立即取消等待中的 Worker search，不启动新的目录/解析查询。
+- [x] responsive runtime cache-buster 与 Worker release 对齐到 `v016.46-r136`。
+- [x] performance gate 从单纯同步 input 时间扩展为真实 rapid school typing → candidate visible → clear 的路径测试。
+- [x] performance gate 同时检查学校招生目录请求只发生一次，防止每个字符重复加载目录。
+- [x] canonical verifier 增加 Worker debounce/supersede 结构检查。
+
+## v016.45 / r135 紧凑 A4 PDF
 
 - [x] PDF 从“长画布后按固定像素切页”改为“先按 A4 可用高度测量并分页，再逐页渲染”。
 - [x] 志愿从大卡片改为连续工作表行，减少标题、边框、重复说明和空白占用。
@@ -16,8 +26,6 @@ PR：#290
 - [x] 只有真实剩余空间不足时才分页；续页重复学生姓名、总分、参考位次和考试类型。
 - [x] PDF 主体保留学校、专业/代码、2026/2025/2024 历史、相对位次、家庭处理及可执行核实/补充信息。
 - [x] 历史数据只作为参考，PDF 不再输出“有历史记录需要核对”或“· 需核验”。
-- [x] 补回 v017 responsive input CSS；此前 canonical contract 因该文件缺失直接失败。
-- [x] release manifest / 页面 cache-buster / verifier / plan 同步到 v016.45/r135。
 
 ## v016.44 / r134 历史仅作参考
 
@@ -40,9 +48,9 @@ PR：#290
 
 `.github/workflows/verify-simulation-workspace-v016.yml` 负责当前 simulation workspace；contract 使用 `tools/verify-simulation-workspace-v017.mjs`，browser 使用 `tools/browser-simulation-workspace-v017-actions.mjs`，随后执行 `tools/browser-simulation-workspace-v016-performance.mjs`。
 
-v016.45 新增 PDF 静态契约：要求真实 A4 分页算法存在、短志愿可以按测量空间共页、续页重复考生上下文、历史核验待办词不进入 PDF。
+v016.46 新增性能门槛：rapid school typing 必须只执行最终搜索；清空后不得渲染陈旧候选；学校招生目录请求不得随每个字符重复发生。
 
-当前状态：等待最新 HEAD 的 canonical/browser/performance 结果；未通过前不合并。
+当前状态：等待 v016.46 最新 HEAD 的 canonical/browser/performance 结果；未通过前不合并。
 
 ## Merge Gate
 
