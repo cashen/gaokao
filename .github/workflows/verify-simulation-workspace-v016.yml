@@ -14,6 +14,7 @@ on:
       - 'docs/dev-progress/simulation-report.md'
       - 'tests/verify-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
     branches: [main]
@@ -28,6 +29,7 @@ on:
       - 'docs/dev-progress/simulation-report.md'
       - 'tests/verify-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
 
@@ -64,3 +66,4 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
       - run: node tools/browser-simulation-unified-runtime-r149.mjs
+      - run: node tools/browser-simulation-pdf-r149.mjs
