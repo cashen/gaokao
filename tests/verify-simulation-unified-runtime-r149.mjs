@@ -9,7 +9,7 @@ const release=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-rele
 
 assert.equal((html.match(/simulation-runtime\.js/g)||[]).length,1,'simulation bootstrap must be loaded exactly once');
 assert.equal((html.match(/simulation-report\.css/g)||[]).length,1,'simulation CSS owner must be loaded exactly once');
-assert.match(html,/simulation-report\.css\?v=v016\.62-r152/,'unified simulation CSS revision missing');
+assert.match(html,/simulation-report\.css\?v=v016\.64-r154/,'unified simulation CSS revision missing');
 assert.match(html,/simulation-runtime\.js\?v=v016\.64-r154/,'unified simulation runtime revision missing');
 for(const legacy of ['simulation-report.v001.js','simulation-report-v005-pdf-reminders.js','simulation-report-v007-workbench.js','simulation-report-v010-history-layout.js','simulation-report-v012-family-decision.js','simulation-report-v016-history-reference-only.js','simulation-report-v016-legacy-render-guard.js','simulation-report-v016-pdf.js','simulation-report-v016-pdf-android.js','simulation-report-v017-responsive-input.js','simulation-report-v017-responsive-input.css','simulation-report-v007-mobile.css','simulation-report-v010-history-layout.css','simulation-report-v012-family-decision.css','simulation-report-v013-major-input.css','simulation-report-v014-school-major-intent.css']) assert.ok(!html.includes(legacy),`legacy simulation asset still active: ${legacy}`);
 for(const forbidden of ['legacyRow','getLegacyRow','clickLegacy','syncLegacyField','MutationObserver','#simulationLegacyRuntime','#volunteerRows']) assert.ok(!runtime.includes(forbidden),`legacy runtime coupling remains: ${forbidden}`);
