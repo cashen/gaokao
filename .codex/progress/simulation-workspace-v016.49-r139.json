@@ -1,20 +1,23 @@
 {
   "version": "simulation-workspace-v016.49",
-  "revision": "r139-main-head-reconciliation",
+  "revision": "r139-resolver-recovery",
   "pr": 290,
-  "prHeadAtCheckpoint": "a51d564774f52d1a984782710c161c844365fcbe",
-  "mainAtCheckpoint": "5ee9c9c30acc4eb686c6a0e25c4ff6312d2112f6",
-  "mainDelta": "main contains one post-base housekeeping commit (__tmp__) and no PR-relevant code changes",
+  "prHeadAtMerge": "4f683f576fb8efc41d10f4a83d9797d55016ca49",
+  "mergeSha": "191fd1d17ffa47d7d7ceb4aa061f265fea1a31de",
+  "mainFinalCheckpoint": "cfa723bf88129ba26d719d6dc546686b3c519f42",
   "canonicalGate": "Verify simulation workspace v016",
-  "latestKnownCanonicalRun": 35041961575,
-  "latestKnownCanonicalResult": "success",
-  "preview": "76bd43f4.gaokao-4y9.pages.dev",
+  "postMergeCanonicalRun": 35043030190,
+  "postMergeCanonicalResult": "success",
+  "postMergeBrowserResult": "success",
+  "postMergePerformanceResult": "success",
+  "cloudflareProductionRun": 35043030215,
+  "cloudflareProductionResult": "success",
+  "architectureRun": 35043030158,
+  "architectureResult": "success",
+  "status": "post-merge-verification-complete",
   "notes": [
-    "PR 290 contract PASS",
-    "PR 290 browser PASS for Android 390, Pad 768, Desktop 1280",
-    "PR 290 performance PASS",
-    "PR 290 Cloudflare Preview SUCCESS for a51d564",
-    "Next code revision hardens transient admission-directory failure recovery so one rejected warmup does not permanently brick the Worker"
-  ],
-  "status": "in-progress"
+    "Main is merged from the exact PR head.",
+    "Production deployment verified against the exact merge SHA.",
+    "Simulation v016.49/r139 is complete; future work should start from a new revision."
+  ]
 }
