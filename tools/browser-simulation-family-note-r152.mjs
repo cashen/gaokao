@@ -21,7 +21,7 @@ const seedState = {
   }]
 };
 
-const longNote = '家里讨论后暂时保留。学费可以接受，但实际培养地点需要再核实；同时想再看看宿舍、专业培养方向和后续就业去向，再决定最终排序。';
+const longNote = Array.from({ length: 6 }, () => '家里讨论后暂时保留。学费可以接受，但实际培养地点需要再核实；同时想再看看宿舍、专业培养方向和后续就业去向，再结合专业课程、学校环境、交通成本、住宿条件以及家庭预算重新讨论，最后再决定这条志愿应该放在什么位置。').join(' ');
 const normalizeForAssert = value => String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
 const storeKey = 'gaokao:simulation-report:v002';
 
