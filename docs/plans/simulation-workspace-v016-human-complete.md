@@ -2,7 +2,7 @@
 
 ## 目标
 
-把 `/ln-rank/simulation-report.html` 的学校→专业输入链路做成可以被普通家长直接理解、直接操作、可靠确认的工作流，并确保 PC / Pad / Android 一致。
+把 `/ln-rank/simulation-report.html` 的学校→专业输入链路做成可以被普通家长直接理解、直接操作、可靠确认的工作流，并确保 PC / Pad / Android 一致；生成的 PDF 也必须适合真正打印和手工使用，而不是网页长截图。
 
 ## 1. 输入与候选
 
@@ -46,27 +46,39 @@
 
 页面使用“补充需要确认的信息”作为操作指引，避免把历史参考误解为待办事项。
 
-## 8. Workflow 收敛
+## 8. v016.45 / r135 紧凑 A4 PDF
+
+PDF 不再把所有志愿拼成一张长画布后按固定像素高度机械切页。生成器先以 A4 可用高度建立页面，再把“志愿行”按实际测量高度分组；只有当前页空间不足时才分页。
+
+打印内容从网页卡片改为连续工作表结构：志愿序号、学校、专业/代码、2026/2025/2024 历史、相对位次、家庭处理和可执行的待核实/待补充信息为主体。网页操作按钮、重复说明和大面积卡片留白不进入 PDF 主体。
+
+同一页优先容纳多条短志愿；例如只有 2 个专业时不应因为“一条卡片一页”的固定策略而产生 2 页。续页重复学生姓名、总分、参考位次和考试类型，避免打印后脱离页眉无法识别。
+
+历史数据只作为参考记录，PDF 不生成“· 需核验”或“有历史记录需要核对”提示。
+
+## 9. Workflow 收敛
 
 历史 simulation-report v001/v003/v005/v006/v007/v008/v009/v010/v011/v012/v013/v014 自动触发退出，改为 `workflow_dispatch` 手动取证。当前模拟工作台的 PR 功能性验证只使用 `.github/workflows/verify-simulation-workspace-v016.yml` 作为 canonical gate。
 
 其他重型跨站/生产验证不应因为 `simulation-report.html` 局部修改反复启动；主干发布级验证放在 main push 阶段完成，模块级 PR 只验证自己真正负责的资源边界。
 
-## 9. 发布版本
+## 10. 发布版本
 
 每次产品/验证修订都提升版本或修订号，并同步页面 cache-buster、release manifest、验证脚本和进度文件。
 
-当前版本：`simulation-workspace-v016.44`
-当前修订：`r134-history-reference-only`
+当前版本：`simulation-workspace-v016.45`
+当前修订：`r135-compact-a4-pdf`
 当前运行时实现：`v016.43-r133`
 
-## 10. 发布级真实回归
+## 11. 发布级真实回归
 
 canonical browser regression 必须覆盖 Android 390、Pad 768、Desktop 1280；输入 `沈阳工业大学`，确认候选中的 `辽宁省 / 沈阳市 / 本科 / 名称完全一致`，点击 `选这所`；再输入专业，点击 `选这个`；检查 `confirmedSchool`、`majorCode`、`majorName` 以及 `history.years` 实际持久化；检查无 page error；输入性能同步 dispatch 满足 canonical performance gate。
 
 同时保留“沈阳化工大学 → 高分子材料与工程 → 080407”回归，确认历史数据可以落盘且界面不出现历史“需要核对/需核验”提示。
 
-## 11. Merge Gate
+PDF 回归必须覆盖：2 条短志愿可以同页；较长清单自动分页而不是按志愿固定分页；续页保留考生上下文；PDF 主体不出现历史核对待办词。
+
+## 12. Merge Gate
 
 只有以下全部成立才允许 merge：
 
