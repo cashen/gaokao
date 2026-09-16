@@ -2,12 +2,12 @@
 
 当前主线：`refactor/simulation-unified-runtime-r149`
 基线 main：`48128fdf693e7890dbe140372db3a46971686c9a`
-当前产品版本：`simulation-workspace-v016.59`
-当前产品修订：`r149-unified-runtime-takeover`
+当前产品版本：`simulation-workspace-v016.60`
+当前产品修订：`r150-unified-runtime-takeover`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
 阶段：统一接管实现完成 → CI / Preview / Production 验证
 
-## r149 统一接管
+## r150 统一接管
 
 - [x] 页面从多套历史 simulation runtime 收敛为唯一 Bootstrap。
 - [x] Store 成为唯一持久化状态 owner，保留 v002 数据结构兼容。
@@ -19,6 +19,8 @@
 - [x] 页面 CSS 收敛到单一 `simulation-report.css`。
 - [x] architecture contract / browser regression 已改为 unified runtime 口径。
 - [x] 删除页面 active legacy runtime / CSS / PDF entry；历史 PR 与进度记录保持不变。
+- [x] r150 修正 PDF 分页测量，按实际内容边界决定分页，而不是依赖固定容器高度。
+- [x] r150 修正统一架构测试契约，使其不再绑定局部变量命名。
 
 ## 当前 Definition of Done
 
