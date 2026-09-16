@@ -53,5 +53,6 @@ for(const expected of ['const RELEASE=\'v016.52-r147\'','MOBILE_SCALE=1.25','win
 for(const expected of ['userAgent','Android 14','requestedScale','saveCalls','simulation-workspace-v016.57 Android PDF delivery','late-loaded/replaced html2canvas']) assert.ok(pdfAndroidBrowser.includes(expected),`android pdf browser gate missing ${expected}`);
 for(const expected of ["export const SIMULATION_PAGE_VERSION = 'v1.0'",'ensureSimulationPageVersion','data-simulation-page-version','模拟志愿 ${SIMULATION_PAGE_VERSION}']) assert.ok(releaseFooter.includes(expected),`release footer missing ${expected}`);
 assert.ok(html.includes('/shared/resources/release/release-footer.v3990_3.js'), 'simulation page must mount the canonical release footer runtime');
-for(const expected of ['parent-readable single-page hierarchy','我的志愿','打印 / 保存这份方案','家庭整理进度','不是正式填报','当前记录信息完整']) assert.ok(familyContract.includes(expected),`family contract missing ${expected}`);
+for(const expected of ['我的志愿','打印 / 保存这份方案','家庭整理进度','不是正式填报','当前记录信息完整','decision-progress']) assert.ok(html.includes(expected),`html family UI missing ${expected}`);
+assert.ok(familyContract.includes('simulation-report.html'));
 console.log('simulation-workspace-v016.58 r148 contract: PASS');
