@@ -84,7 +84,7 @@ await page.waitForTimeout(150);
 assert.equal(schoolDirectoryRequests.length, 1, `rapid school typing triggered ${schoolDirectoryRequests.length} directory requests`);
 await school.fill('');
 await page.waitForTimeout(180);
-assert.equal(await card.locator('[data-v017-school="v017-perf-1"]').getAttribute('hidden'), 'true');
+assert.equal(await card.locator('[data-v017-school="v017-perf-1"]').isHidden(), true);
 
 assert.equal(pageErrors.length, 0, pageErrors.join('\n'));
 const values = samples.map(sample => sample.elapsedMs);
