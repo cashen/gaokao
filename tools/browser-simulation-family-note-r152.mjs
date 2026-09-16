@@ -23,6 +23,7 @@ const seedState = {
 
 const longNote = '家里讨论后暂时保留。学费可以接受，但实际培养地点需要再核实；同时想再看看宿舍、专业培养方向和后续就业去向，再决定最终排序。';
 const normalizeForAssert = value => String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
+const storeKey = 'gaokao:simulation-report:v002';
 
 const viewports = [
   { name: 'android', width: 390, height: 844 },
@@ -35,7 +36,9 @@ try {
   for (const viewport of viewports) {
     const context = await browser.newContext({ viewport });
     await context.addInitScript(state => {
-      localStorage.setItem('gaokao:simulation-report:v002', JSON.stringify(state));
+      if (!localStorage.getItem('gaokao:simulation-report:v002')) {
+        localStorage.setItem('gaokao:simulation-report:v002', JSON.stringify(state));
+      }
     }, seedState);
     const page = await context.newPage();
     await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html', { waitUntil: 'networkidle' });
@@ -49,14 +52,14 @@ try {
     if (!(height > 68)) throw new Error(`${viewport.name}: long note did not expand`);
 
     await page.waitForTimeout(50);
-    const diagnostics = await page.evaluate(() => ({
+    const diagnostics = await page.evaluate(key => ({
       runtime: window.GAOKAO_SIMULATION_RUNTIME?.state?.volunteers?.[0]?.familyNote ?? null,
       stored: (() => {
-        try { return JSON.parse(localStorage.getItem('gaokao:simulation-report:v002') || 'null')?.volunteers?.[0]?.familyNote ?? null; }
+        try { return JSON.parse(localStorage.getItem(key) || 'null')?.volunteers?.[0]?.familyNote ?? null; }
         catch { return null; }
       })(),
       value: document.querySelector('[data-family-note]')?.value ?? null,
-    }));
+    }), storeKey);
     const expected = normalizeForAssert(longNote);
     if (normalizeForAssert(diagnostics.runtime) !== expected || normalizeForAssert(diagnostics.stored) !== expected || normalizeForAssert(diagnostics.value) !== expected) {
       throw new Error(`${viewport.name}: note state mismatch runtime=${JSON.stringify(diagnostics.runtime)} stored=${JSON.stringify(diagnostics.stored)} value=${JSON.stringify(diagnostics.value)}`);
@@ -73,7 +76,7 @@ try {
     await context.close();
   }
 
-  console.log('browser family-note r153: PASS');
+  console.log('browser family-note r154: PASS');
 } finally {
   await browser.close();
 }
