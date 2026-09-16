@@ -108,7 +108,7 @@ try {
     assert.equal(state.runtime?.generation, 'v3990_3', `${device.name}: runtime generation`);
     assert.equal(state.runtime?.release, 'v3.9.90.3', `${device.name}: runtime release`);
     assert.equal(state.runtime?.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation route`);
-    assert.equal(state.runtime?.simulationEntryCount(), 1, `${device.name}: runtime simulation entry count`);
+    assert.equal(state.simulationEntryCount, 1, `${device.name}: one runtime simulation tool entry`);
     assert.equal(state.homeUiRevision, 'r031-home-redesign', `${device.name}: body UI revision`);
     assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker remains stable`);
     assert.equal(state.primaryActionCount, 1, `${device.name}: one primary action`);
@@ -116,7 +116,6 @@ try {
     assert.equal(state.toolToggleCount, 4, `${device.name}: four explicit disclosure controls`);
     assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline group open initially`);
     assert.equal(state.toolLinkCount, 9, `${device.name}: all tool links plus simulation entry retained`);
-    assert.equal(state.simulationEntryCount, 1, `${device.name}: one simulation tool entry`);
     assert.equal(state.simulationEntryTitle, '模拟志愿', `${device.name}: simulation tool title`);
     assert.equal(state.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation tool route`);
     assert.equal(state.simulationEntryOrder, 0, `${device.name}: simulation tool leads mainline tools`);
