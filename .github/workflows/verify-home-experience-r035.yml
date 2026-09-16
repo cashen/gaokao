@@ -1,0 +1,30 @@
+name: Verify homepage experience r035
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'ln-rank/js/ux/family-home.v3990_3.js'
+      - 'tests/verify-home-experience-refinement-r035.mjs'
+      - 'docs/plans/home-experience-refinement-r035.md'
+      - '.codex/progress/home-experience-refinement-r035.json'
+      - '.github/workflows/verify-home-experience-r035.yml'
+  push:
+    branches:
+      - feat/home-experience-refinement-r034
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify homepage r035 contract
+        run: node tests/verify-home-experience-refinement-r035.mjs
