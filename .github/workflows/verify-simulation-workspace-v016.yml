@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.56-r146: Android-safe PDF delivery and reduced raster memory on Android.
+# v016.57-r147: Android-safe PDF delivery and late-loaded library hardening.
 on:
   pull_request:
     paths:
