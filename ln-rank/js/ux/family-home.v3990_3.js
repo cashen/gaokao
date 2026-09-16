@@ -6,8 +6,9 @@ import {
   readFamilySelectionItems
 } from '../domain/family-decision-contract.v3970_0.js?v=3970_0';
 
-export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031';
-export const HOME_UI_REVISION = 'r031-home-redesign';
+export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r032';
+export const HOME_UI_REVISION = 'r032-home-simulation-entry';
+export const HOME_TOOL_REVISION = 'r032-home-simulation-entry';
 const EXAM_START_AT = new Date('2027-06-07T09:00:00+08:00');
 const CLOCK_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
@@ -48,6 +49,31 @@ function ensureSimulationEntry() {
   link.textContent = '已经有学校和专业？直接进入模拟志愿填报 →';
   link.setAttribute('aria-label', '直接进入模拟志愿填报');
   host.appendChild(link);
+}
+
+function ensureSimulationToolEntry() {
+  const list = document.querySelector('[data-tool-group="mainline"] .tool-list');
+  if (!list || list.querySelector('[data-home-simulation-entry]')) return;
+  const link = document.createElement('a');
+  link.className = 'tool-link';
+  link.dataset.toolKind = 'primary';
+  link.dataset.homeSimulationEntry = 'true';
+  link.href = '/ln-rank/simulation-report.html';
+  link.setAttribute('aria-label', '进入模拟志愿工作台');
+
+  const copy = document.createElement('span');
+  const eyebrow = document.createElement('em');
+  const title = document.createElement('strong');
+  const detail = document.createElement('span');
+  const arrow = document.createElement('i');
+  eyebrow.textContent = '家庭方案工具';
+  title.textContent = '模拟志愿';
+  detail.textContent = '把已经考虑过的学校和专业放进来，继续排序、核对和整理家庭报告。';
+  arrow.textContent = '→';
+  arrow.setAttribute('aria-hidden', 'true');
+  copy.append(eyebrow, title, detail);
+  link.append(copy, arrow);
+  list.prepend(link);
 }
 
 function renderSteps(lines) {
@@ -138,7 +164,6 @@ function restoreViewport(position) {
   try {
     window.scrollTo(position.x, position.y);
   } catch {
-    // Older embedded browsers may expose only the numeric scrollTo signature.
     try { window.scrollTo(Number(position.x) || 0, Number(position.y) || 0); } catch {}
   }
 }
@@ -209,6 +234,7 @@ function renderCountdown(now = new Date()) {
 const release = mountCurrentRelease();
 renderHomeState();
 ensureSimulationEntry();
+ensureSimulationToolEntry();
 bindToolGroups();
 renderCountdown();
 const countdownTimer = globalThis.setInterval(renderCountdown, 1000);
@@ -223,6 +249,7 @@ document.addEventListener('visibilitychange', () => {
 globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   version: HOME_RUNTIME_VERSION,
   uiRevision: HOME_UI_REVISION,
+  homeToolRevision: HOME_TOOL_REVISION,
   generation: release.siteRuntimeGeneration,
   release: release.display,
   releaseOwner: release.resourceOwners.release,
@@ -233,5 +260,7 @@ globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   disclosureOwner: TOOL_GROUP_RUNTIME_VERSION,
   countdownIntervalMs: 1000,
   examStartAt: EXAM_START_AT.toISOString(),
+  simulationEntryHref: '/ln-rank/simulation-report.html',
+  simulationEntryCount: () => document.querySelectorAll('[data-home-simulation-entry]').length,
   timer: countdownTimer
 });
