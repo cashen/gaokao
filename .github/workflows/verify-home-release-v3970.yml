@@ -1,4 +1,4 @@
-name: Verify root home unified site generation r031
+name: Verify root home unified site generation r033
 
 on:
   pull_request:
@@ -20,10 +20,21 @@ on:
       - 'tools/browser-home-release-v3990_3.mjs'
       - 'tools/verify-home-countdown-redesign-v001.mjs'
       - 'docs/plans/home-countdown-redesign-v001.md'
-      - '.codex/progress/home-countdown-redesign-v001.json'
+      - '.codex/progress/home-information-architecture-v033.json'
+      - 'docs/status/home-information-architecture-v033-plan.md'
       - '_headers'
       - '.github/workflows/verify-home-release-v3970.yml'
       - '.github/workflows/verify-production-release-v3970.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'ln-rank/js/ux/family-home.v3990_3.js'
+      - 'tools/audit-home-release-ownership-v3970.mjs'
+      - 'tools/browser-home-release-v3990_3.mjs'
+      - 'docs/status/home-information-architecture-v033-plan.md'
+      - '.codex/progress/home-information-architecture-v033.json'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           show-progress: false
       - uses: actions/setup-node@v4
@@ -49,27 +60,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3990-2-home-files.txt
-          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-2-home-files.txt; then exit 1; fi
-          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ]; then
-            git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
-          else
-            node --check shared/resources/release/current-release.js
-            node --check shared/resources/release/active-resource-manifest.v3990_3.js
-            node --check tools/verify-unified-visual-responsive-v3990_3.mjs
+          base='${{ github.event.pull_request.base.sha || github.event.before }}'
+          if git rev-parse "$base" >/dev/null 2>&1; then git diff --name-only "$base" HEAD | tee /tmp/v3990-3-home-files.txt; else git diff-tree --no-commit-id --name-only -r HEAD | tee /tmp/v3990-3-home-files.txt; fi
+          if [ "$(git ls-tree -r HEAD | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-3-home-files.txt; then exit 1; fi
+          if [ "$(git ls-tree -r HEAD | wc -l)" -ge 100 ]; then
+            git diff --name-only "$base" HEAD -- '*.js' '*.mjs' 2>/dev/null | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done || true
           fi
-          sed -e 's/v3\.9\.90\.0/v3.9.90.3/g' -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' \
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/active-resource-manifest.v3990_3.js
+          node --check tools/audit-home-release-ownership-v3970.mjs
+          node --check tools/browser-home-release-v3990_3.mjs
+          node --check ln-rank/js/ux/family-home.v3990_3.js
+          sed -e 's/v3\.9\.90\.0/v3.9.90.3/g' -e 's/v3990_0/v3990_3/g' -e 's/3990_0/3990_3/g' -e 's/家庭方案与逐项复核/模拟志愿/g' \
             tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
           python3 -m py_compile /tmp/verify-final-release-v3990_3.py
 
       - name: Verify homepage and site generation contracts
         run: |
           set -euo pipefail
-          python3 /tmp/verify-final-release-v3990_3.py | tee /tmp/v3990-2-home-release.out
-          node tools/audit-site-runtime-generation-v3990_3.mjs | tee /tmp/v3990-2-site-generation.out
-          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-2-home-audit.out
-          node tools/verify-home-countdown-redesign-v001.mjs | tee /tmp/v3990-2-home-redesign.out
+          python3 /tmp/verify-final-release-v3990_3.py | tee /tmp/v3990-3-home-release.out
+          node tools/audit-site-runtime-generation-v3990_3.mjs | tee /tmp/v3990-3-site-generation.out
+          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-3-home-audit.out
+          node tools/verify-home-countdown-redesign-v001.mjs | tee /tmp/v3990-3-home-redesign.out
 
       - name: Install Chromium
         run: |
@@ -79,7 +91,7 @@ jobs:
       - name: Verify root home on phone pad and desktop
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3990-2-home-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3990-3-home-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           ready=0
@@ -88,17 +100,17 @@ jobs:
             sleep 1
           done
           test "$ready" -eq 1
-          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-2-home-browser node tools/browser-home-release-v3990_3.mjs | tee /tmp/v3990-2-home-browser.out
+          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-3-home-browser node tools/browser-home-release-v3990_3.mjs | tee /tmp/v3990-3-home-browser.out
 
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-2-root-home-results
+          name: r033-home-information-architecture-results
           path: |
-            /tmp/v3990-2-home-*.txt
-            /tmp/v3990-2-home-*.out
-            /tmp/v3990-2-home-*.log
-            /tmp/v3990-2-home-browser
+            /tmp/v3990-3-home-*.txt
+            /tmp/v3990-3-home-*.out
+            /tmp/v3990-3-home-*.log
+            /tmp/v3990-3-home-browser
           if-no-files-found: warn
           retention-days: 3

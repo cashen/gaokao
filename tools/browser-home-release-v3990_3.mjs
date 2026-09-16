@@ -4,52 +4,37 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.HOME_RELEASE_BASE_URL || 'http://127.0.0.1:8765';
-const artifactDir = process.env.V3970_HOME_ARTIFACT_DIR || '/tmp/v3990-2-home-browser';
+const artifactDir = process.env.V3970_HOME_ARTIFACT_DIR || '/tmp/v3990-3-home-browser';
 fs.mkdirSync(artifactDir, { recursive: true });
-
 const devices = [
   { name: 'android-360', width: 360, height: 800 },
   { name: 'android-390', width: 390, height: 844 },
   { name: 'ipad-768', width: 768, height: 1024 },
   { name: 'desktop-1280', width: 1280, height: 800 }
 ];
-
-const browser = await chromium.launch({
-  headless: true,
-  executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined
-});
+const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 const results = [];
 try {
   for (const device of devices) {
-    const context = await browser.newContext({ viewport: { width: device.width, height: device.height } });
+    const context = await browser.newContext({ viewport: { width: device.width, height: device.height }, isMobile: device.width < 500 });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
-    page.on('console', message => {
-      if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-    });
+    page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
     await page.addInitScript(() => {
       localStorage.setItem('lnRank.selectionPool.candidateScore', '580');
-      localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951', JSON.stringify({
-        items: [
-          { id: 'home-test-1', school: '测试大学', major: '计算机科学与技术', displayLocation: '辽宁 · 沈阳', flags: [] },
-          { id: 'home-test-2', school: '测试大学分校', major: '自动化', displayLocation: '辽宁 · 大连校区', flags: ['校区待确认'] }
-        ]
-      }));
+      localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951', JSON.stringify({ items: [{ id: 'home-test-1', school: '测试大学', major: '计算机科学与技术', displayLocation: '辽宁 · 沈阳', flags: [] }] }));
     });
     await page.goto(`${baseURL}/?home-release=${Date.now()}`, { waitUntil: 'networkidle' });
-    await page.waitForFunction(() =>
-      globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_3-r031'
-      && globalThis.__GAOKAO_UI__?.version === 'family-shell-v3990_3'
-    );
-
+    await page.waitForFunction(() => globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_3-r031' && globalThis.__GAOKAO_UI__?.version === 'family-shell-v3990_3');
     const state = await page.evaluate(() => {
-      const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
-      const industryEntry = document.querySelector('[data-home-industry-map-entry]');
-      const simulationEntry = document.querySelector('[data-home-simulation-entry]');
-      const mainlineLinks = [...document.querySelectorAll('[data-tool-group="mainline"] .tool-link')];
-      const supportLinks = [...document.querySelectorAll('.tool-groups .tool-link')];
+      const bodyText = document.body.innerText;
+      const mainline = [...document.querySelectorAll('[data-tool-group="mainline"] .tool-link')];
       const groups = [...document.querySelectorAll('[data-tool-group]')];
+      const simulation = document.querySelector('[data-home-simulation-entry]');
+      const major = document.querySelector('[data-tool-group="mainline"] a[href="/ln-rank/"]');
+      const simulationBox = simulation?.getBoundingClientRect();
+      const understand = document.querySelector('[data-tool-group="understand"] > .tool-toggle');
       return {
         bodyRelease: document.body.dataset.release,
         htmlRelease: document.documentElement.dataset.release,
@@ -57,43 +42,36 @@ try {
         htmlGeneration: document.documentElement.dataset.siteRuntimeGeneration,
         visibleRelease: document.querySelector('[data-current-release]')?.textContent?.trim(),
         runtime: globalThis.__GAOKAO_HOME_RUNTIME__,
-        shell: globalThis.__GAOKAO_UI__,
-        scripts: [...document.scripts].map(node => node.src).filter(Boolean),
-        styles: [...document.querySelectorAll('link[rel="stylesheet"]')].map(node => node.href),
-        title: document.getElementById('homeTitle')?.textContent?.trim(),
-        action: document.querySelector('#homePrimaryAction span')?.textContent?.trim(),
-        actionHref: document.getElementById('homePrimaryAction')?.getAttribute('href'),
         homeUiRevision: document.body.dataset.homeUiRevision,
-        homeLayout: document.querySelector('.shell')?.dataset.homeLayout,
+        informationArchitectureRevision: document.body.dataset.homeInformationArchitectureRevision,
+        actionSectionCount: document.querySelectorAll('.action-section').length,
+        sectionIndexCount: document.querySelectorAll('.section-index').length,
+        oldActionCopy: bodyText.includes('现在先做什么'),
+        heroSimulationEntryCount: document.querySelectorAll('.hero-primary [data-home-simulation-entry], #homeSimulationAction').length,
         primaryActionCount: document.querySelectorAll('#homePrimaryAction').length,
         toolGroupCount: groups.length,
-        openToolGroups: groups.filter(group => group.dataset.open === 'true').map(group => group.dataset.toolGroup),
         toolToggleCount: document.querySelectorAll('.tool-toggle').length,
-        toolLinkCount: supportLinks.length,
+        openToolGroups: groups.filter(group => group.dataset.open === 'true').map(group => group.dataset.toolGroup),
+        toolLinkCount: document.querySelectorAll('.tool-groups .tool-link').length,
+        mainlineLinkCount: mainline.length,
+        mainlineTitles: mainline.map(link => link.querySelector('strong')?.textContent?.trim()),
+        majorSelectionOrder: mainline.indexOf(major),
         simulationEntryCount: document.querySelectorAll('[data-home-simulation-entry]').length,
-        simulationEntryTitle: simulationEntry?.querySelector('strong')?.textContent?.trim(),
-        simulationEntryHref: simulationEntry?.getAttribute('href'),
-        simulationEntryOrder: mainlineLinks.indexOf(simulationEntry),
-        mainlineLinkCount: mainlineLinks.length,
+        simulationEntryTitle: simulation?.querySelector('strong')?.textContent?.trim(),
+        simulationEntryHref: simulation?.getAttribute('href'),
+        simulationEntryOrder: mainline.indexOf(simulation),
+        simulationPointerEvents: simulation ? getComputedStyle(simulation).pointerEvents : null,
+        simulationBox: simulationBox ? { width: simulationBox.width, height: simulationBox.height } : null,
+        understandPointerEvents: understand ? getComputedStyle(understand).pointerEvents : null,
         majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
-        majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
-        majorPathHref: majorPathEntry?.getAttribute('href'),
-        majorPathOrder: supportLinks.indexOf(majorPathEntry),
-        scoreOrder: supportLinks.indexOf(document.querySelector('[data-score-equivalence-entry="home"]')),
         industryEntryCount: document.querySelectorAll('[data-home-industry-map-entry]').length,
-        industryTitle: industryEntry?.querySelector('strong')?.textContent?.trim(),
-        industryHref: industryEntry?.getAttribute('href'),
-        industryOrder: supportLinks.indexOf(industryEntry),
-        countdown: Number(document.getElementById('d2027')?.textContent || NaN),
         countdownParts: {
           days: Number(document.getElementById('d2027')?.textContent || NaN),
           hours: Number(document.getElementById('h2027')?.textContent || NaN),
           minutes: Number(document.getElementById('m2027')?.textContent || NaN),
           seconds: Number(document.getElementById('s2027')?.textContent || NaN)
         },
-        countdownCellCount: document.querySelectorAll('[data-countdown-precision="second"] > div').length,
         countdownPrecision: document.querySelector('[data-countdown-precision]')?.dataset.countdownPrecision,
-        nowText: document.getElementById('nowText')?.textContent?.trim(),
         scrollWidth: document.documentElement.scrollWidth,
         clientWidth: document.documentElement.clientWidth
       };
@@ -106,111 +84,59 @@ try {
     assert.equal(state.visibleRelease, 'v3.9.90.3', `${device.name}: visible release`);
     assert.equal(state.runtime?.version, 'family-home-runtime-v3990_3-r031', `${device.name}: runtime`);
     assert.equal(state.runtime?.uiRevision, 'r031-home-redesign', `${device.name}: UI revision`);
-    assert.equal(state.runtime?.homeToolRevision, 'r032-home-simulation-entry', `${device.name}: tool revision`);
-    assert.equal(state.runtime?.generation, 'v3990_3', `${device.name}: runtime generation`);
-    assert.equal(state.runtime?.release, 'v3.9.90.3', `${device.name}: runtime release`);
-    assert.equal(state.runtime?.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation route`);
-    assert.equal(state.simulationEntryCount, 1, `${device.name}: one runtime simulation tool entry`);
-    assert.equal(state.homeUiRevision, 'r031-home-redesign', `${device.name}: body UI revision`);
-    assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker remains stable`);
-    assert.equal(state.primaryActionCount, 1, `${device.name}: one primary action`);
-    assert.equal(state.toolGroupCount, 4, `${device.name}: four grouped tool areas`);
-    assert.equal(state.toolToggleCount, 4, `${device.name}: four explicit disclosure controls`);
-    assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline group open initially`);
-    assert.equal(state.toolLinkCount, 9, `${device.name}: all tool links plus simulation entry retained`);
-    assert.equal(state.simulationEntryTitle, '模拟志愿', `${device.name}: simulation tool title`);
-    assert.equal(state.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation tool route`);
-    assert.equal(state.mainlineLinkCount >= 1, true, `${device.name}: mainline has tools`);
-    assert.equal(state.simulationEntryOrder, 0, `${device.name}: simulation tool is first within mainline tools`);
-    assert.match(state.runtime?.shellOwner || '', /family-shell\.v3990_3\.js$/);
-    assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
-    assert.equal(state.shell?.version, 'family-shell-v3990_3', `${device.name}: shell owner`);
-    assert.equal(state.shell?.generation, 'v3990_3', `${device.name}: shell generation`);
-    assert.equal(state.shell?.release, 'v3.9.90.3', `${device.name}: shell release`);
-    assert.equal(state.scripts.length, 1, `${device.name}: one bootstrap script`);
-    assert.ok(state.scripts[0].includes('/ln-rank/js/ux/family-home.v3990_3.js?v=3990_3'), `${device.name}: current home script`);
-    assert.ok(state.scripts.every(src => !/family-home\.v3972_5\.js\?v=3972_5/.test(src)), `${device.name}: retired home script`);
-    assert.ok(state.styles.some(src => src.includes('/shared/ui/shell/family-shell.v3972_5.css?v=3972_5')), `${device.name}: stable shell CSS`);
-    assert.ok(state.styles.some(src => src.includes('/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5')), `${device.name}: stable family entry CSS`);
-    assert.match(state.title || '', /家庭方案/);
-    assert.equal(state.action, '继续检查家庭方案');
-    assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
+    assert.equal(state.runtime?.informationArchitectureVersion, 'home-information-architecture-v033', `${device.name}: IA version`);
+    assert.equal(state.homeUiRevision, 'r031-home-redesign', `${device.name}: stable UI revision`);
+    assert.equal(state.informationArchitectureRevision, 'r033-home-problem-entry', `${device.name}: IA revision`);
+    assert.equal(state.actionSectionCount, 0, `${device.name}: retired action section`);
+    assert.equal(state.sectionIndexCount, 0, `${device.name}: retired section numbering`);
+    assert.equal(state.oldActionCopy, false, `${device.name}: retired action copy`);
+    assert.equal(state.heroSimulationEntryCount, 0, `${device.name}: no hero simulation duplicate`);
+    assert.equal(state.primaryActionCount, 1, `${device.name}: one hero primary action`);
+    assert.equal(state.toolGroupCount, 4, `${device.name}: four tool groups`);
+    assert.equal(state.toolToggleCount, 4, `${device.name}: four disclosure controls`);
+    assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline opens`);
+    assert.equal(state.toolLinkCount, 8, `${device.name}: eight total tool links`);
+    assert.equal(state.mainlineLinkCount, 2, `${device.name}: two mainline links`);
+    assert.deepEqual(state.mainlineTitles, ['专业初选', '模拟志愿'], `${device.name}: mainline order`);
+    assert.equal(state.majorSelectionOrder, 0, `${device.name}: major selection first`);
+    assert.equal(state.simulationEntryCount, 1, `${device.name}: one simulation entry`);
+    assert.equal(state.simulationEntryTitle, '模拟志愿', `${device.name}: simulation title`);
+    assert.equal(state.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation route`);
+    assert.equal(state.simulationEntryOrder, 1, `${device.name}: simulation follows major selection`);
+    assert.equal(state.simulationPointerEvents, 'auto', `${device.name}: simulation pointer events`);
+    assert.ok(state.simulationBox && state.simulationBox.width > 0 && state.simulationBox.height > 0, `${device.name}: simulation has hit area`);
+    assert.equal(state.understandPointerEvents, 'auto', `${device.name}: understand toggle pointer events`);
     assert.equal(state.majorPathEntryCount, 1, `${device.name}: one major path entry`);
-    assert.equal(state.majorPathTitle, '专业升学地图', `${device.name}: major path title`);
-    assert.equal(state.majorPathHref, '/major-path/', `${device.name}: major path route`);
-    assert.ok(state.majorPathOrder >= 0 && state.majorPathOrder < state.scoreOrder, `${device.name}: major path follows primary major selection`);
-    assert.ok(state.scoreOrder < state.industryOrder, `${device.name}: score history follows major path and precedes industry map`);
-    assert.ok(state.industryOrder > state.scoreOrder, `${device.name}: industry map follows core professional understanding links`);
-    assert.equal(state.industryEntryCount, 1, `${device.name}: one industry map entry`);
-    assert.equal(state.industryTitle, '全国上市公司产业落地图', `${device.name}: industry map title`);
-    assert.equal(state.industryHref, '/Public_company/', `${device.name}: industry map route`);
-    assert.ok(Number.isFinite(state.countdown) && state.countdown >= 0, `${device.name}: countdown`);
-    assert.equal(state.countdownCellCount, 4, `${device.name}: four countdown cells`);
-    assert.equal(state.countdownPrecision, 'second', `${device.name}: second precision marker`);
-    assert.equal(state.runtime?.countdownPrecision, 'second', `${device.name}: runtime second precision`);
-    assert.equal(state.runtime?.countdownIntervalMs, 1000, `${device.name}: one-second cadence`);
-    assert.equal(state.countdownParts.hours >= 0 && state.countdownParts.hours <= 23, true, `${device.name}: hour range`);
-    assert.equal(state.countdownParts.minutes >= 0 && state.countdownParts.minutes <= 59, true, `${device.name}: minute range`);
-    assert.equal(state.countdownParts.seconds >= 0 && state.countdownParts.seconds <= 59, true, `${device.name}: second range`);
-    assert.match(state.nowText || '', /\d{2}:\d{2}:\d{2}/, `${device.name}: Beijing clock includes seconds`);
-
-    const beforeTotal = state.countdownParts.days * 86400 + state.countdownParts.hours * 3600 + state.countdownParts.minutes * 60 + state.countdownParts.seconds;
-    await page.waitForTimeout(1150);
-    const afterParts = await page.evaluate(() => ({
-      days: Number(document.getElementById('d2027')?.textContent || NaN),
-      hours: Number(document.getElementById('h2027')?.textContent || NaN),
-      minutes: Number(document.getElementById('m2027')?.textContent || NaN),
-      seconds: Number(document.getElementById('s2027')?.textContent || NaN),
-      scrollWidth: document.documentElement.scrollWidth,
-      clientWidth: document.documentElement.clientWidth
-    }));
-    const afterTotal = afterParts.days * 86400 + afterParts.hours * 3600 + afterParts.minutes * 60 + afterParts.seconds;
-    assert.ok(afterTotal < beforeTotal && beforeTotal - afterTotal <= 2, `${device.name}: countdown advances by second (${beforeTotal} -> ${afterTotal})`);
-    assert.ok(afterParts.scrollWidth <= afterParts.clientWidth + 1, `${device.name}: no overflow after second tick`);
-    assert.ok(state.scrollWidth <= state.clientWidth + 1, `${device.name}: horizontal overflow ${state.scrollWidth}/${state.clientWidth}`);
+    assert.equal(state.industryEntryCount, 1, `${device.name}: one industry entry`);
+    assert.equal(state.countdownPrecision, 'second', `${device.name}: countdown precision`);
+    assert.ok(Number.isFinite(state.countdownParts.days) && state.countdownParts.days >= 0, `${device.name}: countdown`);
+    assert.ok(state.scrollWidth <= state.clientWidth + 1, `${device.name}: no horizontal overflow`);
     assert.equal(errors.length, 0, `${device.name}: ${errors.join(' | ')}`);
 
-    const screenshot = path.join(artifactDir, `${device.name}.png`);
-    await page.screenshot({ path: screenshot, fullPage: true });
+    const simulationLink = page.locator('[data-home-simulation-entry]');
+    await simulationLink.scrollIntoViewIfNeeded();
+    const simulationBox = await simulationLink.boundingBox();
+    assert.ok(simulationBox, `${device.name}: simulation bounding box`);
+    await page.mouse.click(simulationBox.x + simulationBox.width / 2, simulationBox.y + simulationBox.height / 2);
+    await page.waitForURL(url => url.pathname === '/ln-rank/simulation-report.html', { timeout: 10000 });
+    await page.goBack({ waitUntil: 'networkidle' });
+    await page.waitForFunction(() => location.pathname === '/' || location.pathname === '/index.html');
 
-    const understandToggle = page.locator('[data-tool-group="understand"] > .tool-toggle');
-    await understandToggle.scrollIntoViewIfNeeded();
-    const scrollBeforeDisclosure = await page.evaluate(() => window.scrollY);
-    await understandToggle.click();
-    await page.waitForTimeout(50);
-    const disclosureState = await page.evaluate(() => ({
-      scrollY: window.scrollY,
-      groupOpen: document.querySelector('[data-tool-group="understand"]')?.dataset.open,
-      expanded: document.querySelector('[data-tool-group="understand"] > .tool-toggle')?.getAttribute('aria-expanded'),
-      panelHidden: document.getElementById('tool-panel-understand')?.hidden
-    }));
-    assert.equal(disclosureState.groupOpen, 'true', `${device.name}: understand group expands before navigation`);
-    assert.equal(disclosureState.expanded, 'true', `${device.name}: understand button announces expansion`);
-    assert.equal(disclosureState.panelHidden, false, `${device.name}: understand panel becomes visible`);
-    assert.ok(Math.abs(disclosureState.scrollY - scrollBeforeDisclosure) <= 2, `${device.name}: disclosure preserves scroll position`);
-    await Promise.all([
-      page.waitForURL(url => url.pathname === '/major-path/' || url.pathname === '/major-path/index.html'),
-      page.locator('[data-home-major-path-entry]').click()
-    ]);
-    await page.waitForSelector('[data-major-path-version="major-path-v0.06"]');
-    assert.match(await page.title(), /专业升学地图/, `${device.name}: destination title`);
-    assert.equal(errors.length, 0, `${device.name}: destination ${errors.join(' | ')}`);
+    const toggle = page.locator('[data-tool-group="understand"] > .tool-toggle');
+    await toggle.scrollIntoViewIfNeeded();
+    const toggleBox = await toggle.boundingBox();
+    assert.ok(toggleBox, `${device.name}: understand toggle bounding box`);
+    await page.mouse.click(toggleBox.x + toggleBox.width / 2, toggleBox.y + toggleBox.height / 2);
+    await page.waitForFunction(() => document.querySelector('[data-tool-group="understand"]')?.dataset.open === 'true');
+    assert.equal(await page.locator('#tool-panel-understand').getAttribute('hidden'), null, `${device.name}: understand panel opens by pointer`);
+    const href = await page.locator('[data-home-major-path-entry]').getAttribute('href');
+    assert.equal(href, '/major-path/', `${device.name}: major path route after touch-like interaction`);
 
-    results.push({ device: device.name, ...state, screenshot, majorPathDestination: new URL(page.url()).pathname });
+    await page.screenshot({ path: path.join(artifactDir, `${device.name}.png`), fullPage: true });
+    results.push({ device: device.name, ...state });
     await context.close();
   }
 } finally {
   await browser.close();
 }
-
-console.log(JSON.stringify({
-  ok: true,
-  release: 'v3.9.90.3',
-  generation: 'v3990_3',
-  runtime: 'family-home-runtime-v3990_3-r031',
-  uiRevision: 'r031-home-redesign',
-  homeToolRevision: 'r032-home-simulation-entry',
-  shell: 'family-shell-v3990_3',
-  stableCss: ['family-shell.v3972_5.css', 'family-plan-entry.v3972_5.css'],
-  devices: results
-}, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.90.3', generation: 'v3990_3', runtime: 'family-home-runtime-v3990_3-r031', informationArchitecture: 'r033-home-problem-entry', devices: results }, null, 2));

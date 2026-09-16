@@ -10,6 +10,7 @@ const release = read('shared/resources/release/current-release.js');
 for (const marker of [
   'data-home-ui-revision="r031-home-redesign"',
   'data-home-layout="r031-home-redesign"',
+  'data-home-information-architecture-revision="r033-home-problem-entry"',
   'id="homePrimaryAction"',
   'id="examCountdown"',
   'data-countdown-precision="second"',
@@ -24,8 +25,9 @@ for (const marker of [
   'data-home-major-path-entry',
   'data-score-equivalence-entry="home"',
   'data-home-industry-map-entry',
+  'data-home-simulation-entry',
   'href="/ln-rank/"',
-  'href="/ln-rank/selection-pool"',
+  'href="/ln-rank/simulation-report.html"',
   'href="/major-path/"',
   'href="/tongxue/"',
   'href="/Public_company/"'
@@ -43,14 +45,23 @@ for (const group of ['understand', 'evidence', 'industry']) {
 }
 assert.equal((home.match(/data-home-major-path-entry/g) || []).length, 1, 'major path must have one homepage owner');
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map must have one homepage owner');
+assert.equal((home.match(/data-home-simulation-entry/g) || []).length, 1, 'simulation must have one homepage owner');
 assert.ok(home.indexOf('data-home-major-path-entry') < home.indexOf('data-score-equivalence-entry="home"'), 'major path must precede score history in DOM');
-assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool"'), 'score history must precede family plan in DOM');
 assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('data-home-industry-map-entry'), 'score history must precede industry map in DOM');
+const majorIndex = home.indexOf('<a class="tool-link" data-tool-kind="primary" href="/ln-rank/"');
+const simulationIndex = home.indexOf('data-home-simulation-entry');
+assert.ok(majorIndex >= 0 && majorIndex < simulationIndex, 'professional selection must precede simulation in mainline');
+assert.equal((home.match(/data-home-simulation-entry/g) || []).length, 1, 'simulation must not be duplicated');
+assert.equal((home.match(/class="action-section"/g) || []).length, 0, 'retired action section must be removed');
+assert.equal((home.match(/class="section-index"/g) || []).length, 0, 'retired numeric section indexes must be removed');
+assert.ok(!home.includes('现在先做什么'), 'retired action heading must be removed');
+assert.ok(!home.includes('家庭方案与逐项复核'), 'retired family-plan homepage copy must be removed');
 assert.ok(!home.includes('今日建议'), 'homepage must not invent a generic daily recommendation');
 assert.ok(!home.includes('更多入口'), 'homepage must not use a flat more-entries section');
 assert.ok(!home.includes('按天安排节奏'), 'homepage must not restore retired countdown copy');
 assert.match(runtime, /HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031'/);
 assert.match(runtime, /HOME_UI_REVISION = 'r031-home-redesign'/);
+assert.match(runtime, /HOME_INFORMATION_ARCHITECTURE_VERSION = 'home-information-architecture-v033'/);
 assert.match(runtime, /setInterval\(renderCountdown, 1000\)/);
 assert.match(runtime, /TOOL_GROUP_RUNTIME_VERSION = 'home-disclosure-stability-v001'/);
 assert.match(runtime, /preventScroll: true/);
@@ -62,8 +73,9 @@ assert.match(plan, /开始专业初选.*唯一主要动作/);
 console.log(JSON.stringify({
   ok: true,
   layout: 'r031-home-redesign',
+  informationArchitecture: 'r033-home-problem-entry',
   toolGroups: 4,
   countdownCells: 4,
   primaryActions: 1,
-  preservedRoutes: ['/ln-rank/', '/ln-rank/selection-pool', '/major-path/', '/tongxue/', '/Public_company/']
+  preservedRoutes: ['/ln-rank/', '/ln-rank/simulation-report.html', '/major-path/', '/tongxue/', '/Public_company/']
 }, null, 2));

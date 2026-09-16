@@ -1,0 +1,30 @@
+{
+  "version": "home-information-architecture-v033",
+  "revision": "r033-home-problem-entry",
+  "baseMainSha": "a8ea229f062157b4e81957047d56f5976f435319",
+  "branch": "feat/home-problem-entry-v033",
+  "status": "implementation",
+  "scope": [
+    "remove homepage 01 instruction section and 02 numeric marker",
+    "make 按问题进入 the direct tool area",
+    "place 专业初选 before 模拟志愿 in one mainline",
+    "remove obsolete 家庭方案与逐项复核 homepage entry",
+    "preserve one canonical simulation entry",
+    "verify 360/390/768/1280 responsive behavior and pointer interaction",
+    "preserve v3.9.90.3/v3990_3 public release contract"
+  ],
+  "targets": {
+    "android": [360, 390],
+    "pad": [768],
+    "desktop": [1280]
+  },
+  "gates": [
+    "homepage ownership audit",
+    "site generation audit",
+    "release verifier",
+    "browser responsive regression",
+    "exact Preview SHA",
+    "post-merge main verification",
+    "production homepage verification"
+  ]
+}

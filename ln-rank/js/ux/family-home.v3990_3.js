@@ -9,16 +9,12 @@ import {
 export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031';
 export const HOME_UI_REVISION = 'r031-home-redesign';
 export const HOME_TOOL_REVISION = 'r032-home-simulation-entry';
+export const HOME_INFORMATION_ARCHITECTURE_VERSION = 'home-information-architecture-v033';
 const EXAM_START_AT = new Date('2027-06-07T09:00:00+08:00');
 const CLOCK_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
 });
 
 function fmt(value) {
@@ -39,18 +35,6 @@ function setPrimary(href, text) {
   if (label) label.textContent = text;
 }
 
-function ensureSimulationEntry() {
-  const host = document.querySelector('.hero-primary');
-  if (!host || document.getElementById('homeSimulationAction')) return;
-  const link = document.createElement('a');
-  link.id = 'homeSimulationAction';
-  link.className = 'primary-note';
-  link.href = '/ln-rank/simulation-report.html';
-  link.textContent = '已经有学校和专业？直接进入模拟志愿填报 →';
-  link.setAttribute('aria-label', '直接进入模拟志愿填报');
-  host.appendChild(link);
-}
-
 function ensureSimulationToolEntry() {
   const list = document.querySelector('[data-tool-group="mainline"] .tool-list');
   if (!list || list.querySelector('[data-home-simulation-entry]')) return;
@@ -59,49 +43,33 @@ function ensureSimulationToolEntry() {
   link.dataset.toolKind = 'primary';
   link.dataset.homeSimulationEntry = 'true';
   link.href = '/ln-rank/simulation-report.html';
-  link.setAttribute('aria-label', '进入模拟志愿工作台');
+  link.setAttribute('aria-label', '打开模拟志愿');
 
   const copy = document.createElement('span');
   const eyebrow = document.createElement('em');
   const title = document.createElement('strong');
   const detail = document.createElement('span');
   const arrow = document.createElement('i');
-  eyebrow.textContent = '家庭方案工具';
+  eyebrow.textContent = '接着整理';
   title.textContent = '模拟志愿';
-  detail.textContent = '把已经考虑过的学校和专业放进来，继续排序、核对和整理家庭报告。';
+  detail.textContent = '把已经考虑过的学校和专业放在一起，再慢慢核对。';
   arrow.textContent = '→';
   arrow.setAttribute('aria-hidden', 'true');
   copy.append(eyebrow, title, detail);
   link.append(copy, arrow);
-  list.prepend(link);
-}
 
-function renderSteps(lines) {
-  const root = document.getElementById('homeSteps');
-  if (!root) return;
-  root.replaceChildren(...lines.map(([title, detail]) => {
-    const row = document.createElement('div');
-    const heading = document.createElement('b');
-    const copy = document.createElement('span');
-    heading.textContent = title;
-    copy.textContent = detail;
-    row.append(heading, copy);
-    return row;
-  }));
+  const first = list.querySelector('a[href="/ln-rank/"]');
+  if (first) first.insertAdjacentElement('afterend', link);
+  else list.append(link);
 }
 
 function pendingSummary(items) {
   const fee = items.filter(item => item.isSinoForeign || item.isHighFee || /中外|高收费|学费|费用/.test([
-    item.major,
-    item.school,
-    item.tuition,
-    item.matchReason,
+    item.major, item.school, item.tuition, item.matchReason,
     ...(Array.isArray(item.flags) ? item.flags : [])
   ].filter(Boolean).join(' '))).length;
   const campus = items.filter(item => /校区|分校/.test([
-    item.school,
-    item.geoEntity,
-    item.displayLocation
+    item.school, item.geoEntity, item.displayLocation
   ].filter(Boolean).join(' '))).length;
   const parts = [];
   if (fee) parts.push(`${fmt(fee)}个需要确认费用或培养方式`);
@@ -118,42 +86,20 @@ function renderHomeState() {
   if (status.selectedCount) {
     setText('homeTitle', '继续整理当前家庭方案');
     setText('homeLead', `当前参考分数${score ? `${fmt(score)}分` : '尚未确认'}，家庭方案里有${fmt(status.selectedCount)}个专业，其中${fmt(status.pendingCount)}个还需要继续确认。先听孩子对专业内容和城市生活的真实想法，再确认费用、校区、培养方式和特殊要求。`);
-    setText('homeActionTitle', '下一步先做什么');
-    const detail = pendingSummary(items);
-    setText('homeActionCopy', detail ? `${detail}。先处理这些会影响家庭决定的事项，再生成报告。` : '先检查专业方向和城市是否过于集中，再确认孩子是否愿意继续了解。');
     setPrimary(status.nextActionHref, status.pendingCount ? '继续检查家庭方案' : '生成家庭方案报告');
-    renderSteps([
-      ['1. 先听孩子怎么想', '确认专业内容、学习方式和城市生活是否愿意继续了解。'],
-      ['2. 再看家庭能否接受', '逐项确认费用、校区、培养方式和特殊要求。'],
-      ['3. 最后整理并分享', '生成家庭方案报告，方便和孩子、家人一起讨论。']
-    ]);
     return;
   }
 
   if (score) {
     setText('homeTitle', `从${fmt(score)}分开始圈出可讨论专业`);
     setText('homeLead', '参考分数已经保存。接下来选择孩子愿意了解的专业方向，再结合地区、学校性质和家庭条件缩小范围。这里使用2026历史投档记录，不预测2027录取结果。');
-    setText('homeActionTitle', '现在先做什么');
-    setText('homeActionCopy', '先说清孩子想了解什么，再补充家庭能够接受的地区、学校类型和费用条件。');
     setPrimary('/ln-rank/', '继续专业初选');
-    renderSteps([
-      ['1. 说清想看什么', '选择孩子愿意继续了解的专业方向。'],
-      ['2. 说明家庭条件', '确认地区、办学性质和费用范围。'],
-      ['3. 加入家庭方案', '把值得继续讨论的专业放在一起，稍后统一整理。']
-    ]);
     return;
   }
 
   setText('homeTitle', '先圈出一批值得家庭讨论的专业');
-  setText('homeLead', '输入孩子的模考或预估参考分数，再结合专业方向、地区和家庭条件，用2026历史投档记录缩小范围。工具不替家庭做决定，也不把历史投档当成2027录取结论。');
-  setText('homeActionTitle', '现在先做什么');
-  setText('homeActionCopy', '先确认孩子目前的参考分数，再说清想看的专业方向和家庭不能接受的条件。');
+  setText('homeLead', '输入孩子的模考或预估参考分数，再结合专业方向和地区，先看看哪些专业值得继续了解。');
   setPrimary('/ln-rank/', '开始专业初选');
-  renderSteps([
-    ['1. 确认孩子的位置', '输入模考或预估参考分数。'],
-    ['2. 说清想要和不能接受的', '同时考虑孩子意愿和家庭条件。'],
-    ['3. 圈出并逐项复核', '加入家庭方案后，再确认计划、章程、费用和校区。']
-  ]);
 }
 
 const TOOL_GROUP_SELECTOR = '.tool-group[data-tool-group]';
@@ -161,11 +107,8 @@ const TOOL_GROUP_RUNTIME_VERSION = 'home-disclosure-stability-v001';
 
 function restoreViewport(position) {
   if (!position) return;
-  try {
-    window.scrollTo(position.x, position.y);
-  } catch {
-    try { window.scrollTo(Number(position.x) || 0, Number(position.y) || 0); } catch {}
-  }
+  try { window.scrollTo(position.x, position.y); }
+  catch { try { window.scrollTo(Number(position.x) || 0, Number(position.y) || 0); } catch {} }
 }
 
 function bindToolGroups() {
@@ -187,25 +130,16 @@ function bindToolGroups() {
     toggle.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
-      const position = {
-        x: Number(window.scrollX) || 0,
-        y: Number(window.scrollY) || 0
-      };
+      const position = { x: Number(window.scrollX) || 0, y: Number(window.scrollY) || 0 };
       const next = toggle.getAttribute('aria-expanded') !== 'true';
       setOpen(next);
-      try {
-        toggle.focus({ preventScroll: true });
-      } catch {
-        try { toggle.focus(); } catch {}
-      }
+      try { toggle.focus({ preventScroll: true }); } catch { try { toggle.focus(); } catch {} }
       const restore = () => restoreViewport(position);
       restore();
       globalThis.setTimeout(restore, 0);
       if (typeof globalThis.requestAnimationFrame === 'function') {
         globalThis.requestAnimationFrame(restore);
-        globalThis.requestAnimationFrame(() => {
-          globalThis.requestAnimationFrame(restore);
-        });
+        globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(restore));
       }
     });
   }
@@ -219,21 +153,16 @@ function renderCountdown(now = new Date()) {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   const pad2 = value => String(value).padStart(2, '0');
-
   setText('d2027', String(days));
   setText('h2027', pad2(hours));
   setText('m2027', pad2(minutes));
   setText('s2027', pad2(seconds));
   setText('nowText', CLOCK_FORMATTER.format(now));
-  document.getElementById('examCountdown')?.setAttribute(
-    'aria-label',
-    '距离2027年高考还有' + days + '天' + hours + '小时' + minutes + '分' + seconds + '秒'
-  );
+  document.getElementById('examCountdown')?.setAttribute('aria-label', '距离2027年高考还有' + days + '天' + hours + '小时' + minutes + '分' + seconds + '秒');
 }
 
 const release = mountCurrentRelease();
 renderHomeState();
-ensureSimulationEntry();
 ensureSimulationToolEntry();
 bindToolGroups();
 renderCountdown();
@@ -250,6 +179,7 @@ globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   version: HOME_RUNTIME_VERSION,
   uiRevision: HOME_UI_REVISION,
   homeToolRevision: HOME_TOOL_REVISION,
+  informationArchitectureVersion: HOME_INFORMATION_ARCHITECTURE_VERSION,
   generation: release.siteRuntimeGeneration,
   release: release.display,
   releaseOwner: release.resourceOwners.release,

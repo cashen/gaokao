@@ -44,10 +44,14 @@ assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.familyShellSt
 for (const marker of [
   'data-release="v3.9.90.3"',
   'data-site-runtime-generation="v3990_3"',
+  'data-home-information-architecture-revision="r033-home-problem-entry"',
   'family-shell.v3972_5.css?v=3972_5',
   'family-plan-entry.v3972_5.css?v=3972_5',
   'family-home.v3990_3.js?v=3990_3',
-  '家庭方案与逐项复核',
+  '按问题进入',
+  '想到哪一步，就从哪一步开始。',
+  'data-home-simulation-entry',
+  'href="/ln-rank/simulation-report.html"',
   'data-current-release>v3.9.90.3',
   'data-home-major-path-entry',
   'href="/major-path/"',
@@ -63,6 +67,14 @@ for (const marker of [
 
 assert.equal((home.match(/data-home-major-path-entry/g) || []).length, 1, 'major path entry must have one homepage owner');
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map entry must have one homepage owner');
+assert.equal((home.match(/data-home-simulation-entry/g) || []).length, 1, 'simulation entry must have one homepage owner');
+assert.equal((home.match(/class="action-section"/g) || []).length, 0, 'obsolete action section must be removed');
+assert.equal((home.match(/class="section-index"/g) || []).length, 0, 'obsolete numbered section markers must be removed');
+assert.ok(!home.includes('现在先做什么'), 'obsolete action copy must be removed');
+assert.ok(!home.includes('家庭方案与逐项复核'), 'obsolete homepage family-review card must be removed');
+const mainlineMajorIndex = home.indexOf('href="/ln-rank/"');
+const simulationIndex = home.indexOf('data-home-simulation-entry');
+assert.ok(mainlineMajorIndex > 0 && mainlineMajorIndex < simulationIndex, 'homepage mainline must place professional selection before simulation');
 const majorPathIndex = home.indexOf('data-home-major-path-entry');
 const scoreEquivalenceIndex = home.indexOf('data-score-equivalence-entry="home"');
 const industryIndex = home.indexOf('data-home-industry-map-entry');
@@ -82,6 +94,7 @@ for (const marker of [
   'family-decision-contract.v3970_0.js?v=3970_0',
   "HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031'",
   "HOME_UI_REVISION = 'r031-home-redesign'",
+  "HOME_INFORMATION_ARCHITECTURE_VERSION = 'home-information-architecture-v033'",
   "window.addEventListener('gaokao:selection-change'",
   'generation: release.siteRuntimeGeneration',
   'releaseOwner: release.resourceOwners.release',
@@ -92,8 +105,10 @@ for (const marker of [
   'countdownIntervalMs: 1000',
   'setInterval(renderCountdown, 1000)'
 ]) assert.ok(runtime.includes(marker), `home runtime missing ${marker}`);
-for (const stale of ['release-presenter.v3972_5.js?v=3972_5', 'family-shell.v3972_5.js?v=3972_5']) {
-  assert.ok(!runtime.includes(stale), `home runtime imports retired current infrastructure ${stale}`);
+assert.ok(runtime.includes('function ensureSimulationToolEntry()'), 'home runtime must retain simulation fallback owner');
+assert.ok(runtime.includes("first.insertAdjacentElement('afterend', link)"), 'home runtime fallback must keep simulation after major selection');
+for (const stale of ['release-presenter.v3972_5.js?v=3972_5', 'family-shell.v3972_5.js?v=3972_5', 'renderSteps(', 'ensureSimulationEntry()']) {
+  assert.ok(!runtime.includes(stale), `home runtime still contains retired ${stale}`);
 }
 assert.ok(!runtime.includes('MutationObserver'), 'home runtime must not add a structural observer');
 assert.equal((runtime.match(/setInterval\(/g) || []).length, 1, 'home countdown must have one timer owner');
@@ -134,6 +149,7 @@ console.log(JSON.stringify({
   generation: CURRENT_RELEASE.siteRuntimeGeneration,
   resourceGraph: SHARED_RESOURCE_GRAPH_VERSION,
   homeRuntime: CURRENT_RELEASE.homeEntryVersion,
+  informationArchitecture: 'r033-home-problem-entry',
   homeClassification: SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.homeRuntime,
   stableShellCss: CURRENT_RELEASE.resourceOwners.familyShellStyles,
   majorPath: '/major-path/',
