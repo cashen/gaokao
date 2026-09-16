@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync('ln-rank/simulation-report.html','utf8');
 const css=fs.readFileSync('ln-rank/css/simulation-report-v017-responsive-input.css','utf8');
 
-assert.match(html,/class="decision-progress"/);
+assert.match(html,/class="summary-strip decision-progress"/);
 assert.match(html,/aria-label="家庭整理进度"/);
 assert.match(html,/我的志愿/);
 assert.match(html,/打印 \/ 保存这份方案/);
