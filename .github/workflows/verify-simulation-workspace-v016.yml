@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.59-r149: single-owner unified runtime takeover.
+# v016.62-r152: unified family note editor.
 on:
   pull_request:
     paths:
@@ -10,10 +10,11 @@ on:
       - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-unified-runtime-r149.md'
+      - 'docs/plans/simulation-family-note-r152.md'
       - 'docs/dev-progress/simulation-report.md'
       - 'tests/verify-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-family-note-r152.mjs'
       - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
@@ -25,10 +26,11 @@ on:
       - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-unified-runtime-r149.md'
+      - 'docs/plans/simulation-family-note-r152.md'
       - 'docs/dev-progress/simulation-report.md'
       - 'tests/verify-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-family-note-r152.mjs'
       - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
@@ -66,4 +68,5 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
       - run: node tools/browser-simulation-unified-runtime-r149.mjs
+      - run: node tools/browser-simulation-family-note-r152.mjs
       - run: node tools/browser-simulation-pdf-r149.mjs

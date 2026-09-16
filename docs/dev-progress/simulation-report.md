@@ -1,11 +1,21 @@
 # 模拟志愿填报单页开发进度
 
-当前主线：`refactor/simulation-unified-runtime-r149`
-基线 main：`48128fdf693e7890dbe140372db3a46971686c9a`
-当前产品版本：`simulation-workspace-v016.61`
-当前产品修订：`r151-browser-runtime-hardening`
+当前主线：`refactor/simulation-family-note-r152`
+基线 main：`cf99186d50388c5f5e8ce14f5a6c0605361b449d`
+当前产品版本：`simulation-workspace-v016.62`
+当前产品修订：`r152-family-note-unified-editor`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
-阶段：统一接管实现修正 → CI / Preview / Production 验证
+阶段：备注统一管理修订 → CI / Preview / Production 验证
+
+## r152 修正
+
+- [x] 备注继续作为 `volunteer.familyNote` 一等字段，未增加平行 store 或 note runtime。
+- [x] 家庭处理区收敛为同一语义上下文：处理结论与备注放在同一区域，不再把备注作为卡片末尾孤立输入。
+- [x] 备注由单行 input 改为多句 textarea，最大 1000 字符，支持自动增高并限制编辑区域最大高度。
+- [x] 备注输入不触发整张志愿清单 render；继续使用 unified runtime 的直接状态写入路径。
+- [x] 刷新、改变家庭处理结论、排序均继续保留备注内容。
+- [x] CI 新增 Android / Pad / Desktop 三视口备注回归。
+- [x] release contract 提升到 `v016.62-r152`。
 
 ## r151 修正
 
@@ -35,6 +45,7 @@
 - [ ] Desktop / Pad / Android browser PASS
 - [ ] rapid input / clear / school confirmation / major confirmation PASS
 - [ ] history / family decision / reorder / refresh persistence PASS
+- [ ] family note long-text / autosize / persistence PASS
 - [ ] PDF service smoke PASS
 - [ ] final PR head exact SHA verified
 - [ ] Cloudflare Preview exact SHA verified
@@ -42,4 +53,4 @@
 
 ## 后续开发规则
 
-模拟志愿不得再新增平行 `simulation-report-v0xx-*.js` 页面运行时。新增能力必须进入 `simulation-runtime.js` 或明确的 service 模块，并通过统一 architecture contract。
+模拟志愿不得再新增平行 `simulation-report-v0xx-*.js` 页面运行时。新增能力必须进入 `simulation-runtime.js` 或明确的 service 模块，并通过统一 architecture contract。备注能力必须继续作为 volunteer row 的字段和家庭处理上下文的一部分演进。

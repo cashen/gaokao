@@ -1,15 +1,15 @@
 {
-  "version":"simulation-workspace-v016.61",
-  "revision":"r151-browser-runtime-hardening",
+  "version":"simulation-workspace-v016.64",
+  "revision":"r154-reload-safe-note-persistence",
   "page":"/ln-rank/simulation-report.html",
   "pageVersion":"v1.0",
   "pageVersionLabel":"模拟志愿 v1.0",
   "runtime":"/ln-rank/js/simulation-runtime.js",
-  "runtimeRevision":"v016.61-r151",
+  "runtimeRevision":"v016.64-r154",
   "schoolSearchWorker":"/ln-rank/js/simulation-school-search-worker-v001.js",
   "responsiveInputCss":"/ln-rank/css/simulation-report.css",
   "pdfRuntime":"/ln-rank/js/simulation-report-pdf-service.js",
-  "pdfRuntimeRevision":"v016.61-r151",
+  "pdfRuntimeRevision":"v016.60-r150",
   "pdfAndroidRuntime":null,
   "pdfAndroidRuntimeRevision":null,
   "legacyRenderGuard":null,
@@ -20,7 +20,7 @@
   "factSource":"/api/ai/major-history",
   "noFabrication":true,
   "architecture":{"singleBootstrap":true,"singleStateOwner":true,"singleEventOwner":true,"singleCssOwner":true,"pdfAsService":true,"legacyRuntimeAutoStart":false},
-  "rules":["user input never depends on legacy DOM","school candidates require explicit selection before confirmation","major directory candidates are hints until confirmed against the selected school","major confirmation requires school plus major name plus code agreement","history is reference-only and never blocks family整理","stale worker/network responses cannot overwrite newer input","input editing does not re-render the entire volunteer list","legacy simulation runtimes are historical assets and are not loaded by the page","one simulation bootstrap owns page lifecycle","one simulation store owns persisted state","PDF and Android delivery are service/adapter behavior under the same runtime","release revision increments for every code revision","continued revisions must extend modules, not create parallel simulation runtimes"],
+  "rules":["user input never depends on legacy DOM","school candidates require explicit selection before confirmation","major directory candidates are hints until confirmed against the selected school","major confirmation requires school plus major name plus code agreement","history is reference-only and never blocks family整理","stale worker/network responses cannot overwrite newer input","input editing does not re-render the entire volunteer list","legacy simulation runtimes are historical assets and are not loaded by the page","one simulation bootstrap owns page lifecycle","one simulation store owns persisted state","PDF and Android delivery are service/adapter behavior under the same runtime","release revision increments for every code revision","continued revisions must extend modules, not create parallel simulation runtimes","family note is a first-class volunteer field presented inside the existing family decision context","family note supports multi-sentence input and remains in the same persisted unified store","background rank responses must not re-render the volunteer list while users are editing","browser persistence seeding must never overwrite existing state during reload validation"],
   "targets":{"android":"390px","pad":"768px","desktop":"1280px"},
-  "status":"r151-browser-runtime-hardening"
+  "status":"r154-reload-safe-note-persistence"
 }
