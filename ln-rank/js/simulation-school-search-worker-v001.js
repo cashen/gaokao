@@ -3,8 +3,11 @@ import { resolveUnifiedSchoolQuery } from '../../shared/resources/schools/school
 
 const SEARCH_LIMIT = 8;
 const RESOLVE_LIMIT = 20;
+const SEARCH_DEBOUNCE_MS = 100;
 let catalogPromise = null;
 let admissionDirectoryPromise = null;
+const searchTimers = new Map();
+const searchSequences = new Map();
 
 function norm(value) {
   return String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
@@ -97,18 +100,48 @@ async function resolve(query) {
   };
 }
 
+function scheduleSearch(id, seq, query) {
+  const key = String(id);
+  const oldTimer = searchTimers.get(key);
+  if (oldTimer) clearTimeout(oldTimer);
+  searchSequences.set(key, seq);
+  if (!norm(query)) {
+    self.postMessage({ type: 'school-candidates', id: key, seq, status: 'not_found', candidates: [] });
+    return;
+  }
+  const timer = setTimeout(async () => {
+    searchTimers.delete(key);
+    if (searchSequences.get(key) !== seq) return;
+    try {
+      const payload = await search(query);
+      if (searchSequences.get(key) !== seq) return;
+      self.postMessage({ type: 'school-candidates', id: key, seq, ...payload });
+    } catch (error) {
+      if (searchSequences.get(key) !== seq) return;
+      self.postMessage({
+        type: 'school-error',
+        id: key,
+        seq,
+        message: String(error?.message || error || 'school_search_failed')
+      });
+    }
+  }, SEARCH_DEBOUNCE_MS);
+  searchTimers.set(key, timer);
+}
+
 self.addEventListener('message', async event => {
   const data = event.data || {};
   const id = String(data.id ?? '');
   const seq = Number(data.seq ?? 0);
   try {
     if (data.type === 'search') {
-      const payload = await search(data.query);
-      self.postMessage({ type: 'school-candidates', id, seq, ...payload });
+      scheduleSearch(id, seq, data.query);
       return;
     }
     if (data.type === 'resolve') {
+      searchSequences.set(id, seq);
       const result = await resolve(data.query);
+      if (searchSequences.get(id) !== seq) return;
       self.postMessage({ type: 'school-resolved', id, seq, result });
       return;
     }
