@@ -1,27 +1,12 @@
-name: Verify simulation report v005 PDF and reminders
+name: Archived simulation report regression
 
+# Historical regression workflow. Current page verification is centralized in
+# Verify simulation workspace v016. It is retained for manual forensic reruns.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/js/simulation-report-v005-pdf-reminders.js'
-      - 'tools/verify-simulation-report-v005-pdf-reminders.mjs'
-      - '.github/workflows/verify-simulation-report-v005-pdf-reminders.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'ln-rank/simulation-report.html'
-      - 'ln-rank/js/simulation-report-v005-pdf-reminders.js'
-      - 'tools/verify-simulation-report-v005-pdf-reminders.mjs'
+  workflow_dispatch:
 
 jobs:
-  verify:
+  archived:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Verify v005 PDF and reminder contracts
-        run: node tools/verify-simulation-report-v005-pdf-reminders.mjs
+      - run: echo "Historical simulation-report workflow; use the canonical simulation workspace gate for current changes."
