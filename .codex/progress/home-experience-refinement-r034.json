@@ -1,0 +1,20 @@
+{
+  "task": "home-experience-refinement-r034",
+  "status": "implementation-complete-awaiting-ci",
+  "baseMain": "c96c80526ccf88f4c37070db0483b554ed9546b1",
+  "release": "v3.9.90.3",
+  "generation": "v3990_3",
+  "informationArchitecture": "r033-home-problem-entry",
+  "experienceRevision": "r034-home-experience-refinement",
+  "changedOwner": "/ln-rank/js/ux/family-home.v3990_3.js",
+  "businessLogicChanged": false,
+  "routesChanged": false,
+  "protectedPathsChanged": false,
+  "next": [
+    "run homepage browser regression",
+    "run source/resource gates",
+    "verify exact Preview SHA",
+    "merge only after required checks pass",
+    "verify merged main and production release"
+  ]
+}
