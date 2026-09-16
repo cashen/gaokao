@@ -18,7 +18,12 @@ function normalizedSchool(value) {
 }
 
 async function loadCatalogOnce() {
-  if (!catalogPromise) catalogPromise = loadSchoolCatalog();
+  if (!catalogPromise) {
+    catalogPromise = loadSchoolCatalog().catch(error => {
+      catalogPromise = null;
+      throw error;
+    });
+  }
   return catalogPromise;
 }
 
@@ -32,6 +37,9 @@ async function loadAdmissionDirectoryOnce() {
       const payload = await response.json();
       if (!payload || !Array.isArray(payload.schools)) throw new Error('招生学校目录格式异常。');
       return payload;
+    }).catch(error => {
+      admissionDirectoryPromise = null;
+      throw error;
     });
   }
   return admissionDirectoryPromise;
