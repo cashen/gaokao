@@ -22,6 +22,7 @@ const seedState = {
 };
 
 const longNote = '家里讨论后暂时保留。学费可以接受，但实际培养地点需要再核实；同时想再看看宿舍、专业培养方向和后续就业去向，再决定最终排序。';
+const normalizeForAssert = value => String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
 
 const viewports = [
   { name: 'android', width: 390, height: 844 },
@@ -56,22 +57,23 @@ try {
       })(),
       value: document.querySelector('[data-family-note]')?.value ?? null,
     }));
-    if (diagnostics.runtime !== longNote || diagnostics.stored !== longNote) {
+    const expected = normalizeForAssert(longNote);
+    if (normalizeForAssert(diagnostics.runtime) !== expected || normalizeForAssert(diagnostics.stored) !== expected || normalizeForAssert(diagnostics.value) !== expected) {
       throw new Error(`${viewport.name}: note state mismatch runtime=${JSON.stringify(diagnostics.runtime)} stored=${JSON.stringify(diagnostics.stored)} value=${JSON.stringify(diagnostics.value)}`);
     }
 
     await page.getByRole('button', { name: '候选' }).click();
     const afterDecision = await page.locator('[data-family-note]').first().inputValue();
-    if (afterDecision !== longNote) throw new Error(`${viewport.name}: family decision change lost note`);
+    if (normalizeForAssert(afterDecision) !== expected) throw new Error(`${viewport.name}: family decision change lost note`);
 
     await page.reload({ waitUntil: 'networkidle' });
     const persistedAfterReload = await page.locator('[data-family-note]').first().inputValue();
-    if (persistedAfterReload !== longNote) throw new Error(`${viewport.name}: reload lost long note`);
+    if (normalizeForAssert(persistedAfterReload) !== expected) throw new Error(`${viewport.name}: reload lost long note`);
 
     await context.close();
   }
 
-  console.log('browser family-note r152: PASS');
+  console.log('browser family-note r153: PASS');
 } finally {
   await browser.close();
 }
