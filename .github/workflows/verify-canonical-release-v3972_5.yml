@@ -20,6 +20,7 @@ on:
       - 'tools/audit-unified-resource-graph-v3990_3.mjs'
       - 'tools/audit-major-bands-rank-kernel-v3990_3.mjs'
       - 'tools/ln-2026/**'
+      - 'tools/ln-2026/verify-final-release-v3990_0.py'
   push:
     branches: [main]
   workflow_dispatch:
@@ -55,5 +56,6 @@ jobs:
             -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
             -e 's/v3990_0/v3990_3/g' \
             -e 's/3990_0/3990_3/g' \
+            -e 's/家庭方案与逐项复核/模拟志愿/g' \
             tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
           python3 /tmp/verify-final-release-v3990_3.py
