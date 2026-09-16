@@ -76,6 +76,7 @@ jobs:
             -e 's/v3\.9\.90\.0/v3.9.90.3/g' \
             -e 's/v3990_0/v3990_3/g' \
             -e 's/3990_0/3990_3/g' \
+            -e 's/家庭方案与逐项复核/模拟志愿/g' \
             tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_3.py
           python3 -m py_compile \
             tools/ln-2026/verify-final-release-v3970.py \
@@ -167,6 +168,14 @@ jobs:
           NODE
           node tools/verify-school-profile-center-v3957.mjs
           node tools/verify-card-ai-2026-v3955.mjs
+
+      - name: Verify r035 homepage vocabulary compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -o '模拟志愿' index.html | wc -l)" -ge 1
+          ! grep -q '家庭方案与逐项复核' index.html
+          grep -q '辽宁高考｜2027专业初选与模拟志愿' ln-rank/js/ux/family-home.v3990_3.js
 
       - name: Smoke-test active execution graph
         run: |
