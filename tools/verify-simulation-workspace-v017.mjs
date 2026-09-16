@@ -12,8 +12,8 @@ const browser=fs.readFileSync('tools/browser-simulation-workspace-v017-actions.m
 const pdfBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-v001.mjs','utf8');
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
 
-assert.equal(manifest.version,'simulation-workspace-v016.50');
-assert.equal(manifest.revision,'r140-compact-pdf-pagination');
+assert.equal(manifest.version,'simulation-workspace-v016.51');
+assert.equal(manifest.revision,'r141-pdf-pagination-test-calibration');
 assert.equal(manifest.runtimeRevision,'v016.46-r136');
 assert.equal(manifest.pdfRuntimeRevision,'v016.50-r140');
 for(const src of [
@@ -39,5 +39,5 @@ for(const expected of ['sim-pdf-page','sim-pdf-line','splitPages','createPageShe
 assert.ok(!pdf.includes('page.offsetHeight>usableBottom'));
 assert.ok(!pdf.includes('· 需核验'));
 assert.ok(!pdf.includes('有历史记录需要核对'));
-for(const expected of ['[1,2,6,10,12]','14 volunteers should paginate','__GAOKAO_SIMULATION_PDF_V01650__','simulation-workspace-v016.50 PDF pagination']) assert.ok(pdfBrowser.includes(expected),`pdf browser gate missing ${expected}`);
-console.log('simulation-workspace-v016.50 contract: PASS');
+for(const expected of ['[1,2,6,10,12,14]','30 volunteers should paginate','__GAOKAO_SIMULATION_PDF_V01650__','simulation-workspace-v016.51 PDF pagination']) assert.ok(pdfBrowser.includes(expected),`pdf browser gate missing ${expected}`);
+console.log('simulation-workspace-v016.51 contract: PASS');
