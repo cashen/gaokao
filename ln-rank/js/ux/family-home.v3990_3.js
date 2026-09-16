@@ -6,8 +6,8 @@ import {
   readFamilySelectionItems
 } from '../domain/family-decision-contract.v3970_0.js?v=3970_0';
 
-export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r032';
-export const HOME_UI_REVISION = 'r032-home-simulation-entry';
+export const HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_3-r031';
+export const HOME_UI_REVISION = 'r031-home-redesign';
 export const HOME_TOOL_REVISION = 'r032-home-simulation-entry';
 const EXAM_START_AT = new Date('2027-06-07T09:00:00+08:00');
 const CLOCK_FORMATTER = new Intl.DateTimeFormat('zh-CN', {
