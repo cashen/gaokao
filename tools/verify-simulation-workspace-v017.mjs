@@ -11,16 +11,20 @@ const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-rel
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v017-actions.mjs','utf8');
 const pdfBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-v001.mjs','utf8');
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
+const releaseFooter=fs.readFileSync('shared/resources/release/release-footer.v3990_3.js','utf8');
 
-assert.equal(manifest.version,'simulation-workspace-v016.51');
-assert.equal(manifest.revision,'r141-pdf-pagination-test-calibration');
+assert.equal(manifest.version,'simulation-workspace-v016.55');
+assert.equal(manifest.revision,'r145-simulation-footer');
+assert.equal(manifest.pageVersion,'v1.0');
+assert.equal(manifest.pageVersionLabel,'模拟志愿 v1.0');
 assert.equal(manifest.runtimeRevision,'v016.46-r136');
 assert.equal(manifest.pdfRuntimeRevision,'v016.50-r140');
 for(const src of [
   '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.50-r140',
   '/ln-rank/js/simulation-report-v016-history-reference-only.js?v=v016.50-r140',
   '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.50-r140',
-  '/ln-rank/js/simulation-report-v017-responsive-input.js?v=v016.50-r140'
+  '/ln-rank/js/simulation-report-v017-responsive-input.js?v=v016.50-r140',
+  '/shared/resources/release/release-footer.v3990_3.js?v=v3990_3&r=r145-simulation-footer'
 ]) assert.ok(html.includes(src),`html missing ${src}`);
 assert.ok(html.includes('simulation-report-v007-workbench.js?v=v016.50-r140'));
 assert.ok(!html.includes('/ln-rank/js/simulation-report-v015-human-workbench.js?v='));
@@ -40,4 +44,6 @@ assert.ok(!pdf.includes('page.offsetHeight>usableBottom'));
 assert.ok(!pdf.includes('· 需核验'));
 assert.ok(!pdf.includes('有历史记录需要核对'));
 for(const expected of ['[1,2,6,10,12,14]','30 volunteers should paginate','__GAOKAO_SIMULATION_PDF_V01650__','simulation-workspace-v016.51 PDF pagination']) assert.ok(pdfBrowser.includes(expected),`pdf browser gate missing ${expected}`);
-console.log('simulation-workspace-v016.51 contract: PASS');
+for(const expected of ["export const SIMULATION_PAGE_VERSION = 'v1.0'",'ensureSimulationPageVersion','data-simulation-page-version','模拟志愿 ${SIMULATION_PAGE_VERSION}']) assert.ok(releaseFooter.includes(expected),`release footer missing ${expected}`);
+assert.ok(html.includes('/shared/resources/release/release-footer.v3990_3.js'), 'simulation page must mount the canonical release footer runtime');
+console.log('simulation-workspace-v016.55 contract: PASS');

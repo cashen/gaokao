@@ -2,6 +2,7 @@ import { CURRENT_RELEASE } from './current-release.js?v=3990_3&r=r036-major-hist
 import { syncCurrentRelease } from './release-presenter.v3990_3.js?v=3990_3&r=r036-major-history-rank-lazy';
 
 export const RELEASE_FOOTER_VERSION = CURRENT_RELEASE.releaseFooterContractVersion;
+export const SIMULATION_PAGE_VERSION = 'v1.0';
 const STYLE_HREF = `${CURRENT_RELEASE.resourceOwners.releaseFooterStyles}?v=${CURRENT_RELEASE.asset}`;
 
 function ensureStyles(doc) {
@@ -19,6 +20,20 @@ function ensureCurrentReleaseNode(doc, footer) {
   line.dataset.releaseCurrentLine = RELEASE_FOOTER_VERSION;
   line.innerHTML = '全站发布：<span data-current-release></span>';
   footer.append(doc.createTextNode('｜'), line);
+}
+
+function ensureSimulationPageVersion(doc, footer) {
+  const pathname = doc.location?.pathname || '';
+  if (!pathname.endsWith('/ln-rank/simulation-report.html')) return;
+  let line = footer.querySelector('[data-simulation-page-version]');
+  if (!line) {
+    footer.append(doc.createTextNode('｜'));
+    line = doc.createElement('span');
+    line.dataset.simulationPageVersion = SIMULATION_PAGE_VERSION;
+    footer.append(line);
+  }
+  line.dataset.simulationPageVersion = SIMULATION_PAGE_VERSION;
+  line.textContent = `模拟志愿 ${SIMULATION_PAGE_VERSION}`;
 }
 
 function ensureReleaseLogLink(doc, footer) {
@@ -51,6 +66,7 @@ export function syncReleaseFooter(root = document) {
   footer.dataset.releaseSource = CURRENT_RELEASE.resourceOwners.release;
   footer.dataset.siteRuntimeGeneration = CURRENT_RELEASE.siteRuntimeGeneration;
   ensureCurrentReleaseNode(doc, footer);
+  ensureSimulationPageVersion(doc, footer);
   ensureReleaseLogLink(doc, footer);
   doc.querySelectorAll('[data-release-log-link]').forEach(link => {
     link.href = CURRENT_RELEASE.releaseLogHref;
