@@ -11,8 +11,8 @@ const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-rel
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v017-actions.mjs','utf8');
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
 
-assert.equal(manifest.version,'simulation-workspace-v016.47');
-assert.equal(manifest.revision,'r137-directory-prewarm');
+assert.equal(manifest.version,'simulation-workspace-v016.48');
+assert.equal(manifest.revision,'r138-preview-attestation');
 assert.equal(manifest.runtimeRevision,'v016.46-r136');
 for(const src of [
   '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.46-r136',
@@ -34,4 +34,4 @@ for(const expected of ['input synchronous work exceeded 100ms','input p95 exceed
 for(const expected of ['pdf-page','pdf-line','splitPages','createPageShell','page.offsetHeight>usableBottom','break-inside:avoid','历史分数/位次仅作参考','__GAOKAO_SIMULATION_PDF_V01645__','stopImmediatePropagation']) assert.ok(pdf.includes(expected),`pdf runtime missing ${expected}`);
 assert.ok(!pdf.includes('· 需核验'));
 assert.ok(!pdf.includes('有历史记录需要核对'));
-console.log('simulation-workspace-v016.47 contract: PASS');
+console.log('simulation-workspace-v016.48 contract: PASS');
