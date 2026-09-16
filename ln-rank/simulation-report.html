@@ -14,9 +14,9 @@
 </head>
 <body>
   <main class="workbench-page">
-    <header class="workbench-hero"><div><p class="eyebrow">辽宁物理类 · 家庭讨论用</p><h1>模拟志愿工作台</h1><p class="hero-copy">把已经考虑过的学校和专业放进来，逐条查看，再整理顺序。这里是家庭整理工具，不是正式填报系统。</p></div><a class="quiet-link" href="/ln-rank/">返回专业初选</a></header>
+    <header class="workbench-hero"><div><p class="eyebrow">辽宁物理类 · 家庭讨论用</p><h1>模拟志愿</h1><p class="hero-copy">把想考虑的学校和专业放进来，一条条看清楚、聊清楚，再决定怎么排。这里只做家庭整理，不是正式填报。</p></div><a class="quiet-link" href="/ln-rank/">返回专业初选</a></header>
   <section class="candidate-panel" aria-label="考生信息"><div class="candidate-main"><label>学生姓名<input id="wbStudentName" type="text" maxlength="30" placeholder="可不填" autocomplete="name" /></label><label>考试类型<select id="wbSubject"><option>辽宁物理类（物化生）</option></select></label><label>考试总分<input id="wbTotalScore" type="text" inputmode="numeric" maxlength="3" placeholder="例如 555" /></label></div><div class="rank-note"><span>2026辽宁物理类参考位次</span><strong id="wbRank">—</strong><small id="wbRankSource">输入总分后自动换算</small></div></section>
-    <section class="workbench-panel"><div class="panel-head"><div><div class="panel-kicker">我的志愿清单</div><h2>先放进来，再慢慢整理</h2><p id="wbStatus" class="status-copy">每条志愿可以暂时不完整，不需要一次填完。</p></div><div class="panel-actions"><button id="wbAdd" class="btn primary" type="button">＋ 添加志愿</button><button id="wbPdf" class="btn" type="button">生成 PDF</button><button id="wbReset" class="btn subtle-danger" type="button">清空重填</button></div></div><div id="wbSummary" class="summary-strip" aria-live="polite"></div><div id="wbRows" class="volunteer-list" aria-live="polite"></div><div id="wbEmpty" class="empty-state" hidden><div class="empty-title">还没有志愿</div><p>可以从这里开始，也可以从专业初选、学校/专业页面把已经考虑过的项目带进来。</p><button class="btn primary" type="button" data-empty-add>＋ 添加第一条志愿</button></div></section>
+    <section class="workbench-panel" aria-label="我的志愿"><div class="panel-head"><div><div class="panel-kicker">家庭志愿整理</div><h2>我的志愿</h2><p id="wbStatus" class="status-copy">先加入一所已经考虑过的学校，不需要一次填完。</p></div><div class="panel-actions"><button id="wbAdd" class="btn primary" type="button">＋ 添加志愿</button><button id="wbPdf" class="btn print-plan-action" type="button" aria-label="打印或保存这份志愿方案">打印 / 保存这份方案</button><button id="wbReset" class="btn subtle-danger" type="button">清空重填</button></div></div><div id="wbSummary" class="summary-strip decision-progress" aria-live="polite" aria-label="家庭整理进度"></div><div id="wbRows" class="volunteer-list" aria-live="polite"></div><div id="wbEmpty" class="empty-state" hidden><div class="empty-title">还没有志愿</div><p>先放进一所你们已经考虑过的学校，后面可以慢慢补专业、看参考、讨论是否保留。</p><button class="btn primary" type="button" data-empty-add>＋ 添加第一条志愿</button></div></section>
   </main>
   <section id="simulationLegacyRuntime" hidden aria-hidden="true"><input id="studentName" /><select id="subjectTrack"><option>辽宁物理类（物化生）</option></select><input id="totalScore" /><div id="candidateRank"></div><div id="candidateRankSource"></div><div id="printDate"></div><div id="pageStatus"></div><input data-score-key="chinese" /><input data-score-key="math" /><input data-score-key="english" /><input data-score-key="physics" /><input data-score-key="chemistry" /><input data-score-key="biology" /><button id="addVolunteer" type="button">添加</button><button id="printSheet" type="button">生成 PDF</button><button id="resetSheet" type="button">清空</button><table class="sheet-table"><tbody id="volunteerRows"></tbody></table></section>
   <script type="module" src="/ln-rank/js/simulation-report.v001.js?v=002-paper-check"></script>
@@ -40,7 +40,7 @@
           line?.classList.remove('needs-check');
           line?.classList.add('complete');
           const label=line?.querySelector('.state-dot')?.nextElementSibling;
-          if(label)label.textContent='当前记录没有明显缺项';
+          if(label)label.textContent='当前记录信息完整';
         }
         card.querySelectorAll('.history-inline em').forEach(node=>node.remove());
       }
