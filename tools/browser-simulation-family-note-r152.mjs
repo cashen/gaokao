@@ -4,8 +4,8 @@ const seedState = {
   version: 2,
   studentName: '测试学生',
   subjectTrack: '辽宁物理类（物化生）',
-  totalScore: '555',
-  rank: 29685,
+  totalScore: '',
+  rank: null,
   volunteers: [{
     id: 'note-r152-1',
     order: 1,
@@ -47,14 +47,19 @@ try {
     const height = await note.evaluate(el => Number.parseFloat(getComputedStyle(el).height));
     if (!(height > 68)) throw new Error(`${viewport.name}: long note did not expand`);
 
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')));
-    if (stored.volunteers?.[0]?.familyNote !== longNote) throw new Error(`${viewport.name}: long note was not persisted in unified store`);
+    await page.waitForFunction(({ key, expected }) => {
+      try {
+        const stored = JSON.parse(localStorage.getItem(key) || 'null');
+        return stored?.volunteers?.[0]?.familyNote === expected;
+      } catch {
+        return false;
+      }
+    }, { key: 'gaokao:simulation-report:v002', expected: longNote });
 
     await page.getByRole('button', { name: '候选' }).click();
-    const afterDecision = await note.inputValue();
+    const afterDecision = await page.locator('[data-family-note]').first().inputValue();
     if (afterDecision !== longNote) throw new Error(`${viewport.name}: family decision change lost note`);
 
-    await page.getByRole('button', { name: '↑ 上移' }).isDisabled();
     await page.reload({ waitUntil: 'networkidle' });
     const persistedAfterReload = await page.locator('[data-family-note]').first().inputValue();
     if (persistedAfterReload !== longNote) throw new Error(`${viewport.name}: reload lost long note`);
