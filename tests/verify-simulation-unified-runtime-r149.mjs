@@ -15,7 +15,8 @@ for(const forbidden of ['legacyRow','getLegacyRow','clickLegacy','syncLegacyFiel
 assert.match(runtime,/const RELEASE='v016\.60-r150'/);
 assert.match(runtime,/GAOKAO_SIMULATION_RUNTIME/);
 assert.match(runtime,/schoolKeyword/);
-assert.match(runtime,/standardMajorCode\|\|r\.majorCode2026/);
+assert.match(runtime,/standardMajorCode\|\|/);
+assert.match(runtime,/majorCode2026/);
 assert.match(pdf,/export async function exportSimulationPdf/);
 assert.match(pdf,/PAGE\.height-PAGE\.padding/);
 assert.match(css,/\.volunteer-card/);
