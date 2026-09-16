@@ -86,6 +86,20 @@ jobs:
       - name: Install verified Chromium journey runner
         run: bash .github/scripts/install-playwright-chromium.sh
 
+      - name: Verify compact simulation PDF pagination
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/v3990-1-pdf-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/ln-rank/simulation-report.html >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-pdf-http.log; exit 1; fi
+          node tools/browser-simulation-report-pdf-v001.mjs 2>&1 | tee /tmp/v3990-1-pdf.out
+
       - name: Verify no-obstruction family action geometry
         run: |
           set -euo pipefail
