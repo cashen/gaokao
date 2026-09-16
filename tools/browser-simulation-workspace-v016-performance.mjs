@@ -31,7 +31,11 @@ await context.addInitScript(() => {
 });
 const page = await context.newPage();
 const pageErrors = [];
+const schoolDirectoryRequests = [];
 page.on('pageerror', error => pageErrors.push(String(error)));
+page.on('request', request => {
+  if (request.url().includes('liaoning-2026-admission-school-directory.v3969_0.json')) schoolDirectoryRequests.push(request.url());
+});
 await page.route('**/api/ai/major-history**', async route => {
   await route.fulfill({
     status: 200,
@@ -69,6 +73,19 @@ for (const value of ['自', '自动', '自动化', '']) {
   samples.push({ kind: 'major', value, elapsedMs: elapsed });
 }
 
+// Real user-path latency: rapid school typing should execute only the final debounced search,
+// and clearing the field should supersede it rather than render stale candidates.
+await school.fill('沈');
+await school.fill('沈阳');
+await school.fill('沈阳工业');
+await school.fill('沈阳工业大学');
+await page.locator('[data-v017-school="v017-perf-1"]').waitFor({ state: 'visible', timeout: 3000 });
+await page.waitForTimeout(150);
+assert.equal(schoolDirectoryRequests.length, 1, `rapid school typing triggered ${schoolDirectoryRequests.length} directory requests`);
+await school.fill('');
+await page.waitForTimeout(180);
+assert.equal(await card.locator('[data-v017-school="v017-perf-1"]').getAttribute('hidden'), 'true');
+
 assert.equal(pageErrors.length, 0, pageErrors.join('\n'));
 const values = samples.map(sample => sample.elapsedMs);
 const sorted = [...values].sort((a, b) => a - b);
@@ -77,5 +94,5 @@ const max = Math.max(...values);
 assert.ok(max < 100, `input synchronous work exceeded 100ms: max=${max.toFixed(1)}ms`);
 assert.ok(p95 < 60, `input p95 exceeded 60ms: p95=${p95.toFixed(1)}ms`);
 
-console.log(`simulation-workspace-v016 input performance: PASS (p95=${p95.toFixed(1)}ms, max=${max.toFixed(1)}ms)`);
+console.log(`simulation-workspace-v016 input performance: PASS (p95=${p95.toFixed(1)}ms, max=${max.toFixed(1)}ms, rapid-school-directory-requests=${schoolDirectoryRequests.length})`);
 await browser.close();
