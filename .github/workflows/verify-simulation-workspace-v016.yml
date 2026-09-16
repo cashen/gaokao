@@ -1,7 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.46-r136: school search is debounced/superseded inside the Worker; keep this workflow path-triggered so every final HEAD gets a fresh canonical run.
-
+# v016.50-r140: compact A4 PDF pagination; canonical gate includes direct PDF page-capacity regression.
 on:
   pull_request:
     paths:
@@ -17,6 +16,7 @@ on:
       - 'docs/dev-progress/simulation-report.md'
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
+      - 'tools/browser-simulation-report-pdf-v001.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
@@ -34,6 +34,7 @@ on:
       - 'docs/dev-progress/simulation-report.md'
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
+      - 'tools/browser-simulation-report-pdf-v001.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
@@ -69,4 +70,5 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
       - run: node tools/browser-simulation-workspace-v017-actions.mjs
+      - run: node tools/browser-simulation-report-pdf-v001.mjs
       - run: node tools/browser-simulation-workspace-v016-performance.mjs
