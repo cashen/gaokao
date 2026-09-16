@@ -39,13 +39,14 @@ try {
     });
     await page.goto(`${baseURL}/?home-release=${Date.now()}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() =>
-      globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_3-r031'
+      globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3990_3-r032'
       && globalThis.__GAOKAO_UI__?.version === 'family-shell-v3990_3'
     );
 
     const state = await page.evaluate(() => {
       const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
+      const simulationEntry = document.querySelector('[data-home-simulation-entry]');
       const supportLinks = [...document.querySelectorAll('.tool-groups .tool-link')];
       const groups = [...document.querySelectorAll('[data-tool-group]')];
       return {
@@ -68,6 +69,10 @@ try {
         openToolGroups: groups.filter(group => group.dataset.open === 'true').map(group => group.dataset.toolGroup),
         toolToggleCount: document.querySelectorAll('.tool-toggle').length,
         toolLinkCount: supportLinks.length,
+        simulationEntryCount: document.querySelectorAll('[data-home-simulation-entry]').length,
+        simulationEntryTitle: simulationEntry?.querySelector('strong')?.textContent?.trim(),
+        simulationEntryHref: simulationEntry?.getAttribute('href'),
+        simulationEntryOrder: supportLinks.indexOf(simulationEntry),
         majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
         majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
         majorPathHref: majorPathEntry?.getAttribute('href'),
@@ -97,17 +102,24 @@ try {
     assert.equal(state.bodyGeneration, 'v3990_3', `${device.name}: body generation`);
     assert.equal(state.htmlGeneration, 'v3990_3', `${device.name}: html generation`);
     assert.equal(state.visibleRelease, 'v3.9.90.3', `${device.name}: visible release`);
-    assert.equal(state.runtime?.version, 'family-home-runtime-v3990_3-r031', `${device.name}: runtime`);
-    assert.equal(state.runtime?.uiRevision, 'r031-home-redesign', `${device.name}: UI revision`);
+    assert.equal(state.runtime?.version, 'family-home-runtime-v3990_3-r032', `${device.name}: runtime`);
+    assert.equal(state.runtime?.uiRevision, 'r032-home-simulation-entry', `${device.name}: UI revision`);
+    assert.equal(state.runtime?.homeToolRevision, 'r032-home-simulation-entry', `${device.name}: tool revision`);
     assert.equal(state.runtime?.generation, 'v3990_3', `${device.name}: runtime generation`);
     assert.equal(state.runtime?.release, 'v3.9.90.3', `${device.name}: runtime release`);
-    assert.equal(state.homeUiRevision, 'r031-home-redesign', `${device.name}: body UI revision`);
-    assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker`);
+    assert.equal(state.runtime?.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation route`);
+    assert.equal(state.runtime?.simulationEntryCount(), 1, `${device.name}: runtime simulation entry count`);
+    assert.equal(state.homeUiRevision, 'r032-home-simulation-entry', `${device.name}: body UI revision`);
+    assert.equal(state.homeLayout, 'r031-home-redesign', `${device.name}: layout marker remains stable`);
     assert.equal(state.primaryActionCount, 1, `${device.name}: one primary action`);
     assert.equal(state.toolGroupCount, 4, `${device.name}: four grouped tool areas`);
     assert.equal(state.toolToggleCount, 4, `${device.name}: four explicit disclosure controls`);
     assert.deepEqual(state.openToolGroups, ['mainline'], `${device.name}: only mainline group open initially`);
-    assert.equal(state.toolLinkCount, 8, `${device.name}: all existing tool links retained`);
+    assert.equal(state.toolLinkCount, 9, `${device.name}: all tool links plus simulation entry retained`);
+    assert.equal(state.simulationEntryCount, 1, `${device.name}: one simulation tool entry`);
+    assert.equal(state.simulationEntryTitle, '模拟志愿', `${device.name}: simulation tool title`);
+    assert.equal(state.simulationEntryHref, '/ln-rank/simulation-report.html', `${device.name}: simulation tool route`);
+    assert.equal(state.simulationEntryOrder, 0, `${device.name}: simulation tool leads mainline tools`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3990_3\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.shell?.version, 'family-shell-v3990_3', `${device.name}: shell owner`);
@@ -193,8 +205,8 @@ console.log(JSON.stringify({
   ok: true,
   release: 'v3.9.90.3',
   generation: 'v3990_3',
-  runtime: 'family-home-runtime-v3990_3-r031',
-  uiRevision: 'r031-home-redesign',
+  runtime: 'family-home-runtime-v3990_3-r032',
+  uiRevision: 'r032-home-simulation-entry',
   shell: 'family-shell-v3990_3',
   stableCss: ['family-shell.v3972_5.css', 'family-plan-entry.v3972_5.css'],
   devices: results
