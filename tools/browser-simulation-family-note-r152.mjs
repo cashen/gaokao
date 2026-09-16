@@ -48,8 +48,17 @@ try {
     if (!(height > 68)) throw new Error(`${viewport.name}: long note did not expand`);
 
     await page.waitForTimeout(50);
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002') || 'null'));
-    if (stored?.volunteers?.[0]?.familyNote !== longNote) throw new Error(`${viewport.name}: long note was not persisted in unified store`);
+    const diagnostics = await page.evaluate(() => ({
+      runtime: window.GAOKAO_SIMULATION_RUNTIME?.state?.volunteers?.[0]?.familyNote ?? null,
+      stored: (() => {
+        try { return JSON.parse(localStorage.getItem('gaokao:simulation-report:v002') || 'null')?.volunteers?.[0]?.familyNote ?? null; }
+        catch { return null; }
+      })(),
+      value: document.querySelector('[data-family-note]')?.value ?? null,
+    }));
+    if (diagnostics.runtime !== longNote || diagnostics.stored !== longNote) {
+      throw new Error(`${viewport.name}: note state mismatch runtime=${JSON.stringify(diagnostics.runtime)} stored=${JSON.stringify(diagnostics.stored)} value=${JSON.stringify(diagnostics.value)}`);
+    }
 
     await page.getByRole('button', { name: '候选' }).click();
     const afterDecision = await page.locator('[data-family-note]').first().inputValue();
