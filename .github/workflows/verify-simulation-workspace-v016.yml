@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.50-r140: compact A4 PDF pagination; canonical gate includes direct PDF page-capacity regression.
+# v016.57-r147: Android-safe PDF delivery and late-loaded library hardening.
 on:
   pull_request:
     paths:
@@ -9,6 +9,7 @@ on:
       - 'ln-rank/js/simulation-report-v015-human-workbench.js'
       - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
       - 'ln-rank/js/simulation-report-v016-pdf.js'
+      - 'ln-rank/js/simulation-report-v016-pdf-android.js'
       - 'ln-rank/js/simulation-report-v017-responsive-input.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
@@ -17,6 +18,7 @@ on:
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-report-pdf-v001.mjs'
+      - 'tools/browser-simulation-report-pdf-android-v002.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
@@ -27,6 +29,7 @@ on:
       - 'ln-rank/js/simulation-report-v015-human-workbench.js'
       - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
       - 'ln-rank/js/simulation-report-v016-pdf.js'
+      - 'ln-rank/js/simulation-report-v016-pdf-android.js'
       - 'ln-rank/js/simulation-report-v017-responsive-input.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
@@ -35,6 +38,7 @@ on:
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-report-pdf-v001.mjs'
+      - 'tools/browser-simulation-report-pdf-android-v002.mjs'
       - 'tools/browser-simulation-workspace-v016-performance.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
@@ -71,4 +75,5 @@ jobs:
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
       - run: node tools/browser-simulation-workspace-v017-actions.mjs
       - run: node tools/browser-simulation-report-pdf-v001.mjs
+      - run: node tools/browser-simulation-report-pdf-android-v002.mjs
       - run: node tools/browser-simulation-workspace-v016-performance.mjs

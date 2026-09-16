@@ -5,22 +5,26 @@ const html=fs.readFileSync('ln-rank/simulation-report.html','utf8');
 const runtime=fs.readFileSync('ln-rank/js/simulation-report-v017-responsive-input.js','utf8');
 const legacy=fs.readFileSync('ln-rank/js/simulation-report-v007-workbench.js','utf8');
 const pdf=fs.readFileSync('ln-rank/js/simulation-report-v016-pdf.js','utf8');
+const pdfAndroid=fs.readFileSync('ln-rank/js/simulation-report-v016-pdf-android.js','utf8');
 const worker=fs.readFileSync('ln-rank/js/simulation-school-search-worker-v001.js','utf8');
 const css=fs.readFileSync('ln-rank/css/simulation-report-v017-responsive-input.css','utf8');
 const manifest=JSON.parse(fs.readFileSync('ln-rank/data/simulation-workbench-release-v016.json','utf8'));
 const browser=fs.readFileSync('tools/browser-simulation-workspace-v017-actions.mjs','utf8');
 const pdfBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-v001.mjs','utf8');
+const pdfAndroidBrowser=fs.readFileSync('tools/browser-simulation-report-pdf-android-v002.mjs','utf8');
 const performance=fs.readFileSync('tools/browser-simulation-workspace-v016-performance.mjs','utf8');
 const releaseFooter=fs.readFileSync('shared/resources/release/release-footer.v3990_3.js','utf8');
 
-assert.equal(manifest.version,'simulation-workspace-v016.55');
-assert.equal(manifest.revision,'r145-simulation-footer');
+assert.equal(manifest.version,'simulation-workspace-v016.57');
+assert.equal(manifest.revision,'r147-android-pdf-delivery-hardening');
 assert.equal(manifest.pageVersion,'v1.0');
 assert.equal(manifest.pageVersionLabel,'模拟志愿 v1.0');
 assert.equal(manifest.runtimeRevision,'v016.46-r136');
 assert.equal(manifest.pdfRuntimeRevision,'v016.50-r140');
+assert.equal(manifest.pdfAndroidRuntimeRevision,'v016.52-r147');
 for(const src of [
   '/ln-rank/js/simulation-report-v016-pdf.js?v=v016.50-r140',
+  '/ln-rank/js/simulation-report-v016-pdf-android.js?v=v016.52-r147',
   '/ln-rank/js/simulation-report-v016-history-reference-only.js?v=v016.50-r140',
   '/ln-rank/js/simulation-report-v016-legacy-render-guard.js?v=v016.50-r140',
   '/ln-rank/js/simulation-report-v017-responsive-input.js?v=v016.50-r140',
@@ -44,6 +48,8 @@ assert.ok(!pdf.includes('page.offsetHeight>usableBottom'));
 assert.ok(!pdf.includes('· 需核验'));
 assert.ok(!pdf.includes('有历史记录需要核对'));
 for(const expected of ['[1,2,6,10,12,14]','30 volunteers should paginate','__GAOKAO_SIMULATION_PDF_V01650__','simulation-workspace-v016.51 PDF pagination']) assert.ok(pdfBrowser.includes(expected),`pdf browser gate missing ${expected}`);
+for(const expected of ['const RELEASE=\'v016.52-r147\'','MOBILE_SCALE=1.25','window.location.assign(url)','output(\'blob\')','__GAOKAO_SIMULATION_PDF_ANDROID__']) assert.ok(pdfAndroid.includes(expected),`android pdf runtime missing ${expected}`);
+for(const expected of ['userAgent','Android 14','requestedScale','saveCalls','simulation-workspace-v016.57 Android PDF delivery','late-loaded/replaced html2canvas']) assert.ok(pdfAndroidBrowser.includes(expected),`android pdf browser gate missing ${expected}`);
 for(const expected of ["export const SIMULATION_PAGE_VERSION = 'v1.0'",'ensureSimulationPageVersion','data-simulation-page-version','模拟志愿 ${SIMULATION_PAGE_VERSION}']) assert.ok(releaseFooter.includes(expected),`release footer missing ${expected}`);
 assert.ok(html.includes('/shared/resources/release/release-footer.v3990_3.js'), 'simulation page must mount the canonical release footer runtime');
-console.log('simulation-workspace-v016.55 contract: PASS');
+console.log('simulation-workspace-v016.57 contract: PASS');
