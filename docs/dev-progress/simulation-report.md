@@ -2,10 +2,16 @@
 
 当前主线：`refactor/simulation-unified-runtime-r149`
 基线 main：`48128fdf693e7890dbe140372db3a46971686c9a`
-当前产品版本：`simulation-workspace-v016.60`
-当前产品修订：`r150-unified-runtime-takeover`
+当前产品版本：`simulation-workspace-v016.61`
+当前产品修订：`r151-browser-runtime-hardening`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
-阶段：统一接管实现完成 → CI / Preview / Production 验证
+阶段：统一接管实现修正 → CI / Preview / Production 验证
+
+## r151 修正
+
+- [x] 修复 Chromium 无法解析 `?.preset = ...` 导致的运行时 `SyntaxError: Invalid left-hand side in assignment`；入站参数改为先取 pending 再显式赋值。
+- [x] 专业核验改为学校 + 专业名称 + 专业代码严格匹配；缺少代码或代码不一致不再通过名称回退。
+- [x] 页面缓存版本统一提升到 `v016.61-r151`，避免旧运行时资源继续命中缓存。
 
 ## r150 统一接管
 
