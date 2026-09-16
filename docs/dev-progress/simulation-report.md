@@ -40,6 +40,10 @@ PR：#290
 
 `.github/workflows/verify-simulation-workspace-v016.yml` 负责当前 simulation workspace；contract 使用 `tools/verify-simulation-workspace-v017.mjs`，browser 使用 `tools/browser-simulation-workspace-v017-actions.mjs`，随后执行 `tools/browser-simulation-workspace-v016-performance.mjs`。
 
+v016.45 新增 PDF 静态契约：要求真实 A4 分页算法存在、短志愿可以按测量空间共页、续页重复考生上下文、历史核验待办词不进入 PDF。
+
+当前状态：等待最新 HEAD 的 canonical/browser/performance 结果；未通过前不合并。
+
 ## Merge Gate
 
 必须以最终实时 HEAD 的 canonical contract PASS、PC/Pad/Android direct-action browser PASS、performance PASS、Cloudflare Preview exact SHA SUCCESS 为准；随后再做必要 PDF/多端核验和最终 HEAD 未移动检查。全部通过才允许 expected-head merge 到 main。合并后重新读取 main SHA，核验 Cloudflare Production/custom domain/API/data-SHA parity。
