@@ -1,0 +1,22 @@
+{
+  "task": "home-experience-refinement-r035",
+  "status": "implementation-complete-awaiting-ci",
+  "baseMain": "a345b409d953a3acdff330fc01e2ec9fff58faa8",
+  "release": "v3.9.90.3",
+  "generation": "v3990_3",
+  "informationArchitecture": "r033-home-problem-entry",
+  "experienceRevision": "r035-home-experience-refinement",
+  "previousRevision": "r034-home-experience-refinement",
+  "changedOwner": "/ln-rank/js/ux/family-home.v3990_3.js",
+  "businessLogicChanged": false,
+  "routesChanged": false,
+  "protectedPathsChanged": false,
+  "decision": "use existing mainline cards as the single homepage entry for professional selection and simulation volunteer; do not inject a duplicate Hero journey",
+  "next": [
+    "run r035 static contract",
+    "run available homepage/source/resource checks",
+    "verify exact Preview SHA",
+    "merge only after required checks pass",
+    "verify merged main"
+  ]
+}
