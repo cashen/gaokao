@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.57-r147: Android-safe PDF delivery and late-loaded library hardening.
+# v016.58-r148: parent-facing family decision layer.
 on:
   pull_request:
     paths:
@@ -15,6 +15,8 @@ on:
       - 'ln-rank/data/simulation-workbench-release-v016.json'
       - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
+      - 'docs/plans/simulation-family-decision-r140.md'
+      - 'tests/verify-simulation-family-decision-r140.mjs'
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-report-pdf-v001.mjs'
@@ -35,6 +37,8 @@ on:
       - 'ln-rank/data/simulation-workbench-release-v016.json'
       - 'docs/plans/simulation-workspace-v016-human-complete.md'
       - 'docs/dev-progress/simulation-report.md'
+      - 'docs/plans/simulation-family-decision-r140.md'
+      - 'tests/verify-simulation-family-decision-r140.mjs'
       - 'tools/verify-simulation-workspace-v017.mjs'
       - 'tools/browser-simulation-workspace-v017-actions.mjs'
       - 'tools/browser-simulation-report-pdf-v001.mjs'
@@ -59,6 +63,7 @@ jobs:
         with:
           node-version: 22
       - run: node tools/verify-simulation-workspace-v017.mjs
+      - run: node tests/verify-simulation-family-decision-r140.mjs
   browser:
     needs: contract
     runs-on: ubuntu-latest
