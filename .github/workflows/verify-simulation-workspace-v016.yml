@@ -1,54 +1,40 @@
 name: Verify simulation workspace v016
 
-# v016.58-r148: parent-facing family decision layer.
+# v016.59-r149: single-owner unified runtime takeover.
 on:
   pull_request:
     paths:
       - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
-      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
-      - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
-      - 'ln-rank/js/simulation-report-v016-pdf.js'
-      - 'ln-rank/js/simulation-report-v016-pdf-android.js'
-      - 'ln-rank/js/simulation-report-v017-responsive-input.js'
+      - 'ln-rank/css/simulation-report.css'
+      - 'ln-rank/js/simulation-runtime.js'
+      - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-workspace-v016-human-complete.md'
+      - 'docs/plans/simulation-unified-runtime-r149.md'
       - 'docs/dev-progress/simulation-report.md'
-      - 'docs/plans/simulation-family-decision-r140.md'
-      - 'tests/verify-simulation-family-decision-r140.mjs'
-      - 'tools/verify-simulation-workspace-v017.mjs'
-      - 'tools/browser-simulation-workspace-v017-actions.mjs'
-      - 'tools/browser-simulation-report-pdf-v001.mjs'
-      - 'tools/browser-simulation-report-pdf-android-v002.mjs'
-      - 'tools/browser-simulation-workspace-v016-performance.mjs'
+      - 'tests/verify-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
     branches: [main]
     paths:
       - 'ln-rank/simulation-report.html'
-      - 'ln-rank/css/simulation-report-v017-responsive-input.css'
-      - 'ln-rank/js/simulation-report-v015-human-workbench.js'
-      - 'ln-rank/js/simulation-report-v016-legacy-render-guard.js'
-      - 'ln-rank/js/simulation-report-v016-pdf.js'
-      - 'ln-rank/js/simulation-report-v016-pdf-android.js'
-      - 'ln-rank/js/simulation-report-v017-responsive-input.js'
+      - 'ln-rank/css/simulation-report.css'
+      - 'ln-rank/js/simulation-runtime.js'
+      - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-workspace-v016-human-complete.md'
+      - 'docs/plans/simulation-unified-runtime-r149.md'
       - 'docs/dev-progress/simulation-report.md'
-      - 'docs/plans/simulation-family-decision-r140.md'
-      - 'tests/verify-simulation-family-decision-r140.mjs'
-      - 'tools/verify-simulation-workspace-v017.mjs'
-      - 'tools/browser-simulation-workspace-v017-actions.mjs'
-      - 'tools/browser-simulation-report-pdf-v001.mjs'
-      - 'tools/browser-simulation-report-pdf-android-v002.mjs'
-      - 'tools/browser-simulation-workspace-v016-performance.mjs'
+      - 'tests/verify-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-unified-runtime-r149.mjs'
+      - 'tools/browser-simulation-pdf-r149.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
 
 concurrency:
-  group: simulation-workspace-v016-${{ github.event.pull_request.number || github.ref }}
+  group: simulation-workspace-unified-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,8 +48,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node tools/verify-simulation-workspace-v017.mjs
-      - run: node tests/verify-simulation-family-decision-r140.mjs
+      - run: node --check ln-rank/js/simulation-runtime.js
+      - run: node --check ln-rank/js/simulation-report-pdf-service.js
+      - run: node tests/verify-simulation-unified-runtime-r149.mjs
   browser:
     needs: contract
     runs-on: ubuntu-latest
@@ -78,7 +65,5 @@ jobs:
       - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
-      - run: node tools/browser-simulation-workspace-v017-actions.mjs
-      - run: node tools/browser-simulation-report-pdf-v001.mjs
-      - run: node tools/browser-simulation-report-pdf-android-v002.mjs
-      - run: node tools/browser-simulation-workspace-v016-performance.mjs
+      - run: node tools/browser-simulation-unified-runtime-r149.mjs
+      - run: node tools/browser-simulation-pdf-r149.mjs
