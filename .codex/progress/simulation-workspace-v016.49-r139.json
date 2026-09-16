@@ -1,0 +1,20 @@
+{
+  "version": "simulation-workspace-v016.49",
+  "revision": "r139-main-head-reconciliation",
+  "pr": 290,
+  "prHeadAtCheckpoint": "a51d564774f52d1a984782710c161c844365fcbe",
+  "mainAtCheckpoint": "5ee9c9c30acc4eb686c6a0e25c4ff6312d2112f6",
+  "mainDelta": "main contains one post-base housekeeping commit (__tmp__) and no PR-relevant code changes",
+  "canonicalGate": "Verify simulation workspace v016",
+  "latestKnownCanonicalRun": 35041961575,
+  "latestKnownCanonicalResult": "success",
+  "preview": "76bd43f4.gaokao-4y9.pages.dev",
+  "notes": [
+    "PR 290 contract PASS",
+    "PR 290 browser PASS for Android 390, Pad 768, Desktop 1280",
+    "PR 290 performance PASS",
+    "PR 290 Cloudflare Preview SUCCESS for a51d564",
+    "Next code revision hardens transient admission-directory failure recovery so one rejected warmup does not permanently brick the Worker"
+  ],
+  "status": "in-progress"
+}
