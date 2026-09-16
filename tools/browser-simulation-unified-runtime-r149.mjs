@@ -3,11 +3,20 @@ import { chromium } from 'playwright';
 
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
+const pageErrors=[];
+page.on('pageerror',error=>pageErrors.push(error));
+page.on('console',message=>{if(message.type()==='error')console.error(`[browser-console] ${message.text()}`);});
 await page.route('**/api/simulation-rank**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,rank:12345,available:true})}));
 await page.route('**/api/ai/major-history**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,records:[{school:'沈阳化工大学',standardMajorName:'高分子材料与工程',standardMajorCode:'080407',score2026:523,rank2026:34567,score2025:518,rank2025:35200,score2024:510,rank2024:36800}]})}));
 await page.goto('http://127.0.0.1:4173/ln-rank/simulation-report.html',{waitUntil:'domcontentloaded'});
 await page.locator('h1').filter({hasText:'模拟志愿'}).waitFor();
-assert.equal(await page.locator('.volunteer-card').count(),1);
+const initialCards=await page.locator('.volunteer-card').count();
+if(initialCards!==1){
+  console.error('[browser-diagnostic] initialCards=',initialCards);
+  console.error('[browser-diagnostic] pageErrors=',pageErrors.map(error=>error.stack||String(error)).join('\n---\n'));
+  console.error('[browser-diagnostic] runtime=',await page.evaluate(()=>({runtime:Boolean(window.GAOKAO_SIMULATION_RUNTIME),html:document.querySelector('#wbRows')?.innerHTML||''})));
+}
+assert.equal(initialCards,1);
 await page.locator('#wbTotalScore').fill('555');
 await page.waitForTimeout(180);
 assert.equal(await page.locator('#wbRank').textContent(),'12,345');
