@@ -13,6 +13,10 @@ function norm(value) {
   return String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
 }
 
+function normalizedSchool(value) {
+  return norm(value).toLowerCase().replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '');
+}
+
 async function loadCatalogOnce() {
   if (!catalogPromise) catalogPromise = loadSchoolCatalog();
   return catalogPromise;
@@ -38,7 +42,7 @@ function metadataOf(resolver, name) {
 }
 
 function candidateView(resolver, item) {
-  const officialName = norm(item?.officialName || item?.school || item?.name);
+  const officialName = norm(item?.officialName || item?.name || item?.school);
   const metadata = metadataOf(resolver, officialName) || {};
   const province = norm(metadata.province || item?.province);
   const city = norm(metadata.city || item?.city);
@@ -48,18 +52,59 @@ function candidateView(resolver, item) {
     province,
     city,
     level,
-    location: norm(metadata.location || [province, city].filter(Boolean).join(' · ')),
+    location: norm(metadata.location || item?.location || [province, city].filter(Boolean).join(' · ')),
     score: Number(item?.score || 0),
     matchType: norm(item?.matchType),
     matchReason: norm(item?.matchReason)
   };
 }
 
+function directoryCandidates(query, directory) {
+  const needle = normalizedSchool(query);
+  if (!needle) return [];
+  const rows = Array.isArray(directory?.schools) ? directory.schools : [];
+  const matches = [];
+  for (const row of rows) {
+    const names = [row?.officialName, ...(Array.isArray(row?.admissionNames) ? row.admissionNames : []), ...(Array.isArray(row?.searchNames) ? row.searchNames : [])]
+      .map(norm).filter(Boolean);
+    if (!names.length) continue;
+    const matched = names.find(name => normalizedSchool(name) === needle)
+      || names.find(name => normalizedSchool(name).startsWith(needle))
+      || names.find(name => normalizedSchool(name).includes(needle));
+    if (!matched) continue;
+    const normalizedMatched = normalizedSchool(matched);
+    const exact = normalizedMatched === needle;
+    const prefix = normalizedMatched.startsWith(needle);
+    const coverage = Math.min(1, needle.length / Math.max(1, normalizedMatched.length));
+    matches.push({
+      officialName: norm(row?.officialName || matched),
+      province: norm(row?.province),
+      city: norm(row?.city),
+      level: norm(row?.level),
+      location: norm(row?.location || [row?.province, row?.city].filter(Boolean).join(' · ')),
+      score: exact ? 1 : prefix ? 0.86 + coverage * 0.1 : 0.66 + coverage * 0.18,
+      matchType: exact ? 'official_exact' : prefix ? 'official_prefix' : 'name_fragment',
+      matchReason: exact ? '按招生学校目录精确匹配。' : '按招生学校目录名称匹配。'
+    });
+  }
+  const seen = new Set();
+  return matches
+    .sort((a, b) => Number(b.score) - Number(a.score) || a.officialName.length - b.officialName.length || a.officialName.localeCompare(b.officialName, 'zh-CN'))
+    .filter(item => {
+      const key = normalizedSchool(item.officialName);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, SEARCH_LIMIT);
+}
+
 async function search(query) {
-  const [catalog, admissionDirectory] = await Promise.all([
-    loadCatalogOnce(),
-    loadAdmissionDirectoryOnce()
-  ]);
+  const admissionDirectory = await loadAdmissionDirectoryOnce();
+  const direct = directoryCandidates(query, admissionDirectory);
+  if (direct.length) return { status: 'candidates', candidates: direct.map(item => candidateView(null, item)) };
+
+  const catalog = await loadCatalogOnce();
   const result = resolveUnifiedSchoolQuery({
     query: norm(query),
     resolver: catalog.resolver,
@@ -128,6 +173,10 @@ function scheduleSearch(id, seq, query) {
   }, SEARCH_DEBOUNCE_MS);
   searchTimers.set(key, timer);
 }
+
+// Start the small, common school directory load as soon as the Worker starts.
+// The first keystroke should not be responsible for booting the directory pipeline.
+void loadAdmissionDirectoryOnce().catch(() => {});
 
 self.addEventListener('message', async event => {
   const data = event.data || {};
