@@ -143,6 +143,8 @@ try {
   await browser.close();
 }
 
+await import('./browser-tongxue-social-labels-v001.mjs');
+
 function documentSafe(value) {
   return String(value || '');
 }
@@ -152,5 +154,6 @@ console.log(JSON.stringify({
   contract:'tongxue-major-direct-browser-v0.01',
   scenario:'沈阳建筑大学 → 电气工程及其自动化 → 跨校同专业留言',
   returnTo:expectedReturnTo,
-  devices:evidence
+  devices:evidence,
+  socialLabelsRegression:'delegated-to-browser-tongxue-social-labels-v001'
 }, null, 2));
