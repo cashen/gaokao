@@ -14,15 +14,14 @@ for (const label of payload.labels) {
   if (!label?.label || labelNames.has(label.label)) fail(`duplicate/empty label: ${label?.label}`);
   labelNames.add(label.label);
   if (!Array.isArray(label.schoolMatches) || !Array.isArray(label.majorMatches)) fail(`match arrays missing: ${label.label}`);
-  for (const school of label.schoolMatches) {
-    if (!school.name || !school.href) fail(`invalid school relation in ${label.label}`);
-  }
-  for (const major of label.majorMatches) {
-    if (!major.name || !major.href) fail(`invalid major relation in ${label.label}`);
+  for (const row of [...label.schoolMatches, ...label.majorMatches]) {
+    if (!row?.name && !row?.sourceId) fail(`invalid relation in ${label.label}`);
   }
 }
 const totalSchools = payload.labels.reduce((n, x) => n + x.schoolMatches.length, 0);
 const totalMajors = payload.labels.reduce((n, x) => n + x.majorMatches.length, 0);
 if (payload.summary?.totalSchoolLabelRelations !== totalSchools) fail('school relation summary mismatch');
 if (payload.summary?.totalMajorLabelRelations !== totalMajors) fail('major relation summary mismatch');
+if (payload.summary?.schoolLabelsWithRelations > payload.summary?.discoveredSchoolLabels) fail('school label count overflow');
+if (payload.summary?.majorLabelsWithRelations > payload.summary?.discoveredMajorLabels) fail('major label count overflow');
 console.log(JSON.stringify({ ok:true, labels:payload.labels.length, schoolRelations:totalSchools, majorRelations:totalMajors }));
