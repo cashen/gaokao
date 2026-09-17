@@ -1,0 +1,21 @@
+name: One-time verify school social labels
+
+on:
+  push:
+    branches: [feat/tongxue-social-labels-v001-r001]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(ci): remove one-time social-label verifier') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check shared/resources/schools/school-social-labels.v001.js
+      - run: node tools/verify-school-social-labels-v001.mjs
