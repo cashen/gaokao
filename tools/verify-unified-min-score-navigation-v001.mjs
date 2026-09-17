@@ -53,7 +53,8 @@ assert.equal(buildMinScoreEntryModel({ kind: 'school', school: '测试大学' })
 
 const majorPath = read('major-path/app.v006.js');
 const majorPathView = read('shared/resources/majors/undergrad-graduate-pathway-view.v001.js');
-const tongxue = read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueEntry = read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueCore = read('tongxue/app/tongxue-runtime-result-view-core-v159.js');
 const majorAll = read('ln-rank/js/feature/major-all/major-all-mode.v001.js');
 const schoolAll = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_2.js');
 const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3969_2.js');
@@ -65,8 +66,9 @@ const tongxueIndex = read('tongxue/index.html');
 assert.match(majorPath, /buildMajorMinScoreHref/);
 assert.match(majorPathView, /data-min-score-entry="major"/);
 assert.match(majorPathView, /min-score-navigation\.v001\.js\?v=001&r=r042-direct-min-score-handoff/);
-assert.match(tongxue, /data-min-score-entry=/);
-assert.match(tongxue, /暂时没有找到可展示的学生留言/);
+assert.match(tongxueEntry, /createBaseResultView/,'Tongxue result-view compatibility entry must retain the base-owner bridge');
+assert.match(tongxueCore, /data-min-score-entry=/);
+assert.match(tongxueCore, /暂时没有找到可展示的学生留言/);
 assert.match(majorAll, /当前条件下没有找到辽宁最低分记录/);
 assert.match(majorAll, /专业本身不一定不存在/);
 assert.match(schoolAll, /当前条件下没有找到这所学校的辽宁最低分记录/);
@@ -94,6 +96,6 @@ assert.match(tongxueIndex, /min-score-entry\.v001\.css\?v=001_0/);
 
 console.log(JSON.stringify({
   ok: true,
-  version: 'v001',
-  checks: ['major-route', 'school-route', 'identity-boundary', 'return-target-safety', 'friendly-empty-state', 'shared-ui-css']
+  version: 'v002',
+  checks: ['major-route', 'school-route', 'identity-boundary', 'return-target-safety', 'friendly-empty-state', 'shared-ui-css', 'tongxue-core-owner']
 }, null, 2));
