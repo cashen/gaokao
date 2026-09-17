@@ -80,18 +80,22 @@ function normalizeRelation(row) {
   return Object.freeze({ name, sourceId, href });
 }
 
-async function apiJson(page, requestPath) {
-  return await page.evaluate(async url => {
+async function apiJson(page, requestPath, timeoutMs = Number(opt('timeoutMs'))) {
+  return await page.evaluate(async ({ url, timeoutMs: limit }) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), limit);
     try {
-      const response = await fetch(url, { credentials: 'same-origin' });
+      const response = await fetch(url, { credentials: 'same-origin', signal: controller.signal });
       const text = await response.text();
       let body = null;
       try { body = JSON.parse(text); } catch {}
       return { ok: response.ok, status: response.status, url: response.url, body, text: text.slice(0, 20000) };
     } catch (error) {
-      return { ok: false, status: 0, url, body: null, text: String(error) };
+      return { ok: false, status:0, url, body:null, text:String(error?.message || error) };
+    } finally {
+      clearTimeout(timer);
     }
-  }, requestPath);
+  }, { url:requestPath, timeoutMs });
 }
 
 function extractRows(body) {
@@ -102,10 +106,9 @@ function extractRows(body) {
 function extractTotal(body) {
   const hits = [];
   const walk = value => {
-    if (value == null || hits.length) return;
-    if (typeof value !== 'object') return;
+    if (value == null || hits.length || typeof value !== 'object') return;
     for (const [key, child] of Object.entries(value)) {
-      if (/^(total|totalCount|count|pages|pageCount)$/i.test(key) && Number.isFinite(Number(child))) hits.push(Number(child));
+      if (/^(total|totalCount|count)$/i.test(key) && Number.isFinite(Number(child))) hits.push(Number(child));
       else walk(child);
       if (hits.length) return;
     }
@@ -134,14 +137,14 @@ async function discoverLabels(page) {
   return [...new Set([...apiLabels, ...domLabels.filter(plausibleLabel)])].slice(0, Number(opt('maxLabels')));
 }
 
-async function collectPaged(page, basePath, label, kind, pageSize) {
+async function collectPaged(page, basePath, label, pageSize) {
   const relations = new Map();
   const attempted = [];
   let total = null;
   for (let pageNo = 1; pageNo <= Number(opt('maxPagesPerLabel')); pageNo += 1) {
     const url = `${basePath}?tag=${encodeURIComponent(label)}&page=${pageNo}&pageSize=${pageSize}`;
     const result = await apiJson(page, url);
-    attempted.push({ url: result.url, status: result.status });
+    attempted.push({ url:result.url, status:result.status });
     if (!result.ok) break;
     const rows = extractRows(result.body);
     total ??= extractTotal(result.body);
@@ -151,24 +154,16 @@ async function collectPaged(page, basePath, label, kind, pageSize) {
       const key = `${relation.sourceId || ''}||${relation.name}||${relation.href}`;
       relations.set(key, relation);
     }
-    if (!rows.length || (rows.length < pageSize && total == null) || (total != null && relations.size >= total)) break;
-    if (total != null && pageNo * pageSize >= total) break;
-    await sleep(100);
+    if (!rows.length || (total != null && pageNo * pageSize >= total) || (total == null && rows.length < pageSize)) break;
+    await sleep(80);
   }
   return { records:[...relations.values()], attempted, total };
 }
 
-async function collectMajorByTagProbes(page, label, pageSize) {
-  const probes = ['/api/specialties', '/api/majors', '/api/specialties/list', '/api/majors/list'];
-  const hits = [];
-  for (const basePath of probes) {
-    const result = await apiJson(page, `${basePath}?tag=${encodeURIComponent(label)}&page=1&pageSize=${pageSize}`);
-    if (!result.ok) continue;
-    const rows = extractRows(result.body);
-    if (!rows.length) continue;
-    hits.push({ endpoint:basePath, records:rows.map(normalizeRelation).filter(Boolean) });
-  }
-  return hits;
+async function collectMajorBySourceEndpoint(page, label, pageSize) {
+  const result = await apiJson(page, `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=${pageSize}`);
+  if (!result.ok) return { attempted:[{url:result.url,status:result.status}], records:[] };
+  return { attempted:[{url:result.url,status:result.status}], records:extractRows(result.body).map(normalizeRelation).filter(Boolean) };
 }
 
 async function snapshot(page, file) {
@@ -194,8 +189,8 @@ async function harvest() {
     const networkUrls = [];
     for (const label of labels) {
       await page.goto(opt('schoolsUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) }).catch(()=>null);
-      await sleep(400);
-      const result = await collectPaged(page, '/api/schools', label, 'schools', Number(opt('schoolPageSize')));
+      await sleep(350);
+      const result = await collectPaged(page, '/api/schools', label, Number(opt('schoolPageSize')));
       networkUrls.push(...result.attempted);
       schoolSurface.push({ label, sourceUrl:page.url(), pages:result.attempted.length, total:result.total, count:result.records.length, records:result.records });
     }
@@ -203,25 +198,25 @@ async function harvest() {
     await page.goto(opt('specialtiesUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
     await sleep(1000);
     await snapshot(page, path.join(rawDir, 'specialties-initial.json'));
-    const specialtyLabels = await discoverLabels(page);
-    const specialtyDiscovery = specialtyLabels.length ? specialtyLabels : labels;
+    const specialtyDiscovery = labels;
     const specialtySurface = [];
+    const specialtyNetwork = [];
     const genericMajorApi = await apiJson(page, '/api/specialties?sort=popularity&page=1&pageSize=100');
     await fs.writeFile(path.join(rawDir, 'specialties-first-page.json'), JSON.stringify(genericMajorApi, null, 2));
     for (const label of specialtyDiscovery) {
-      const hits = await collectMajorByTagProbes(page, label, Number(opt('majorPageSize')));
-      for (const hit of hits) specialtySurface.push({ label, sourceUrl:page.url(), endpoint:hit.endpoint, pages:1, count:hit.records.length, records:hit.records });
+      const hit = await collectMajorBySourceEndpoint(page, label, Number(opt('majorPageSize')));
+      specialtyNetwork.push(...hit.attempted);
+      if (hit.records.length) specialtySurface.push({ label, sourceUrl:page.url(), endpoint:'/api/specialties', pages:1, count:hit.records.length, records:hit.records });
     }
     await fs.writeFile(path.join(rawDir, 'schools-network.json'), JSON.stringify(networkUrls, null, 2));
+    await fs.writeFile(path.join(rawDir, 'specialties-network.json'), JSON.stringify(specialtyNetwork, null, 2));
 
     const byLabel = new Map();
-    for (const row of schoolSurface) {
-      byLabel.set(row.label, { label:row.label, schoolMatches:row.records, majorMatches:[], schoolSource:{ count:row.count, total:row.total, pages:row.pages, sourceUrl:row.sourceUrl }, majorSources:[] });
-    }
+    for (const row of schoolSurface) byLabel.set(row.label, { label:row.label, schoolMatches:row.records, majorMatches:[], schoolSource:{ count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl }, majorSources:[] });
     for (const row of specialtySurface) {
       const entry = byLabel.get(row.label) || { label:row.label, schoolMatches:[], majorMatches:[], schoolSource:{}, majorSources:[] };
-      entry.majorMatches = [...new Map([...entry.majorMatches, ...row.records].map(x => [`${x.sourceId||''}||${x.name}||${x.href}`, x])).values()];
-      entry.majorSources.push({ endpoint:row.endpoint, count:row.count, pages:row.pages, sourceUrl:row.sourceUrl });
+      entry.majorMatches = [...new Map([...entry.majorMatches,...row.records].map(x=>[`${x.sourceId||''}||${x.name}||${x.href}`,x])).values()];
+      entry.majorSources.push({ endpoint:row.endpoint,count:row.count,pages:row.pages,sourceUrl:row.sourceUrl });
       byLabel.set(row.label, entry);
     }
 
