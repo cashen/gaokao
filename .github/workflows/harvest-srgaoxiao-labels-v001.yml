@@ -37,6 +37,8 @@ jobs:
           --out tmp/srgaoxiao-label-harvest-v001.json
           --maxLabels 200
           --maxPagesPerLabel 400
+      - name: Probe source school-major endpoints
+        run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v001.json
       - name: Verify harvested staging payload
         run: node tools/srgaoxiao/verify-label-taxonomy-v001.mjs tmp/srgaoxiao-label-harvest-v001.json
       - name: Publish local staging artifact
@@ -46,6 +48,7 @@ jobs:
           name: srgaoxiao-label-harvest-v001-${{ github.sha }}
           path: |
             tmp/srgaoxiao-label-harvest-v001.json
+            tmp/srgaoxiao-label-source-probe-v001.json
             tmp/raw/*.json
           if-no-files-found: warn
           retention-days: 14
