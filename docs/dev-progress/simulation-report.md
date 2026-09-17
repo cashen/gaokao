@@ -2,11 +2,11 @@
 
 当前主线：`fix/simulation-p0-school-major-history-r155`（待通过 PR 回到 `main`）
 当前 main 基线：`c00efafad761ea11571427efa760372e81f6a306`
-当前工作版本：`simulation-workspace-v016.65`
-当前工作修订：`r155-school-major-history-mobile`
+当前工作版本：`simulation-workspace-v016.66`
+当前工作修订：`r156-school-major-history-mobile-fix`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
 
-## r155 本轮已实现
+## r156 本轮状态
 
 - [x] 普通学校候选显式点击后，`school + confirmedSchool` 原子确认，不再等待异步 resolve 才允许继续。
 - [x] 专业搜索词与实际招生专业身份拆开：`majorQuery / majorName / majorCode / majorRecordId`。
@@ -17,8 +17,9 @@
 - [x] 模拟志愿卡增加 1 学校 → 2 专业 → 3 三年历史的家长可读状态轨。
 - [x] 移动端移除历史横向滚动，历史改为响应式网格；页面与志愿卡禁止水平溢出。
 - [x] Android / Pad / Desktop 目标视口统一触控尺寸、安全区与单列输入布局。
-- [x] canonical workflow 增加 r155 P0 浏览器回归，并同步旧 unified browser fixture 的招生记录身份字段。
-- [x] release contract 提升到 `v016.65-r155 / page v1.1`。
+- [x] 首次 r155 浏览器门禁暴露 runtime 重复函数声明；r156 已移除该真实浏览器阻断错误，并同步所有版本号/缓存串。
+- [x] canonical workflow 增加并接入 r156 P0 浏览器回归；过期 r155 P0 测试资产已删除，避免双测试路径。
+- [x] release contract 提升到 `simulation-workspace-v016.66 / v016.66-r156 / page v1.2`。
 
 ## r154 基线
 
@@ -53,13 +54,13 @@
 
 ## 当前 Definition of Done
 
-- [ ] r155 Node syntax PASS
-- [ ] r155 existing unified runtime browser PASS
-- [ ] r155 family note browser PASS
-- [ ] r155 PDF browser PASS
-- [ ] r155 school-major-mobile browser PASS
-- [ ] r155 Preview exact SHA verified
-- [ ] r155 merged main SHA / Production / API / resource parity verified
+- [ ] r156 Node syntax PASS
+- [ ] r156 existing unified runtime browser PASS
+- [ ] r156 family note browser PASS
+- [ ] r156 PDF browser PASS
+- [ ] r156 school-major-mobile browser PASS
+- [ ] r156 Preview exact SHA verified
+- [ ] r156 merged main SHA / Production / API / resource parity verified
 
 ## 当前架构规则
 
