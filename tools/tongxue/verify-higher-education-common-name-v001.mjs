@@ -9,7 +9,7 @@ import {
 } from '../../shared/resources/higher-education/higher-education-common-names.v001.js';
 
 const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-v159.js', 'utf8');
-const base = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-base-v159.js', 'utf8');
+const core = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-core-v159.js', 'utf8');
 const resource = fs.readFileSync('shared/resources/higher-education/higher-education-common-names.v001.js', 'utf8');
 const items = listHigherEducationCommonNames();
 
@@ -23,22 +23,10 @@ for (const item of items) {
   assert.ok(item.sources.length >= 1, `${item.name} source provenance missing`);
 }
 
-assert.deepEqual(
-  resolveHigherEducationCommonNameSchools('east-china-five').members.map(item => item.displayName),
-  ['复旦大学','上海交通大学','南京大学','浙江大学','中国科学技术大学']
-);
-assert.deepEqual(
-  resolveHigherEducationCommonNameSchools('national-defense-seven').members.map(item => item.displayName),
-  ['北京航空航天大学','北京理工大学','哈尔滨工业大学','哈尔滨工程大学','南京航空航天大学','南京理工大学','西北工业大学']
-);
-assert.deepEqual(
-  resolveHigherEducationCommonNameSchools('mechanical-four-dragons').members.map(item => item.displayName),
-  ['合肥工业大学','湖南大学','吉林大学','燕山大学']
-);
-assert.deepEqual(
-  resolveHigherEducationCommonNameSchools('mechanical-five-tigers').members.map(item => item.displayName),
-  ['清华大学','上海交通大学','华中科技大学','西安交通大学','哈尔滨工业大学']
-);
+assert.deepEqual(resolveHigherEducationCommonNameSchools('east-china-five').members.map(item => item.displayName), ['复旦大学','上海交通大学','南京大学','浙江大学','中国科学技术大学']);
+assert.deepEqual(resolveHigherEducationCommonNameSchools('national-defense-seven').members.map(item => item.displayName), ['北京航空航天大学','北京理工大学','哈尔滨工业大学','哈尔滨工程大学','南京航空航天大学','南京理工大学','西北工业大学']);
+assert.deepEqual(resolveHigherEducationCommonNameSchools('mechanical-four-dragons').members.map(item => item.displayName), ['合肥工业大学','湖南大学','吉林大学','燕山大学']);
+assert.deepEqual(resolveHigherEducationCommonNameSchools('mechanical-five-tigers').members.map(item => item.displayName), ['清华大学','上海交通大学','华中科技大学','西安交通大学','哈尔滨工业大学']);
 
 const payload = higherEducationCommonNameHandoffPayload('上海交通大学', '');
 assert.equal(payload.handoffContractVersion, 'higher-education-common-name-handoff-v001');
@@ -48,13 +36,14 @@ assert.equal(payload.sourceAction, 'view_common_name_schools');
 assert.equal(payload.canonicalSchoolName, '上海交通大学');
 assert.ok(payload.candidateSchoolIds.length === 5);
 
-assert.match(wrapper, /createBaseTongxueResultView/);
+assert.match(wrapper, /createBaseResultView/);
 assert.match(wrapper, /MutationObserver/);
 assert.match(wrapper, /高校民间称谓/);
 assert.doesNotMatch(wrapper, /fetch\s*\(/);
 assert.doesNotMatch(wrapper, /addEventListener\s*\(/);
-assert.match(base, /export function createTongxueResultView/);
-assert.match(base, /PAGE_VERSION = 'v1\.5\.9-uec01-evidence02'/);
+assert.match(core, /export function createTongxueResultView/);
+assert.match(core, /PAGE_VERSION = 'v1\.5\.9-uec01-evidence02'/);
+assert.doesNotMatch(core, /高校民间称谓/);
 assert.match(resource, /HIGHER_EDUCATION_COMMON_NAME_TYPE/);
 assert.match(resource, /candidateSchoolIds/);
 
