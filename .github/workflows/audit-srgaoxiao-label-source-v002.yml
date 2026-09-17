@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  AUDIT_SCHEMA: srgaoxiao-label-source-v002.1
+
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -43,7 +46,7 @@ jobs:
           }
           console.log(JSON.stringify(s, null, 2));
           NODE
-      - name: Map source schools to shared canonical entities
+      - name: Map source schools through shared school profile center
         run: >-
           node tools/srgaoxiao/build-label-school-entity-map-v002.mjs
           tmp/srgaoxiao-label-harvest-v002.json
@@ -54,7 +57,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: srgaoxiao-label-source-v002-${{ github.sha }}
+          name: srgaoxiao-label-source-v002-1-${{ github.sha }}
           path: |
             tmp/srgaoxiao-label-harvest-v002.json
             tmp/srgaoxiao-label-school-entity-map-v002.json
