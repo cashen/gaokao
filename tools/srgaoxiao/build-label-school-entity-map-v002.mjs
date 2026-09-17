@@ -4,6 +4,7 @@ import path from 'node:path';
 import { resolveSchoolProfile } from '../../shared/resources/schools/school-profile-center.js';
 import { findSchoolEntityByName } from '../../shared/resources/schools/school-identity-center.js';
 
+const MAPPING_SCHEMA_VERSION = 'srgaoxiao-label-school-entity-map-v002.1';
 const input = process.argv[2];
 const output = process.argv[3] || 'tmp/srgaoxiao-label-school-entity-map-v002.json';
 if (!input) throw new Error('Usage: node build-label-school-entity-map-v002.mjs <harvest.json> [output.json]');
@@ -103,7 +104,7 @@ if (!(summary.labels > 0 && summary.relations > 0)) {
 
 await fs.mkdir(path.dirname(path.resolve(output)), { recursive: true });
 await fs.writeFile(output, JSON.stringify({
-  schemaVersion: 'srgaoxiao-label-school-entity-map-v002',
+  schemaVersion: MAPPING_SCHEMA_VERSION,
   generatedAt: new Date().toISOString(),
   source: data.source || null,
   sourceSchemaVersion: data.schemaVersion || null,
