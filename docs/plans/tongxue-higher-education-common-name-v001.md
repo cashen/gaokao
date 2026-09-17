@@ -35,40 +35,41 @@
 未完成成员口径核验的其余源站标签保持 `unresolved/not-published`，不得为了覆盖率进入 Tongxue UI。
 
 ## Owner
-- 称谓定义：新增 `shared/resources/higher-education/higher-education-common-names.v001.js`
+- 称谓定义：`shared/resources/higher-education/higher-education-common-names.v001.js`
 - canonical school：现有 `school-identity-center.js`
-- Tongxue presentation：现有 `tongxue/app/tongxue-runtime-result-view-v159.js`
-- 跨模块导航：现有 decision context；本阶段只定义上下文载荷，不复制结果状态、不新增 router
-- Release：现有 `shared/resources/release/current-release.js`
+- Tongxue presentation：薄包装层 `tongxue/app/tongxue-runtime-common-name-v001.js`，不改原 Student Voice result owner
+- 跨模块导航：现有 decision context；本阶段输出 handoff payload，不复制结果状态、不新增 router
+- Release：现有 release identity；本阶段不提升全站 runtime generation，避免无关资源同步升级
 
 ## Tongxue UI
-学校结果标题下方、现有 meta 信息区域内增加轻量一行：
+学校结果标题后的 meta 信息区增加轻量一行：
 
 `大家常说：华东五校`
 
-旁边提供轻量说明入口，不增加标签墙，不新增大型卡片。
+旁边提供可展开说明，不增加标签墙，不新增大型卡片。
 
-点击称谓打开轻量集合内容：
+展开内容：
 - 称谓名称
 - “这是大家常用的高校叫法，不是教育部门的官方分类。”
 - 已核验的 canonical school 成员
-- 唯一主要动作：`看看这些学校在辽宁能报哪些专业`
+- 明确说明它不参与录取、排名或专业强弱判断
 
-集合页面不复制 admissions 数据；只将 canonical school ids 交给现有 ln-rank 能力。
+成员点击只返回 Tongxue 对应学校实体；不伪造尚未实现的 ln-rank 集合查询。
 
 ## ln-rank 互通预留
-本阶段不新建 `tag-query API`。
+本阶段不新建 `tag-query API`，也不改变现有 decision-context.v001 的字段白名单。
 
-现有 decision context 后续承载：
+共享资源提供：
 - `commonNameId`
 - `commonName`
+- `commonNameType`
 - `candidateSchoolIds`
+- `candidateSchoolNames`
 - `sourceSurface=tongxue`
 - `sourceAction=view_common_name_schools`
-- `returnTo`
-- `province/admissionYear/track`
+- `handoffContractVersion=higher-education-common-name-handoff-v001`
 
-真正跨模块主键仍为 canonical school identity，而不是高校民间称谓。
+第 2 个计划再把该 payload 正式接入 ln-rank 的 decision-context 导航，不在本 PR 中以伪 URL 方式冒充已完成能力。
 
 ## 专业边界
 严禁：
@@ -86,7 +87,9 @@
 - 无新的 source registry、school resolver、major catalog、router、SP。
 - 源站新增/删除/拆分实体不会直接改变 Tongxue 已发布 canonical 成员。
 - 未核验称谓不显示。
-- 点击称谓可进入集合并向 ln-rank 传 canonical school identity；返回 Tongxue 能恢复来源上下文。
+- 同一学校最多展示 3 个已核验称谓。
+- 学校实体为校区/分校/医学独立实体时，不因母校称谓自动合并。
+- handoff payload 以 canonical school identity 为主键，不以民间称谓作为跨模块主键。
 - 任何称谓文本都不会进入 admissions ranking、recommendation score 或 Student Voice evidence ranking。
 
 ## 发布门槛
