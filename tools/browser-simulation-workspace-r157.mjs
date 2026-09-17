@@ -135,7 +135,7 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error?.message || error)));
   await page.route('**/api/ai/major-history**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeApi([sino, ordinary])) }));
-  const deepUrl = 'http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6&schoolCode=0146&majorName=%E5%86%B6%E9%87%91%E5%B7%A5%E7%A8%8B(%E4%B8%AD%E5%A4%96%E5%90%88%E4%BD%9C%E8%BE%9E%E5%AD%A6)&majorCode2026=H1&majorRecordId=ln-2026-0146-H1&source=tongxue&entry=major';
+  const deepUrl = 'http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6&schoolCode=0146&majorName=%E5%86%B6%E9%87%91%E5%B7%A5%E7%A8%8B(%E4%B8%AD%E5%A4%96%E5%90%88%E4%BD%9C%E5%8A%9E%E5%AD%A6)&majorCode2026=H1&majorRecordId=ln-2026-0146-H1&source=tongxue&entry=major';
   await page.goto(deepUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002'))?.volunteers?.[0]?.majorRecordId === 'ln-2026-0146-H1', null, { timeout: 10000 });
   const deepState = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
