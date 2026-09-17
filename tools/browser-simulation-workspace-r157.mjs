@@ -13,7 +13,7 @@ async function installRoutes(page) {
   await page.route('**/api/ai/major-history**', route => {
     const query = new URL(route.request().url()).searchParams.get('major') || '';
     if (query === '网络错误') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, code: 'major_history_failed', message: '模拟网络错误' }) });
-    if (query === '缺史') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeApi([missing2024])) });
+    if (query === '机械工程') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeApi([missing2024])) });
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeApi([ordinary, sino])) });
   });
 }
@@ -76,7 +76,7 @@ try {
     assert.equal(state.majorRecordId, sino.id, `${viewport.name}: refresh must preserve exact identity`);
     assert.equal(state.familyNote, '学费可以接受，但校区需要再核实。');
 
-    await page.locator('[data-field="majorCode"]').first().fill('缺史');
+    await page.locator('[data-field="majorCode"]').first().fill('机械工程');
     await page.locator('.candidate').filter({ hasText: '机械工程' }).waitFor({ state: 'visible', timeout: 5000 });
     await page.locator('.candidate').filter({ hasText: '机械工程' }).click();
     const missingCell = page.locator('.history-cell').filter({ hasText: '2024' }).locator('strong');
