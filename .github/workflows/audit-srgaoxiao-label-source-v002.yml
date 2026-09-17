@@ -43,6 +43,11 @@ jobs:
           }
           console.log(JSON.stringify(s, null, 2));
           NODE
+      - name: Map source schools to shared canonical entities
+        run: >-
+          node tools/srgaoxiao/build-label-school-entity-map-v002.mjs
+          tmp/srgaoxiao-label-harvest-v002.json
+          tmp/srgaoxiao-label-school-entity-map-v002.json
       - name: Probe current school-major source endpoints
         run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v002.json
       - name: Publish audit artifact
@@ -52,6 +57,7 @@ jobs:
           name: srgaoxiao-label-source-v002-${{ github.sha }}
           path: |
             tmp/srgaoxiao-label-harvest-v002.json
+            tmp/srgaoxiao-label-school-entity-map-v002.json
             tmp/srgaoxiao-label-source-probe-v002.json
             tmp/raw/*.json
           if-no-files-found: error
