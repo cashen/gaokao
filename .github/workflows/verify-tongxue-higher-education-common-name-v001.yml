@@ -5,18 +5,18 @@ on:
     paths:
       - 'shared/resources/higher-education/higher-education-common-names.v001.js'
       - 'tongxue/app/tongxue-runtime-result-view-v159.js'
-      - 'tongxue/app/tongxue-runtime-result-view-base-v159.js'
+      - 'tongxue/app/tongxue-runtime-result-view-core-v159.js'
       - 'tools/tongxue/verify-higher-education-common-name-v001.mjs'
-      - 'docs/plans/tongxue-higher-education-common-name-v002.md'
+      - 'docs/plans/tongxue-higher-education-common-name-v003.md'
   push:
     branches:
       - 'feat/tongxue-higher-education-common-name-v001'
     paths:
       - 'shared/resources/higher-education/higher-education-common-names.v001.js'
       - 'tongxue/app/tongxue-runtime-result-view-v159.js'
-      - 'tongxue/app/tongxue-runtime-result-view-base-v159.js'
+      - 'tongxue/app/tongxue-runtime-result-view-core-v159.js'
       - 'tools/tongxue/verify-higher-education-common-name-v001.mjs'
-      - 'docs/plans/tongxue-higher-education-common-name-v002.md'
+      - 'docs/plans/tongxue-higher-education-common-name-v003.md'
 
 permissions:
   contents: read
