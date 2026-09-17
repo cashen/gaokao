@@ -8,10 +8,17 @@ import {
   resolveHigherEducationCommonNameSchools,
   higherEducationCommonNameHandoffPayload
 } from '../../shared/resources/higher-education/higher-education-common-names.v003.js';
+import {
+  SCHOOL_SOCIAL_LABEL_SOURCE_VERSION,
+  SCHOOL_SOCIAL_LABEL_SOURCE_META,
+  getSchoolSocialLabels
+} from '../../shared/resources/schools/school-social-labels.shared-v001.js';
 
 const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-v159.js', 'utf8');
 const core = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-core-v159.js', 'utf8');
 const resource = fs.readFileSync('shared/resources/higher-education/higher-education-common-names.v003.js', 'utf8');
+const socialResource = fs.readFileSync('shared/resources/schools/school-social-labels.shared-v001.js', 'utf8');
+const rawSocialResource = fs.readFileSync('shared/resources/schools/school-social-labels.v002_1.js', 'utf8');
 const plan = fs.readFileSync('docs/plans/tongxue-higher-education-common-name-v006.md', 'utf8');
 const directory = JSON.parse(fs.readFileSync('tongxue/data/school-search-index.20260617-v150.json', 'utf8'));
 const directoryNames = new Set((directory.schools || []).map(row => String(row?.[0] || '').trim()).filter(Boolean));
@@ -49,6 +56,15 @@ assert.equal(payload.canonicalSchoolName, '上海交通大学');
 assert.equal(payload.candidateSchoolNames.length, 5);
 assert.ok(payload.candidateSchoolIds.length <= payload.candidateSchoolNames.length);
 
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_VERSION, 'school-social-labels-v002.1');
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.sourceLabelCount, 29);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.sourceRelationCount, 839);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.resolvedRelationCount, 824);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.unresolvedRelationCount, 15);
+assert.ok(getSchoolSocialLabels('哈尔滨工业大学').includes('机械五虎'));
+assert.ok(getSchoolSocialLabels('江西现代职业技术学院').includes('双高'));
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.explicitSourceNameAliases, 1);
+
 assert.match(wrapper, /createBaseResultView/);
 assert.doesNotMatch(wrapper, /MutationObserver/);
 assert.doesNotMatch(wrapper, /setInterval\s*\(/);
@@ -56,7 +72,8 @@ assert.doesNotMatch(wrapper, /setTimeout\s*\(/);
 assert.doesNotMatch(wrapper, /addEventListener\s*\(/);
 assert.doesNotMatch(wrapper, /fetch\s*\(/);
 assert.match(wrapper, /higher-education-common-names\.v003/);
-assert.match(wrapper, /TONGXUE_COMMON_NAME_ENTRY_VERSION = 'tongxue-common-name-v003'/);
+assert.match(wrapper, /school-social-labels\.shared-v001/);
+assert.match(wrapper, /TONGXUE_COMMON_NAME_ENTRY_VERSION = 'tongxue-common-name-v005-social-labels'/);
 assert.match(wrapper, /renderResult/);
 assert.match(wrapper, /renderActiveReviews/);
 assert.match(wrapper, /这是一次独立查询/);
@@ -68,7 +85,9 @@ assert.doesNotMatch(core, /高校民间称谓/);
 assert.match(resource, /resolveCompactSchoolResource/);
 assert.match(resource, /education-ministry-directory/);
 assert.match(resource, /directory-name-verified/);
+assert.match(rawSocialResource, /school-social-labels-v002\.1/);
+assert.match(socialResource, /school-social-label-shared-v001/);
 assert.match(plan, /计划 v006/);
 assert.match(plan, /资源为 v003/);
 
-console.log(`higher-education-common-name v004 verified: ${items.length} names; ${items.reduce((n, i) => n + i.memberSchoolNames.length, 0)} memberships`);
+console.log(`higher-education-common-name v005 verified: ${items.length} names; social-label source ${SCHOOL_SOCIAL_LABEL_SOURCE_META.sourceRelationCount} relations`);

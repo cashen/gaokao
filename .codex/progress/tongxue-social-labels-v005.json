@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "tongxue-social-labels-v005",
+  "status": "implementation-ready-for-pr",
+  "updatedAt": "2026-09-18T06:46:00+08:00",
+  "baseMainSha": "5c17317942b7bd81f4a77780dad37007dc3d077e",
+  "branch": "feat/tongxue-social-labels-v005",
+  "sourceContract": {
+    "rawResourceVersion": "school-social-labels-v002.1",
+    "sharedResolverVersion": "school-social-label-shared-v001",
+    "sourceLabels": 29,
+    "sourceSchoolRelations": 839,
+    "resolvedSchoolRelations": 824,
+    "unresolvedSchoolRelations": 15,
+    "taggedMajorRelations": 0
+  },
+  "runtimeContract": {
+    "tongxueVersion": "tongxue-common-name-v005-social-labels",
+    "schoolScopeOnly": true,
+    "noNetworkLookup": true,
+    "noMutationObserver": true,
+    "noTimers": true
+  },
+  "dataPolicy": {
+    "fuzzyMatching": false,
+    "inferredRelations": false,
+    "unresolvedFailClosed": true,
+    "explicitSourceNameAliases": 1,
+    "officialClassificationFieldModified": false
+  },
+  "implementation": {
+    "sharedResource": "shared/resources/schools/school-social-labels.v002_1.js",
+    "sharedResolver": "shared/resources/schools/school-social-labels.shared-v001.js",
+    "tongxueRuntime": "tongxue/app/tongxue-runtime-result-view-v159.js",
+    "focusedVerifier": "tools/verify-school-social-labels-v002_1.mjs",
+    "commonNameVerifier": "tools/tongxue/verify-higher-education-common-name-v004.mjs"
+  },
+  "nextGate": "Create PR, run focused verifier + higher-education verifier + browser regression on preview, then exact-HEAD merge only after all required checks are green."
+}
