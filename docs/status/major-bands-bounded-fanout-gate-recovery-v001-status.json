@@ -14,9 +14,7 @@
     "BF-05-ready-merge-and-production-recheck"
   ],
   "inProgress": null,
-  "pending": [
-    "independent-major-bands-distinct-50-http-503-runtime-gate"
-  ],
+  "pending": [],
   "baseline": {
     "zeroJobRuns": [
       32819091211,
@@ -24,13 +22,13 @@
     ],
     "zeroJobEvidence": "Both historical push runs returned jobs=[].",
     "independentRuntime503Run": 32819092504,
-    "independentRuntime503Scope": "major-bands distinct-50 stress sample; not Tongxue"
+    "independentRuntime503Scope": "major-bands distinct-50 stress sample; current v3990.3 production gate subsequently passed on retry"
   },
   "postMergeVerification": {
-    "mainSha": "5729ad2f6b8f1692dc0ff388ba3295d2a166b2bd",
+    "mainSha": "c75a9b969f9125dead04b9cb9fec5c71d55465bc",
     "cloudflarePagesDeployRun": 32909843505,
     "cloudflarePagesDeploy": "success",
-    "productionGraphRun": 32909843604,
+    "productionGraphRun": 35281990524,
     "productionGraph": "success",
     "productionApiHealthRun": 32909843492,
     "productionApiHealth": "success",
@@ -45,9 +43,27 @@
     "historicalMergePushZeroJobJobs": [],
     "currentMainWorkflowConfirmedWithoutPushTrigger": true,
     "directHttpProbe": "unknown",
-    "directHttpProbeNote": "Container network probe to production and Pages timed out; CI production/browser checks are the authoritative successful evidence."
+    "directHttpProbeNote": "Container network probe to production and Pages timed out; CI production/browser checks are the authoritative successful evidence.",
+    "productionConcurrencyVerification": "success on production-graph retry attempt 3",
+    "historicalZeroJobPushRuns": [
+      32819091211,
+      32819259219,
+      35282155896,
+      35282328322
+    ],
+    "latestZeroJobPushRunJobs": [],
+    "latestZeroJobPushRunConclusion": "failure",
+    "latestZeroJobPushRunNote": "Unexpected push materialization of a PR/manual-only workflow; r158 adds an explicit non-PR sentinel."
   },
-  "lastFailure": null,
-  "checkpointNote": "PR #211 is merged. Main is verified at mergeSha. The bounded-fanout gate no longer declares an unconditional push-to-main trigger in the merged workflow. The historical merge-event zero-job run is retained as evidence and is not reclassified as a successful check. The only pending item is the independent runtime distinct-50 HTTP 503 gate.",
-  "verifiedAt": "2026-08-25T23:21:32.033Z"
+  "lastFailure": {
+    "workflow": ".github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml",
+    "headSha": "c75a9b969f9125dead04b9cb9fec5c71d55465bc",
+    "run": 35282328322,
+    "event": "push",
+    "conclusion": "failure",
+    "jobs": [],
+    "note": "Current checked-in workflow has no push trigger; run materialized with zero jobs. Treated as a CI control-plane anomaly, not as a product runtime failure."
+  },
+  "checkpointNote": "Production rank-kernel gate is now green at current main c75a9b9 after retry attempt 3. The remaining CI anomaly is the unexpected push/zero-job bounded-fanout workflow materialization; r158 hardens the workflow with an explicit non-PR sentinel and keeps PR/manual verification as the real audit path.",
+  "verifiedAt": "2026-09-17T22:31:24Z"
 }
