@@ -87,7 +87,7 @@ async function apiJson(page, requestPath, timeoutMs = Number(opt('timeoutMs'))) 
     const text = await response.text();
     let body = null;
     try { body = JSON.parse(text); } catch {}
-    return { ok: response.ok(), status: response.status(), url:response.url(), body, text:text.slice(0, 20000) };
+    return { ok:response.ok(), status:response.status(), url:response.url(), body, text:text.slice(0, 30000) };
   } catch (error) {
     return { ok:false, status:0, url:absoluteUrl, body:null, text:String(error?.message || error) };
   }
@@ -159,16 +159,39 @@ async function collectPaged(page, basePath, label, pageSize) {
   return { records:[...relations.values()], attempted, total };
 }
 
-async function collectMajorBySourceEndpoint(page, label, pageSize) {
-  const url = `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=${pageSize}`;
-  const result = await apiJson(page, url);
-  if (!result.ok) return { attempted:[{ url:result.url, status:result.status }], records:[], total:null };
-  return { attempted:[{ url:result.url, status:result.status }], records:extractRows(result.body).map(normalizeRelation).filter(Boolean), total:extractTotal(result.body) };
+async function scanPageScripts(page, file) {
+  const assets = await page.evaluate(() => [...document.querySelectorAll('script[src]')].map(node => node.src));
+  const rows = [];
+  for (const url of [...new Set(assets)]) {
+    try {
+      const response = await page.request.get(url, { timeout:Number(opt('timeoutMs')), failOnStatusCode:false });
+      const text = await response.text();
+      if (!response.ok()) continue;
+      const apiStrings = [...new Set(text.match(/\/api\/[A-Za-z0-9_./?=&$:+{}-]+/g) || [])];
+      const relevantSnippets = text.split('\n').filter(line => /specialt|major|school|tag/i.test(line)).slice(0, 20);
+      rows.push({ url, bytes:text.length, apiStrings, relevantSnippets });
+    } catch (error) {
+      rows.push({ url, error:String(error?.message || error) });
+    }
+  }
+  await ensureDir(file);
+  await fs.writeFile(file, JSON.stringify(rows, null, 2));
+  return rows;
+}
+
+async function compareTaggedSchoolResponses(page, labels) {
+  const result = [];
+  for (const label of labels.slice(0, 3)) {
+    const response = await apiJson(page, `/api/schools?tag=${encodeURIComponent(label)}&page=1&pageSize=12`);
+    const rows = extractRows(response.body).map(normalizeRelation).filter(Boolean);
+    result.push({ label, status:response.status, total:extractTotal(response.body), firstIds:rows.slice(0, 12).map(x => x.sourceId), firstNames:rows.slice(0, 12).map(x => x.name) });
+  }
+  return result;
 }
 
 async function snapshot(page, file) {
   await ensureDir(file);
-  await fs.writeFile(file, JSON.stringify({ url:page.url(), html:await page.content(), text:await page.locator('body').innerText().catch(()=> '') }, null, 2));
+  await fs.writeFile(file, JSON.stringify({url:page.url(), html:await page.content(), text:await page.locator('body').innerText().catch(()=> '')}, null, 2));
 }
 
 async function harvest() {
@@ -192,41 +215,42 @@ async function harvest() {
       schoolNetwork.push(...result.attempted);
       schoolSurface.push({ label, sourceUrl:page.url(), pages:result.attempted.length, total:result.total, count:result.records.length, records:result.records });
     }
+    const scriptScanSchools = await scanPageScripts(page, path.join(rawDir, 'schools-script-api-scan.json'));
+    const tagComparisons = await compareTaggedSchoolResponses(page, labels);
 
     await page.goto(opt('specialtiesUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
     await sleep(900);
     await snapshot(page, path.join(rawDir, 'specialties-initial.json'));
-    const specialtyDiscovery = labels;
-    const specialtySurface = [];
-    const specialtyNetwork = [];
-    const genericMajorApi = await apiJson(page, '/api/specialties?sort=popularity&page=1&pageSize=100');
-    await fs.writeFile(path.join(rawDir, 'specialties-first-page.json'), JSON.stringify(genericMajorApi, null, 2));
-    for (const label of specialtyDiscovery) {
-      const hit = await collectMajorBySourceEndpoint(page, label, Number(opt('majorPageSize')));
-      specialtyNetwork.push(...hit.attempted);
-      specialtySurface.push({ label, sourceUrl:page.url(), endpoint:'/api/specialties', pages:1, count:hit.records.length, total:hit.total, records:hit.records });
+    const catalogResponse = await apiJson(page, '/api/specialties?sort=popularity&page=1&pageSize=100');
+    const specialtyCatalogRecords = extractRows(catalogResponse.body).map(normalizeRelation).filter(Boolean);
+    const specialtyCatalogMeta = { endpoint:'/api/specialties', firstPageCount:specialtyCatalogRecords.length, total:extractTotal(catalogResponse.body), filterSupport:'unknown' };
+    await fs.writeFile(path.join(rawDir, 'specialties-first-page.json'), JSON.stringify(catalogResponse, null, 2));
+    const specialtyScriptScan = await scanPageScripts(page, path.join(rawDir, 'specialties-script-api-scan.json'));
+
+    // The current public specialty catalog endpoint returns the same catalog when a school-label
+    // query parameter is appended; record this as an audit fact instead of fabricating label→major relations.
+    const majorFilterAudit = [];
+    for (const label of labels.slice(0, 10)) {
+      const response = await apiJson(page, `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=100`);
+      const rows = extractRows(response.body).map(normalizeRelation).filter(Boolean);
+      majorFilterAudit.push({ label, status:response.status, total:extractTotal(response.body), count:rows.length, firstIds:rows.slice(0, 10).map(x=>x.sourceId), firstNames:rows.slice(0, 10).map(x=>x.name) });
     }
-    await fs.writeFile(path.join(rawDir, 'schools-network.json'), JSON.stringify(schoolNetwork, null, 2));
-    await fs.writeFile(path.join(rawDir, 'specialties-network.json'), JSON.stringify(specialtyNetwork, null, 2));
 
     const byLabel = new Map();
-    for (const row of schoolSurface) byLabel.set(row.label, { label:row.label, schoolMatches:row.records, majorMatches:[], schoolSource:{ count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl }, majorSources:[] });
-    for (const row of specialtySurface) {
-      const entry = byLabel.get(row.label) || { label:row.label, schoolMatches:[], majorMatches:[], schoolSource:{}, majorSources:[] };
-      entry.majorMatches = [...new Map([...entry.majorMatches,...row.records].map(x=>[`${x.sourceId||''}||${x.name}||${x.href}`,x])).values()];
-      entry.majorSources.push({ endpoint:row.endpoint,count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl });
-      byLabel.set(row.label, entry);
-    }
+    for (const row of schoolSurface) byLabel.set(row.label, { label:row.label, schoolMatches:row.records, majorMatches:[], schoolSource:{count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl}, majorSources:[] });
 
     const payload = {
       schemaVersion:'srgaoxiao-label-harvest-v001',
       source:{ host:'eo.srgaoxiao.com', schoolsUrl:opt('schoolsUrl'), specialtiesUrl:opt('specialtiesUrl'), harvestedAt:new Date().toISOString(), startedAt,
-        note:'Source-derived staging only. No semantic classification or canonical school/major matching is inferred.' },
-      summary:{ discoveredSchoolLabels:labels.length, discoveredMajorLabels:specialtyDiscovery.length, uniqueLabels:byLabel.size,
-        totalSchoolLabelRelations:schoolSurface.reduce((n,x)=>n+x.count,0), totalMajorLabelRelations:specialtySurface.reduce((n,x)=>n+x.count,0),
-        schoolLabelsWithRelations:schoolSurface.filter(x=>x.count>0).length, majorLabelsWithRelations:specialtySurface.filter(x=>x.count>0).length },
+        note:'Source-derived staging only. School tag relations are collected from /api/schools. The specialty catalog is collected separately. No tag→major relation is inferred unless the source exposes one.' },
+      summary:{ discoveredSchoolLabels:labels.length, discoveredMajorLabels:0, uniqueLabels:byLabel.size,
+        totalSchoolLabelRelations:schoolSurface.reduce((n,x)=>n+x.count,0), totalMajorLabelRelations:0,
+        schoolLabelsWithRelations:schoolSurface.filter(x=>x.count>0).length, majorLabelsWithRelations:0,
+        specialtyCatalogCount:specialtyCatalogMeta.total || specialtyCatalogRecords.length },
       labels:[...byLabel.values()].sort((a,b)=>a.label.localeCompare(b.label,'zh-CN')),
-      surfaces:{ schools:{url:opt('schoolsUrl'),labels:schoolSurface,discoveredLabels:labels}, specialties:{url:opt('specialtiesUrl'),labels:specialtySurface,discoveredLabels:specialtyDiscovery} }
+      specialtyCatalog:{ metadata:specialtyCatalogMeta, records:specialtyCatalogRecords },
+      sourceAudit:{ taggedSchoolComparisons:tagComparisons, majorFilterAudit, scriptScanFiles:['raw/schools-script-api-scan.json','raw/specialties-script-api-scan.json'], schoolScriptAssetCount:scriptScanSchools.length, specialtyScriptAssetCount:specialtyScriptScan.length },
+      surfaces:{ schools:{url:opt('schoolsUrl'), labels:schoolSurface, discoveredLabels:labels}, specialties:{url:opt('specialtiesUrl'), note:'Standalone source catalog captured; direct shared-label filter was not asserted in this pass.'} }
     };
     await fs.writeFile(out, JSON.stringify(payload,null,2));
     console.log(JSON.stringify(payload.summary,null,2));
