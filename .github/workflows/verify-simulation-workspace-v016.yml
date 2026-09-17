@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.66-r156: atomic school/major identity plus mobile-safe layout.
+# v016.67-r157: single SimulationChoice owner across selection, persistence, URL restore and PDF.
 on:
   pull_request:
     paths:
@@ -10,13 +10,11 @@ on:
       - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-p0-school-major-history-r155.md'
+      - 'shared/resources/simulation/simulation-choice-contract.v001.js'
       - 'docs/dev-progress/simulation-report.md'
-      - 'tests/verify-simulation-unified-runtime-r149.mjs'
-      - 'tools/browser-simulation-unified-runtime-r149.mjs'
-      - 'tools/browser-simulation-family-note-r152.mjs'
-      - 'tools/browser-simulation-pdf-r149.mjs'
-      - 'tools/browser-simulation-p0-r156.mjs'
+      - 'docs/plans/simulation-choice-contract-r157.md'
+      - 'tests/verify-simulation-choice-contract-r157.mjs'
+      - 'tools/browser-simulation-workspace-r157.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
     branches: [main]
@@ -27,13 +25,11 @@ on:
       - 'ln-rank/js/simulation-report-pdf-service.js'
       - 'ln-rank/js/simulation-school-search-worker-v001.js'
       - 'ln-rank/data/simulation-workbench-release-v016.json'
-      - 'docs/plans/simulation-p0-school-major-history-r155.md'
+      - 'shared/resources/simulation/simulation-choice-contract.v001.js'
       - 'docs/dev-progress/simulation-report.md'
-      - 'tests/verify-simulation-unified-runtime-r149.mjs'
-      - 'tools/browser-simulation-unified-runtime-r149.mjs'
-      - 'tools/browser-simulation-family-note-r152.mjs'
-      - 'tools/browser-simulation-pdf-r149.mjs'
-      - 'tools/browser-simulation-p0-r156.mjs'
+      - 'docs/plans/simulation-choice-contract-r157.md'
+      - 'tests/verify-simulation-choice-contract-r157.mjs'
+      - 'tools/browser-simulation-workspace-r157.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
 
@@ -52,9 +48,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node --check shared/resources/simulation/simulation-choice-contract.v001.js
       - run: node --check ln-rank/js/simulation-runtime.js
       - run: node --check ln-rank/js/simulation-report-pdf-service.js
-      - run: node tests/verify-simulation-unified-runtime-r149.mjs
+      - run: node tests/verify-simulation-choice-contract-r157.mjs
   browser:
     needs: contract
     runs-on: ubuntu-latest
@@ -69,7 +66,4 @@ jobs:
       - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
       - run: nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/gaokao-http.log 2>&1 &
-      - run: node tools/browser-simulation-unified-runtime-r149.mjs
-      - run: node tools/browser-simulation-family-note-r152.mjs
-      - run: node tools/browser-simulation-pdf-r149.mjs
-      - run: node tools/browser-simulation-p0-r156.mjs
+      - run: node tools/browser-simulation-workspace-r157.mjs
