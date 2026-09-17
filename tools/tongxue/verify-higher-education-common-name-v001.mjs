@@ -55,6 +55,7 @@ assert.doesNotMatch(wrapper, /fetch\s*\(/);
 assert.doesNotMatch(wrapper, /addEventListener\s*\(/);
 assert.match(base, /export function createTongxueResultView/);
 assert.match(base, /PAGE_VERSION = 'v1\.5\.9-uec01-evidence02'/);
-assert.match(resource, /majorRelation/); // source semantics remain explicit in the staged lineage, not inferred here
+assert.match(resource, /HIGHER_EDUCATION_COMMON_NAME_TYPE/);
+assert.match(resource, /candidateSchoolIds/);
 
 console.log(`higher-education-common-name v001 verified: ${items.length} names; ${items.reduce((n, i) => n + i.memberSchoolNames.length, 0)} canonical memberships`);
