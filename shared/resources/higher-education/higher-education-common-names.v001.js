@@ -146,3 +146,27 @@ export function higherEducationCommonNameContext(idOrName = '') {
     unresolvedSchoolNames: result.unresolvedNames || []
   });
 }
+
+export function higherEducationCommonNameHandoffPayload(schoolName = '', entityId = '') {
+  const normalizedSchool = String(schoolName || '').trim();
+  const matches = VERIFIED_COMMON_NAMES.filter(item => {
+    const resolved = resolveHigherEducationCommonNameSchools(item.id);
+    if (resolved.status !== 'resolved') return false;
+    return resolved.members.some(entity => entity.displayName === normalizedSchool && (!entityId || entity.entityId === entityId));
+  });
+  const primary = matches[0] || null;
+  const resolved = primary ? resolveHigherEducationCommonNameSchools(primary.id) : null;
+  return Object.freeze({
+    handoffContractVersion: 'higher-education-common-name-handoff-v001',
+    sourceSurface: 'tongxue',
+    sourceAction: 'view_common_name_schools',
+    commonNameId: primary?.id || '',
+    commonName: primary?.name || '',
+    commonNameType: HIGHER_EDUCATION_COMMON_NAME_TYPE,
+    canonicalSchoolId: resolved?.members.find(entity => entity.displayName === normalizedSchool)?.entityId || String(entityId || '').trim(),
+    canonicalSchoolName: normalizedSchool,
+    candidateSchoolIds: resolved?.members.map(entity => entity.entityId) || [],
+    candidateSchoolNames: resolved?.members.map(entity => entity.displayName) || [],
+    commonNameIds: matches.map(item => item.id)
+  });
+}
