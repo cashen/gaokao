@@ -4,11 +4,11 @@ import {
   resolveHigherEducationCommonNameSchools,
   higherEducationCommonNameHandoffPayload,
   HIGHER_EDUCATION_COMMON_NAME_NOTICE
-} from '../../shared/resources/higher-education/higher-education-common-names.v001.js?v=001';
+} from '../../shared/resources/higher-education/higher-education-common-names.v002.js?v=002';
 
-export const TONGXUE_COMMON_NAME_WRAPPER_VERSION = 'tongxue-common-name-v001';
-const STYLE_ID = 'tongxue-common-name-style-v001';
-const UI_ID = 'tongxue-common-name-ui-v001';
+export const TONGXUE_COMMON_NAME_ENTRY_VERSION = 'tongxue-common-name-v002';
+const STYLE_ID = 'tongxue-common-name-style-v002';
+const UI_ID = 'tongxue-common-name-ui-v002';
 
 function esc(value = '') {
   return String(value ?? '').replace(/[&<>\"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;' }[char]));
