@@ -1,13 +1,27 @@
 # 模拟志愿填报单页开发进度
 
-当前主线：`main`
-当前 main：`4071783e7d0da491a966727b5ab9f52a7b28d1db`
-当前产品版本：`simulation-workspace-v016.64`
-当前产品修订：`r154-reload-safe-note-persistence`
+当前主线：`fix/simulation-p0-school-major-history-r155`（待通过 PR 回到 `main`）
+当前 main 基线：`c00efafad761ea11571427efa760372e81f6a306`
+当前工作版本：`simulation-workspace-v016.66`
+当前工作修订：`r156-school-major-history-mobile-fix`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
-阶段：统一接管完成 → 持续回归与生产观察
 
-## r154 已完成
+## r156 本轮状态
+
+- [x] 普通学校候选显式点击后，`school + confirmedSchool` 原子确认，不再等待异步 resolve 才允许继续。
+- [x] 专业搜索词与实际招生专业身份拆开：`majorQuery / majorName / majorCode / majorRecordId`。
+- [x] 专业候选只从当前确认学校的实际历史招生记录生成，不把全国专业目录作为最终可选记录。
+- [x] 专业候选直接缓存并绑定原始招生记录，保留实际 `majorCode2026` 与 `id`。
+- [x] 标准专业名称/代码只作为参考身份，普通项目与中外合作项目不再因同一标准代码被合并。
+- [x] 三年历史绑定所选招生记录；年度缺失显示“暂无对应投档记录”。
+- [x] 模拟志愿卡增加 1 学校 → 2 专业 → 3 三年历史的家长可读状态轨。
+- [x] 移动端移除历史横向滚动，历史改为响应式网格；页面与志愿卡禁止水平溢出。
+- [x] Android / Pad / Desktop 目标视口统一触控尺寸、安全区与单列输入布局。
+- [x] 首次 r155 浏览器门禁暴露 runtime 重复函数声明；r156 已移除该真实浏览器阻断错误，并同步所有版本号/缓存串。
+- [x] canonical workflow 增加并接入 r156 P0 浏览器回归；过期 r155 P0 测试资产已删除，避免双测试路径。
+- [x] release contract 提升到 `simulation-workspace-v016.66 / v016.66-r156 / page v1.2`。
+
+## r154 基线
 
 - [x] 备注继续作为 `volunteer.familyNote` 一等字段，未增加平行 store 或 note runtime。
 - [x] 家庭处理区收敛为同一语义上下文：处理结论与备注放在同一区域。
@@ -23,12 +37,6 @@
 - [x] 修复后台位次请求触发整表 render、导致正在编辑的备注输入被替换的问题。
 - [x] 恢复异步学校核验使用明确 row id，避免异步结果串行污染。
 - [x] 测试契约同步到 r153。
-
-## r151 已完成
-
-- [x] 修复 Chromium `?.preset = ...` 语法错误；入站参数改为先取 pending 再显式写入。
-- [x] 专业核验改为学校 + 专业名称 + 专业代码严格匹配；缺少代码或代码不一致不再通过名称回退。
-- [x] 页面缓存版本提升到 `v016.61-r151`。
 
 ## r150 统一接管已完成
 
@@ -46,16 +54,13 @@
 
 ## 当前 Definition of Done
 
-- [x] unified architecture static contract PASS
-- [x] Node syntax PASS
-- [x] Desktop / Pad / Android browser PASS
-- [x] rapid input / clear / school confirmation / major confirmation PASS
-- [x] history / family decision / reorder / refresh persistence PASS
-- [x] family note long-text / autosize / persistence PASS
-- [x] PDF service smoke PASS
-- [x] r154 final PR head exact SHA verified
-- [x] r154 Cloudflare Preview exact SHA verified
-- [x] r154 合并后 main SHA / Production / API / resource parity verified
+- [ ] r156 Node syntax PASS
+- [ ] r156 existing unified runtime browser PASS
+- [ ] r156 family note browser PASS
+- [ ] r156 PDF browser PASS
+- [ ] r156 school-major-mobile browser PASS
+- [ ] r156 Preview exact SHA verified
+- [ ] r156 merged main SHA / Production / API / resource parity verified
 
 ## 当前架构规则
 
