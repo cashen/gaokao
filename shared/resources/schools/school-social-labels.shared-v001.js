@@ -22,7 +22,7 @@ export const SCHOOL_SOCIAL_LABEL_SOURCE_META = Object.freeze({
 export { SCHOOL_SOCIAL_LABELS };
 
 const SOURCE_NAME_ALIASES = Object.freeze({
-  '江西现代职业技术学院': '江西现代职业学院'
+  '江西现代职业学院': '江西现代职业技术学院'
 });
 
 function normalizeSourceName(name) {
