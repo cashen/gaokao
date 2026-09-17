@@ -25,7 +25,7 @@ assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.inferredRelations, false);
 
 const hitExpected = ['101计划','985','国防七子','机械五虎','建筑老八校','强基','双一流','中坚九校','C9','E9'];
 assert.deepEqual(getSchoolSocialLabels('哈尔滨工业大学'), hitExpected);
-assert.deepEqual(getSchoolSocialLabels('哈尔滨工业大学（深圳）'), ['101计划','985','国防七子','机械五虎','建筑老八校','双一流','中坚九校','C9','E9'].filter(Boolean));
+assert.deepEqual(getSchoolSocialLabels('哈尔滨工业大学（深圳）'), ['985','国防七子','机械五虎','建筑老八校','双一流','中坚九校','C9','E9']);
 
 const lnk = getSharedSchoolSocialLabels('江西现代职业技术学院');
 assert.deepEqual(lnk, ['双高']);
