@@ -192,7 +192,7 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_preview=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_preview=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r051-major-scope-clarity&uec_preview=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r052-tongxue-school-social-labels&uec_preview=$attempt" || true)"
             result_view_core="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-core-v159.js?v=159&uec_preview=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
@@ -238,7 +238,7 @@ jobs:
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_prod=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_prod=$attempt" || true)"
-            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r051-major-scope-clarity&uec_prod=$attempt" || true)"
+            result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r052-tongxue-school-social-labels&uec_prod=$attempt" || true)"
             result_view_core="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-core-v159.js?v=159&uec_prod=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
