@@ -106,7 +106,7 @@ export const CURRENT_RELEASE = Object.freeze({
   tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v002',
   tongxueHumanJourneyUiRevision: 'r052-tongxue-school-social-labels',
   majorPathHumanJourneyVersion: 'major-path-human-journey-v002',
-  majorPathHumanJourneyRevision: 'r052-tongxue-school-social-labels',
+  majorPathHumanJourneyRevision: 'r051-major-scope-clarity',
   studentVoiceNavigationVersion: 'student-voice-navigation-v0.02',
   lnRankHumanQueryInputVersion: 'ln-rank-human-query-input-v002',
   lnRankHumanQueryInputRevision: 'r032-input-clear-state',
