@@ -103,7 +103,7 @@ export const CURRENT_RELEASE = Object.freeze({
   reportFrontendVersion: 'feishu-browser-v3967_0',
   historyEvidenceVersion: 'ln-physics-history-evidence-v3967_0',
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
-  tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v002',
+  tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v003',
   tongxueHumanJourneyUiRevision: 'r052-tongxue-school-social-labels',
   majorPathHumanJourneyVersion: 'major-path-human-journey-v002',
   majorPathHumanJourneyRevision: 'r051-major-scope-clarity',
