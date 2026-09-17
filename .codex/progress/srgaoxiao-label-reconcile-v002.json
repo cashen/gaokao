@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "srgaoxiao-label-reconcile-v002",
+  "status": "audit-in-progress",
+  "updatedAt": "2026-09-18T06:31:00+08:00",
+  "baseMainSha": "c75a9b969f9125dead04b9cb9fec5c71d55465bc",
+  "branch": "feat/srgaoxiao-label-reconcile-v002",
+  "pullRequest": 309,
+  "headBeforeProgressCommit": "235dcddb4c426221eda5b6fb31c9145474f5ce2d",
+  "verifiedSource": {
+    "schoolLabels": 29,
+    "schoolLabelRelations": 839,
+    "specialtyCatalog": 1783,
+    "taggedMajorRelations": 0,
+    "note": "1783 is the standalone specialty catalog returned by the current source. Sampled tag= queries did not demonstrate a tag-specific major relation, so no tag-to-major mapping is inferred."
+  },
+  "architectureDecision": "Build one canonical school-entity mapping layer first; Tongxue, ln-rank, AIPLuS and major-path should consume the shared layer rather than maintain independent tag maps.",
+  "safety": {
+    "fuzzyMapping": false,
+    "inferredRelations": false,
+    "productionRuntimeModified": false,
+    "failClosedOnUnresolved": true
+  },
+  "nextGate": "Wait for v002 source audit artifact including exact school-entity resolution counts; only then decide whether to materialize a shared production resource."
+}
