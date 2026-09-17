@@ -31,7 +31,6 @@ try {
     { width: 1280, height: 900, name: 'desktop', userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36' }
   ]) {
     const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, userAgent: viewport.userAgent });
-    await context.addInitScript(() => localStorage.clear());
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(String(error?.message || error)));
@@ -48,6 +47,8 @@ try {
     let state = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
     assert.equal(state.confirmedSchool, school);
     assert.equal(state.schoolCode, '', `${viewport.name}: school directory currently does not expose a school code; do not invent one`);
+    assert.equal(state.majorRecordId, '', `${viewport.name}: blank school choice must not fabricate an admission record id`);
+    assert.equal(state.canonicalAdmissionKey, '', `${viewport.name}: blank school choice must not fabricate a canonical admission key`);
 
     const majorInput = page.locator('[data-field="majorCode"]').first();
     await majorInput.fill('冶金工程');
@@ -67,6 +68,8 @@ try {
     assert.ok((await page.url()).includes('majorRecordId=ln-2026-0146-H1'));
 
     await page.locator('[data-family-note]').first().fill('学费可以接受，但校区需要再核实。');
+    const persistedBeforeReload = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0].familyNote);
+    assert.equal(persistedBeforeReload, '学费可以接受，但校区需要再核实。');
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.locator('.volunteer-card').first().waitFor({ state: 'visible' });
     state = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
@@ -130,7 +133,6 @@ try {
   }
 
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: androidUA });
-  await context.addInitScript(() => localStorage.clear());
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(String(error?.message || error)));
