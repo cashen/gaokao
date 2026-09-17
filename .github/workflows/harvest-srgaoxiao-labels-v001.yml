@@ -4,13 +4,20 @@ on:
   push:
     branches:
       - 'feat/srgaoxiao-label-harvest-v001'
+      - 'feat/tongxue-social-labels-v001-r001'
     paths:
       - 'tools/srgaoxiao/**'
+      - 'tools/compare-school-social-labels-v001.mjs'
+      - 'tools/verify-school-social-labels-v001.mjs'
+      - 'shared/resources/schools/school-social-labels.v001.js'
       - 'docs/data/srgaoxiao-label-harvest-v001.md'
       - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
   pull_request:
     paths:
       - 'tools/srgaoxiao/**'
+      - 'tools/compare-school-social-labels-v001.mjs'
+      - 'tools/verify-school-social-labels-v001.mjs'
+      - 'shared/resources/schools/school-social-labels.v001.js'
       - 'docs/data/srgaoxiao-label-harvest-v001.md'
       - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
   workflow_dispatch:
@@ -41,6 +48,8 @@ jobs:
         run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v001.json
       - name: Verify harvested staging payload
         run: node tools/srgaoxiao/verify-label-taxonomy-v001.mjs tmp/srgaoxiao-label-harvest-v001.json
+      - name: Verify committed school social label resource
+        run: node tools/compare-school-social-labels-v001.mjs tmp/srgaoxiao-label-harvest-v001.json
       - name: Publish local staging artifact
         if: always()
         uses: actions/upload-artifact@v4
