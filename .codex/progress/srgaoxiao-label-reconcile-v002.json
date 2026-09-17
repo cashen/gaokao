@@ -1,11 +1,14 @@
 {
   "schemaVersion": "srgaoxiao-label-reconcile-v002",
-  "status": "audit-in-progress",
-  "updatedAt": "2026-09-18T06:31:00+08:00",
+  "status": "audit-verified-ready-merge",
+  "updatedAt": "2026-09-18T06:38:00+08:00",
   "baseMainSha": "c75a9b969f9125dead04b9cb9fec5c71d55465bc",
   "branch": "feat/srgaoxiao-label-reconcile-v002",
   "pullRequest": 309,
-  "headBeforeProgressCommit": "235dcddb4c426221eda5b6fb31c9145474f5ce2d",
+  "headSha": "8742594ce5eade380f75b614e6a9ed477b958be7",
+  "workflowRun": 35282615065,
+  "artifactId": 10523165531,
+  "artifactSha256": "2d17d1244614f77e95107418ff69f197115c57191934be28358029a9689fb18a",
   "verifiedSource": {
     "schoolLabels": 29,
     "schoolLabelRelations": 839,
@@ -13,12 +16,32 @@
     "taggedMajorRelations": 0,
     "note": "1783 is the standalone specialty catalog returned by the current source. Sampled tag= queries did not demonstrate a tag-specific major relation, so no tag-to-major mapping is inferred."
   },
-  "architectureDecision": "Build one canonical school-entity mapping layer first; Tongxue, ln-rank, AIPLuS and major-path should consume the shared layer rather than maintain independent tag maps.",
+  "canonicalSchoolMapping": {
+    "resolvedProfileRelations": 824,
+    "unresolvedRelations": 15,
+    "profileResolutionRate": 0.9821,
+    "uniqueSharedProfiles": 432,
+    "uniqueCanonicalEntitiesEnhanced": 27,
+    "unresolvedUniqueSchools": 8,
+    "unresolvedSchools": [
+      "安徽大学纽约石溪学院",
+      "复旦大学上海医学院",
+      "陆军兵种大学",
+      "陆军防化学院",
+      "陆军工程大学",
+      "西南大学西塔学院",
+      "香港中文大学",
+      "中国人民解放军陆军军医大学"
+    ],
+    "policy": "Only shared school-profile resolution is production-eligible; unresolved source names remain excluded until separately evidenced."
+  },
+  "architectureDecision": "Build one canonical school social-label mapping layer first; Tongxue, ln-rank, AIPLuS and major-path should consume the shared layer rather than maintain independent tag maps.",
   "safety": {
     "fuzzyMapping": false,
     "inferredRelations": false,
+    "taggedMajorInference": false,
     "productionRuntimeModified": false,
     "failClosedOnUnresolved": true
   },
-  "nextGate": "Wait for v002 source audit artifact including exact school-entity resolution counts; only then decide whether to materialize a shared production resource."
+  "nextGate": "Merge #309 as evidence/source reconciliation only. Then create/update the Tongxue integration to consume the verified shared mapping; do not copy the disputed #304 snapshot."
 }
