@@ -16,7 +16,11 @@ const STYLE_ID = 'tongxue-common-name-style-v004';
 const UI_ID = 'tongxue-common-name-ui-v004';
 
 function esc(value = '') {
-  return String(value ?? '').replace(/[&<>\"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;' }[char]));
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function ensureStyles() {
