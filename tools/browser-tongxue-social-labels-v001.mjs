@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
-const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:4173';
+const baseUrl = process.env.BASE_URL || process.env.V3965_BASE_URL || 'http://127.0.0.1:4173';
 const browser = await chromium.launch({ headless:true });
 const results = [];
 
@@ -72,4 +72,4 @@ await runCase({
 });
 
 await browser.close();
-console.log(JSON.stringify({ ok:true, version:'tongxue-common-name-v004-social-labels', cases:results }, null, 2));
+console.log(JSON.stringify({ ok:true, version:'tongxue-common-name-v004-social-labels', baseUrl, cases:results }, null, 2));
