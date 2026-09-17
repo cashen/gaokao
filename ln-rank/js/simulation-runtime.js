@@ -1,7 +1,7 @@
 import { MAJOR_CATALOG_2026 } from '../kb/major-understanding/major-catalog-2026.generated.js';
 import { createMajorCatalogResolver, normalizeMajorCode } from '../../shared/resources/majors/major-catalog-contract.js';
 
-const RELEASE = 'v016.65-r155';
+const RELEASE = 'v016.66-r156';
 const STORE_KEY = 'gaokao:simulation-report:v002';
 const LEGACY_KEY = 'gaokao:simulation-report:v001';
 const HISTORY_API = '/api/ai/major-history';
@@ -11,42 +11,21 @@ const NOTE_MAX = 1000;
 const MAJOR_LIMIT = 12;
 const MANUAL = ['institutionCode', 'groupCode', 'campus', 'studyLocation', 'tuition', 'accommodationFee', 'planCount', 'studyLength', 'trainingMode', 'subjectRequirement', 'remark'];
 const resolver = createMajorCatalogResolver(MAJOR_CATALOG_2026);
-
 const norm = value => String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
 const lower = value => norm(value).toLowerCase();
 const normalizedKey = value => lower(value).replace(/[\s·•,，。；;：:'\"“”‘’!！?？_—\-（）()【】\[\]]+/g, '');
 const esc = value => String(value ?? '').replace(/[&<>\"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[char]));
 const rankText = value => { const n = Number(value); return Number.isFinite(n) && n > 0 ? n.toLocaleString('zh-CN') : '—'; };
-
 const emptyManual = () => Object.fromEntries(MANUAL.map(key => [key, '']));
 const makeRow = order => ({ id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, order, school: '', confirmedSchool: '', majorQuery: '', majorName: '', majorCode: '', majorRecordId: '', standardMajorName: '', standardMajorCode: '', history: { years: {} }, error: '', manualCheck: emptyManual(), familyDecision: '', familyStatus: '', familyNote: '' });
 const defaults = () => ({ version: 2, studentName: '', subjectTrack: '辽宁物理类（物化生）', totalScore: '', scores: { chinese: '', math: '', english: '', physics: '', chemistry: '', biology: '' }, rank: null, volunteers: [makeRow(1)] });
-
 function read(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } }
-function normalizeRecord(source, order) {
-  const row = source || {};
-  const legacyMap = { '待讨论': '还没决定', '保留': '继续考虑', '备选': '候选', '已排除': '排除', '删除': '排除' };
-  return { ...makeRow(order), ...row, order, school: norm(row.school), confirmedSchool: norm(row.confirmedSchool), majorQuery: norm(row.majorQuery ?? row.majorName ?? row.majorCode ?? ''), majorName: norm(row.majorName), majorCode: norm(row.majorCode), majorRecordId: norm(row.majorRecordId || row.recordId || ''), standardMajorName: norm(row.standardMajorName), standardMajorCode: norm(row.standardMajorCode), history: { years: { ...((row.history || {}).years || {}) } }, manualCheck: { ...emptyManual(), ...(row.manualCheck || {}) }, familyStatus: FAMILY.includes(norm(row.familyStatus)) ? norm(row.familyStatus) : (legacyMap[norm(row.familyStatus)] || ''), familyNote: typeof row.familyNote === 'string' ? row.familyNote.slice(0, NOTE_MAX) : '' };
-}
-function load() {
-  const source = read(STORE_KEY) || read(LEGACY_KEY);
-  if (!source || !Array.isArray(source.volunteers)) return defaults();
-  const d = defaults();
-  return { ...d, ...source, version: 2, scores: { ...d.scores, ...(source.scores || {}) }, volunteers: source.volunteers.length ? source.volunteers.map(normalizeRecord) : [makeRow(1)] };
-}
-
+function normalizeRecord(source, order) { const row = source || {}; const legacyMap = { '待讨论': '还没决定', '保留': '继续考虑', '备选': '候选', '已排除': '排除', '删除': '排除' }; return { ...makeRow(order), ...row, order, school: norm(row.school), confirmedSchool: norm(row.confirmedSchool), majorQuery: norm(row.majorQuery ?? row.majorName ?? row.majorCode ?? ''), majorName: norm(row.majorName), majorCode: norm(row.majorCode), majorRecordId: norm(row.majorRecordId || row.recordId || ''), standardMajorName: norm(row.standardMajorName), standardMajorCode: norm(row.standardMajorCode), history: { years: { ...((row.history || {}).years || {}) } }, manualCheck: { ...emptyManual(), ...(row.manualCheck || {}) }, familyStatus: FAMILY.includes(norm(row.familyStatus)) ? norm(row.familyStatus) : (legacyMap[norm(row.familyStatus)] || ''), familyNote: typeof row.familyNote === 'string' ? row.familyNote.slice(0, NOTE_MAX) : '' }; }
+function load() { const source = read(STORE_KEY) || read(LEGACY_KEY); if (!source || !Array.isArray(source.volunteers)) return defaults(); const d = defaults(); return { ...d, ...source, version: 2, scores: { ...d.scores, ...(source.scores || {}) }, volunteers: source.volunteers.length ? source.volunteers.map(normalizeRecord) : [makeRow(1)] }; }
 const runtime = { version: RELEASE, state: load(), worker: null, seq: 0, pending: new Map(), timers: new Map(), controllers: new Map(), rankController: null, expanded: new Set(), composing: new Set(), initialized: false };
-
-function save(notify = true) {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ ...runtime.state, version: 2, volunteers: runtime.state.volunteers.map((row, index) => ({ ...row, order: index + 1, manualCheck: { ...emptyManual(), ...(row.manualCheck || {}) }, familyNote: typeof row.familyNote === 'string' ? row.familyNote.slice(0, NOTE_MAX) : '' })) }));
-  if (notify) render();
-}
+function save(notify = true) { localStorage.setItem(STORE_KEY, JSON.stringify({ ...runtime.state, version: 2, volunteers: runtime.state.volunteers.map((row, index) => ({ ...row, order: index + 1, manualCheck: { ...emptyManual(), ...(row.manualCheck || {}) }, familyNote: typeof row.familyNote === 'string' ? row.familyNote.slice(0, NOTE_MAX) : '' })) })); if (notify) render(); }
 function row(id) { return runtime.state.volunteers.find(item => String(item.id) === String(id)); }
-function update(id, mutate, notify = true) {
-  if (!row(id)) return;
-  runtime.state = { ...runtime.state, volunteers: runtime.state.volunteers.map(item => String(item.id) === String(id) ? mutate({ ...item }) : item) };
-  save(notify);
-}
+function update(id, mutate, notify = true) { if (!row(id)) return; runtime.state = { ...runtime.state, volunteers: runtime.state.volunteers.map(item => String(item.id) === String(id) ? mutate({ ...item }) : item) }; save(notify); }
 function toast(text) { document.querySelector('.sim-toast')?.remove(); const e = document.createElement('div'); e.className = 'sim-toast'; e.textContent = text; document.body.appendChild(e); setTimeout(() => e.remove(), 2400); }
 function projectInfo(major) { const value = String(major || ''); if (/中外|合作办学|国际项目|联合培养|高收费/.test(value)) return { label: '中外合作/高收费，需核验', kind: 'sino' }; if (/预科|民族班|定向|专项|实验班|试验班|卓越班|拔尖|师范类/.test(value)) return { label: '特殊培养/项目，需核验', kind: 'special' }; return { label: '普通项目', kind: 'ordinary' }; }
 function yearValue(record, year) { const score = Number(record?.[`score${year}`]); const rank = Number(record?.[`rank${year}`]); return { score: Number.isFinite(score) && score > 0 ? score : null, rank: Number.isFinite(rank) && rank > 0 ? rank : null }; }
