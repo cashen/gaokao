@@ -40,7 +40,7 @@ const majorAll = read('ln-rank/js/feature/major-all/major-all-mode.v001.js');
 const release = read('shared/resources/release/current-release.js');
 assert.match(page, /学生谈这所学校/);
 assert.match(page, /跨校同专业留言/);
-assert.match(page, /r051-major-scope-clarity/);
+assert.match(page, /r052-tongxue-school-social-labels/);
 assert.match(controller, /contextState/);
 assert.match(controller, /sourceSurface/);
 assert.match(controller, /查看跨校专业留言/);
@@ -52,7 +52,7 @@ assert.match(voice, /查看跨校同专业留言/);
 assert.match(handoff, /major-path-navigation\.v004/);
 assert.match(handoff, /跨校学生留言/);
 assert.match(majorAll, /学生谈这所学校/);
-assert.match(release, /r051-major-scope-clarity/);
+assert.match(release, /r052-tongxue-school-social-labels/);
 assert.match(read('docs/plans/tongxue-major-scope-human-journey-v001.md'), /school × major/);
 
 console.log(JSON.stringify({
