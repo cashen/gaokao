@@ -2,6 +2,7 @@
   "task":"simulation-choice-contract-r157",
   "baseMainSha":"b50e901e4a5b58bd9403cb7c6461e60f4453f646",
   "branch":"refactor/simulation-choice-contract-r157",
+  "headSha":"3a7b97daf536e68f47fda915d9bbb78052afd67d",
   "version":"simulation-workspace-v016.67",
   "revision":"r157-simulation-choice-contract",
   "pageVersion":"v1.3",
@@ -13,6 +14,7 @@
     "browser":"tools/browser-simulation-workspace-r157.mjs",
     "contractTest":"tests/verify-simulation-choice-contract-r157.mjs"
   },
-  "status":"implementation-complete-awaiting-ci-preview-and-production",
+  "status":"exact-head-ci-running",
+  "preview":"2e3d6b46.gaokao-4y9.pages.dev",
   "alook":"no-device-evidence"
 }
