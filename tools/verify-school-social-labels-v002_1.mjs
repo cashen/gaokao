@@ -8,9 +8,10 @@ import {
   getSchoolSocialLabelsForNames,
   getSchoolSocialLabelSchools,
   hasSchoolSocialLabel
-} from '../shared/resources/schools/school-social-labels.v002_1.js';
+} from '../shared/resources/schools/school-social-labels.shared-v001.js';
 
 const resource = fs.readFileSync('shared/resources/schools/school-social-labels.v002_1.js', 'utf8');
+const sharedResource = fs.readFileSync('shared/resources/schools/school-social-labels.shared-v001.js', 'utf8');
 
 assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_VERSION, 'school-social-labels-v002.1');
 assert.equal(SCHOOL_SOCIAL_LABELS.length, 29);
@@ -32,6 +33,7 @@ for (const label of ['101计划','985','C9','E9','中坚九校','双一流','国
 assert.equal(getSchoolSocialLabels('辽宁科技大学').length, 0);
 assert.ok(getSchoolSocialLabels('东北大学秦皇岛分校').includes('985'));
 assert.ok(getSchoolSocialLabels('哈尔滨工业大学（深圳）').includes('机械五虎'));
+assert.ok(getSchoolSocialLabels('江西现代职业技术学院').includes('双高'));
 assert.deepEqual(getSchoolSocialLabelsForNames(['哈尔滨工业大学', '清华大学']), [...new Set([...getSchoolSocialLabels('哈尔滨工业大学'), ...getSchoolSocialLabels('清华大学')])].sort((a,b)=>a.localeCompare(b,'zh-CN')));
 assert.ok(getSchoolSocialLabelSchools('C9').includes('哈尔滨工业大学'));
 assert.equal(hasSchoolSocialLabel('哈尔滨工业大学', 'C9'), true);
@@ -40,5 +42,9 @@ assert.equal(hasSchoolSocialLabel('哈尔滨工业大学', '不存在的标签')
 assert.match(resource, /resolveSchoolProfile/);
 assert.doesNotMatch(resource, /fuzzy/i);
 assert.doesNotMatch(resource, /inferred/i);
+assert.match(sharedResource, /school-social-labels-shared-v001/);
+assert.match(sharedResource, /explicitSourceNameAliases: 1/);
+assert.match(sharedResource, /fuzzyMatching: false/);
+assert.match(sharedResource, /inferredRelations: false/);
 
-console.log('school social labels v002.1 verified: 29 labels; 839 source relations; 824 resolved; 804 materialized pairs; 0 tagged-major relations');
+console.log('school social labels v002.1/shared v001 verified: 29 labels; 839 source relations; 824 resolved; 804 materialized pairs; 0 tagged-major relations');
