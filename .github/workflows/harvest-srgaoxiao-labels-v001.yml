@@ -1,0 +1,54 @@
+name: Harvest srgaoxiao school labels v001
+
+on:
+  push:
+    branches:
+      - 'feat/srgaoxiao-label-harvest-v001'
+    paths:
+      - 'tools/srgaoxiao/**'
+      - 'docs/data/srgaoxiao-label-harvest-v001.md'
+      - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
+  pull_request:
+    paths:
+      - 'tools/srgaoxiao/**'
+      - 'docs/data/srgaoxiao-label-harvest-v001.md'
+      - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Harvest source taxonomy to local staging
+        run: >-
+          node tools/srgaoxiao/harvest-label-taxonomy-v001.mjs
+          --out tmp/srgaoxiao-label-harvest-v001.json
+          --maxLabels 200
+          --maxPagesPerLabel 400
+      - name: Probe source school-major endpoints
+        run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v001.json
+      - name: Verify harvested staging payload
+        run: node tools/srgaoxiao/verify-label-taxonomy-v001.mjs tmp/srgaoxiao-label-harvest-v001.json
+      - name: Publish local staging artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: srgaoxiao-label-harvest-v001-${{ github.sha }}
+          path: |
+            tmp/srgaoxiao-label-harvest-v001.json
+            tmp/srgaoxiao-label-source-probe-v001.json
+            tmp/raw/*.json
+          if-no-files-found: warn
+          retention-days: 14
