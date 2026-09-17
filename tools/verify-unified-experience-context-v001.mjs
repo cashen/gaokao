@@ -109,6 +109,19 @@ try{
   assert.equal(trial.status,400);assert.equal(fuzzyFetch,0);
 }finally{globalThis.fetch=realFetch;}
 
+const { getSchoolSocialLabels, getSchoolSocialLabelsForNames, listSchoolSocialLabels, SCHOOL_SOCIAL_LABEL_SOURCE_VERSION, SCHOOL_SOCIAL_LABEL_SOURCE_META } = await import('../shared/resources/schools/school-social-labels.v001.js');
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_VERSION,'school-social-labels-v001');
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.labelCount,29);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.relationCount,839);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.schoolCount,454);
+assert.equal(SCHOOL_SOCIAL_LABEL_SOURCE_META.majorRelationCount,0);
+assert.equal(listSchoolSocialLabels().length,29);
+assert.deepEqual(getSchoolSocialLabels('大连理工大学'),['101计划','985','建筑新八校','强基','双一流','E9']);
+assert.deepEqual(getSchoolSocialLabels('辽宁科技大学'),[]);
+assert.deepEqual(getSchoolSocialLabels('沈阳航空航天大学'),[]);
+assert.deepEqual(getSchoolSocialLabels('大连交通大学'),[]);
+assert.deepEqual(getSchoolSocialLabelsForNames(['中国人民解放军海军军医大学']),['211','军地四医','双一流']);
+
 const sourceText=read('functions/_lib/student-voice-source.js');
 const contractText=read('shared/resources/experience/student-voice-contract.v001.js');
 assert.match(sourceText,/MAX_TOPIC_SCAN_PAGES = 3/);
@@ -119,4 +132,4 @@ assert.doesNotMatch(sourceText,/school_major.{0,120}(infer|guess|推断)/i);
 assert.doesNotMatch(`${sourceText}\n${contractText}`,/recommendationScore\s*[:=]\s*[1-9]|admissionsProbability\s*[:=]\s*[1-9]/);
 assert.equal(fs.existsSync(path.join(ROOT,'.github/workflows/tmp-uec-source-probe.yml')),false,'temporary UEC source probe must not remain in formal candidate');
 
-console.log('UEC v0.01 source contract verified: strict scopes, canonical major gate, bounded topic recall, sample semantics, no school-major fabrication.');
+console.log('UEC v0.01 source contract verified: strict scopes, canonical major gate, bounded topic recall, sample semantics, no school-major fabrication, and source-derived school-label mapping.');
