@@ -15,6 +15,10 @@ on:
       - 'tools/browser-resource-execution-v3990_3.mjs'
       - 'tools/browser-family-action-v3990_3.mjs'
       - 'tools/browser-school-query-v3990_3.mjs'
+      - 'shared/resources/schools/school-social-labels.v002_1.js'
+      - 'shared/resources/schools/school-social-labels.shared-v001.js'
+      - 'tongxue/app/tongxue-runtime-result-view-v159.js'
+      - 'tools/browser-tongxue-social-labels-v005.mjs'
       - 'tools/browser-academic-background-v3971.mjs'
       - '.github/scripts/install-playwright-chromium.sh'
       - '.github/workflows/verify-native-chooser-activation-v3972_6.yml'
@@ -140,6 +144,20 @@ jobs:
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-background-http.log; exit 1; fi
           V3968_ARTIFACT_DIR=/tmp/v3990-1-browser-background \
             node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3990-1-browser-background.out
+
+      - name: Verify Tongxue source-derived social labels on mobile
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3990-1-tongxue-social-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/tongxue/ >/dev/null; then ready=1; break; fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-tongxue-social-http.log; exit 1; fi
+          BASE_URL=http://127.0.0.1:8765 node tools/browser-tongxue-social-labels-v005.mjs 2>&1 | tee /tmp/v3990-1-tongxue-social-browser.out
 
       - name: Upload chooser diagnostics
         if: always()
