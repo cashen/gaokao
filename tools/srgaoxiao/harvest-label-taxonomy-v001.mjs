@@ -80,14 +80,16 @@ function normalizeRelation(row) {
   return Object.freeze({ name, sourceId, href });
 }
 
+function parseCapturedJson(text) {
+  try { return JSON.parse(text); } catch { return null; }
+}
+
 async function apiJson(page, requestPath, timeoutMs = Number(opt('timeoutMs'))) {
   const absoluteUrl = new URL(requestPath, page.url()).href;
   try {
     const response = await page.request.get(absoluteUrl, { timeout: timeoutMs, failOnStatusCode: false });
     const text = await response.text();
-    let body = null;
-    try { body = JSON.parse(text); } catch {}
-    return { ok:response.ok(), status:response.status(), url:response.url(), body, text:text.slice(0, 30000) };
+    return { ok:response.ok(), status:response.status(), url:response.url(), body:parseCapturedJson(text), text:text.slice(0, 30000) };
   } catch (error) {
     return { ok:false, status:0, url:absoluteUrl, body:null, text:String(error?.message || error) };
   }
@@ -112,9 +114,13 @@ function extractTotal(body) {
   return hits.length ? hits[0] : null;
 }
 
-async function discoverLabels(page) {
-  const api = await apiJson(page, '/api/schools/filters/tags');
-  const apiRows = Array.isArray(api.body) ? api.body : extractRows(api.body);
+async function discoverLabels(page, captured = []) {
+  const capturedTagResponses = captured
+    .filter(item => /\/api\/schools\/filters\/tags(?:\?|$)/i.test(item.url) && item.body)
+    .flatMap(item => Array.isArray(item.body) ? item.body : extractRows(item.body))
+    .map(rowName).filter(plausibleLabel);
+  const api = capturedTagResponses.length ? null : await apiJson(page, '/api/schools/filters/tags');
+  const apiRows = api ? (Array.isArray(api.body) ? api.body : extractRows(api.body)) : [];
   const apiLabels = apiRows.map(rowName).filter(plausibleLabel);
   const domLabels = await page.evaluate(() => {
     const out = [];
@@ -129,7 +135,7 @@ async function discoverLabels(page) {
     }
     return [...new Set(out)];
   });
-  return [...new Set([...apiLabels, ...domLabels.filter(plausibleLabel)])].slice(0, Number(opt('maxLabels')));
+  return [...new Set([...capturedTagResponses, ...apiLabels, ...domLabels.filter(plausibleLabel)])].slice(0, Number(opt('maxLabels')));
 }
 
 async function collectPaged(page, basePath, label, pageSize) {
@@ -203,60 +209,66 @@ async function harvest() {
   try {
     const page = await browser.newPage();
     page.setDefaultTimeout(Number(opt('timeoutMs')));
+    const captured = [];
+    page.on('response', async response => {
+      const req = response.request();
+      if (!['xhr','fetch'].includes(req.resourceType())) return;
+      const url = response.url();
+      if (!/^https:\/\/eo\.srgaoxiao\.com\/api\//i.test(url)) return;
+      const ct = response.headers()['content-type'] || '';
+      if (!/json|text/i.test(ct)) return;
+      try {
+        const text = await response.text();
+        captured.push({url,status:response.status(),method:req.method(),resourceType:req.resourceType(),body:parseCapturedJson(text)});
+      } catch {}
+    });
 
     await page.goto(opt('schoolsUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
-    await sleep(900);
+    await sleep(1300);
     await snapshot(page, path.join(rawDir, 'schools-initial.json'));
-    const labels = await discoverLabels(page);
+    const labels = await discoverLabels(page, captured);
+    if (!labels.length) throw new Error('srgaoxiao label discovery returned zero labels; refusing to publish empty staging payload');
+
     const schoolSurface = [];
     const schoolNetwork = [];
     for (const label of labels) {
       const result = await collectPaged(page, '/api/schools', label, Number(opt('schoolPageSize')));
       schoolNetwork.push(...result.attempted);
-      schoolSurface.push({ label, sourceUrl:page.url(), pages:result.attempted.length, total:result.total, count:result.records.length, records:result.records });
+      schoolSurface.push({label,sourceUrl:page.url(),pages:result.attempted.length,total:result.total,count:result.records.length,records:result.records});
     }
+    if (schoolSurface.every(row => row.count === 0)) throw new Error('all srgaoxiao label→school relations are empty; refusing to publish empty staging payload');
     const scriptScanSchools = await scanPageScripts(page, path.join(rawDir, 'schools-script-api-scan.json'));
     const tagComparisons = await compareTaggedSchoolResponses(page, labels);
 
     await page.goto(opt('specialtiesUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
-    await sleep(900);
+    await sleep(1300);
     await snapshot(page, path.join(rawDir, 'specialties-initial.json'));
     const catalogResponse = await apiJson(page, '/api/specialties?sort=popularity&page=1&pageSize=100');
     const specialtyCatalogRecords = extractRows(catalogResponse.body).map(normalizeRelation).filter(Boolean);
-    const specialtyCatalogMeta = { endpoint:'/api/specialties', firstPageCount:specialtyCatalogRecords.length, total:extractTotal(catalogResponse.body), filterSupport:'unknown' };
+    const specialtyCatalogMeta = {endpoint:'/api/specialties',firstPageCount:specialtyCatalogRecords.length,total:extractTotal(catalogResponse.body),filterSupport:'unknown'};
     await fs.writeFile(path.join(rawDir, 'specialties-first-page.json'), JSON.stringify(catalogResponse, null, 2));
     const specialtyScriptScan = await scanPageScripts(page, path.join(rawDir, 'specialties-script-api-scan.json'));
-
-    // The current public specialty catalog endpoint returns the same catalog when a school-label
-    // query parameter is appended; record this as an audit fact instead of fabricating label→major relations.
     const majorFilterAudit = [];
-    for (const label of labels.slice(0, 10)) {
+    for (const label of labels.slice(0,10)) {
       const response = await apiJson(page, `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=100`);
       const rows = extractRows(response.body).map(normalizeRelation).filter(Boolean);
-      majorFilterAudit.push({ label, status:response.status, total:extractTotal(response.body), count:rows.length, firstIds:rows.slice(0, 10).map(x=>x.sourceId), firstNames:rows.slice(0, 10).map(x=>x.name) });
+      majorFilterAudit.push({label,status:response.status,total:extractTotal(response.body),count:rows.length,firstIds:rows.slice(0,10).map(x=>x.sourceId),firstNames:rows.slice(0,10).map(x=>x.name)});
     }
 
     const byLabel = new Map();
-    for (const row of schoolSurface) byLabel.set(row.label, { label:row.label, schoolMatches:row.records, majorMatches:[], schoolSource:{count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl}, majorSources:[] });
-
+    for (const row of schoolSurface) byLabel.set(row.label,{label:row.label,schoolMatches:row.records,majorMatches:[],schoolSource:{count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl},majorSources:[]});
     const payload = {
       schemaVersion:'srgaoxiao-label-harvest-v001',
-      source:{ host:'eo.srgaoxiao.com', schoolsUrl:opt('schoolsUrl'), specialtiesUrl:opt('specialtiesUrl'), harvestedAt:new Date().toISOString(), startedAt,
-        note:'Source-derived staging only. School tag relations are collected from /api/schools. The specialty catalog is collected separately. No tag→major relation is inferred unless the source exposes one.' },
-      summary:{ discoveredSchoolLabels:labels.length, discoveredMajorLabels:0, uniqueLabels:byLabel.size,
-        totalSchoolLabelRelations:schoolSurface.reduce((n,x)=>n+x.count,0), totalMajorLabelRelations:0,
-        schoolLabelsWithRelations:schoolSurface.filter(x=>x.count>0).length, majorLabelsWithRelations:0,
-        specialtyCatalogCount:specialtyCatalogMeta.total || specialtyCatalogRecords.length },
+      source:{host:'eo.srgaoxiao.com',schoolsUrl:opt('schoolsUrl'),specialtiesUrl:opt('specialtiesUrl'),harvestedAt:new Date().toISOString(),startedAt,note:'Source-derived staging only. School tag relations are collected from /api/schools. Specialty catalog is captured separately. No tag→major relation is inferred unless the source exposes one.'},
+      summary:{discoveredSchoolLabels:labels.length,discoveredMajorLabels:0,uniqueLabels:byLabel.size,totalSchoolLabelRelations:schoolSurface.reduce((n,x)=>n+x.count,0),totalMajorLabelRelations:0,schoolLabelsWithRelations:schoolSurface.filter(x=>x.count>0).length,majorLabelsWithRelations:0,specialtyCatalogCount:specialtyCatalogMeta.total || specialtyCatalogRecords.length},
       labels:[...byLabel.values()].sort((a,b)=>a.label.localeCompare(b.label,'zh-CN')),
-      specialtyCatalog:{ metadata:specialtyCatalogMeta, records:specialtyCatalogRecords },
-      sourceAudit:{ taggedSchoolComparisons:tagComparisons, majorFilterAudit, scriptScanFiles:['raw/schools-script-api-scan.json','raw/specialties-script-api-scan.json'], schoolScriptAssetCount:scriptScanSchools.length, specialtyScriptAssetCount:specialtyScriptScan.length },
-      surfaces:{ schools:{url:opt('schoolsUrl'), labels:schoolSurface, discoveredLabels:labels}, specialties:{url:opt('specialtiesUrl'), note:'Standalone source catalog captured; direct shared-label filter was not asserted in this pass.'} }
+      specialtyCatalog:{metadata:specialtyCatalogMeta,records:specialtyCatalogRecords},
+      sourceAudit:{taggedSchoolComparisons:tagComparisons,majorFilterAudit,scriptScanFiles:['raw/schools-script-api-scan.json','raw/specialties-script-api-scan.json'],schoolScriptAssetCount:scriptScanSchools.length,specialtyScriptAssetCount:specialtyScriptScan.length,capturedApiResponseCount:captured.length},
+      surfaces:{schools:{url:opt('schoolsUrl'),labels:schoolSurface,discoveredLabels:labels},specialties:{url:opt('specialtiesUrl'),note:'Standalone source catalog captured; direct shared-label filter was not asserted in this pass.'}}
     };
     await fs.writeFile(out, JSON.stringify(payload,null,2));
     console.log(JSON.stringify(payload.summary,null,2));
-  } finally {
-    await browser.close();
-  }
+  } finally { await browser.close(); }
 }
 
 await harvest();
