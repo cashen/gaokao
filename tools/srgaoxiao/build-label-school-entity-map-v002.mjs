@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { resolveSchoolProfile } from '../../shared/resources/schools/school-profile-center.js';
 import { findSchoolEntityByName } from '../../shared/resources/schools/school-identity-center.js';
 
 const input = process.argv[2];
@@ -15,10 +16,12 @@ const labels = Array.isArray(data.labels) ? data.labels : [];
 
 const rows = [];
 const unresolvedByName = new Map();
+const profileKeys = new Set();
 const entityIds = new Set();
 let relationCount = 0;
-let resolvedCount = 0;
+let resolvedProfileCount = 0;
 let unresolvedCount = 0;
+let entityEnhancedCount = 0;
 
 for (const labelRow of labels) {
   const matches = Array.isArray(labelRow.schoolMatches) ? labelRow.schoolMatches : [];
@@ -27,19 +30,30 @@ for (const labelRow of labels) {
     relationCount += 1;
     const sourceId = clean(sourceRow.sourceId);
     const sourceName = clean(sourceRow.name);
+    const profile = resolveSchoolProfile(sourceName);
     const entity = findSchoolEntityByName(sourceName);
-    if (entity) {
-      resolvedCount += 1;
-      entityIds.add(entity.entityId);
+    if (profile) {
+      resolvedProfileCount += 1;
+      const profileKey = clean(profile.standardSchoolName || profile.school);
+      if (profileKey) profileKeys.add(profileKey);
+      if (entity?.entityId) {
+        entityEnhancedCount += 1;
+        entityIds.add(entity.entityId);
+      }
       mapped.push({
         sourceId,
         sourceName,
         sourceHref: clean(sourceRow.href),
-        entityId: entity.entityId,
-        entityDisplayName: entity.displayName,
-        entityType: entity.entityType,
-        parentEntityId: entity.parentEntityId || null,
-        matchType: 'exact-name-or-canonical-alias'
+        profileKey,
+        profileDisplayName: clean(profile.school),
+        profileProvince: clean(profile.province),
+        profileCity: clean(profile.city),
+        profileConfidence: clean(profile.confidence || 'high'),
+        entityId: entity?.entityId || null,
+        entityDisplayName: entity?.displayName || null,
+        entityType: entity?.entityType || null,
+        parentEntityId: entity?.parentEntityId || null,
+        matchType: entity?.entityId ? 'shared-profile-plus-entity' : 'shared-profile'
       });
     } else {
       unresolvedCount += 1;
@@ -49,6 +63,11 @@ for (const labelRow of labels) {
         sourceId,
         sourceName,
         sourceHref: clean(sourceRow.href),
+        profileKey: null,
+        profileDisplayName: null,
+        profileProvince: null,
+        profileCity: null,
+        profileConfidence: null,
         entityId: null,
         entityDisplayName: null,
         entityType: null,
@@ -60,8 +79,8 @@ for (const labelRow of labels) {
   rows.push({
     label: clean(labelRow.label),
     sourceSchoolCount: matches.length,
-    mappedSchoolCount: mapped.filter(row => row.entityId).length,
-    unresolvedSchoolCount: mapped.filter(row => !row.entityId).length,
+    mappedSchoolCount: mapped.filter(row => row.profileKey).length,
+    unresolvedSchoolCount: mapped.filter(row => !row.profileKey).length,
     schoolMatches: mapped
   });
 }
@@ -69,9 +88,11 @@ for (const labelRow of labels) {
 const summary = {
   labels: labels.length,
   relations: relationCount,
-  resolvedRelations: resolvedCount,
+  resolvedProfileRelations: resolvedProfileCount,
   unresolvedRelations: unresolvedCount,
-  resolutionRate: relationCount ? round(resolvedCount / relationCount) : 0,
+  profileResolutionRate: relationCount ? round(resolvedProfileCount / relationCount) : 0,
+  entityEnhancedRelations: entityEnhancedCount,
+  uniqueSharedProfiles: profileKeys.size,
   uniqueCanonicalEntities: entityIds.size,
   unresolvedUniqueSchools: unresolvedByName.size
 };
@@ -88,7 +109,7 @@ await fs.writeFile(output, JSON.stringify({
   sourceSchemaVersion: data.schemaVersion || null,
   summary,
   policy: {
-    mappingRule: 'exact source school name against shared school identity center only',
+    mappingRule: 'resolve source school name through shared school profile center; optionally enhance with canonical school entity',
     fuzzyMatching: false,
     inferredRelations: false,
     unresolvedIsFailClosed: true,
