@@ -11,7 +11,7 @@ const DEFAULTS = Object.freeze({
   maxPagesPerLabel: 400,
   schoolPageSize: 100,
   majorPageSize: 100,
-  timeoutMs: 30000
+  timeoutMs: 20000
 });
 
 const args = new Map();
@@ -39,7 +39,7 @@ async function ensureDir(file) {
 }
 
 function findArray(value, predicate, depth = 0) {
-  if (depth > 6 || value == null) return null;
+  if (depth > 8 || value == null) return null;
   if (Array.isArray(value)) {
     if (value.length && value.every(item => predicate(item))) return value;
     for (const item of value) {
@@ -81,21 +81,16 @@ function normalizeRelation(row) {
 }
 
 async function apiJson(page, requestPath, timeoutMs = Number(opt('timeoutMs'))) {
-  return await page.evaluate(async ({ url, timeoutMs: limit }) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), limit);
-    try {
-      const response = await fetch(url, { credentials: 'same-origin', signal: controller.signal });
-      const text = await response.text();
-      let body = null;
-      try { body = JSON.parse(text); } catch {}
-      return { ok: response.ok, status: response.status, url: response.url, body, text: text.slice(0, 20000) };
-    } catch (error) {
-      return { ok: false, status:0, url, body:null, text:String(error?.message || error) };
-    } finally {
-      clearTimeout(timer);
-    }
-  }, { url:requestPath, timeoutMs });
+  const absoluteUrl = new URL(requestPath, page.url()).href;
+  try {
+    const response = await page.request.get(absoluteUrl, { timeout: timeoutMs, failOnStatusCode: false });
+    const text = await response.text();
+    let body = null;
+    try { body = JSON.parse(text); } catch {}
+    return { ok: response.ok(), status: response.status(), url:response.url(), body, text:text.slice(0, 20000) };
+  } catch (error) {
+    return { ok:false, status:0, url:absoluteUrl, body:null, text:String(error?.message || error) };
+  }
 }
 
 function extractRows(body) {
@@ -141,6 +136,7 @@ async function collectPaged(page, basePath, label, pageSize) {
   const relations = new Map();
   const attempted = [];
   let total = null;
+  let lastFirstId = '';
   for (let pageNo = 1; pageNo <= Number(opt('maxPagesPerLabel')); pageNo += 1) {
     const url = `${basePath}?tag=${encodeURIComponent(label)}&page=${pageNo}&pageSize=${pageSize}`;
     const result = await apiJson(page, url);
@@ -148,22 +144,26 @@ async function collectPaged(page, basePath, label, pageSize) {
     if (!result.ok) break;
     const rows = extractRows(result.body);
     total ??= extractTotal(result.body);
+    let pageAdds = 0;
     for (const row of rows) {
       const relation = normalizeRelation(row);
       if (!relation) continue;
       const key = `${relation.sourceId || ''}||${relation.name}||${relation.href}`;
-      relations.set(key, relation);
+      if (!relations.has(key)) { relations.set(key, relation); pageAdds += 1; }
     }
-    if (!rows.length || (total != null && pageNo * pageSize >= total) || (total == null && rows.length < pageSize)) break;
-    await sleep(80);
+    const firstId = rows[0] ? rowId(rows[0]) : '';
+    if (!rows.length || pageAdds === 0 || firstId === lastFirstId || (total != null && relations.size >= total) || (total == null && rows.length < pageSize)) break;
+    lastFirstId = firstId;
+    await sleep(50);
   }
   return { records:[...relations.values()], attempted, total };
 }
 
 async function collectMajorBySourceEndpoint(page, label, pageSize) {
-  const result = await apiJson(page, `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=${pageSize}`);
-  if (!result.ok) return { attempted:[{url:result.url,status:result.status}], records:[] };
-  return { attempted:[{url:result.url,status:result.status}], records:extractRows(result.body).map(normalizeRelation).filter(Boolean) };
+  const url = `/api/specialties?sort=popularity&tag=${encodeURIComponent(label)}&page=1&pageSize=${pageSize}`;
+  const result = await apiJson(page, url);
+  if (!result.ok) return { attempted:[{ url:result.url, status:result.status }], records:[], total:null };
+  return { attempted:[{ url:result.url, status:result.status }], records:extractRows(result.body).map(normalizeRelation).filter(Boolean), total:extractTotal(result.body) };
 }
 
 async function snapshot(page, file) {
@@ -182,21 +182,19 @@ async function harvest() {
     page.setDefaultTimeout(Number(opt('timeoutMs')));
 
     await page.goto(opt('schoolsUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
-    await sleep(1000);
+    await sleep(900);
     await snapshot(page, path.join(rawDir, 'schools-initial.json'));
     const labels = await discoverLabels(page);
     const schoolSurface = [];
-    const networkUrls = [];
+    const schoolNetwork = [];
     for (const label of labels) {
-      await page.goto(opt('schoolsUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) }).catch(()=>null);
-      await sleep(350);
       const result = await collectPaged(page, '/api/schools', label, Number(opt('schoolPageSize')));
-      networkUrls.push(...result.attempted);
+      schoolNetwork.push(...result.attempted);
       schoolSurface.push({ label, sourceUrl:page.url(), pages:result.attempted.length, total:result.total, count:result.records.length, records:result.records });
     }
 
     await page.goto(opt('specialtiesUrl'), { waitUntil:'domcontentloaded', timeout:Number(opt('timeoutMs')) });
-    await sleep(1000);
+    await sleep(900);
     await snapshot(page, path.join(rawDir, 'specialties-initial.json'));
     const specialtyDiscovery = labels;
     const specialtySurface = [];
@@ -206,9 +204,9 @@ async function harvest() {
     for (const label of specialtyDiscovery) {
       const hit = await collectMajorBySourceEndpoint(page, label, Number(opt('majorPageSize')));
       specialtyNetwork.push(...hit.attempted);
-      if (hit.records.length) specialtySurface.push({ label, sourceUrl:page.url(), endpoint:'/api/specialties', pages:1, count:hit.records.length, records:hit.records });
+      specialtySurface.push({ label, sourceUrl:page.url(), endpoint:'/api/specialties', pages:1, count:hit.records.length, total:hit.total, records:hit.records });
     }
-    await fs.writeFile(path.join(rawDir, 'schools-network.json'), JSON.stringify(networkUrls, null, 2));
+    await fs.writeFile(path.join(rawDir, 'schools-network.json'), JSON.stringify(schoolNetwork, null, 2));
     await fs.writeFile(path.join(rawDir, 'specialties-network.json'), JSON.stringify(specialtyNetwork, null, 2));
 
     const byLabel = new Map();
@@ -216,7 +214,7 @@ async function harvest() {
     for (const row of specialtySurface) {
       const entry = byLabel.get(row.label) || { label:row.label, schoolMatches:[], majorMatches:[], schoolSource:{}, majorSources:[] };
       entry.majorMatches = [...new Map([...entry.majorMatches,...row.records].map(x=>[`${x.sourceId||''}||${x.name}||${x.href}`,x])).values()];
-      entry.majorSources.push({ endpoint:row.endpoint,count:row.count,pages:row.pages,sourceUrl:row.sourceUrl });
+      entry.majorSources.push({ endpoint:row.endpoint,count:row.count,total:row.total,pages:row.pages,sourceUrl:row.sourceUrl });
       byLabel.set(row.label, entry);
     }
 
