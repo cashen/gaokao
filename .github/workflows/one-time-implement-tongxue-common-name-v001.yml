@@ -1,23 +1,31 @@
 name: One-time Tongxue common-name implementation v001
 
 on:
-  push:
-    branches:
-      - 'feat/tongxue-higher-education-common-name-v001'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/one-time-implement-tongxue-common-name-v001.yml'
+      - 'shared/resources/higher-education/**'
+      - 'docs/plans/tongxue-higher-education-common-name-v001.md'
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   implement:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: cashen/gaokao
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Write Tongxue wrapper and verifier
+      - name: Apply Tongxue common-name wrapper
         shell: bash
         run: |
           mkdir -p tongxue/app tools/tongxue
@@ -64,8 +72,7 @@ function commonNamesForState(state = {}) {
   if (state.scope !== 'school') return [];
   const entityId = String(state.currentEntityId || '').trim();
   const schoolName = String(state.currentSchool || '').trim();
-  const rows = listHigherEducationCommonNames();
-  return rows.filter(item => {
+  return listHigherEducationCommonNames().filter(item => {
     const resolved = resolveHigherEducationCommonNameSchools(item.id);
     if (resolved.status !== 'resolved') return false;
     if (entityId) return resolved.members.some(entity => entity.entityId === entityId);
@@ -76,7 +83,6 @@ function commonNamesForState(state = {}) {
 function commonNameMarkup(state) {
   const names = commonNamesForState(state);
   if (!names.length) return '';
-  const primary = names[0];
   const visibleNames = names.map(item => escapeHtml(item.name)).join('、');
   const panels = names.map(item => {
     const resolved = resolveHigherEducationCommonNameSchools(item.id);
@@ -128,24 +134,6 @@ new = '"/tongxue/app/tongxue-runtime-result-view-v159.js?v=159":"/tongxue/app/to
 if old not in text:
     raise SystemExit('Tongxue result-view importmap entry not found')
 path.write_text(text.replace(old, new, 1), encoding='utf-8')
-
-path = Path('shared/resources/release/current-release.js')
-text = path.read_text(encoding='utf-8')
-text2 = text.replace("display: 'v3.9.90.3'", "display: 'v3.9.90.4'", 1)
-text2 = text2.replace("version: 'v3.9.90.3'", "version: 'v3.9.90.4'", 1)
-text2 = text2.replace("asset: '3990_3'", "asset: '3990_4'", 1)
-text2 = text2.replace("assetVersion: 'v3990_3'", "assetVersion: 'v3990_4'", 1)
-text2 = text2.replace("assetReleaseVersion: 'v3.9.90.3'", "assetReleaseVersion: 'v3.9.90.4'", 1)
-text2 = text2.replace("siteRuntimeGeneration: 'v3990_3'", "siteRuntimeGeneration: 'v3990_4'", 1)
-text2 = text2.replace("siteRuntimeContractVersion: 'site-runtime-coherence-v3990_3'", "siteRuntimeContractVersion: 'site-runtime-coherence-v3990_4'", 1)
-text2 = text2.replace("release: 'v3.9.90.3-home-countdown-seconds'", "release: 'v3.9.90.4-tongxue-common-name'", 1)
-text2 = text2.replace("releaseName: 'v3.9.90.3-home-countdown-seconds'", "releaseName: 'v3.9.90.4-tongxue-common-name'", 1)
-text2 = text2.replace("releaseFooterContractVersion: 'release-footer-contract-v3990_3'", "releaseFooterContractVersion: 'release-footer-contract-v3990_4'", 1)
-text2 = text2.replace("releaseRevision: 'r051-major-scope-clarity'", "releaseRevision: 'r052-tongxue-common-name'", 1)
-text2 = text2.replace("tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001'", "tongxueEntityHandoffVersion: 'tongxue-entity-handoff-v001',\n  tongxueCommonNameVersion: 'tongxue-common-name-v001'", 1)
-if text2 == text:
-    raise SystemExit('Release replacements did not apply')
-path.write_text(text2, encoding='utf-8')
 PY
 
           cat > tools/tongxue/verify-higher-education-common-name-v001.mjs <<'EOF'
@@ -159,11 +147,9 @@ import {
   higherEducationCommonNameHandoffPayload
 } from '../../shared/resources/higher-education/higher-education-common-names.v001.js';
 
-const resource = fs.readFileSync('shared/resources/higher-education/higher-education-common-names.v001.js', 'utf8');
 const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-common-name-v001.js', 'utf8');
 const page = fs.readFileSync('tongxue/index.html', 'utf8');
-const release = fs.readFileSync('shared/resources/release/current-release.js', 'utf8');
-
+const resource = fs.readFileSync('shared/resources/higher-education/higher-education-common-names.v001.js', 'utf8');
 const items = listHigherEducationCommonNames();
 assert.equal(HIGHER_EDUCATION_COMMON_NAME_TYPE, '高校民间称谓');
 assert.match(HIGHER_EDUCATION_COMMON_NAME_NOTICE, /不是教育部门的官方分类/);
@@ -171,37 +157,46 @@ assert.equal(items.length, 8);
 for (const item of items) {
   const resolved = resolveHigherEducationCommonNameSchools(item.id);
   assert.equal(resolved.status, 'resolved', `${item.name} must resolve`);
-  assert.ok(resolved.members.length >= 2, `${item.name} must have members`);
-  assert.ok(item.sources?.length, `${item.name} must retain public sources`);
+  assert.equal(resolved.members.length, item.memberSchoolNames.length, `${item.name} member count must resolve exactly`);
+  assert.ok(item.sources.length >= 1);
 }
-
-const mechanical = resolveHigherEducationCommonNameSchools('mechanical-five-tigers');
-assert.deepEqual(mechanical.members.map(item => item.displayName), ['清华大学','上海交通大学','华中科技大学','西安交通大学','哈尔滨工业大学']);
-const electrical = resolveHigherEducationCommonNameSchools('two-electronic-one-post');
-assert.deepEqual(electrical.members.map(item => item.displayName), ['电子科技大学','西安电子科技大学','北京邮电大学']);
-
-const payload = higherEducationCommonNameHandoffPayload('上海交通大学', 'shang-jiao');
+assert.deepEqual(
+  resolveHigherEducationCommonNameSchools('mechanical-five-tigers').members.map(item => item.displayName),
+  ['清华大学','上海交通大学','华中科技大学','西安交通大学','哈尔滨工业大学']
+);
+assert.deepEqual(
+  resolveHigherEducationCommonNameSchools('mechanical-four-dragons').members.map(item => item.displayName),
+  ['合肥工业大学','湖南大学','吉林大学','燕山大学']
+);
+assert.deepEqual(
+  resolveHigherEducationCommonNameSchools('two-electronic-one-post').members.map(item => item.displayName),
+  ['电子科技大学','西安电子科技大学','北京邮电大学']
+);
+const payload = higherEducationCommonNameHandoffPayload('上海交通大学', '');
 assert.equal(payload.commonNameType, HIGHER_EDUCATION_COMMON_NAME_TYPE);
 assert.equal(payload.canonicalSchoolName, '上海交通大学');
 assert.equal(payload.sourceSurface, 'tongxue');
 assert.equal(payload.sourceAction, 'view_common_name_schools');
 assert.match(payload.handoffContractVersion, /^higher-education-common-name-handoff-v001$/);
-
 assert.match(wrapper, /createBaseTongxueResultView/);
 assert.match(wrapper, /高校民间称谓/);
 assert.match(wrapper, /resolveHigherEducationCommonNameSchools/);
 assert.doesNotMatch(wrapper, /fetch\(/);
 assert.match(page, /tongxue-runtime-common-name-v001\.js/);
-assert.match(release, /display: 'v3\.9\.90\.4'/);
-assert.match(release, /releaseRevision: 'r052-tongxue-common-name'/);
-assert.match(release, /tongxueCommonNameVersion: 'tongxue-common-name-v001'/);
+assert.match(resource, /HIGHER_EDUCATION_COMMON_NAME_VERSION = 'higher-education-common-name-v001'/);
 console.log(`higher-education-common-name v001 verified: ${items.length} published common names`);
 EOF
 
-          rm .github/workflows/one-time-implement-tongxue-common-name-v001.yml
           node tools/tongxue/verify-higher-education-common-name-v001.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tongxue/app/tongxue-runtime-common-name-v001.js tongxue/index.html shared/resources/release/current-release.js tools/tongxue/verify-higher-education-common-name-v001.mjs
+          git add tongxue/app/tongxue-runtime-common-name-v001.js tongxue/index.html tools/tongxue/verify-higher-education-common-name-v001.mjs
           git commit -m 'feat(tongxue): present verified higher education common names v001'
-          git push origin HEAD:feat/tongxue-higher-education-common-name-v001
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
+      - name: Retire one-time helper
+        shell: bash
+        run: |
+          git rm .github/workflows/one-time-implement-tongxue-common-name-v001.yml
+          git commit -m 'chore: remove one-time Tongxue implementation helper v001'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
