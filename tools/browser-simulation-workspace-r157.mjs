@@ -47,7 +47,7 @@ try {
     assert.equal(await page.locator('.input-helper').first().textContent(), `✓ 已确认学校：${school}。现在可以直接输入专业。`);
     let state = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
     assert.equal(state.confirmedSchool, school);
-    assert.equal(state.schoolCode, '0146');
+    assert.equal(state.schoolCode, '', `${viewport.name}: school directory currently does not expose a school code; do not invent one`);
 
     const majorInput = page.locator('[data-field="majorCode"]').first();
     await majorInput.fill('冶金工程');
@@ -56,6 +56,7 @@ try {
     await page.locator('.candidate').filter({ hasText: '冶金工程(中外合作办学)' }).click();
     state = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
     assert.equal(state.major, sino.major);
+    assert.equal(state.schoolCode, sino.schoolCode2026);
     assert.equal(state.majorCode2026, 'H1');
     assert.equal(state.majorRecordId, sino.id);
     assert.equal(state.canonicalAdmissionKey, sino.id);
@@ -75,9 +76,9 @@ try {
     await page.locator('[data-field="majorCode"]').first().fill('缺史');
     await page.locator('.candidate').filter({ hasText: '机械工程' }).waitFor({ state: 'visible', timeout: 5000 });
     await page.locator('.candidate').filter({ hasText: '机械工程' }).click();
-    const missingCells = page.locator('.history-cell').filter({ hasText: '2024' });
-    await missingCells.locator('strong').waitFor({ state: 'visible' });
-    assert.equal(await missingCells.locator('strong').textContent(), '暂无对应投档记录');
+    const missingCell = page.locator('.history-cell').filter({ hasText: '2024' }).locator('strong');
+    await missingCell.waitFor({ state: 'visible' });
+    assert.equal(await missingCell.textContent(), '暂无对应投档记录');
     state = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
     assert.equal(state.threeYearHistory.years[2024].status, 'missing');
 
@@ -134,7 +135,7 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error?.message || error)));
   await page.route('**/api/ai/major-history**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(makeApi([sino, ordinary])) }));
-  const deepUrl = 'http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6&schoolCode=0146&majorName=%E5%86%B6%E9%87%91%E5%B7%A5%E7%A8%8B(%E4%B8%AD%E5%A4%96%E5%90%88%E4%BD%9C%E5%8A%9E%E5%AD%A6)&majorCode2026=H1&majorRecordId=ln-2026-0146-H1&source=tongxue&entry=major';
+  const deepUrl = 'http://127.0.0.1:4173/ln-rank/simulation-report.html?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6&schoolCode=0146&majorName=%E5%86%B6%E9%87%91%E5%B7%A5%E7%A8%8B(%E4%B8%AD%E5%A4%96%E5%90%88%E4%BD%9C%E8%BE%9E%E5%AD%A6)&majorCode2026=H1&majorRecordId=ln-2026-0146-H1&source=tongxue&entry=major';
   await page.goto(deepUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002'))?.volunteers?.[0]?.majorRecordId === 'ln-2026-0146-H1', null, { timeout: 10000 });
   const deepState = await page.evaluate(() => JSON.parse(localStorage.getItem('gaokao:simulation-report:v002')).volunteers[0]);
