@@ -23,7 +23,8 @@ const schoolMode = read('ln-rank/js/feature/school-majors/school-all-mode.v3969_
 const rootHtml = read('index.html');
 const lnHtml = read('ln-rank/index.html');
 const tongxueHtml = read('tongxue/index.html');
-const tongxueView = read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueViewEntry = read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueViewCore = read('tongxue/app/tongxue-runtime-result-view-core-v159.js');
 
 assert.match(agents, /docs\/skills\/human-copy\/SKILL\.md/, 'Human Copy must be registered in AGENTS.md');
 assert.match(startHere, /docs\/skills\/human-copy\/SKILL\.md/, 'Human Copy must be visible in the maintainer startup map');
@@ -46,11 +47,13 @@ assert.match(lnHtml, /school-all-mode\.v3969_0\.js\?v=3969_0-hc001/, 'ln-rank mu
 assert.doesNotMatch(lnHtml, /系统会换算为辽宁2026物理类历史位次/, 'ln-rank score help must not narrate the system');
 
 for (const phrase of ['AI总结', '为什么这么判断？', 'provenance', '暂无足够反馈生成总结', '公开评论服务']) {
-  assert.doesNotMatch(tongxueView, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Tongxue public copy still exposes implementation language: ${phrase}`);
+  assert.doesNotMatch(tongxueViewCore, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Tongxue public copy still exposes implementation language: ${phrase}`);
 }
-for (const phrase of ['先看这两件事', '这些概括从哪来？', '几条有代表性的学生留言', '学生留言']) {
-  assert.ok(tongxueView.includes(phrase), `Tongxue human copy marker missing: ${phrase}`);
-}
+assert.match(tongxueViewEntry, /createBaseResultView/, 'Tongxue result-view compatibility entry must retain the base-owner bridge');
+assert.match(tongxueViewCore, /先看这两件事/);
+assert.match(tongxueViewCore, /这些概括从哪来？/);
+assert.match(tongxueViewCore, /几条有代表性的学生留言/);
+assert.match(tongxueViewCore, /学生留言/);
 assert.match(tongxueHtml, /tongxue-runtime-result-view-v159\.js\?v=159-flow006/, 'Tongxue result view must use the new immutable copy identity');
 assert.match(tongxueHtml, /先选清楚你要了解的对象：一所学校，或一个具体本科专业在不同学校的学习体验/, 'Tongxue landing copy must describe the user benefit, not the implementation');
 
@@ -61,7 +64,7 @@ const productSources = [
   ['index.html', rootHtml],
   ['ln-rank/index.html', lnHtml],
   ['tongxue/index.html', tongxueHtml],
-  ['tongxue/result-view', tongxueView],
+  ['tongxue/result-view-core', tongxueViewCore],
   ...collectProductSources('aiplus').map(([file, source]) => [file.replaceAll('\\', '/'), source]),
   ...collectProductSources('major-path').map(([file, source]) => [file.replaceAll('\\', '/'), source])
 ];
@@ -73,11 +76,12 @@ for (const [name, source] of productSources) {
 
 console.log(JSON.stringify({
   ok: true,
-  contract: 'human-copy-foundation-v0.01',
+  contract: 'human-copy-foundation-v0.02',
   foundations: ['eastern-philosophy', 'human-copy'],
   aiplusCopyOwnerPreserved: true,
   lnRankStudentVoiceLabel: '大学生怎么说',
   tongxueSummaryHeading: '先看这两件事',
+  resultViewOwner: 'tongxue-runtime-result-view-core-v159',
   publicSourcesChecked: productSources.length,
   checkedHardAssistantPhrases: hardAssistantPhrases.length
 }, null, 2));

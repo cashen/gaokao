@@ -1,4 +1,4 @@
-name: Verify Unified Experience Context v0.01
+name: Verify Unified Experience Context v0.02
 
 on:
   pull_request:
@@ -98,6 +98,7 @@ jobs:
           node --check shared/resources/majors/major-path-navigation.v004.js
           node --check tongxue/app/tongxue-runtime-controller-v159.js
           node --check tongxue/app/tongxue-runtime-result-view-v159.js
+          node --check tongxue/app/tongxue-runtime-result-view-core-v159.js
           node --check major-path/app.v006.js
       - name: Readonly decision context contract
         run: node tools/verify-decision-context-v001.mjs
@@ -192,12 +193,14 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_preview=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_preview=$attempt" || true)"
             result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r051-major-scope-clarity&uec_preview=$attempt" || true)"
+            result_view_core="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-core-v159.js?v=159&uec_preview=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
               && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow006' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
-              && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
-              && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
+              && grep -q 'createBaseResultView' <<<"$result_view" \
+              && grep -q 'data-student-voice-scope="major"' <<<"$result_view_core" \
+              && grep -q '这些概括从哪来？' <<<"$result_view_core"; then exit 0; fi
             sleep 8
           done
           echo "Tongxue Preview never reached exact head $EXPECTED_SHA with current UEC cache identities" >&2
@@ -236,12 +239,14 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$BASE/tongxue/?uec_prod=$attempt" || true)"
             controller="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-controller-v159.js?v=159-startup001&uec_prod=$attempt" || true)"
             result_view="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-v159.js?v=159-flow006&r=r051-major-scope-clarity&uec_prod=$attempt" || true)"
+            result_view_core="$(curl -fsSL --max-time 20 "$BASE/tongxue/app/tongxue-runtime-result-view-core-v159.js?v=159&uec_prod=$attempt" || true)"
             if [ "$sha" = "$EXPECTED_SHA" ] \
               && grep -q 'tongxue-runtime-controller-v159.js?v=159-startup001' <<<"$html" \
               && grep -q 'tongxue-runtime-result-view-v159.js?v=159-flow006' <<<"$html" \
               && grep -q 'performMajorExperienceQuery' <<<"$controller" \
-              && grep -q 'data-student-voice-scope="major"' <<<"$result_view" \
-              && grep -q '这些概括从哪来？' <<<"$result_view"; then exit 0; fi
+              && grep -q 'createBaseResultView' <<<"$result_view" \
+              && grep -q 'data-student-voice-scope="major"' <<<"$result_view_core" \
+              && grep -q '这些概括从哪来？' <<<"$result_view_core"; then exit 0; fi
             sleep 10
           done
           echo "Tongxue Production never reached exact main $EXPECTED_SHA with current UEC cache identities" >&2
@@ -274,7 +279,7 @@ jobs:
             state=success
             description='Unified Experience Context Production verified'
           fi
-          payload="$(jq -n --arg state "$state" --arg context 'production/unified-experience-context-v0.01' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          payload="$(jq -n --arg state "$state" --arg context 'production/unified-experience-context-v0.02' --arg description "$description" --arg target_url "$RUN_URL" '{state:$state,context:$context,description:$description,target_url:$target_url}')"
           curl -fsSL --max-time 25 -X POST \
             -H 'Accept: application/vnd.github+json' \
             -H "Authorization: Bearer ${GH_TOKEN}" \

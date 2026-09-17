@@ -6,6 +6,8 @@ import {
   readStudentVoiceMajorContext
 } from '../shared/resources/experience/student-voice-navigation.v001.js';
 
+// Contract revision v0.02: Tongxue keeps a thin compatibility result-view entry;
+// presentation markers are verified against the single result-view-core owner.
 const href=buildStudentVoiceMajorHref({
   majorCode:'080601',
   canonicalName:'电气工程及其自动化',
@@ -39,7 +41,8 @@ const lnHandoff=read('ln-rank/js/workspace/major-path-handoff.v003.js');
 const majorVoice=read('major-path/student-voice.v001.js');
 const majorApp=read('major-path/app.v004.js');
 const tongxueController=read('tongxue/app/tongxue-runtime-controller-v159.js');
-const tongxueResult=read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueResultEntry=read('tongxue/app/tongxue-runtime-result-view-v159.js');
+const tongxueResultCore=read('tongxue/app/tongxue-runtime-result-view-core-v159.js');
 
 assert.match(lnHandoff,/concreteMajorFromRendered/,'ln-rank must reuse its concrete-major gate');
 assert.match(lnHandoff,/studentVoiceAvailability\s*=\s*'unresolved-or-class-level'/,'class/trial/unresolved labels must fail closed before Student Voice navigation');
@@ -59,9 +62,11 @@ assert.match(tongxueController,/scope:'major'/);
 assert.match(tongxueController,/majorCode/);
 assert.match(tongxueController,/state\.returnTo\s*=\s*safeReturnTo/,'Tongxue major direct mode must preserve only a safe return target');
 assert.match(tongxueController,/document\.body\.dataset\.studentVoiceScope\s*=\s*'major'/);
-assert.match(tongxueResult,/data-student-voice-scope="major"/);
-assert.match(tongxueResult,/不能代表某一所学校的培养情况/);
-assert.match(tongxueResult,/不是就业率、薪资或专业强弱的官方结论/);
-assert.match(tongxueResult,/不参与推荐/);
 
-console.log('Student Voice navigation v0.01 verified: concrete-major gate, major-only cross-page scope, safe return target, additive major-path/Tongxue presentation, no school-major fabrication.');
+assert.match(tongxueResultEntry,/createBaseResultView/,'Tongxue result-view compatibility entry must retain the base-owner bridge');
+assert.match(tongxueResultCore,/data-student-voice-scope="major"/);
+assert.match(tongxueResultCore,/不能代表某一所学校的培养情况/);
+assert.match(tongxueResultCore,/不是就业率、薪资或专业强弱的官方结论/);
+assert.match(tongxueResultCore,/不参与推荐/);
+
+console.log('Student Voice navigation v0.02 verified: concrete-major gate, major-only cross-page scope, safe return target, additive major-path/Tongxue presentation, no school-major fabrication.');
