@@ -78,6 +78,8 @@ jobs:
             tongxue/portrait/*.js \
             tongxue/share/*.js \
             tools/tongxue/*.mjs \
+            tools/audit-school-query-v3970.mjs \
+            tools/build-school-admission-directory-v3969.mjs \
             tools/verify-school-social-labels-v002_1.mjs \
             tools/browser-tongxue-runtime-v159.mjs \
             tools/browser-tongxue-major-direct-v001.mjs \
