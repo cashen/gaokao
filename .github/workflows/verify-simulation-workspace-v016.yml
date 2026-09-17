@@ -1,6 +1,6 @@
 name: Verify simulation workspace v016
 
-# v016.65-r155: atomic school/major identity plus mobile-safe layout.
+# v016.66-r156: atomic school/major identity plus mobile-safe layout.
 on:
   pull_request:
     paths:
@@ -16,7 +16,7 @@ on:
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-family-note-r152.mjs'
       - 'tools/browser-simulation-pdf-r149.mjs'
-      - 'tools/browser-simulation-p0-r155.mjs'
+      - 'tools/browser-simulation-p0-r156.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   push:
     branches: [main]
@@ -33,7 +33,7 @@ on:
       - 'tools/browser-simulation-unified-runtime-r149.mjs'
       - 'tools/browser-simulation-family-note-r152.mjs'
       - 'tools/browser-simulation-pdf-r149.mjs'
-      - 'tools/browser-simulation-p0-r155.mjs'
+      - 'tools/browser-simulation-p0-r156.mjs'
       - '.github/workflows/verify-simulation-workspace-v016.yml'
   workflow_dispatch:
 
@@ -72,4 +72,4 @@ jobs:
       - run: node tools/browser-simulation-unified-runtime-r149.mjs
       - run: node tools/browser-simulation-family-note-r152.mjs
       - run: node tools/browser-simulation-pdf-r149.mjs
-      - run: node tools/browser-simulation-p0-r155.mjs
+      - run: node tools/browser-simulation-p0-r156.mjs
