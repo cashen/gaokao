@@ -21,6 +21,13 @@ on:
       - 'functions/api/major-bands.js'
       - 'functions/api/major-bands-health.js'
       - 'functions/_lib/major-bands-*.js'
+      - 'ln-rank/simulation-report.html'
+      - 'ln-rank/css/simulation-report.css'
+      - 'ln-rank/js/simulation-runtime.js'
+      - 'ln-rank/js/simulation-report-pdf-service.js'
+      - 'ln-rank/js/simulation-school-search-worker-v001.js'
+      - 'ln-rank/data/simulation-workbench-release-v016.json'
+      - 'shared/resources/simulation/simulation-choice-contract.v001.js'
 
 permissions:
   contents: read

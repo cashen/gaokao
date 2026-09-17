@@ -1,69 +1,35 @@
 # 模拟志愿填报单页开发进度
 
-当前主线：`fix/simulation-p0-school-major-history-r155`（待通过 PR 回到 `main`）
-当前 main 基线：`c00efafad761ea11571427efa760372e81f6a306`
-当前工作版本：`simulation-workspace-v016.66`
-当前工作修订：`r156-school-major-history-mobile-fix`
+当前主线：`refactor/simulation-choice-contract-r157`
+当前 main 基线：`b50e901e4a5b58bd9403cb7c6461e60f4453f646`
+当前产品版本：`simulation-workspace-v016.67`
+当前产品修订：`r157-simulation-choice-contract`
+页面版本：`v1.3`
 运行时 owner：`/ln-rank/js/simulation-runtime.js`
+SimulationChoice owner：`/shared/resources/simulation/simulation-choice-contract.v001.js`
 
-## r156 本轮状态
+## r157 状态
 
-- [x] 普通学校候选显式点击后，`school + confirmedSchool` 原子确认，不再等待异步 resolve 才允许继续。
-- [x] 专业搜索词与实际招生专业身份拆开：`majorQuery / majorName / majorCode / majorRecordId`。
-- [x] 专业候选只从当前确认学校的实际历史招生记录生成，不把全国专业目录作为最终可选记录。
-- [x] 专业候选直接缓存并绑定原始招生记录，保留实际 `majorCode2026` 与 `id`。
-- [x] 标准专业名称/代码只作为参考身份，普通项目与中外合作项目不再因同一标准代码被合并。
-- [x] 三年历史绑定所选招生记录；年度缺失显示“暂无对应投档记录”。
-- [x] 模拟志愿卡增加 1 学校 → 2 专业 → 3 三年历史的家长可读状态轨。
-- [x] 移动端移除历史横向滚动，历史改为响应式网格；页面与志愿卡禁止水平溢出。
-- [x] Android / Pad / Desktop 目标视口统一触控尺寸、安全区与单列输入布局。
-- [x] 首次 r155 浏览器门禁暴露 runtime 重复函数声明；r156 已移除该真实浏览器阻断错误，并同步所有版本号/缓存串。
-- [x] canonical workflow 增加并接入 r156 P0 浏览器回归；过期 r155 P0 测试资产已删除，避免双测试路径。
-- [x] release contract 提升到 `simulation-workspace-v016.66 / v016.66-r156 / page v1.2`。
+- [x] 统一 `SimulationChoice` 数据模型。
+- [x] `confirmedSchool` 与 school 显式确认状态保留在同一契约中。
+- [x] `majorRecordId` 作为首要招生记录身份；`schoolCode2026 + majorCode2026` 仅作仓库无 record id 时的显式 fallback。
+- [x] `majorQuery`、`major`、`majorCode2026`、`standardMajor*` 分层。
+- [x] 三年历史跟随具体招生记录；年度 missing 与请求 error 分层。
+- [x] URL/deep-link 统一带 `majorRecordId`；恢复时精确验证学校、专业和招生代码，不做模糊降级。
+- [x] PDF service 直接消费 `SimulationChoice`，显示招生项目与 record id，不重新匹配。
+- [x] 专业候选只来自当前确认学校的真实招生记录，并按完全匹配/前缀/包含排序。
+- [x] familyNote/source/createdAt/updatedAt 与记录一起保存。
+- [x] 390 / 768 / 1280 browser regression 纳入单一正式入口。
+- [x] legacy r149/r152/r156 browser scripts 不再是正式 workflow 入口。
+- [x] release contract、页面缓存串、runtime、PDF revision 升级到 r157。
+- [ ] GitHub PR CI 通过。
+- [ ] Preview exact head SHA 回归通过。
+- [ ] PR final exact head SHA 二轮核验通过。
+- [ ] merge main 后 SHA 核验通过。
+- [ ] Cloudflare Production 部署与 resource/API baseline 核验通过。
 
-## r154 基线
+## 已知外部发布风险
 
-- [x] 备注继续作为 `volunteer.familyNote` 一等字段，未增加平行 store 或 note runtime。
-- [x] 家庭处理区收敛为同一语义上下文：处理结论与备注放在同一区域。
-- [x] 备注由单行输入改为多句 textarea，最大 1000 字符，自动增高并限制编辑区域最大高度。
-- [x] 备注输入不触发整张志愿清单 render；继续使用统一 runtime 的直接状态写入路径。
-- [x] 后台位次刷新改为局部更新 `#wbRank/#wbRankSource`，不打断正在编辑的备注。
-- [x] 刷新、家庭处理结论变化、排序均保持备注内容。
-- [x] Android / Pad / Desktop 三视口覆盖长文本、自动增高、持久化、处理结论切换与 reload。
-- [x] release contract / 页面缓存 / 工作台版本同步到 `v016.64-r154`。
+r156 main 的 production/resource-graph workflow 曾出现步骤本身 `ok:true`、但 artifact 上传因 GitHub Actions artifact storage quota 达到上限而失败的情况。本轮必须重新核验，不能把这个环境性失败误判为 simulation 代码失败，也不能在未重新验证前宣称生产通过。
 
-## r153 已完成
-
-- [x] 修复后台位次请求触发整表 render、导致正在编辑的备注输入被替换的问题。
-- [x] 恢复异步学校核验使用明确 row id，避免异步结果串行污染。
-- [x] 测试契约同步到 r153。
-
-## r150 统一接管已完成
-
-- [x] 页面从多套历史 simulation runtime 收敛为唯一 Bootstrap。
-- [x] Unified Store 成为唯一持久化状态 owner，保留 v002 数据结构兼容。
-- [x] 页面不再依赖 legacy row / controller / DOM bridge 维持正常输入生命周期。
-- [x] 学校候选、学校确认、专业目录候选、学校×专业历史核验均由统一 runtime 协调。
-- [x] 输入过程不重新渲染整张清单，保留 debounce、sequence supersession 与 stale-response 防护。
-- [x] 家庭处理使用统一家长语言，旧状态在加载时完成一次性映射。
-- [x] PDF 作为统一 runtime 按需调用的 service；Android 使用输出适配，不再加载第二个 Android runtime。
-- [x] 页面 CSS 收敛到单一 `simulation-report.css`。
-- [x] architecture contract / browser regression 改为 unified runtime 口径。
-- [x] 历史 active legacy runtime / CSS / PDF entry 不再由页面加载。
-- [x] PDF 分页按实际内容边界测量，避免固定容器高度造成错误分页。
-
-## 当前 Definition of Done
-
-- [ ] r156 Node syntax PASS
-- [ ] r156 existing unified runtime browser PASS
-- [ ] r156 family note browser PASS
-- [ ] r156 PDF browser PASS
-- [ ] r156 school-major-mobile browser PASS
-- [ ] r156 Preview exact SHA verified
-- [ ] r156 merged main SHA / Production / API / resource parity verified
-
-## 当前架构规则
-
-模拟志愿不得再新增平行 `simulation-report-v0xx-*.js` 页面运行时。新增能力必须进入 `simulation-runtime.js` 或明确的 service 模块，并通过统一 architecture contract。备注能力必须继续作为 volunteer row 字段和家庭处理上下文的一部分演进。
-
-后续任何代码修订必须重新提升 simulation workspace 版本 / revision，并重新验证最终 HEAD；旧 Preview、旧 SHA、历史 workflow 结果不得替代最终 HEAD 证据。
+Alook 当前无实机执行证据，必须保留“尚缺 Alook 实机回归”。
