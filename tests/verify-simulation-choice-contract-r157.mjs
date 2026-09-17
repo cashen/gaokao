@@ -50,6 +50,8 @@ assert.match(workflow, /tests\/verify-simulation-choice-contract-r157\.mjs/);
 const blank = normalizeSimulationChoice({ id: 'volunteer-row-1', school: '辽宁科技大学', order: 1, state: 'school-entered' });
 assert.equal(blank.majorRecordId, '', 'volunteer row id must never become admission record identity');
 assert.equal(blank.canonicalAdmissionKey, '', 'incomplete volunteer must not fabricate canonical admission identity');
+const note = '学费可以接受，但校区需要再核实。';
+assert.equal(normalizeSimulationChoice({ familyNote: note }).familyNote, note, 'family note is free text and must preserve user punctuation');
 
 const explicitProject = normalizeSimulationChoice({ id: 'choice-c', school: '辽宁科技大学', confirmedSchool: '辽宁科技大学', schoolCode: '0146', major: '冶金工程', majorCode2026: '05', majorRecordId: 'ln-2026-0146-05', admissionProject: { kind: 'sino', label: '自定义招生项目' }, threeYearHistory: { status: 'ready', recordId: 'ln-2026-0146-05', years: { 2026: { score: 497, rank: 54846 }, 2025: { score: 494, rank: 59521 }, 2024: { score: 473, rank: 66025 } } } });
 assert.equal(explicitProject.admissionProject.kind, 'sino', 'explicit project identity must survive normalization');
