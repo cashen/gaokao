@@ -5,10 +5,15 @@ import {
   higherEducationCommonNameHandoffPayload,
   HIGHER_EDUCATION_COMMON_NAME_NOTICE
 } from '../../shared/resources/higher-education/higher-education-common-names.v003.js?v=003';
+import {
+  getSchoolSocialLabelsForNames,
+  SCHOOL_SOCIAL_LABEL_SOURCE_VERSION,
+  SCHOOL_SOCIAL_LABEL_SOURCE_META
+} from '../../shared/resources/schools/school-social-labels.v001.js?v=001';
 
-export const TONGXUE_COMMON_NAME_ENTRY_VERSION = 'tongxue-common-name-v003';
-const STYLE_ID = 'tongxue-common-name-style-v003';
-const UI_ID = 'tongxue-common-name-ui-v003';
+export const TONGXUE_COMMON_NAME_ENTRY_VERSION = 'tongxue-common-name-v004-social-labels';
+const STYLE_ID = 'tongxue-common-name-style-v004';
+const UI_ID = 'tongxue-common-name-ui-v004';
 
 function esc(value = '') {
   return String(value ?? '').replace(/[&<>\"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;' }[char]));
@@ -31,7 +36,10 @@ function ensureStyles() {
     .tongxue-common-name-member{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border:1px solid var(--border,#dce6e2);border-radius:999px;background:#fff;color:var(--primary,#172d67);font-size:12px;font-weight:750;text-decoration:none}
     .tongxue-common-name-member:hover{background:var(--soft,#eaf7f3)}
     .tongxue-common-name-foot{margin:10px 0 0;color:var(--muted,#60717a);font-size:11px;line-height:1.7}
-    @media (max-width:640px){.tongxue-common-name{margin-top:12px;padding:9px 10px}.tongxue-common-name-summary{align-items:flex-start}.tongxue-common-name-summary span:last-of-type{min-width:0}.tongxue-common-name-member{max-width:100%;white-space:normal}}
+    .tongxue-social-labels{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+    .tongxue-social-label{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border:1px solid #d8e2ee;border-radius:999px;background:#f7fafc;color:#294b6c;font-size:12px;font-weight:750}
+    .tongxue-social-label-source{margin:8px 0 0;color:var(--muted,#60717a);font-size:11px;line-height:1.7}
+    @media (max-width:640px){.tongxue-common-name{margin-top:12px;padding:9px 10px}.tongxue-common-name-summary{align-items:flex-start}.tongxue-common-name-summary span:last-of-type{min-width:0}.tongxue-common-name-member,.tongxue-social-label{max-width:100%;white-space:normal}}
   `;
   document.head.append(style);
 }
@@ -47,16 +55,31 @@ function findCommonNames(state = {}) {
   }).slice(0, 3);
 }
 
+function findSocialLabels(state = {}) {
+  if (state.scope !== 'school') return [];
+  const schoolName = String(state.currentSchool || '').trim();
+  if (!schoolName) return [];
+  return getSchoolSocialLabelsForNames([schoolName]);
+}
+
 function renderCommonNames(state = {}) {
   const names = findCommonNames(state);
-  if (!names.length) return '';
-  const visible = names.map(item => esc(item.name)).join('、');
-  const panels = names.map(item => {
+  const socialLabels = findSocialLabels(state);
+  if (!names.length && !socialLabels.length) return '';
+  const visibleNames = names.map(item => esc(item.name)).join('、');
+  const labelLead = socialLabels.length ? `来源站标签 ${socialLabels.length} 个` : '';
+  const summaryLead = names.length
+    ? `大家常说：${visibleNames}${labelLead ? ` · ${labelLead}` : ''}`
+    : `来源站有 ${socialLabels.length} 个高校标签`;
+  const commonPanels = names.map(item => {
     const resolved = resolveHigherEducationCommonNameSchools(item.id);
     const members = resolved.members.map(entity => `<a class="tongxue-common-name-member" href="/tongxue/?school=${encodeURIComponent(entity.displayName)}">${esc(entity.displayName)}</a>`).join('');
     return `<section class="tongxue-common-name-panel" data-common-name-panel="${esc(item.id)}"><p class="tongxue-common-name-notice">${esc(HIGHER_EDUCATION_COMMON_NAME_NOTICE)}</p><ul class="tongxue-common-name-members">${members}</ul><p class="tongxue-common-name-foot">这个叫法只用于理解学校之间的常见称呼；不会作为录取、排名或专业强弱的依据。</p></section>`;
   }).join('');
-  return `<details id="${UI_ID}" class="tongxue-common-name" data-common-name-count="${names.length}"><summary class="tongxue-common-name-summary"><span class="tongxue-common-name-kicker">高校民间称谓</span><span>大家常说：${visible}</span></summary>${panels}</details>`;
+  const socialPanel = socialLabels.length
+    ? `<section class="tongxue-common-name-panel" data-social-labels-version="${esc(SCHOOL_SOCIAL_LABEL_SOURCE_VERSION)}"><div class="tongxue-common-name-kicker">来源站高校标签</div><ul class="tongxue-social-labels">${socialLabels.map(label => `<li class="tongxue-social-label">${esc(label)}</li>`).join('')}</ul><p class="tongxue-social-label-source">来自 ${esc(SCHOOL_SOCIAL_LABEL_SOURCE_META.sourceName)} 的公开学校标签接口，共 ${Number(SCHOOL_SOCIAL_LABEL_SOURCE_META.labelCount)} 个标签、${Number(SCHOOL_SOCIAL_LABEL_SOURCE_META.relationCount)} 条学校关系。本区域只用于帮助理解学校之间的常见分组或称呼，不是官方分类，也不作为录取、排名或专业强弱依据。</p></section>`
+    : '';
+  return `<details id="${UI_ID}" class="tongxue-common-name" data-common-name-count="${names.length}" data-social-label-count="${socialLabels.length}"><summary class="tongxue-common-name-summary"><span class="tongxue-common-name-kicker">高校民间称谓</span><span>${summaryLead}</span></summary>${commonPanels}${socialPanel}</details>`;
 }
 
 function mountCommonNames(ui, state) {
@@ -64,11 +87,12 @@ function mountCommonNames(ui, state) {
   const host = ui.result.querySelector('.result-shell');
   if (!host) return;
   const names = findCommonNames(state);
-  const signature = names.map(item => item.id).join('|');
+  const socialLabels = findSocialLabels(state);
+  const signature = `names:${names.map(item => item.id).join('|')}|labels:${socialLabels.join('|')}`;
   if (host.dataset.tongxueCommonNameSignature === signature) return;
   host.dataset.tongxueCommonNameSignature = signature;
   host.querySelectorAll(`#${UI_ID}`).forEach(node => node.remove());
-  if (!signature) return;
+  if (!names.length && !socialLabels.length) return;
   const anchor = host.querySelector('.meta');
   if (!anchor) return;
   anchor.insertAdjacentHTML('afterend', renderCommonNames(state));
