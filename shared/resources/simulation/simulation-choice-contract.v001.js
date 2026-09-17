@@ -4,6 +4,7 @@ const FAMILY_STATUS = ['继续考虑', '候选', '还没决定', '排除'];
 const SOURCE_MODULES = ['simulation', 'ln-rank', 'tongxue', 'major-path', 'aiplus', 'unknown'];
 
 const text = value => String(value ?? '').normalize('NFKC').replace(/\u00a0/g, ' ').trim();
+const freeText = value => String(value ?? '').replace(/\u00a0/g, ' ').trim();
 const key = value => text(value).toLowerCase().replace(/[\s·•,，。；;：:'"“”‘’!！?？_—\-（）()【】\[\]]+/g, '');
 const now = () => new Date().toISOString();
 
@@ -105,10 +106,10 @@ function normalizeSimulationChoice(input = {}, options = {}) {
     canonicalAdmissionKey: canonical.value,
     threeYearHistory: history,
     familyStatus: FAMILY_STATUS.includes(text(input.familyStatus)) ? text(input.familyStatus) : '还没决定',
-    familyNote: text(input.familyNote).slice(0, Number(options.noteMax) || 1000),
+    familyNote: freeText(input.familyNote).slice(0, Number(options.noteMax) || 1000),
     source: normalizeSource(input.source, options.sourceModule || 'simulation'),
     state,
-    error: text(input.error),
+    error: freeText(input.error),
     createdAt,
     updatedAt
   };
