@@ -12,6 +12,8 @@ import {
 const wrapper = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-v159.js', 'utf8');
 const core = fs.readFileSync('tongxue/app/tongxue-runtime-result-view-core-v159.js', 'utf8');
 const resource = fs.readFileSync('shared/resources/higher-education/higher-education-common-names.v002.js', 'utf8');
+const directory = JSON.parse(fs.readFileSync('tongxue/data/school-search-index.20260617-v150.json', 'utf8'));
+const directoryNames = new Set((directory.schools || []).map(row => String(row?.[0] || '').trim()).filter(Boolean));
 const items = listHigherEducationCommonNames();
 
 assert.equal(HIGHER_EDUCATION_COMMON_NAME_VERSION, 'higher-education-common-name-v002');
@@ -23,6 +25,9 @@ for (const item of items) {
   assert.equal(resolved.status, 'resolved', `${item.name} must fully resolve`);
   assert.equal(resolved.members.length, item.memberSchoolNames.length, `${item.name} member count mismatch`);
   assert.ok(item.sources.length >= 1, `${item.name} source provenance missing`);
+  for (const name of item.memberSchoolNames) {
+    assert.ok(directoryNames.has(name), `${item.name}: member missing from current MOE school directory: ${name}`);
+  }
 }
 
 assert.deepEqual(resolveHigherEducationCommonNameSchools('east-china-five').members.map(item => item.displayName), ['复旦大学','上海交通大学','南京大学','浙江大学','中国科学技术大学']);
@@ -44,15 +49,18 @@ assert.ok(payload.candidateSchoolNames.length === 5);
 assert.ok(payload.candidateSchoolIds.length <= payload.candidateSchoolNames.length);
 
 assert.match(wrapper, /createBaseResultView/);
-assert.match(wrapper, /MutationObserver/);
+assert.doesNotMatch(wrapper, /MutationObserver/);
 assert.match(wrapper, /高校民间称谓/);
 assert.match(wrapper, /higher-education-common-names\.v002/);
 assert.doesNotMatch(wrapper, /fetch\s*\(/);
 assert.doesNotMatch(wrapper, /addEventListener\s*\(/);
+assert.match(wrapper, /这是一次独立查询/);
+assert.match(wrapper, /回到专业升学地图/);
+assert.match(wrapper, /回到刚才的分数结果/);
 assert.match(core, /export function createTongxueResultView/);
-assert.match(core, /PAGE_VERSION = 'v1\.5.9-uec01-evidence02'/);
+assert.match(core, /PAGE_VERSION = 'v1\.5\.9-uec01-evidence02'/);
 assert.doesNotMatch(core, /高校民间称谓/);
 assert.match(resource, /resolveCompactSchoolResource/);
 assert.match(resource, /education-ministry-directory/);
 
-console.log(`higher-education-common-name v002 verified: ${items.length} names; ${items.reduce((n, i) => n + i.memberSchoolNames.length, 0)} memberships`);
+console.log(`higher-education-common-name v002 verified: ${items.length} names; ${items.reduce((n, i) => n + i.memberSchoolNames.length, 0)} directory-backed memberships`);
