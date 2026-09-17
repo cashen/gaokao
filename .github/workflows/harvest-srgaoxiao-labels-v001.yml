@@ -1,6 +1,13 @@
 name: Harvest srgaoxiao school labels v001
 
 on:
+  push:
+    branches:
+      - 'feat/srgaoxiao-label-harvest-v001'
+    paths:
+      - 'tools/srgaoxiao/**'
+      - 'docs/data/srgaoxiao-label-harvest-v001.md'
+      - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
   pull_request:
     paths:
       - 'tools/srgaoxiao/**'
