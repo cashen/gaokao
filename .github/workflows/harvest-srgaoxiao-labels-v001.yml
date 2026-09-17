@@ -1,4 +1,4 @@
-name: Harvest srgaoxiao school labels v001
+name: Harvest srgaoxiao school labels v002
 
 on:
   push:
@@ -15,13 +15,16 @@ on:
       - '.github/workflows/harvest-srgaoxiao-labels-v001.yml'
   workflow_dispatch:
 
+env:
+  SRGAOXIAO_AUDIT_VERSION: srgaoxiao-label-source-v002
+
 permissions:
   contents: read
 
 jobs:
   harvest:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,21 +37,43 @@ jobs:
       - name: Harvest source taxonomy to local staging
         run: >-
           node tools/srgaoxiao/harvest-label-taxonomy-v001.mjs
-          --out tmp/srgaoxiao-label-harvest-v001.json
+          --out tmp/srgaoxiao-label-harvest-v002.json
           --maxLabels 200
           --maxPagesPerLabel 400
+      - name: Map source schools through shared school profile center
+        run: >-
+          node tools/srgaoxiao/build-label-school-entity-map-v002.mjs
+          tmp/srgaoxiao-label-harvest-v002.json
+          tmp/srgaoxiao-label-school-entity-map-v002.json
       - name: Probe source school-major endpoints
-        run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v001.json
+        run: node tools/srgaoxiao/probe-school-major-endpoints-v001.mjs tmp/srgaoxiao-label-source-probe-v002.json
       - name: Verify harvested staging payload
-        run: node tools/srgaoxiao/verify-label-taxonomy-v001.mjs tmp/srgaoxiao-label-harvest-v001.json
+        run: node tools/srgaoxiao/verify-label-taxonomy-v001.mjs tmp/srgaoxiao-label-harvest-v002.json
+      - name: Verify canonical school mapping
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const data = JSON.parse(fs.readFileSync('tmp/srgaoxiao-label-school-entity-map-v002.json', 'utf8'));
+          const s = data.summary || {};
+          if (!(s.labels > 0 && s.relations > 0 && s.resolvedProfileRelations > 0)) {
+            console.error('Invalid canonical school mapping summary', s);
+            process.exit(1);
+          }
+          if (s.resolvedProfileRelations + s.unresolvedRelations !== s.relations) {
+            console.error('Mapping accounting mismatch', s);
+            process.exit(1);
+          }
+          console.log(JSON.stringify(s, null, 2));
+          NODE
       - name: Publish local staging artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: srgaoxiao-label-harvest-v001-${{ github.sha }}
+          name: srgaoxiao-label-harvest-v002-${{ github.sha }}
           path: |
-            tmp/srgaoxiao-label-harvest-v001.json
-            tmp/srgaoxiao-label-source-probe-v001.json
+            tmp/srgaoxiao-label-harvest-v002.json
+            tmp/srgaoxiao-label-school-entity-map-v002.json
+            tmp/srgaoxiao-label-source-probe-v002.json
             tmp/raw/*.json
           if-no-files-found: warn
           retention-days: 14
