@@ -1,4 +1,4 @@
-name: Verify major-bands rank kernel v3990.1
+name: Verify major-bands rank kernel v3990.2
 
 on:
   pull_request:
@@ -40,7 +40,18 @@ permissions:
   issues: read
 
 jobs:
+  trigger-safety-sentinel:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm non-PR trigger is non-blocking
+        run: |
+          set -euo pipefail
+          echo "bounded-fanout verification is PR/manual-only; unexpected event=$GITHUB_EVENT_NAME is intentionally non-blocking."
+
   source-rank-audit:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch':
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -61,14 +72,14 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3990-1-changed-files.txt
-          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-changed-files.txt; then
+          git diff --name-only "$base" HEAD | tee /tmp/v3990-2-changed-files.txt
+          if [ "$(git ls-tree -r "$base" | wc -l)" -ge 100 ] && grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-2-changed-files.txt; then
             echo 'protected path changed'
             exit 1
           fi
-          stable_business_changes="$(grep -E '^(ln-rank/data/local-strength/|ln-rank/data/211-static/|ln-rank/data/major-bands-static-v3972_2/|functions/api/major-bands-bucket[.]js$|functions/_lib/major-bands-bucket-(orchestrator|cache|transfer)[.]v3972_5[.]js$)' /tmp/v3990-1-changed-files.txt || true)"
+          stable_business_changes="$(grep -E '^(ln-rank/data/local-strength/|ln-rank/data/211-static/|ln-rank/data/major-bands-static-v3972_2/|functions/api/major-bands-bucket[.]js$|functions/_lib/major-bands-bucket-(orchestrator|cache|transfer)[.]v3972_5[.]js$)' /tmp/v3990-2-changed-files.txt || true)"
           stable_business_changes="$stable_business_changes
-$(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true)"
+$(grep -E '^tongxue/' /tmp/v3990-2-changed-files.txt | grep -v -F -e 'tongxue/index.html' -e 'tongxue/changelog.html' || true)"
           if [ -n "$stable_business_changes" ]; then
             echo "$stable_business_changes"
             echo 'declared stable business dependency changed'
@@ -115,7 +126,7 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
             .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
             .github/workflows/verify-production-api-health-v3971.yml \
             .github/workflows/verify-ai-workspace-v3990_1.yml; do
-            grep -Fq 'group: v3990-1-cloudflare-preview-' "$workflow"
+            grep -Fq 'group: v3990-2-cloudflare-preview-' "$workflow"
             grep -q 'queue: max' "$workflow"
           done
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_1.js
@@ -159,9 +170,9 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: major-bands-rank-source-v3990-1
+          name: major-bands-rank-source-v3990-2
           path: |
-            /tmp/v3990-1-changed-files.txt
+            /tmp/v3990-2-changed-files.txt
             /tmp/major-bands-rank-kernel-v3990_3.json
           if-no-files-found: warn
           retention-days: 7
@@ -184,8 +195,8 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
         run: |
           set -euo pipefail
           npm install --no-save --no-package-lock wrangler@4.121.0
-          npx wrangler pages dev . --port 8793 --compatibility-date=2026-07-01 >/tmp/v3990-1-wrangler.log 2>&1 &
-          echo "$!" > /tmp/v3990-1-wrangler.pid
+          npx wrangler pages dev . --port 8793 --compatibility-date=2026-07-01 >/tmp/v3990-2-wrangler.log 2>&1 &
+          echo "$!" > /tmp/v3990-2-wrangler.pid
           ready=0
           for attempt in $(seq 1 60); do
             body="$(curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
@@ -229,22 +240,22 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
       - name: Stop local Pages Worker
         if: always()
         run: |
-          if [ -f /tmp/v3990-1-wrangler.pid ]; then kill "$(cat /tmp/v3990-1-wrangler.pid)" || true; fi
+          if [ -f /tmp/v3990-2-wrangler.pid ]; then kill "$(cat /tmp/v3990-2-wrangler.pid)" || true; fi
       - name: Upload local concurrency evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: major-bands-local-concurrency-v3990-1
+          name: major-bands-local-concurrency-v3990-2
           path: |
             /tmp/major-bands-local-concurrency-v3990_3.json
             /tmp/major-bands-local-pagination-snapshot-v3990_3.json
-            /tmp/v3990-1-wrangler.log
+            /tmp/v3990-2-wrangler.log
           if-no-files-found: warn
           retention-days: 7
 
   preview-real-concurrency:
     concurrency:
-      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      group: v3990-2-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
       queue: max
     if: github.event_name == 'pull_request'
     needs: source-rank-audit
@@ -340,7 +351,7 @@ $(grep -E '^tongxue/' /tmp/v3990-1-changed-files.txt | grep -v -F -e 'tongxue/in
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: major-bands-preview-concurrency-v3990-1
+          name: major-bands-preview-concurrency-v3990-2
           path: |
             /tmp/major-bands-preview-concurrency-v3990_3.json
             /tmp/major-bands-preview-pagination-snapshot-v3990_3.json
