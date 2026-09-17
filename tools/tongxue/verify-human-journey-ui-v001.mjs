@@ -17,7 +17,7 @@ assert.ok(resultView.includes('这是一次独立查询'), 'standalone direct-en
 assert.ok(resultView.includes('回到专业升学地图'), 'major-path return label missing');
 assert.ok(resultView.includes('回到刚才的分数结果'), 'ln-rank return label missing');
 assert.ok(release.includes("releaseRevision: 'r052-tongxue-school-social-labels'"), 'canonical release revision missing');
-assert.ok(release.includes("tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v002'"), 'Tongxue UI capability version missing');
+assert.ok(release.includes("tongxueHumanJourneyUiVersion: 'tongxue-human-journey-ui-v003'"), 'Tongxue UI capability version missing');
 assert.ok(changelog.includes('r052-tongxue-school-social-labels'), 'Tongxue changelog entry missing');
 
 console.log(JSON.stringify({
