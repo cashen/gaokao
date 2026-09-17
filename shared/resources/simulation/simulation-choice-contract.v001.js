@@ -18,7 +18,7 @@ function projectIdentity(record = {}) {
 }
 
 function canonicalAdmissionIdentity(value = {}) {
-  const recordId = text(value.majorRecordId || value.recordId || value.id);
+  const recordId = text(value.majorRecordId || value.recordId);
   const schoolCode = text(value.schoolCode || value.schoolCode2026);
   const majorCode2026 = text(value.majorCode2026 || value.majorCode);
   if (recordId) return { kind: 'majorRecordId', value: recordId };
@@ -69,7 +69,7 @@ function normalizeSource(value, fallback = 'simulation') {
 }
 
 function normalizeSimulationChoice(input = {}, options = {}) {
-  const recordId = text(input.majorRecordId || input.recordId || input.id);
+  const recordId = text(input.majorRecordId || input.recordId);
   const schoolCode = text(input.schoolCode || input.schoolCode2026);
   const majorCode2026 = text(input.majorCode2026 || input.majorCode);
   const school = text(input.school || input.confirmedSchool);
@@ -77,16 +77,17 @@ function normalizeSimulationChoice(input = {}, options = {}) {
   const major = text(input.major || input.majorName);
   const createdAt = text(input.createdAt) || now();
   const updatedAt = text(input.updatedAt) || now();
+  const inferredProject = projectIdentity({ major });
   const admissionProject = {
-    ...(input.admissionProject || {}),
-    ...projectIdentity({ major }),
+    ...inferredProject,
+    ...(input.admissionProject && typeof input.admissionProject === 'object' ? input.admissionProject : {}),
     schoolCode2026: schoolCode,
     majorCode2026,
     majorRecordId: recordId
   };
   const canonical = canonicalAdmissionIdentity({ majorRecordId: recordId, schoolCode, majorCode2026 });
   const history = normalizeHistory(input.threeYearHistory || input.history, recordId);
-  const state = text(input.state) || (recordId && major && majorCode2026 ? 'record-confirmed' : confirmedSchool ? 'school-confirmed' : school ? 'school-entered' : 'empty');
+  const state = text(input.state) || (canonical.value && major && majorCode2026 ? 'record-confirmed' : confirmedSchool ? 'school-confirmed' : school ? 'school-entered' : 'empty');
   return {
     schemaVersion: SCHEMA_VERSION,
     id: text(input.id) || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
@@ -115,7 +116,10 @@ function normalizeSimulationChoice(input = {}, options = {}) {
 
 function isComplete(choice) {
   const value = normalizeSimulationChoice(choice);
-  return Boolean(value.school && value.confirmedSchool && value.major && value.majorCode2026 && value.majorRecordId && value.threeYearHistory.recordId === value.majorRecordId);
+  const canonical = canonicalAdmissionIdentity(value);
+  const historyIdentity = value.threeYearHistory.recordId;
+  const historyMatches = value.majorRecordId ? historyIdentity === value.majorRecordId : historyIdentity === canonical.value;
+  return Boolean(value.school && value.confirmedSchool && value.major && value.majorCode2026 && canonical.value && historyMatches);
 }
 
 function buildSimulationChoiceHref(choice = {}, options = {}) {
@@ -134,14 +138,17 @@ function buildSimulationChoiceHref(choice = {}, options = {}) {
 function parseSimulationChoiceHref(locationLike = globalThis.location) {
   const href = String(locationLike?.href || locationLike || '');
   const url = new URL(href, 'https://gaokao.powers.org.cn');
+  const schoolCode = text(url.searchParams.get('schoolCode'));
+  const majorCode2026 = text(url.searchParams.get('majorCode2026') || url.searchParams.get('majorCode'));
+  const majorRecordId = text(url.searchParams.get('majorRecordId') || url.searchParams.get('recordId'));
   return {
     school: text(url.searchParams.get('school')),
-    schoolCode: text(url.searchParams.get('schoolCode')),
+    schoolCode,
     major: text(url.searchParams.get('majorName') || url.searchParams.get('major')),
-    majorCode2026: text(url.searchParams.get('majorCode2026') || url.searchParams.get('majorCode')),
-    majorRecordId: text(url.searchParams.get('majorRecordId') || url.searchParams.get('recordId')),
+    majorCode2026,
+    majorRecordId,
     source: normalizeSource({ module: url.searchParams.get('source'), entry: url.searchParams.get('entry'), href: `${url.pathname}${url.search}` }),
-    hasChoiceIdentity: Boolean(url.searchParams.get('majorRecordId') || url.searchParams.get('majorCode2026'))
+    hasChoiceIdentity: Boolean(majorRecordId || (schoolCode && majorCode2026))
   };
 }
 
