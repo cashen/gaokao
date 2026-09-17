@@ -16,7 +16,7 @@ function payload(school) {
     summary:null,
     reviews:[{ content:`${school} 学生公开留言测试。`, createdAt:'2026-09-17T00:00:00.000Z', authorLabel:'测试留言', likes:0, replies:0 }],
     reviewPagination:{ page:1, hasMore:false },
-    schoolMeta:{ id:9527, name:school, province:school.includes('深圳')?'广东省':'黑龙江省', city:school.includes('深圳')?'深圳市':'哈尔滨市', type:'本科', reviewCount:1 },
+    schoolMeta:{ id:9527, name:school, province:school.includes('深圳')?'广东省':school.includes('江西')?'江西省':school.includes('辽宁')?'辽宁省':'黑龙江省', city:school.includes('深圳')?'深圳市':school.includes('江西')?'南昌市':school.includes('辽宁')?'鞍山市':'哈尔滨市', type:'本科', reviewCount:1 },
     source:{ name:'测试来源', url:'https://eo.srgaoxiao.com/' },
     fetchedAt:'2026-09-17T00:00:00.000Z',
     transport:'mock-tongxue-social-labels-v005'
