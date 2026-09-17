@@ -1,0 +1,37 @@
+{
+  "task": "school-social-labels-shared-source-v002.1",
+  "revision": "r159",
+  "baseMainSha": "772bc92e6bf0590ff3a71f0187fb6e0badc05473",
+  "branch": "fix/srgaoxiao-shared-source-v0021-r159",
+  "purpose": "Restore the reconciled v002.1 school social-label source consumed by the shared resolver facade, and prevent a silent broken-import regression.",
+  "evidence": {
+    "sourceArtifactRun": 35282615065,
+    "artifactId": 10523165531,
+    "artifactSha256": "2d17d1244614f77e95107418ff69f197115c57191934be28358029a9689fb18a",
+    "sourceLabels": 29,
+    "sourceRelations": 839,
+    "resolvedProfileRelations": 824,
+    "unresolvedRelations": 15,
+    "encodedUniqueRelations": 804
+  },
+  "policy": {
+    "sourceDerivedOnly": true,
+    "fuzzyMatching": false,
+    "inferredRelations": false,
+    "unresolvedFailClosed": true,
+    "taggedMajorRelations": 0
+  },
+  "corrections": [
+    "Add shared/resources/schools/school-social-labels.v002_1.js from the verified v002.1 artifact.",
+    "Correct the facade alias direction so 江西现代职业学院 normalizes to 江西现代职业技术学院 rather than the reverse.",
+    "Add canonical-release regression coverage for source/facade integrity."
+  ],
+  "knownTestData": {
+    "哈尔滨工业大学": 10,
+    "哈尔滨工业大学（深圳）": 9,
+    "辽宁科技大学": 0,
+    "江西现代职业技术学院": 1
+  },
+  "status": "pending-exact-head-ci",
+  "nextGate": "Run exact-head CI, inspect PR Preview SHA if applicable, then merge only after all required checks are green."
+}
