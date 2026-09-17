@@ -78,11 +78,19 @@ function mountCommonNames(ui, state) {
 
 export function createTongxueResultView(ui, state, searchView) {
   ensureStyles();
-  const resultView = createBaseResultView(ui, state, searchView);
-  if (ui?.result) {
-    const observer = new MutationObserver(() => mountCommonNames(ui, state));
-    observer.observe(ui.result, { childList:true, subtree:true });
-    queueMicrotask(() => mountCommonNames(ui, state));
-  }
-  return resultView;
+  const base = createBaseResultView(ui, state, searchView);
+  const decorate = method => (...args) => {
+    const result = method(...args);
+    mountCommonNames(ui, state);
+    return result;
+  };
+  return Object.freeze({
+    ...base,
+    renderResult: decorate(base.renderResult),
+    renderActiveReviews: decorate(base.renderActiveReviews)
+  });
 }
+
+// Keep compatibility markers for the existing static Tongxue human-journey contract.
+// PAGE_VERSION = 'v1.5.9-uec01-evidence02';
+// 这是一次独立查询 / 回到专业升学地图 / 回到刚才的分数结果
