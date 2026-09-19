@@ -47,7 +47,7 @@ for (const unresolved of [
 }
 
 assert.deepEqual(
-  getSchoolSocialLabelsForNames(['哈尔滨工业大学', '辽宁科技大学', '江西现代职业学院']),
+  getSchoolSocialLabelsForNames(['哈尔滨工业大学', '辽宁科技大学', '江西现代职业技术学院']),
   [...new Set([...hitExpected, '双高'])]
 );
 
