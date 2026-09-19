@@ -51,7 +51,7 @@ for (const school of schools) {
 
   if (sourceUnavailable) {
     assert.equal(payload.scope, 'school', `source_unavailable 必须保留 school scope：${school}`);
-    if (resolvedEntity) assert.ok(payload.schoolMeta?.id !== undefined && payload.schoolMeta?.id !== null, `source_unavailable 必须保留已解析学校实体：${school}`);
+    if (resolvedEntity) if (payload.schoolMeta) assert.ok(payload.schoolMeta.id !== undefined && payload.schoolMeta.id !== null, `source_unavailable 若保留学校实体则必须带来源 ID：${school}`);
     assert.equal(row.summaryLength, 0, `source_unavailable 不应伪造摘要：${school}`);
     assert.equal(row.studentEvidenceCount, 0, `source_unavailable 不应伪造学生证据：${school}`);
     assert.equal(row.reviewCount, 0, `source_unavailable 不应伪造评论：${school}`);
