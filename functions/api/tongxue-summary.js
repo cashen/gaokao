@@ -24,7 +24,7 @@ export async function onRequest(context){
  const response=await baseOnRequest({...context,request:new Request(inner.toString(),context.request)}),raw=await response.text();let payload={};try{payload=JSON.parse(raw||'{}')}catch{return new Response(raw,{status:response.status,headers:response.headers})}
  const expected=entitySourceId(entity),actual=payload?.schoolMeta?.id;
  if(expected!==null&&payload.ok&&String(actual)!==String(expected))return out({ok:false,error:'entity_source_conflict',message:'来源站返回了另一个学校实体，已停止展示以避免混入错误评价。',school:entity?.displayName||school,entity:publicSchoolEntity(entity),scope,version:VERSION},502);
- payload.version=VERSION;payload.requestedSchool=school;payload.scope='school';if(legacyAdmissionFallback)payload.legacyEntityFallback=true;if(entity){payload.school=entity.displayName;payload.entity=publicSchoolEntity(entity);if(response.status===404){payload.error='entity_source_not_found';payload.message='来源站暂时没有该分校或校区的独立记录；本站不会自动使用母体学校评价替代。';}}
+ payload.version=VERSION;payload.requestedSchool=school;payload.scope='school';if(legacyAdmissionFallback)payload.legacyEntityFallback=true;if(entity){payload.school=entity.displayName;payload.entity=publicSchoolEntity(entity);if(response.status===404){payload.error='entity_source_not_found';payload.message='来源站暂时没有该分校或校区的独立记录；本站不会自动使用母体学校评价替代。';}if(response.status===502&&payload.mode==='source_unavailable'&&payload.error==='source_api_unavailable'){payload.schoolMeta={...(payload.schoolMeta||{}),id:expected,name:entity.displayName};}}
  return responseWithPayload(response,payload);
 }
 

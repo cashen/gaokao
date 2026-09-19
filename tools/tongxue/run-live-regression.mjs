@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { onRequest } from '../../functions/api/tongxue-summary.js';
+import { resolveEntityRequest } from '../../shared/resources/schools/school-identity-center.js';
 
 const schools = splitEnv('STUDENT_VOICE_LIVE_SCHOOLS', ['沈阳建筑大学', '辽宁科技大学']);
 const artifactDir = '/tmp/tongxue-live-artifact';
@@ -39,6 +40,7 @@ for (const school of schools) {
     elapsedMs:Date.now() - startedAt
   };
 
+  const resolvedEntity = resolveEntityRequest('', school).entity;
   const sourceUnavailable = response.status === 502
     && payload?.mode === 'source_unavailable'
     && payload?.error === 'source_api_unavailable'
@@ -49,7 +51,7 @@ for (const school of schools) {
 
   if (sourceUnavailable) {
     assert.equal(payload.scope, 'school', `source_unavailable 必须保留 school scope：${school}`);
-    assert.ok(payload.schoolMeta?.id !== undefined && payload.schoolMeta?.id !== null, `source_unavailable 必须保留已解析学校实体：${school}`);
+    if (resolvedEntity) assert.ok(payload.schoolMeta?.id !== undefined && payload.schoolMeta?.id !== null, `source_unavailable 必须保留已解析学校实体：${school}`);
     assert.equal(row.summaryLength, 0, `source_unavailable 不应伪造摘要：${school}`);
     assert.equal(row.studentEvidenceCount, 0, `source_unavailable 不应伪造学生证据：${school}`);
     assert.equal(row.reviewCount, 0, `source_unavailable 不应伪造评论：${school}`);

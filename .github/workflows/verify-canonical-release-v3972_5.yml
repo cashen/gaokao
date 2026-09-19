@@ -19,6 +19,9 @@ on:
       - 'tools/audit-site-runtime-generation-v3990_3.mjs'
       - 'tools/audit-unified-resource-graph-v3990_3.mjs'
       - 'tools/audit-major-bands-rank-kernel-v3990_3.mjs'
+      - 'shared/resources/schools/school-social-labels.v002_1.js'
+      - 'shared/resources/schools/school-social-labels.shared-v001.js'
+      - 'tools/verify-school-social-labels-shared-v002_1.mjs'
       - 'tools/ln-2026/**'
       - 'tools/ln-2026/verify-final-release-v3990_0.py'
   push:
@@ -51,6 +54,7 @@ jobs:
           node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_3.mjs
           node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_3.mjs
           node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_3.mjs
+          node tools/verify-school-social-labels-shared-v002_1.mjs
 
           sed \
             -e 's/v3\.9\.90\.0/v3.9.90.3/g' \

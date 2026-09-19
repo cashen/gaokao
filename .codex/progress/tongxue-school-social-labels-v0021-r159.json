@@ -1,0 +1,43 @@
+{
+  "task": "tongxue-school-social-labels-v002.1",
+  "revision": "r159",
+  "baseMainSha": "5c17317942b7bd81f4a77780dad37007dc3d077e",
+  "branch": "feat/tongxue-social-labels-v0021-r159",
+  "source": {
+    "artifactRun": 35282615065,
+    "artifactId": 10523165531,
+    "artifactSha256": "2d17d1244614f77e95107418ff69f197115c57191934be28358029a9689fb18a",
+    "sourceVersion": "school-social-labels-v002.1",
+    "labels": 29,
+    "sourceRelations": 839,
+    "resolvedProfileRelations": 824,
+    "unresolvedRelations": 15,
+    "encodedUniqueRelations": 804
+  },
+  "architecture": {
+    "raw": "shared/resources/schools/school-social-labels.v002_1.js",
+    "shared": "shared/resources/schools/school-social-labels.shared-v001.js",
+    "consumer": "tongxue/app/tongxue-runtime-result-view-v159.js",
+    "uiVersion": "tongxue-common-name-v004-social-labels"
+  },
+  "policy": {
+    "sourceDerivedOnly": true,
+    "fuzzyMapping": false,
+    "inferredRelations": false,
+    "taggedMajorRelations": 0,
+    "unresolvedFailClosed": true
+  },
+  "test": {
+    "static": "tools/verify-school-social-labels-shared-v002_1.mjs",
+    "browser": "tools/browser-tongxue-social-labels-v005.mjs",
+    "viewport": "390x844",
+    "cases": [
+      "哈尔滨工业大学 -> 10 source labels",
+      "辽宁科技大学 -> 0 source labels",
+      "哈尔滨工业大学（深圳） -> 9 source labels",
+      "江西现代职业技术学院 / 江西现代职业学院 alias -> 双高"
+    ]
+  },
+  "status": "pending-exact-head-ci",
+  "nextGate": "Exact-head PR CI; then Preview SHA; then merge only after source, browser, release and production checks are green."
+}
