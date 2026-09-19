@@ -51,7 +51,7 @@ async function runCase({ name, school, expectLabels = [], expectNoSocialLabels =
 
 await runCase({ name:'source-derived labels are shown for an exact school', school:'哈尔滨工业大学', expectLabels:['101计划','985','国防七子','机械五虎','建筑老八校','强基','双一流','中坚九校','C9','E9'] });
 await runCase({ name:'missing source relation stays empty instead of being inferred', school:'辽宁科技大学', expectNoSocialLabels:true });
-await runCase({ name:'campus label set follows the source campus relation', school:'哈尔滨工业大学（深圳）', expectLabels:['985','C9','E9','中坚九校','双一流','国防七子','建筑老八校','强基','机械五虎'] });
+await runCase({ name:'campus label set follows the source campus relation', school:'哈尔滨工业大学（深圳）', expectLabels:['985','C9','E9','中坚九校','双一流','国防七子','建筑老八校','101计划','机械五虎'] });
 await runCase({ name:'explicit source-name normalization preserves verified school relation', school:'江西现代职业技术学院', expectLabels:['双高'] });
 
 await browser.close();
